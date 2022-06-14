@@ -1,0 +1,38 @@
+.guide{
+    border: 1px red solid;
+
+}
+
+.listcontainer{
+    height: 500px;
+    border: 1px solid gainsboro;
+
+}
+
+li:hover{
+    background-color: lightblue;
+}
+
+.ButtonC{
+    width:83px;
+}
+
+.Buttongrp{
+    width: 83px;
+}
+
+.analyticscontainer{
+    height: 500px;
+}
+
+.border{
+    border: 0;
+}
+
+.cborder{
+    border: 1px solid gainsboro;
+}
+
+.ssave{
+    width: 100px;
+}
