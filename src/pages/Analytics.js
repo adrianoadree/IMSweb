@@ -63,8 +63,6 @@ function Analytics(){
         <div className="row bg-light">
           <Navigation/>
             <div className="col-3 p-5 ">
-                <Searchbar />
-                <span><br></br></span>
                 <AnalyticsContentList/>
 
 

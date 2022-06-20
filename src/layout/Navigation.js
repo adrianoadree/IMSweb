@@ -23,6 +23,9 @@ function Navigation(){
           </NavDropdown>
           <NavDropdown title="Inventory" id="collasible-nav-dropdown">
               <LinkContainer to="/inventory">
+                <NavDropdown.Item>Inventory </NavDropdown.Item>
+              </LinkContainer>
+              <LinkContainer to="/stockcard">
                 <NavDropdown.Item>Stockcard</NavDropdown.Item>
               </LinkContainer>
               <LinkContainer to="/inventory">
@@ -30,9 +33,6 @@ function Navigation(){
               </LinkContainer>
               <LinkContainer to="/inventory">
                 <NavDropdown.Item>Warehouse</NavDropdown.Item>
-              </LinkContainer>
-              <LinkContainer to="/inventory">
-                <NavDropdown.Item>Inventory Map</NavDropdown.Item>
               </LinkContainer>
           </NavDropdown>
             <LinkContainer to="/analytics">

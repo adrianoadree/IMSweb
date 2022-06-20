@@ -1,5 +1,6 @@
 import { Route,Routes } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './custom.css';
 
 //pages
 import Analytics from './pages/Analytics';
@@ -9,6 +10,7 @@ import LandingPage from './pages/LandingPage';
 import Records from './pages/Records';
 import Itemforecast from './pages/ItemForcast';
 import SupplierList from './pages/SupplierList';
+import StockcardPage from './pages/StockcardPage';
 
 function App() {
 
@@ -24,6 +26,8 @@ function App() {
         <Route path='/analytics' element={<Analytics/>}/>
         <Route path='/community' element={<Community/>}/>
         <Route path='/inventory' element={<Inventory/>}/>
+        <Route path='/stockcard' element={<StockcardPage/>}/>
+
         <Route path='/' element={<LandingPage/>}/>
         <Route path='/records' element={<Records/>}/>
         <Route path='/itemforecasting' element={<Itemforecast/>}/>

@@ -36,3 +36,8 @@ li:hover{
 .ssave{
     width: 100px;
 }
+
+.transparent{
+    background-color: transparent;
+    border: none;
+}
