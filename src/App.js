@@ -11,6 +11,7 @@ import Records from './pages/Records';
 import Itemforecast from './pages/ItemForcast';
 import SupplierList from './pages/SupplierList';
 import StockcardPage from './pages/StockcardPage';
+import SalesRecord from './pages/SalesRecord';
 
 function App() {
 
@@ -30,6 +31,8 @@ function App() {
 
         <Route path='/' element={<LandingPage/>}/>
         <Route path='/records' element={<Records/>}/>
+        <Route path='/salesrecord' element={<SalesRecord/>}/>
+
         <Route path='/itemforecasting' element={<Itemforecast/>}/>
         <Route path='/supplier' element={<SupplierList/>}/>
       </Routes>

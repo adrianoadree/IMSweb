@@ -1,4 +1,3 @@
-import Searchbar from "../components/searchbar";
 import AnalyticsContentList from "../components/analyticscontentlist";
 
 import { Nav } from "react-bootstrap";

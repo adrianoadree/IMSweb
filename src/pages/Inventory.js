@@ -1,4 +1,4 @@
-import { Card, Table } from 'react-bootstrap';
+import { Card, Table,Button } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
@@ -59,7 +59,7 @@ function Inventory(){
             <div className="col-3 p-5">
               <Card className='bg-white'>
                 <CardHeader className='bg-primary'>
-                 <strong className='text-center text-white'>Add New Item</strong>
+                 <h6 className='text-center text-white'>Add New Item</h6>
                 </CardHeader>  
                  
                 <div className="p-3">
@@ -143,17 +143,15 @@ function Inventory(){
                                 <td className='px-3'>
                                     <small>{stockcard.quantity}</small>
                                 </td>
-                                <td className='px-3'>
-                                <button className='transparent' onClick={() => {updateStockcard(stockcard.id, stockcard.quantity)}}>
-                                  <small className='px-4'><FontAwesomeIcon icon ={faPenToSquare}></FontAwesomeIcon>Increment</small>
-                                  </button>
+                                <td className='px-3'>                                
+                                  <Button className='text-black px-4' variant="outline-light" onClick={() => {updateStockcard(stockcard.id, stockcard.quantity)}}>
+                                    Increment <FontAwesomeIcon icon ={faPenToSquare}></FontAwesomeIcon>                                  
+                                  </Button>
                                   /
-                                  <button className='transparent' onClick={() => {deleteStockcard(stockcard.id)}}>
-                                  <small className='px-4'><FontAwesomeIcon icon ={faTrashCan}></FontAwesomeIcon></small>
-                                  </button>
+                                  <Button className='text-black px-4' variant="outline-light" onClick={() => {deleteStockcard(stockcard.id)}}>
+                                    <FontAwesomeIcon icon ={faTrashCan}></FontAwesomeIcon>
+                                  </Button>
                                 </td>
-                                
-
                             </tr>
                             )
                             })}
