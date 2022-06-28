@@ -2,7 +2,7 @@ function ForecastingContentList(){
 
 return (
         <div>
-            <div className="card">
+            <div className="card shadow">
             <div className="card-header bg-primary text-white" >Product List</div>
                 <div className="card-body"style={{height:'500px'}}>
                     <ul className="list-group list-group-flush bg-white">

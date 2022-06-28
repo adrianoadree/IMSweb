@@ -2,7 +2,7 @@ import Navigation from "../layout/Navigation";
 import { Button, Card, Nav,Table } from "react-bootstrap";
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus,faCalendarDays,faNoteSticky,faPesetaSign } from '@fortawesome/free-solid-svg-icons'
+import { faPlus,faCalendarDay,faNoteSticky,faPesetaSign, faFile } from '@fortawesome/free-solid-svg-icons'
 import ListGroup from 'react-bootstrap/ListGroup';
 
 function SalesRecord(){
@@ -11,7 +11,7 @@ function SalesRecord(){
             <div className="row bg-light">            
                 <Navigation/>
                 <div className="col-3 p-5">
-                    <Card>
+                    <Card className="shadow">
                         <Card.Header className="bg-primary text-white">
                             <div className="row">
                                 <div className="col-9 pt-2">
@@ -35,7 +35,7 @@ function SalesRecord(){
 
                 </div>
                 <div className="col-9 p-5">
-                    <Nav fill variant="pills" defaultActiveKey="/records">
+                    <Nav className="shadow" fill variant="pills" defaultActiveKey="/records">
                         <Nav.Item>
                             <Nav.Link as={Link} to="/records">Purchase History</Nav.Link>
                         </Nav.Item>
@@ -44,10 +44,10 @@ function SalesRecord(){
                         </Nav.Item>               
                     </Nav>
                     <span><br></br></span>
-                    <div className="row px-5 py-3 bg-white">
+                    <div className="row px-5 py-3 bg-white shadow">
                         <div className="row pt-4 px-2 bg-white">
-                        <small> <FontAwesomeIcon icon ={faCalendarDays}/> Document Number: </small>
-                        <small> <FontAwesomeIcon icon ={faCalendarDays}/> Date: </small>
+                        <small> <FontAwesomeIcon icon ={faFile}/> Document Number: </small>
+                        <small> <FontAwesomeIcon icon ={faCalendarDay}/> Date: </small>
                         <small> <FontAwesomeIcon icon ={faNoteSticky}/> Note: </small>
                         <small> <FontAwesomeIcon icon ={faPesetaSign}/> Total: </small>
                         </div>
@@ -63,7 +63,7 @@ function SalesRecord(){
                             <th className='text-center'>Modify / Delete</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody style={{height:"300px"}}>
                                
                         </tbody>
                     </Table>

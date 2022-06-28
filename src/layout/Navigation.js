@@ -28,7 +28,7 @@ function Navigation(){
               <LinkContainer to="/stockcard">
                 <NavDropdown.Item>Stockcard</NavDropdown.Item>
               </LinkContainer>
-              <LinkContainer to="/inventory">
+              <LinkContainer to="/barcode">
                 <NavDropdown.Item>Print Barcodes</NavDropdown.Item>
               </LinkContainer>
               <LinkContainer to="/inventory">

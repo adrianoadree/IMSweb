@@ -12,6 +12,8 @@ import Itemforecast from './pages/ItemForcast';
 import SupplierList from './pages/SupplierList';
 import StockcardPage from './pages/StockcardPage';
 import SalesRecord from './pages/SalesRecord';
+import LoginPage from './pages/LoginPage';
+import BarcodePage from './pages/BarcodePage';
 
 function App() {
 
@@ -35,6 +37,10 @@ function App() {
 
         <Route path='/itemforecasting' element={<Itemforecast/>}/>
         <Route path='/supplier' element={<SupplierList/>}/>
+        <Route path='/login' element={<LoginPage/>}/>
+        <Route path='/barcode' element={<BarcodePage/>}/>
+
+
       </Routes>
 
     </div>

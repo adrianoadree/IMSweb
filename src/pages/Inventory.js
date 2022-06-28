@@ -1,47 +1,36 @@
-import { Card, Table,Button } from 'react-bootstrap';
+import React from 'react';
+import { Tab, Table, Button, Card, ListGroup } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
-import CardHeader from 'react-bootstrap/esm/CardHeader';
-import {getDocs,collection,addDoc, doc, deleteDoc, updateDoc} from 'firebase/firestore';
+import { getDocs, collection, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashCan, faPenToSquare} from '@fortawesome/free-solid-svg-icons'
+import { faTrashCan, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
+import NewProductModal from '../components/NewProductModal';
 
-function Inventory(){
+function Inventory() {
 
   const [stockcard, setStockcard] = useState([]);
   const stockcardCollectionRef = collection(db, "stockcard")
 
-  //data variable declaration
-  const [newProductName,setNewProductName] = useState("");
-  const [newPriceP, setNewPriceP] = useState(0);
-  const [newPriceS, setNewPriceS] = useState(0);
-  const [newQuanity, setNewQuantity] = useState(0);
-
 
   //Read collection from database
-  useEffect(()=>{
+  useEffect(() => {
     const getStockcard = async () => {
-        const data = await getDocs(stockcardCollectionRef);
-        setStockcard(data.docs.map((doc) => ({...doc.data(), id: doc.id})));
+      const data = await getDocs(stockcardCollectionRef);
+      setStockcard(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     };
     getStockcard()
-}, [])
-
-  //Create product to database
-  const addProduct = async() => {
-    await addDoc(stockcardCollectionRef, {product_name:newProductName, purchase_price:Number(newPriceP),selling_price:Number(newPriceS),quantity:Number(newQuanity)});
-    alert('Successfuly Added to the Database')
-  }
+  }, [stockcard])
 
   //update Stockcard
   const updateStockcard = async (id, quantity) => {
     const stockcardDoc = doc(db, "stockcard", id)
-    const newFields = {quantity: quantity + 1}
+    const newFields = { quantity: quantity + 1 }
     await updateDoc(stockcardDoc, newFields)
   }
-  
+
   //delete row 
   const deleteStockcard = async (id) => {
     const stockcardDoc = doc(db, "stockcard", id)
@@ -50,120 +39,180 @@ function Inventory(){
 
   }
 
-    return(
+  const [modalShow, setModalShow] = React.useState(false);
 
-    
-        
+  return (
+    <div className="row bg-light">
+      <Navigation />
+
+      <Tab.Container id="list-group-tabs-example" defaultActiveKey="#link2">
         <div className="row bg-light">
-          <Navigation/>
-            <div className="col-3 p-5">
-              <Card className='bg-white'>
-                <CardHeader className='bg-primary'>
-                 <h6 className='text-center text-white'>Add New Item</h6>
-                </CardHeader>  
-                 
-                <div className="p-3">
-                  <div className="row">
-                      <div className="col-12">
-                          <label>Item Name</label>
-                          <input type="text" className="form-control" placeholder="Item name" onChange={(event)=>{ setNewProductName(event.target.value);
-                          }}
-                          />
-                      </div>
+
+          <div className='col-3 p-5'>
+
+            <Card className='shadow'>
+              <Card.Header className='bg-primary'>
+                <div className='row'>
+                  <div className='col-9 pt-2 text-white'>
+                    <h6>Product List</h6>
                   </div>
-                  <br/>
-                  <div className="row">
-                    <div className='col-10'>
-                      <label>Purchase Price</label>
-                      <input type="number" className="form-control" placeholder="Purchase Price" onChange={(event)=>{ setNewPriceP(event.target.value);
-                            }}/>
+                  <div className='col-3'>
+                    <Button variant="primary"
+                      onClick={() => setModalShow(true)}>
+                      <FontAwesomeIcon icon={faPlus} />
+                    </Button>
+                  </div>
+                </div>
+              </Card.Header>
+              <Card.Body style={{ height: "500px" }}>
+                <ListGroup variant="flush">
+                  <ListGroup.Item action href="#link1">
+                    Link 1
+                  </ListGroup.Item>
+
+                  {stockcard.map((stockcard) => {
+                    return (
+                      <ListGroup.Item action href="#link2">
+                        <div className='row'>
+                          <div className="col-9 pt-1">
+                            <small>{stockcard.product_name}</small>
+                          </div>
+                          <div className='col-3'>
+                            <Button
+                              className="text-dark"
+                              variant="outline-light"
+                              size="sm"
+                            >
+                              <FontAwesomeIcon icon={faXmark} />
+                            </Button>
+                          </div>
+                        </div>
+
+                      </ListGroup.Item>
+                    )
+                  })}
+
+                </ListGroup>
+              </Card.Body>
+            </Card>
+          </div>
+
+
+          <div className='col-9 p-5'>
+            <Tab.Content>
+              <Tab.Pane eventKey="#link1">
+                <div className='bg-white p-3 shadow'>
+                  <div className='row'>
+                    <h1 className='text-center py-3'>Inventory</h1>
+                  </div>
+
+                  <span><br /><br /></span>
+
+
+                  <NewProductModal
+                    show={modalShow}
+                    onHide={() => setModalShow(false)} />
+
+
+                  <Table striped bordered hover size="sm">
+                    <thead className='bg-primary'>
+                      <tr>
+                        <th className='px-3'>Item Name</th>
+                        <th className='px-3'>Selling Price</th>
+                        <th className='px-3'>Purchase Price</th>
+                        <th className='px-3'>Available Stock</th>
+                        <th className='text-center'>Modify / Delete</th>
+
+                      </tr>
+                    </thead>
+                    <tbody style={{ height: "500px" }}>
+                      {stockcard.map((stockcard) => {
+                        return (
+                          <tr>
+                            <td className='px-3'>
+                              <small>{stockcard.product_name}</small>
+                            </td>
+                            <td className='px-3'>
+                              <small>{stockcard.purchase_price}</small>
+                            </td>
+                            <td className='px-3'>
+                              <small>{stockcard.selling_price}</small>
+                            </td>
+                            <td className='px-3'>
+                              <small>{stockcard.quantity}</small>
+                            </td>
+                            <td className='px-3'>
+                              <Button className='text-black px-4' variant="outline-light" onClick={() => { updateStockcard(stockcard.id, stockcard.quantity) }}>
+                                Increment <FontAwesomeIcon icon={faPenToSquare}></FontAwesomeIcon>
+                              </Button>
+                              /
+                              <Button className='text-black px-4' variant="outline-light" onClick={() => { deleteStockcard(stockcard.id) }}>
+                                <FontAwesomeIcon icon={faTrashCan}></FontAwesomeIcon>
+                              </Button>
+                            </td>
+                          </tr>
+                        )
+                      })}
+
+                    </tbody>
+                  </Table>
+                </div>
+              </Tab.Pane>
+
+              <Tab.Pane eventKey="#link2">
+                <div className='row px-5'>
+                  <div className='row bg-white shadow'>
+                    <h1 className='text-center py-3 p1'>Inventory</h1>
+                  </div>
+
+                  <div className='row'>
+                    <div className='col-6 mt-4'>
+                      <Card className='shadow'>
+                        <Card.Header className='bg-primary text-white'>
+                          Product Name:
+                        </Card.Header>
+                        <Card.Body>
+                          <small>Supplier Name:</small><br />
+                          <small>Available Stock:</small><br />
+                          <small>Purchase Price:</small><br />
+                          <small>Selling Price:</small><br />
+                        </Card.Body>
+                      </Card>
+                    </div>
+                    <div className='col-6 mt-4'>
+                      <Card className='shadow'>
+                        <Card.Header className='bg-primary text-white'>
+                          Barcode
+                        </Card.Header>
+                        <Card.Body>
+                          <div className='bg-secondary' style={{ height: "50px" }}></div>
+                      
+
+                          
+                        </Card.Body>
+                        <Card.Footer className='bg-white'>
+                          <Button size='sm'>
+                            Generate Barcode
+                          </Button>
+                        </Card.Footer>
+                      </Card>
                     </div>
                   </div>
-                  <br/>
-                  <div className="row">
-                    <div className="col-10">
-                      <label>Selling Price</label>
-                      <input type="number" className="form-control" placeholder="Selling Price" onChange={(event)=>{ setNewPriceS(event.target.value);
-                          }}/>
-                      </div>
-                  </div>
-                  <br/>
-                  <div className="row">
-                      <div className="col-10">
-                        <label>Quantity</label>
-                        <input type="number" className="form-control" placeholder="Quantity" onChange={(event)=>{ setNewQuantity(event.target.value);
-                          }}/>
-                      </div>
-                  </div>
-                  <br/>
-                  <div className="row px-3">                     
-                    <button onClick={addProduct} className="btn btn-primary">Save</button>
-                  </div>
-                  
 
-
-              </div>
-
-              </Card>
-
-            </div>
-
-
-            
-            <div className='col-9 p-5'>
-              <div  className='bg-white p-3'>
-
-              <h1 className='text-center py-3'>Inventory</h1>
-              <span><br/><br/></span>
-
-              <Table striped bordered hover size="sm">
-                <thead className='bg-primary'>
-                  <tr>
-                    <th className='px-3'>Item Name</th>
-                    <th className='px-3'>Selling Price</th>
-                    <th className='px-3'>Purchase Price</th>
-                    <th className='px-3'>Available Stock</th>
-                    <th className='text-center'>Modify / Delete</th>
-
-                  </tr>
-                </thead>
-                 <tbody>
-                        {stockcard.map((stockcard) => { 
-                            return (
-                            <tr>
-                                <td className='px-3'>
-                                    <small>{stockcard.product_name}</small>
-                                </td>
-                                <td className='px-3'>
-                                    <small>{stockcard.purchase_price}</small>
-                                </td>
-                                <td className='px-3'>
-                                    <small>{stockcard.selling_price}</small>
-                                </td>
-                                <td className='px-3'>
-                                    <small>{stockcard.quantity}</small>
-                                </td>
-                                <td className='px-3'>                                
-                                  <Button className='text-black px-4' variant="outline-light" onClick={() => {updateStockcard(stockcard.id, stockcard.quantity)}}>
-                                    Increment <FontAwesomeIcon icon ={faPenToSquare}></FontAwesomeIcon>                                  
-                                  </Button>
-                                  /
-                                  <Button className='text-black px-4' variant="outline-light" onClick={() => {deleteStockcard(stockcard.id)}}>
-                                    <FontAwesomeIcon icon ={faTrashCan}></FontAwesomeIcon>
-                                  </Button>
-                                </td>
-                            </tr>
-                            )
-                            })}
-                  
-                </tbody>
-              </Table>
-              </div>
-
-            </div>
-            
+                </div>
+              </Tab.Pane>
+            </Tab.Content>
+          </div>
         </div>
-    );
+      </Tab.Container>
+
+
+
+
+
+
+    </div>
+  );
 
 }
 export default Inventory;

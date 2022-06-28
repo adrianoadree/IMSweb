@@ -21,16 +21,18 @@ const data = [
       Bearbrand: 600,
       PancitCanton: 470,
     },
+
     {
       date: 'Wednesday',
       Chippy: 400,
       Bearbrand: 590,
       PancitCanton: 450,
     },
+
     {
       date: 'Thursday',
       Chippy: 390,
-      Bearbrand: 580,
+      Bearbrand: 1080,
       PancitCanton: 440,
     },
     {
@@ -68,7 +70,7 @@ function Analytics(){
             </div>
             
             <div className="col-9 p-5 ">
-            <Nav fill variant="pills" defaultActiveKey="/analytics">
+            <Nav className="shadow" fill variant="pills" defaultActiveKey="/analytics">
                     <Nav.Item>
                         <Nav.Link as={Link} to="/analytics" active>Top Used Item</Nav.Link>
                     </Nav.Item>
@@ -80,7 +82,7 @@ function Analytics(){
 
            
 
-            <div className="row analyticscontainer p-5 bg-white">
+            <div className="row p-5 bg-white shadow" style={{height:"500px"}}>
             
 
               <ResponsiveContainer width="100%" height="100%">
@@ -95,7 +97,7 @@ function Analytics(){
                     bottom: 5,
                   }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
+                  <CartesianGrid />
                   <XAxis dataKey="date" />
                   <YAxis />
                   <Tooltip />

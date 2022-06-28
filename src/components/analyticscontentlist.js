@@ -1,7 +1,7 @@
 import { db } from '../firebase-config';
 import {collection, getDocs} from 'firebase/firestore';
 import { useState, useEffect } from 'react';
-
+import { ListGroup } from 'react-bootstrap';
 
 
 function AnalyticsContentList(){
@@ -17,23 +17,22 @@ function AnalyticsContentList(){
             setStockcard(data.docs.map((doc) => ({...doc.data(), id: doc.id})));
         };
         getStockcard()
-    }, [])
+    },[Stockcard])
    
     return(
         
         <div>
-         
-            <div className="card">
+            <div className="card shadow">
             <div className="card-header bg-primary text-white" >Product Ranking</div>
                 <div className="card-body"style={{height:'500px'}}>
-                    <ul className="list-group list-group-flush bg-white">
+                <ListGroup as="ol" variant="flush" numbered>
                         {Stockcard.map((Stockcard) => { 
                             return(
-                                <li class="list-group-item">
+                                <ListGroup.Item as="li">
                                     <small>{Stockcard.product_name}</small>
-                                </li>
+                                </ListGroup.Item>
                             )})}
-                    </ul>
+                 </ListGroup>
                 </div>
             </div>
 
