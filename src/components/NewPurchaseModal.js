@@ -37,7 +37,7 @@ function NewPurchaseModal(props) {
         getStockcard()
         console.log("Purchase modal: read stockcard collection")
 
-    }, [stockcard])
+    }, [])
 
     var curr = new Date();
     curr.setDate(curr.getDate());

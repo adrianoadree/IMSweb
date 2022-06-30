@@ -11,13 +11,12 @@ function AnalyticsContentList(){
 
 
     useEffect(()=>{
-
         const getStockcard = async () => {
             const data = await getDocs(stockcardCollectionRef);
             setStockcard(data.docs.map((doc) => ({...doc.data(), id: doc.id})));
         };
         getStockcard()
-    },[Stockcard])
+    },[])
    
     return(
         

@@ -36,7 +36,7 @@ function NewProductModal(props) {
     };
     getSupplier()
     console.log("read supplier col")
-  }, [supplier])
+  }, [])
 
 
   return (

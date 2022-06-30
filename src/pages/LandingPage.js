@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Card, Nav, Table, Button, ButtonGroup } from "react-bootstrap";
 import NewSupplierModal from "../components/NewSupplierModal";
 import Navigation from "../layout/Navigation";
@@ -7,19 +7,30 @@ import { faCartFlatbed, faFileInvoice, faUserPlus } from "@fortawesome/free-soli
 import NewProductModal from "../components/NewProductModal";
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import NewSalesModal from "../components/NewSalesModal";
+import { useNavigate } from 'react-router-dom';
 
-function LandingPage() {
+
+function LandingPage({isAuth}) {
     const [productModalShow, setProductModalShow] = React.useState(false);
     const [supplierModalShow, setSupplierModalShow] = React.useState(false);
     const [purchaseModalShow, setPurchaseModalShow] = React.useState(false);
     const [salesModalShow, setSalesModalShow] = React.useState(false);
 
+    let navigate = useNavigate();
+
+    useEffect(() =>{
+        if(!isAuth){
+            navigate("/");
+        }
+    },[]);
+
+
 
     return (
         <div className="row bg-light">
             <Navigation />
-            <div className="col-1" />
 
+            <div className="col-1" />
             <div className="col-4 py-5" >
                 <Card className="shadow">
                     <Card.Header className="bg-primary  text-white py-3"><strong>Quick Access</strong></Card.Header>

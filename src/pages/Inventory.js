@@ -4,12 +4,14 @@ import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { getDocs, collection, doc, deleteDoc, updateDoc } from 'firebase/firestore';
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashCan, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import NewProductModal from '../components/NewProductModal';
 
-function Inventory() {
+
+
+
+function Inventory({isAuth}) {
 
   const [stockcard, setStockcard] = useState([]);
   const stockcardCollectionRef = collection(db, "stockcard")
@@ -22,7 +24,7 @@ function Inventory() {
       setStockcard(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     };
     getStockcard()
-  }, [stockcard])
+  }, [])
 
   //update Stockcard
   const updateStockcard = async (id, quantity) => {
@@ -40,6 +42,8 @@ function Inventory() {
   }
 
   const [modalShow, setModalShow] = React.useState(false);
+
+
 
   return (
     <div className="row bg-light">

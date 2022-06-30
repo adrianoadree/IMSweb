@@ -2,7 +2,7 @@ import React from "react";
 import { Nav } from "react-bootstrap";
 import { Link } from 'react-router-dom';
 import Navigation from "../layout/Navigation";
-import { Table, Button, Modal, Form } from "react-bootstrap"
+import { Table, Button } from "react-bootstrap"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faNoteSticky, faXmark, faUser, faPesetaSign } from '@fortawesome/free-solid-svg-icons'
 import { faCalendarDays } from "@fortawesome/free-regular-svg-icons";
@@ -10,14 +10,8 @@ import ListGroup from 'react-bootstrap/ListGroup';
 
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
-import { getDocs, collection, addDoc, doc, deleteDoc } from 'firebase/firestore';
+import { getDocs, collection, doc, deleteDoc } from 'firebase/firestore';
 import NewPurchaseModal from "../components/NewPurchaseModal";
-
-
-
-
-
-
 
 
 function Records() {
@@ -26,7 +20,7 @@ function Records() {
 
     const [purchaseRecord, setPurchaseRecord] = useState([]);
     const purchaseRecordCollectionRef = collection(db, "purchase_record")
-    const [supplierRecord, setsupplierRecord] = useState([]);
+    const [setsupplierRecord] = useState([]);
     const supplierRecordCollectionRef = collection(db, "supplier")
 
 
@@ -51,7 +45,7 @@ function Records() {
 
         };
         getPurchaseRecord()
-    }, [purchaseRecord])
+    }, [])
 
     //Delete Data from firebase
     const deleteTransaction = async (id) => {
@@ -59,6 +53,8 @@ function Records() {
         await deleteDoc(transcationDoc);
         alert('Record DELETED from the Database')
     }
+
+
 
     return (
         <div className="row bg-light">

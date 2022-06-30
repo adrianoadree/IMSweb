@@ -32,7 +32,7 @@ function NewSalesModal(props) {
             setStockcard(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
         };
         getStockcard()
-    }, [stockcard])
+    }, [])
 
     var curr = new Date();
     curr.setDate(curr.getDate());

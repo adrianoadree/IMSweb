@@ -1,8 +1,6 @@
 import Navigation from "../layout/Navigation";
 
-function StockcardPage() {
-
-
+function StockcardPage({isAuth}) {
 
 
 

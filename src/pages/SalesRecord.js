@@ -5,7 +5,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus,faCalendarDay,faNoteSticky,faPesetaSign, faFile } from '@fortawesome/free-solid-svg-icons'
 import ListGroup from 'react-bootstrap/ListGroup';
 
+
 function SalesRecord(){
+
+
+
     return(
         <div>
             <div className="row bg-light">            

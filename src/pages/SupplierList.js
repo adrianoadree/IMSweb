@@ -36,7 +36,7 @@ function SupplierList() {
         setSupplierAddress(doc.data().supplier_address)
         setSupplierContact(doc.data().supplier_contact)
 
-    })
+    },[])
 
     //Read supplier collection from database
     useEffect(() => {
@@ -45,7 +45,7 @@ function SupplierList() {
             setSupplier(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
         };
         getSupplier()
-    }, [supplier])
+    }, [])
 
 
     //Delete collection from database
@@ -53,8 +53,6 @@ function SupplierList() {
         const supplierDoc = doc(db, "supplier", id)
         await deleteDoc(supplierDoc);
     }
-
-
 
 
     return (

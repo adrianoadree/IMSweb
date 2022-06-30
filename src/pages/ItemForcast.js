@@ -1,10 +1,8 @@
 import ForecastingContentList from "../components/itemforecastingcontentlist";
 import { Card, Nav } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Navigation from "../layout/Navigation";
-
 
 
 const data = [
@@ -54,6 +52,10 @@ const data = [
 
 
 function Itemforecast() {
+
+  
+
+
   return (
     <div className="row bg-light">
       <Navigation />
