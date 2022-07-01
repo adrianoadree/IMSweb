@@ -1,25 +1,18 @@
 import Navigation from "../layout/Navigation";
 
-function StockcardPage({isAuth}) {
-
+function StockcardPage() {
 
 
   return (
-
-    <div className="row bg-light">
+    <div>
       <Navigation />
-
-        <div className='col-3 p-5'>
-        </div>
-
-        <div className='col-9 p-5'>
-        
-        </div>
-
-
 
 
     </div>
+
+
+
+
   );
 
 

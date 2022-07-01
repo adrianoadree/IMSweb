@@ -18,7 +18,6 @@ function SupplierList() {
 
 
     const [suppId, setSuppId] = useState("xx");
-    //var SuppId = "TOCOyyZcOLOvH8TmnCNG"
     const docRef = doc(db, "supplier", suppId)
 
 

@@ -2,28 +2,43 @@ import React from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { db } from "../firebase-config";
-import { getDocs, addDoc, collection } from "firebase/firestore";
-
+import { getDocs, addDoc, collection,arrayUnion,updateDoc } from "firebase/firestore";
 
 
 function NewSalesModal(props) {
 
     const [setModalShow] = React.useState(false);
     const [stockcard, setStockcard] = useState([]);
-    const purchaseRecordCollectionRef = collection(db, "purchase_record")
+
+
     const stockcardCollectionRef = collection(db, "stockcard")
+    const salesRecordCollectionRef = collection(db, "sales_record")
+
     const [newDocumentNumber, setNewDocumentNumber] = useState(0);
     const [newNote, setNewNote] = useState("");
     const [newDate, setNewDate] = useState(new Date());
-    const [newProductName, setNewProductName] = useState("");
+    const [newProductName, setNewProductName] = useState([""]);
     const [newQuanity, setNewProductQuantity] = useState(0);
+
 
     //add document to database
     const addRecord = async () => {
-        await addDoc(purchaseRecordCollectionRef, { document_number: Number(newDocumentNumber), document_date: newDate, document_note: newNote, product_name: newProductName, product_quantity: Number(newQuanity) });
+        await addDoc(salesRecordCollectionRef,
+            {
+                document_number: Number(newDocumentNumber),
+                document_date: newDate,
+                document_note: newNote,
+            });
+        await updateDoc(salesRecordCollectionRef, {
+            soldProd: arrayUnion({ setNewProductName,product_quantity: Number(newQuanity)
+            })
+        });
+        setNewDocumentNumber(newDocumentNumber+1);
         setModalShow(false)
         alert('Successfuly Added to the Database')
     }
+
+
 
     //read collection from stockcard
     useEffect(() => {
@@ -58,7 +73,6 @@ function NewSalesModal(props) {
 
 
 
-
     return (
         <Modal
             {...props}
@@ -76,9 +90,11 @@ function NewSalesModal(props) {
                     <div className="col-8">
                         <label>Document Number</label>
                         <input
-                            type="text"
+                            disabled
+                            type="number"
                             className="form-control"
                             placeholder="Document Number"
+                            value={newDocumentNumber+1}
                             onChange={(event) => { setNewDocumentNumber(event.target.value); }} />
                     </div>
                     <div className="col-4">
