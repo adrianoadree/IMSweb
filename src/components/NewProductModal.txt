@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { addDoc, collection, getDocs } from 'firebase/firestore';
 import { db } from "../firebase-config";
 import NewSupplierModal from "./NewSupplierModal";
-import NewWarehouseModal from "./NewWarehouseModal";
 
 function NewProductModal(props) {
 
@@ -17,16 +16,11 @@ function NewProductModal(props) {
   const [newQuantity, setNewQuantity] = useState(0);
   const [newCategory, setNewCategory] = useState(0);
   const [newProdSupplier, setNewProdSupplier] = useState("");
-  const [newWH, setNewWH] = useState("");
 
   const [supplierModalShow, setSupplierModalShow] = React.useState(false);
   const [supplier, setSupplier] = useState([]);
   const supplierCollectionRef = collection(db, "supplier")
 
-
-  const [warehouseModalShow, setWarehouseModalShow] = React.useState(false);
-  const [warehouse, setWarehouse] = useState([]);
-  const warehouseCollectionRef = collection(db, "warehouse")
 
   //Create product to database
   const addProduct = async () => {
@@ -36,8 +30,7 @@ function NewProductModal(props) {
     product_supplier:newProdSupplier,
     selling_price: Number(newPriceS),
     quantity: Number(newQuantity),
-    category: newCategory,
-    warehouse: newWH, });
+    category: newCategory, });
     alert('Successfuly Added to the Database')
   }
 
@@ -50,15 +43,6 @@ function NewProductModal(props) {
     };
     getSupplier()
     console.log("read supplier col")
-  }, [])
-  
-    useEffect(() => {
-    const getWarehouse = async () => {
-      const data = await getDocs(warehouseCollectionRef);
-      setWarehouse(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    };
-    getWarehouse()
-    console.log("read warehouse col")
   }, [])
 
 
@@ -87,28 +71,6 @@ function NewProductModal(props) {
                 required
                 onChange={(event) => { setNewProductName(event.target.value); }}
               />
-            </div>
-            <div className="col-6">
-              <label>Warehouse</label>
-              <Form.Select 
-              defaultValue="0" 
-              aria-label="Default select example"
-              required
-              onChange={(event) => { setNewWH(event.target.value); }}>
-                <option
-                  disabled
-                  value="0">
-                  Select Warehouse
-                </option>
-                {warehouse.map((warehouse) => {
-                  return (
-                    <option
-                      value={warehouse.wh_name}>
-                      {warehouse.wh_name}
-                    </option>
-                  )
-                })}
-              </Form.Select>
             </div>
           </div>
           <div className="row mt-2">

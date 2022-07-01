@@ -1,14 +1,15 @@
 import React from "react";
 import { Button, Form, Modal } from "react-bootstrap";
-import { useState, useEffect } from "react";
+import { useState, useEffect, QuerySnapshot } from "react";
 import { db } from "../firebase-config";
-import { getDocs, addDoc, collection } from "firebase/firestore";
+import { getDocs, addDoc, collection, setDoc, doc } from "firebase/firestore";
+import Records from "../pages/Records";
 
 function NewPurchaseModal(props) {
 
     const [setModalShow] = React.useState(false);
 
-
+	const [colSize, setColSize] = useState(0);
     const [stockcard, setStockcard] = useState([]);
 
     const purchaseRecordCollectionRef = collection(db, "purchase_record")
@@ -22,8 +23,19 @@ function NewPurchaseModal(props) {
     const [newQuanity, setNewProductQuantity] = useState(0);
 
     //add document to database
+    async function getID(){
+    	const snapshot = db.collection('purchase_record').get()
+    	return snapshot.size;
+    }
+    
     const addRecord = async () => {
-        await addDoc(purchaseRecordCollectionRef, { document_number: Number(newDocumentNumber), document_date: newDate, document_note: newNote, product_name: newProductName, product_quantity: Number(newQuanity) });
+        await setDoc(doc(db,'purchase_order', getID),{
+        document_number: Number(newDocumentNumber),
+        document_date: newDate,
+        document_note: newNote,
+        product_name: newProductName,
+        product_quantity: Number(newQuanity),
+        id: getID},);
         setModalShow(false)
         alert('Successfuly Added to the Database')
     }

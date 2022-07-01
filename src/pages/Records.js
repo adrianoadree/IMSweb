@@ -15,7 +15,6 @@ import NewPurchaseModal from "../components/NewPurchaseModal";
 
 
 function Records() {
-
     const [modalShow, setModalShow] = React.useState(false);
 
     const [purchaseRecord, setPurchaseRecord] = useState([]);
@@ -85,7 +84,7 @@ function Records() {
                                             <div className="col-9">
                                                 <small><strong>{purchaseRecord.supplier_name}</strong></small><br />
                                                 <small className="text-secondary">Doc No: {purchaseRecord.document_number}</small><br />
-                                                <small className="text-secondary">Date</small>
+                                                <small className="text-secondary">Date </small>
 
                                             </div>
 
@@ -124,7 +123,7 @@ function Records() {
                     <div className="row pt-4 px-2 bg-white">
                         <small> <FontAwesomeIcon icon={faUser} /> Supplier Name: </small>
                         <small> <FontAwesomeIcon icon={faCalendarDays} /> Date: </small>
-                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: </small>
+                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: {purchaseRecord.document_note}</small>
                         <small> <FontAwesomeIcon icon={faPesetaSign} /> Total: </small>
                     </div>
 
