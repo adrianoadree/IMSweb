@@ -8,11 +8,12 @@ import NewSalesModal from "../components/NewSalesModal";
 import { useState, useEffect } from "react";
 import { db } from "../firebase-config";
 import { getDocs, collection, doc, deleteDoc } from "firebase/firestore";
+import { useNavigate } from 'react-router-dom';
 
 
 
 
-function SalesRecord() {
+function SalesRecord({isAuth}) {
 
     const [modalShow, setModalShow] = useState(false);
     const [salesRecord, setSalesRecord] = useState([]);
@@ -21,10 +22,15 @@ function SalesRecord() {
 
     const [salesId, setSalesId] = useState("xxx")
     const docRef = doc(db, "sales_record", salesId)
+    let navigate = useNavigate();
 
 
 
-
+    useEffect(() => {
+        if (!isAuth) {
+            navigate("/login");
+        }
+    }, []);
 
 
     //read salesRecord collection

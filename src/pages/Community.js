@@ -7,8 +7,10 @@ import { useState, useEffect } from "react";
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from "../firebase-config";
 import { addDoc, collection, getDocs } from "firebase/firestore";
+import { useNavigate } from 'react-router-dom';
 
-function Community() {
+
+function Community({isAuth}) {
 
     const [show, setShow] = useState(false);
     const [inputValue, setInputValue] = useState();
@@ -17,8 +19,13 @@ function Community() {
     const [user, setUser] = useState({});
     const communityCollectionRef = collection(db, "community")
     const [newPost, setNewPost] = useState("");
+    let navigate = useNavigate();
 
-
+    useEffect(() =>{
+        if(!isAuth){
+            navigate("/login");
+        }
+    },[]);
 
     onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser);
@@ -41,6 +48,8 @@ function Community() {
         };
         getPosts()
     }, [])
+
+    
 
     return (
 

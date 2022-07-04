@@ -18,7 +18,7 @@ import { useState } from 'react';
 function App() {
 
 
-  const [isAuth, setIsAuth] = useState(true);
+  const [isAuth, setIsAuth] = useState(false);
 
   return (
 
@@ -26,19 +26,17 @@ function App() {
     <div className="App">
 
       <Routes>
-
-        <Route path='/dashboard' element={<LandingPage isAuth={isAuth}/>}/>
-        <Route path='/' element={<LoginPage setIsAuth={setIsAuth}/>}/>
-
-
-        <Route path='/supplier' element={<SupplierList/>}/>
-        <Route path='/inventory' element={<Inventory/>}/>
-        <Route path='/records' element={<Records/>}/>
-        <Route path='/salesrecord' element={<SalesRecord/>}/>
-        <Route path='/stockcard' element={<StockcardPage/>}/>
-        <Route path='/analytics' element={<Analytics/>}/>
-        <Route path='/itemforecasting' element={<Itemforecast/>}/>
-        <Route path='/community' element={<Community/>}/>
+        <Route path='/login' element={<LoginPage isAuth={isAuth} setIsAuth={setIsAuth}/>}/>
+        
+        <Route path='/' element={<LandingPage isAuth={isAuth}/>}/>
+        <Route path='/supplier' element={<SupplierList isAuth={isAuth}/>}/>
+        <Route path='/inventory' element={<Inventory isAuth={isAuth}/>}/>
+        <Route path='/records' element={<Records isAuth={isAuth}/>}/>
+        <Route path='/salesrecord' element={<SalesRecord isAuth={isAuth}/>}/>
+        <Route path='/stockcard' element={<StockcardPage isAuth={isAuth}/>}/>
+        <Route path='/analytics' element={<Analytics isAuth={isAuth}/>}/>
+        <Route path='/itemforecasting' element={<Itemforecast isAuth={isAuth}/>}/>
+        <Route path='/community' element={<Community isAuth={isAuth}/>}/>
     
 
 

@@ -7,6 +7,7 @@ import { getDocs, collection, doc, deleteDoc, updateDoc, onSnapshot } from 'fire
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashCan, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import NewProductModal from '../components/NewProductModal';
+import { useNavigate } from 'react-router-dom';
 
 
 
@@ -23,8 +24,14 @@ function Inventory({ isAuth }) {
   const [prodQuantity, setProdQuantity] = useState(0);
   const [prodPurchPrice, setProdPurchPrice] = useState(0);
   const [prodSalesPrice, setProdSalesPrice] = useState(0);
+  let navigate = useNavigate();
 
 
+  useEffect(() => {
+    if (!isAuth) {
+      navigate("/login");
+    }
+  }, []);
 
   //access document from a collection
   onSnapshot(stockcardDocRef, (doc) => {

@@ -5,18 +5,20 @@ import { faLock, faUser } from "@fortawesome/free-solid-svg-icons";
 import SignupModal from "../components/SignupModal";
 import { auth } from "../firebase-config";
 import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 
-function LoginPage({setIsAuth}) {
+function LoginPage({isAuth, setIsAuth }) {
 
-    const [signupModalShow, setSignupModalShow] = React.useState(false);
+    const [isLoggedin,setisLoggedIn] = useState(false)
+    const [signupModalShow, setSignupModalShow] = useState(false);
     const [show, setShow] = useState(false);
 
     const [user, setUser] = useState({});
     const [loginEmail, setLoginEmail] = useState("");
     const [loginPassword, setLoginPassword] = useState("");
     let navigate = useNavigate();
+
 
 
     onAuthStateChanged(auth, (currentUser) => {
@@ -33,7 +35,7 @@ function LoginPage({setIsAuth}) {
             );
             setIsAuth(true)
             setShow(false)
-            navigate("/dashboard")
+            navigate("/")
             console.log(user)
         } catch (error) {
             setShow(true)
@@ -46,6 +48,7 @@ function LoginPage({setIsAuth}) {
         <div className="row bg-light" style={{ height: "667px" }}>
             <div className="col-3" />
             <div className="col-6 p-5 ">
+                <h1>{isAuth}asdasd</h1>
                 <Card className="bg-white shadow">
                     <Card.Body >
                         <div className="row" style={{ height: "100px" }}>
@@ -54,7 +57,7 @@ function LoginPage({setIsAuth}) {
                         </div>
                         <div className="row p-4">
                             <Alert show={show} variant="danger">
-                                <p className="text-center"> 
+                                <p className="text-center">
                                     Wrong email or password. Please try again
                                 </p>
                             </Alert>

@@ -20,7 +20,8 @@ function LandingPage({isAuth}) {
 
     useEffect(() =>{
         if(!isAuth){
-            navigate("/");
+            navigate("/login");
+            console.log("index: go to login")
         }
     },[]);
 

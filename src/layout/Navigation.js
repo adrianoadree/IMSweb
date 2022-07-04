@@ -23,7 +23,7 @@ function Navigation() {
 
       <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
         <Container>
-          <LinkContainer to="/dashboard">
+          <LinkContainer to="/">
             <Navbar.Brand>IMS</Navbar.Brand>
           </LinkContainer>
           <Navbar.Collapse id="responsive-navbar-nav">
@@ -44,9 +44,6 @@ function Navigation() {
                   <NavDropdown.Item>Stockcard</NavDropdown.Item>
                 </LinkContainer>
                 <LinkContainer to="/inventory">
-                  <NavDropdown.Item>Print Barcodes</NavDropdown.Item>
-                </LinkContainer>
-                <LinkContainer to="/inventory">
                   <NavDropdown.Item>Warehouse</NavDropdown.Item>
                 </LinkContainer>
               </NavDropdown>
@@ -65,7 +62,7 @@ function Navigation() {
                 menuVariant="dark"
               >
                 <NavDropdown.Divider />
-                <NavDropdown.Item onClick={logout} href="/">Logout</NavDropdown.Item>
+                <NavDropdown.Item onClick={logout} href="/login">Logout</NavDropdown.Item>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>

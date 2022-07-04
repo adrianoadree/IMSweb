@@ -1,11 +1,9 @@
 import AnalyticsContentList from "../components/analyticscontentlist";
-
 import { Nav } from "react-bootstrap";
-import { Link } from 'react-router-dom';
-
+import { Link,useNavigate } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Navigation from "../layout/Navigation";
-
+import { useEffect } from "react";
 
 const data = [
   {
@@ -57,9 +55,16 @@ const data = [
 
 
 
-function Analytics() {
+function Analytics({isAuth}) {
+  
+  let navigate = useNavigate();
 
 
+  useEffect(() => {
+    if (!isAuth) {
+      navigate("/login");
+    }
+  }, []);
 
   return (
     <div className="row bg-light">

@@ -3,7 +3,8 @@ import { Card, Nav } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Navigation from "../layout/Navigation";
-
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from "react";
 
 const data = [
   {
@@ -51,9 +52,15 @@ const data = [
 ];
 
 
-function Itemforecast() {
+function Itemforecast({isAuth}) {
+  let navigate = useNavigate();
 
-  
+
+  useEffect(() => {
+    if (!isAuth) {
+      navigate("/login");
+    }
+  }, []);
 
 
   return (

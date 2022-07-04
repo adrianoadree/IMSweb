@@ -7,10 +7,11 @@ import { doc, onSnapshot, collection, getDocs, deleteDoc } from 'firebase/firest
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faAddressBook, faLocationDot, faPlus, faShop, faUser, faXmark } from "@fortawesome/free-solid-svg-icons";
 import NewSupplierModal from '../components/NewSupplierModal';
+import { useNavigate } from 'react-router-dom';
 
 
 
-function SupplierList() {
+function SupplierList({isAuth}) {
 
     const [modalShow, setModalShow] = React.useState(false);
     const [supplier, setSupplier] = useState([]);
@@ -25,8 +26,14 @@ function SupplierList() {
     const [supplierCompany, setSupplierCompany] = useState([]);
     const [supplierAddress, setSupplierAddress] = useState([]);
     const [supplierContact, setSupplierContact] = useState([]);
+    let navigate = useNavigate();
 
 
+    useEffect(() =>{
+        if(!isAuth){
+            navigate("/login");
+        }
+    },[]);
 
     //access document from a collection
     onSnapshot(docRef, (doc) => {
