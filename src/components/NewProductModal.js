@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { addDoc, collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from "../firebase-config";
 import NewSupplierModal from "./NewSupplierModal";
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
+
 
 function NewProductModal(props) {
 
@@ -20,10 +25,24 @@ function NewProductModal(props) {
   const [supplier, setSupplier] = useState([]);
 
 
+  const successToast = () => {
+    toast.success(' New Product Successfully Registered to the Database ', {
+      position: "top-right",
+      autoClose: 3500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
+
+
+
   //Create product to database
   const addProduct = async () => {
     await addDoc(stockcardCollectionRef, { product_name: newProductName, purchase_price: Number(newPriceP), product_supplier: newProdSupplier, selling_price: Number(newPriceS), quantity: Number(newQuanity) });
-    alert('Successfuly Added to the Database')
+    successToast();
   }
 
 
@@ -48,6 +67,20 @@ function NewProductModal(props) {
       aria-labelledby="contained-modal-title-vcenter"
       centered
     >
+      <ToastContainer
+        position="top-right"
+        autoClose={3500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
+
+
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter" className="px-3">
           Register New Product

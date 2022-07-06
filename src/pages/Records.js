@@ -21,13 +21,18 @@ import {
   doc,
   deleteDoc,
   onSnapshot,
-  query
+  query,
+  orderBy,
+  where
 } from 'firebase/firestore';
 import {
   Table,
   Button,
   Tab
 } from "react-bootstrap"
+import moment from "moment";
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 function Records({ isAuth }) {
@@ -35,16 +40,18 @@ function Records({ isAuth }) {
 
   const [modalShow, setModalShow] = useState(false);
   const [purchaseRecord, setPurchaseRecord] = useState([]);
+  const [stockcard, setStockcard] = useState([]);
 
-  const [purchId, setPurchId] = useState("xxx")
+
+  const [purchId, setPurchId] = useState("fKO2XH9vF3N3iJ0qGdbf")
   const docRef = doc(db, "purchase_record", purchId)
 
 
   const [purchDocNumber, setPurchDocNumber] = useState(0);
-  const [purchNote, setPurchNote] = useState("Loading...");
+  const [purchNote, setPurchNote] = useState();
   const [purchDate, setPurchDate] = useState(new Date());
-  const [purchProduct, setPurchProduct] = useState("Loading...");
-  const [purchSupplier, setPurchSupplier] = useState("Loading...");
+  const [purchProduct, setPurchProduct] = useState();
+  const [purchSupplier, setPurchSupplier] = useState();
   const [purchQuantity, setPurchQuantity] = useState(0);
 
   let navigate = useNavigate();
@@ -56,21 +63,32 @@ function Records({ isAuth }) {
     }
   }, []);
 
+  const deleteToast = () => {
+    toast.error('Purchase Record DELETED from the Database', {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        });
+}
+
+
   //access document from a collection
   onSnapshot(docRef, (doc) => {
-
     setPurchNote(doc.data().document_note)
     setPurchDate(doc.data().document_date)
     setPurchProduct(doc.data().product_name)
     setPurchQuantity(doc.data().product_quantity)
     setPurchSupplier(doc.data().product_supplier)
-
   }, [])
 
   //read Purchaserecord collection from Firebase
   useEffect(() => {
     const purchaseRecordCollectionRef = collection(db, "purchase_record")
-    const q = query(purchaseRecordCollectionRef);
+    const q = query(purchaseRecordCollectionRef, orderBy("document_date", "desc"));
 
     const unsub = onSnapshot(q, (snapshot) =>
       setPurchaseRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -79,19 +97,32 @@ function Records({ isAuth }) {
     return unsub;
   }, [])
 
+
+
+
   //Delete Data from firebase
   const deleteTransaction = async (id) => {
     const transcationDoc = doc(db, "purchase_record", id)
+    deleteToast();
     await deleteDoc(transcationDoc);
-    alert('Record DELETED from the Database')
   }
 
 
   return (
     <div>
-
-
       <Navigation />
+
+      <ToastContainer
+                position="top-right"
+                autoClose={1500}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
 
       <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
         <div className="row bg-light">
@@ -122,12 +153,11 @@ function Records({ isAuth }) {
                         onClick={() => { setPurchId(purchaseRecord.id) }}>
                         <div className="row">
                           <div className="col-9">
-                            <small><strong>{purchaseRecord.supplier_name}</strong></small><br />
-                            <small>Doc No: {purchaseRecord.document_number}</small><br />
-                            <small>Date</small>
-
+                            <small>{purchaseRecord.product_supplier}</small><br />
+                            <small className="text-muted">Doc No: {purchaseRecord.document_number}</small><br />
+                            <small className="text-muted">Date: {moment(purchaseRecord.document_date.toDate().toString()).format('L')}
+                            </small>
                           </div>
-
                           <div className="col-3">
                             <Button
                               className="text-dark"
@@ -135,7 +165,7 @@ function Records({ isAuth }) {
                               onClick={() => { deleteTransaction(purchaseRecord.id) }}
                             >
                               <FontAwesomeIcon icon={faXmark} />
-                            </Button>{' '}
+                            </Button>
                           </div>
                         </div>
                       </ListGroup.Item>
@@ -165,35 +195,31 @@ function Records({ isAuth }) {
                   </Nav>
                   <span><br></br></span>
                   <div className="row px-5 py-3 bg-white shadow">
-                    <div className="row pt-4 px-2 bg-white">
-                      <small> <FontAwesomeIcon icon={faUser} /> Supplier Name: {purchSupplier} </small>
-                      <small> <FontAwesomeIcon icon={faCalendarDays} /> Date:{ } </small>
-                      <small> <FontAwesomeIcon icon={faNoteSticky} /> Note:{purchNote} </small>
-                      <small> <FontAwesomeIcon icon={faPesetaSign} /> Total: </small>
+                    <div className="row pt-4 px-2 bg-white ">
+                        <small> <FontAwesomeIcon icon={faUser} /> Supplier Name: <strong>{purchSupplier}</strong> </small><br />
+                        <small> <FontAwesomeIcon icon={faCalendarDays} /> Date:{ } </small><br />
+                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note:{purchNote} </small>
                     </div>
 
                     <span><br /></span>
                     <Table striped bordered hover size="sm">
                       <thead className='bg-primary'>
                         <tr>
-                          <th className='px-3'>Item Code</th>
                           <th className='px-3'>Item Name</th>
                           <th className='px-3'>Quantity</th>
-                          <th className='px-3'>Price</th>
-                          <th className='text-center'>Modify / Delete</th>
                         </tr>
                       </thead>
-                      <tbody style={{ height: "300px" }}>
-
+                      <tbody>
+                        <tr>
+                          <td className='px-3'>{purchProduct}</td>
+                          <td className='px-3'>{purchQuantity}</td>
+                        </tr>
                       </tbody>
                     </Table>
-
-
                   </div>
-
-
                 </div>
               </Tab.Pane>
+
               <Tab.Pane eventKey={0}>
                 <div>
                   <Nav className="shadow" fill variant="pills" defaultActiveKey="/records">
@@ -210,18 +236,14 @@ function Records({ isAuth }) {
                       <small> <FontAwesomeIcon icon={faUser} /> Supplier Name: </small>
                       <small> <FontAwesomeIcon icon={faCalendarDays} /> Date: </small>
                       <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: </small>
-                      <small> <FontAwesomeIcon icon={faPesetaSign} /> Total: </small>
                     </div>
 
                     <span><br /></span>
                     <Table striped bordered hover size="sm">
                       <thead className='bg-primary'>
                         <tr>
-                          <th className='px-3'>Item Code</th>
                           <th className='px-3'>Item Name</th>
                           <th className='px-3'>Quantity</th>
-                          <th className='px-3'>Price</th>
-                          <th className='text-center'>Modify / Delete</th>
                         </tr>
                       </thead>
                       <tbody style={{ height: "300px" }}>

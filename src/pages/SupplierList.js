@@ -22,6 +22,8 @@ import {
     query,
     where
 } from 'firebase/firestore';
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 
@@ -49,6 +51,18 @@ function SupplierList({ isAuth }) {
         }
     }, []);
 
+    const deleteToast = () => {
+        toast.error('Supplier DELETED from the Database', {
+            position: "top-right",
+            autoClose: 1500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            });
+    }
+
     //access document from a collection
     onSnapshot(docRef, (doc) => {
         setSupplierName(doc.data().supplier_name)
@@ -70,23 +84,11 @@ function SupplierList({ isAuth }) {
         return unsub;
     }, [])
 
-    //read from purchase_record collection
-    useEffect(() => {
-        const purchaseRecordCollectionRef = collection(db, "purchase_record")
-        const q = query(purchaseRecordCollectionRef, where("product_supplier", "==", supplierName));
-
-        const unsub = onSnapshot(q, (snapshot) =>
-            setPurchRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        console.log(purchRecord)
-        return unsub;
-    }, [])
-
-
 
     //Delete collection from database
     const deleteSupplier = async (id) => {
         const supplierDoc = doc(db, "supplier", id)
+        deleteToast();
         await deleteDoc(supplierDoc);
     }
 
@@ -96,6 +98,18 @@ function SupplierList({ isAuth }) {
         <div className="row bg-light">
             <Navigation />
 
+            <ToastContainer
+                position="top-right"
+                autoClose={1500}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+            
             <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
                 <div className='col-3 p-5'>
                     <Card className="shadow">
@@ -153,14 +167,14 @@ function SupplierList({ isAuth }) {
                 <div className='col-9 p-5'>
                     <Tab.Content>
                         <Tab.Pane eventKey={0}>
-                            <div className='bg-white p-5'>
+                            <div className='bg-white p-5 shadow'>
                                 <div>
                                     <small className="my-1"> <FontAwesomeIcon icon={faUser} /> Supplier Name: </small><br />
                                     <small className="my-1"> <FontAwesomeIcon icon={faShop} /> Supplier Company:  </small><br />
                                     <small className="my-1"> <FontAwesomeIcon icon={faLocationDot} /> Address: </small><br />
                                     <small className="my-1"> <FontAwesomeIcon icon={faAddressBook} />Contact Number: </small><br />
                                 </div>
-                                <h5 className="text-center">Transaction History</h5>
+                                <h5 className="text-center p1 mt-3"><strong>Purchase History</strong></h5>
                                 <hr />
                                 <Table striped bordered hover size="sm">
                                     <thead className='bg-primary'>
@@ -173,17 +187,14 @@ function SupplierList({ isAuth }) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {purchRecord.map((purchRecord) => {
-                                            return (
-                                                <tr>
-                                                    <td>{purchRecord.document_number}</td>
-                                                    <td>{}</td>
-                                                    <td>{purchRecord.product_name}</td>
-                                                    <td>{purchRecord.product_quantity}</td>
-                                                    <td>{purchRecord.document_note}</td>
-                                                </tr>
-                                            )
-                                        })}
+                                        <tr>
+                                            <td>{ }</td>
+                                            <td>{ }</td>
+                                            <td>{ }</td>
+                                            <td>{ }</td>
+                                            <td></td>
+                                        </tr>
+
 
                                     </tbody>
                                 </Table>
@@ -191,14 +202,14 @@ function SupplierList({ isAuth }) {
                         </Tab.Pane>
 
                         <Tab.Pane eventKey={suppId}>
-                            <div className='bg-white p-5'>
+                            <div className='bg-white shadow p-5'>
                                 <div>
-                                    <small className="my-1"> <FontAwesomeIcon icon={faUser} /> Supplier Name: {supplierName} </small><br />
-                                    <small className="my-1"> <FontAwesomeIcon icon={faShop} /> Supplier Company: {supplierCompany} </small><br />
-                                    <small className="my-1"> <FontAwesomeIcon icon={faLocationDot} /> Address: {supplierAddress}</small><br />
-                                    <small className="my-1"> <FontAwesomeIcon icon={faAddressBook} />Contact Number: {supplierContact}</small><br />
+                                    <small className="my-1"> <FontAwesomeIcon icon={faUser} /> Supplier Name: <strong className='mx-1'>{supplierName}</strong>  </small><br />
+                                    <small className="my-1"> <FontAwesomeIcon icon={faShop} /> Supplier Company: <span className='mx-1'></span>{supplierCompany} </small><br />
+                                    <small className="my-1"> <FontAwesomeIcon icon={faLocationDot} /> Address: <span className='mx-1'></span> {supplierAddress}</small><br />
+                                    <small className="my-1"> <FontAwesomeIcon icon={faAddressBook} />Contact Number: <span className='mx-1'></span>{supplierContact}</small><br />
                                 </div>
-                                <h5 className="text-center">Transaction History</h5>
+                                <h5 className="text-center p1 mt-3"><strong>Purchase History</strong></h5>
                                 <hr />
                                 <Table striped bordered hover size="sm">
                                     <thead className='bg-primary'>

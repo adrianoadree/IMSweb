@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tab, Button, Card, ListGroup, Modal, Toast, ToastContainer } from 'react-bootstrap';
+import { Tab, Button, Card, ListGroup, Modal, } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
@@ -15,6 +15,8 @@ import {
   query,
   where
 } from 'firebase/firestore';
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 
@@ -42,6 +44,19 @@ function Inventory({ isAuth }) {
       navigate("/login");
     }
   }, []);
+
+  const deleteToast = () => {
+    toast.error('Purchase Record DELETED from the Database', {
+      position: "top-right",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
+
 
   //access document from a collection
   onSnapshot(stockcardDocRef, (doc) => {
@@ -71,13 +86,26 @@ function Inventory({ isAuth }) {
   //delete row 
   const deleteStockcard = async (id) => {
     const stockcardDoc = doc(db, "stockcard", id)
+    deleteToast();
     await deleteDoc(stockcardDoc);
-    setShow(true)
   }
 
   return (
     <div className="row bg-light">
       <Navigation />
+
+
+      <ToastContainer
+        position="top-right"
+        autoClose={1500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
       <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
         <div className="row bg-light">
@@ -106,11 +134,11 @@ function Inventory({ isAuth }) {
                 <ListGroup variant="flush">
                   {stockcard.map((stockcard) => {
                     return (
-                      <ListGroup.Item 
-                      action 
-                      key={stockcard.id} 
-                      eventKey={stockcard.id} 
-                      onClick={() => { setProdId(stockcard.id) }}>
+                      <ListGroup.Item
+                        action
+                        key={stockcard.id}
+                        eventKey={stockcard.id}
+                        onClick={() => { setProdId(stockcard.id) }}>
                         <div className='row'>
                           <div className="col-9 pt-1">
                             <small>{stockcard.product_name}</small>
@@ -138,18 +166,7 @@ function Inventory({ isAuth }) {
 
 
           <div className='col-9 p-5'>
-            <ToastContainer className="m-3" position='top-end'>
-              <Toast className="bg-danger" onClose={() => setShow(false)} show={show} delay={3000} autohide>
-                <Toast.Header>
-                  <strong className="me-auto">IMS</strong>
-                </Toast.Header>
-                <Toast.Body>
-                  <span>Product <strong>DELETED</strong> from the Inventory</span>
-                </Toast.Body>
-              </Toast>
-            </ToastContainer><ToastContainer className="m-3" position='top-end'>
 
-            </ToastContainer>
             <Tab.Content>
               <Tab.Pane eventKey={0}>
                 <div className='row px-5'>
@@ -206,6 +223,17 @@ function Inventory({ isAuth }) {
                         </Card.Body>
                       </Card>
                     </div>
+                    <div className='col-6 mt-4'>
+                      <Card className='shadow'>
+                        <Card.Header className='bg-primary text-white'>
+                          Warehousing Card
+                        </Card.Header>
+                        <Card.Body>
+                          <small>Warehouse Name: </small><br />
+                          <small>Warehouse Location: </small><br />
+                        </Card.Body>
+                      </Card>
+                    </div>
                   </div>
                 </div>
               </Tab.Pane>
@@ -259,6 +287,17 @@ function Inventory({ isAuth }) {
                           <small>Supplier Lead time: </small><br />
                           <small>Maximum Storage Capacity:</small><br />
                           <small>Safety Stock:</small><br />
+                        </Card.Body>
+                      </Card>
+                    </div>
+                    <div className='col-6 mt-4'>
+                      <Card className='shadow'>
+                        <Card.Header className='bg-primary text-white'>
+                          Warehousing Card
+                        </Card.Header>
+                        <Card.Body>
+                          <small>Warehouse Name: </small><br />
+                          <small>Warehouse Location: </small><br />
                         </Card.Body>
                       </Card>
                     </div>

@@ -1,4 +1,4 @@
-import { Card, Placeholder, Form, Button, Toast, ToastContainer } from "react-bootstrap";
+import { Card, Placeholder, Form, Button } from "react-bootstrap";
 import Navigation from "../layout/Navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUserLarge } from "@fortawesome/free-solid-svg-icons";
@@ -7,13 +7,16 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from "../firebase-config";
 import { addDoc, collection, orderBy, query, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from 'react-router-dom';
+import moment from "moment";
+
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 function Community({ isAuth }) {
 
     const communityCollectionRef = collection(db, "community")
 
-    const [show, setShow] = useState(false);
     const [inputValue, setInputValue] = useState();
     const [posts, setPosts] = useState([]);
     const [comments, setComments] = useState([]);
@@ -30,8 +33,8 @@ function Community({ isAuth }) {
 
     //add document to database
     const addPost = async () => {
-        await addDoc(communityCollectionRef, { community_postAuthor: user.email, community_post: newPost, community_postTimestamp: serverTimestamp().seconds * 1000  });
-        setShow(true)
+        await addDoc(communityCollectionRef, { community_postAuthor: user.email, community_post: newPost, community_postTimestamp: serverTimestamp() });
+        successToast();
     }
 
 
@@ -48,7 +51,17 @@ function Community({ isAuth }) {
 
 
 
-
+    const successToast = () => {
+        toast.success('Post Successfully added to the Community', {
+            position: "top-right",
+            autoClose: 4996,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
+    }
 
     return (
 
@@ -57,18 +70,22 @@ function Community({ isAuth }) {
 
 
             <Navigation />
+
+            <ToastContainer
+                position="top-right"
+                autoClose={3500}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+
+
             <div className="col-3" />
             <div className="col-6 p-5">
-                <ToastContainer className="m-3" position='top-end'>
-                    <Toast className="bg-success" onClose={() => setShow(false)} show={show} delay={3000} autohide>
-                        <Toast.Header>
-                            <strong className="me-auto">IMS</strong>
-                        </Toast.Header>
-                        <Toast.Body>
-                            <span>Product <strong>SUCCESSFULLY ADDED</strong> to the Inventory</span>
-                        </Toast.Body>
-                    </Toast>
-                </ToastContainer>
                 <Card className="shadow mb-4">
                     <Card.Header className="bg-primary">
                         <small className="text-white">Create Post</small>
@@ -101,12 +118,12 @@ function Community({ isAuth }) {
                         <Card className="my-4 shadow" key={posts.id}>
                             <Card.Header className="bg-primary">
                                 <div className="row">
-                                    <div className="col-10">
+                                    <div className="col-9">
                                         <small className="text-white"><FontAwesomeIcon icon={faUserLarge} /> {posts.community_postAuthor}</small>
                                     </div>
-                                    <div className="col-2 ">
+                                    <div className="col-3 ">
                                         <small className="text-white" >
-                                        
+                                            {moment(posts.community_postTimestamp.toDate().toString()).calendar()}
                                         </small>
                                     </div>
                                 </div>

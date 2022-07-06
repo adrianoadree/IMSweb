@@ -4,6 +4,8 @@ import React from "react";
 import { collection } from 'firebase/firestore';
 import { db } from '../firebase-config';
 import { useState } from 'react';
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 function NewSupplierModal(props) {
@@ -13,6 +15,17 @@ function NewSupplierModal(props) {
   const supplierCollectionRef = collection(db, "supplier")
 
 
+  const successToast = () => {
+    toast.success(' New Supplier Successfully Registered to the Database ', {
+      position: "top-right",
+      autoClose: 3500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
 
 
   const addSupplier = async () => {
@@ -23,8 +36,7 @@ function NewSupplierModal(props) {
         , supplier_address: newSupplierAddress
         , supplier_contact: newSupplierContactNumber
       });
-    alert('Successfuly Added to the Database')
-
+      successToast();
   }
 
 
@@ -43,6 +55,19 @@ function NewSupplierModal(props) {
       aria-labelledby="contained-modal-title-vcenter"
       centered
     >
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter" className="px-3">
           Register New Supplier

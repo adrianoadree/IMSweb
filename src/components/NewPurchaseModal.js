@@ -2,19 +2,18 @@ import React from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { db } from "../firebase-config";
-import { addDoc, collection, query, onSnapshot,where,doc,updateDoc } from "firebase/firestore";
+import { addDoc, collection, query, onSnapshot, where, doc, serverTimestamp } from "firebase/firestore";
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 function NewPurchaseModal(props) {
 
     const [setModalShow] = useState(false);
 
-
     const [stockcard, setStockcard] = useState([]);
     const [supplier, setSupplier] = useState([]);
-
-
     const purchaseRecordCollectionRef = collection(db, "purchase_record")
-    const purchaseRecordCounterRef = doc(db, "purchase_record", "Dontdelete")
 
 
     //data variable declaration
@@ -24,14 +23,20 @@ function NewPurchaseModal(props) {
     const [newProductName, setNewProductName] = useState("");
     const [newSupplierName, setNewSupplierName] = useState("");
     const [newQuanity, setNewProductQuantity] = useState(0);
-    const [docNumberCounter, setDocNumberCounter] = useState(0);
 
 
 
-    onSnapshot(purchaseRecordCounterRef, (doc) => {
-        setDocNumberCounter(doc.data().docnumbercounter)
-      }, [])
-
+    const successToast = () => {
+        toast.success(' New Purchase Recorded! ', {
+            position: "top-right",
+            autoClose: 3500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
+    }
 
 
     //add document to database
@@ -45,10 +50,7 @@ function NewPurchaseModal(props) {
             product_quantity: Number(newQuanity)
 
         });
-        setDocNumberCounter(docNumberCounter + 1);
-        await updateDoc(purchaseRecordCounterRef, {
-            docnumbercounter: docNumberCounter
-          });
+        successToast();
         setModalShow(false)
         alert('Successfuly Added to the Database')
     }
@@ -68,7 +70,7 @@ function NewPurchaseModal(props) {
     //read collection from stockcard
     useEffect(() => {
         const stockcardCollectionRef = collection(db, "stockcard")
-        const q = query(stockcardCollectionRef, where("product_supplier" , "==", newSupplierName));
+        const q = query(stockcardCollectionRef, where("product_supplier", "==", newSupplierName));
 
         const unsub = onSnapshot(q, (snapshot) =>
             setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -80,20 +82,32 @@ function NewPurchaseModal(props) {
 
 
 
-
     var curr = new Date();
     curr.setDate(curr.getDate());
     var date = curr.toISOString().substr(0, 10);
 
 
-
     return (
+
         <Modal
             {...props}
             size="lg"
             aria-labelledby="contained-modal-title-vcenter"
             centered
         >
+
+            <ToastContainer
+                position="top-right"
+                autoClose={3500}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter" className="px-3">
                     Add Purchase Record
@@ -168,12 +182,11 @@ function NewPurchaseModal(props) {
                 <div className="row mt-2">
                     <div className="col-8">
                         <label>Document Number</label>
-                        <input 
-                        type="number" 
-                        className="form-control" 
-                        disabled
-                        value={docNumberCounter}
-                        onChange={(event) => { setNewDocumentNumber(event.target.value); }} />
+                        <input
+                            type="number"
+                            className="form-control"
+                            disabled
+                            onChange={(event) => { setNewDocumentNumber(event.target.value); }} />
                     </div>
                     <div className="col-4">
                         <label>Date</label>
