@@ -1,11 +1,11 @@
-import ForecastingContentList from "../components/itemforecastingcontentlist";
-import { Card, Nav } from 'react-bootstrap';
+import { Card, Nav, ListGroup } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Navigation from "../layout/Navigation";
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from "react";
-
+import { useEffect, useState } from "react";
+import { db } from "../firebase-config";
+import { collection, query, onSnapshot } from "firebase/firestore";
 const data = [
   {
     date: 'Monday',
@@ -52,9 +52,23 @@ const data = [
 ];
 
 
-function Itemforecast({isAuth}) {
+function Itemforecast({ isAuth }) {
   let navigate = useNavigate();
 
+  const [stockcard, setStockcard] = useState([]);
+
+
+  //read supplier collection
+  useEffect(() => {
+    const stockcardCollectionRef = collection(db, "stockcard")
+    const q = query(stockcardCollectionRef);
+
+    const unsub = onSnapshot(q, (snapshot) =>
+      setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+    );
+
+    return unsub;
+  }, [])
 
   useEffect(() => {
     if (!isAuth) {
@@ -67,7 +81,25 @@ function Itemforecast({isAuth}) {
     <div className="row bg-light">
       <Navigation />
       <div className="col-3 p-5 ">
-        <ForecastingContentList />
+        <Card className="shadow" >
+          <Card.Header className="bg-primary text-white">
+            Product List
+          </Card.Header>
+          <Card.Body style={{ height: '800px' }}>
+            <ListGroup as="ol" variant="flush" numbered>
+              {stockcard.map((stockcard) => {
+                return (
+                  <ListGroup.Item as="li">
+                    <small>{stockcard.product_name}</small>
+                  </ListGroup.Item>
+                )
+              })}
+            </ListGroup>
+          </Card.Body>
+        </Card>
+
+
+
       </div>
 
       <div className="col-9 p-5">
@@ -116,7 +148,7 @@ function Itemforecast({isAuth}) {
                 <Card.Header>
                   <small className="text-center text-white">Product</small>
                 </Card.Header>
-                <Card.Body>
+                <Card.Body style={{ height: "160px" }}>
                 </Card.Body>
               </Card>
             </div>
@@ -125,7 +157,10 @@ function Itemforecast({isAuth}) {
                 <Card.Header>
                   <small className="text-center text-white">ReorderPoint</small>
                 </Card.Header>
-                <Card.Body>
+                <Card.Body style={{ height: "160px" }}>
+                  <small className="text-center text-white"> A reorder point (ROP) is the specific level at which your stock needs to be
+                    replenished. In other words, it tells you when to place an order so you don’t run out of an
+                    item.</small>
                 </Card.Body>
               </Card>
             </div>
@@ -134,7 +169,10 @@ function Itemforecast({isAuth}) {
                 <Card.Header>
                   <small className="text-center text-white">SafetyStock</small>
                 </Card.Header>
-                <Card.Body>
+                <Card.Body style={{ height: "160px" }} >
+                  <small className="text-center text-white">
+                    This is the extra quantity of a product that kept in storage to prevent stockouts. Safety stock serves as insurance against demand fluctuations.
+                  </small>
                 </Card.Body>
               </Card>
             </div>

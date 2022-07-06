@@ -2,36 +2,51 @@ import React from "react";
 import { Card, Nav } from "react-bootstrap";
 import { Link } from 'react-router-dom';
 import Navigation from "../layout/Navigation";
-import { Table, Button, Tab } from "react-bootstrap"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faNoteSticky, faXmark, faUser, faPesetaSign } from '@fortawesome/free-solid-svg-icons'
 import { faCalendarDays } from "@fortawesome/free-regular-svg-icons";
 import ListGroup from 'react-bootstrap/ListGroup';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
-import { getDocs, collection, doc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import { useNavigate } from 'react-router-dom';
+import {
+  faPlus,
+  faNoteSticky,
+  faXmark,
+  faUser,
+  faPesetaSign
+} from '@fortawesome/free-solid-svg-icons'
+import {
+  collection,
+  doc,
+  deleteDoc,
+  onSnapshot,
+  query
+} from 'firebase/firestore';
+import {
+  Table,
+  Button,
+  Tab
+} from "react-bootstrap"
 
 
-function Records({isAuth}) {
+function Records({ isAuth }) {
 
 
-  const [modalShow, setModalShow] = React.useState(false);
-
+  const [modalShow, setModalShow] = useState(false);
   const [purchaseRecord, setPurchaseRecord] = useState([]);
-  const purchaseRecordCollectionRef = collection(db, "purchase_record")
-  const [setsupplierRecord] = useState([]);
-  const supplierRecordCollectionRef = collection(db, "supplier")
 
   const [purchId, setPurchId] = useState("xxx")
   const docRef = doc(db, "purchase_record", purchId)
 
 
   const [purchDocNumber, setPurchDocNumber] = useState(0);
-  const [purchNote, setPurchNote] = useState("");
-  const [purchProduct, setPurchProduct] = useState("");
+  const [purchNote, setPurchNote] = useState("Loading...");
+  const [purchDate, setPurchDate] = useState(new Date());
+  const [purchProduct, setPurchProduct] = useState("Loading...");
+  const [purchSupplier, setPurchSupplier] = useState("Loading...");
   const [purchQuantity, setPurchQuantity] = useState(0);
+
   let navigate = useNavigate();
 
 
@@ -44,32 +59,24 @@ function Records({isAuth}) {
   //access document from a collection
   onSnapshot(docRef, (doc) => {
 
-    setPurchDocNumber(doc.data().document_number)
     setPurchNote(doc.data().document_note)
+    setPurchDate(doc.data().document_date)
     setPurchProduct(doc.data().product_name)
     setPurchQuantity(doc.data().product_quantity)
+    setPurchSupplier(doc.data().product_supplier)
 
-  }, [])
-
-
-
-  //read supplierCollection
-  useEffect(() => {
-    const getSupplier = async () => {
-      const data = await getDocs(supplierRecordCollectionRef);
-      setsupplierRecord(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    };
-    getSupplier()
   }, [])
 
   //read Purchaserecord collection from Firebase
   useEffect(() => {
-    const getPurchaseRecord = async () => {
-      const data = await getDocs(purchaseRecordCollectionRef);
-      setPurchaseRecord(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    const purchaseRecordCollectionRef = collection(db, "purchase_record")
+    const q = query(purchaseRecordCollectionRef);
 
-    };
-    getPurchaseRecord()
+    const unsub = onSnapshot(q, (snapshot) =>
+      setPurchaseRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+    );
+
+    return unsub;
   }, [])
 
   //Delete Data from firebase
@@ -104,12 +111,13 @@ function Records({isAuth}) {
                   </div>
                 </div>
               </Card.Header>
-              <Card.Body className="">
+              <Card.Body className="" style={{ height: "550px" }}>
                 <ListGroup variant="flush">
                   {purchaseRecord.map((purchaseRecord) => {
                     return (
                       <ListGroup.Item
                         action
+                        key={purchaseRecord.id}
                         eventKey={purchaseRecord.id}
                         onClick={() => { setPurchId(purchaseRecord.id) }}>
                         <div className="row">
@@ -158,8 +166,8 @@ function Records({isAuth}) {
                   <span><br></br></span>
                   <div className="row px-5 py-3 bg-white shadow">
                     <div className="row pt-4 px-2 bg-white">
-                      <small> <FontAwesomeIcon icon={faUser} /> Supplier Name: </small>
-                      <small> <FontAwesomeIcon icon={faCalendarDays} /> Date: </small>
+                      <small> <FontAwesomeIcon icon={faUser} /> Supplier Name: {purchSupplier} </small>
+                      <small> <FontAwesomeIcon icon={faCalendarDays} /> Date:{ } </small>
                       <small> <FontAwesomeIcon icon={faNoteSticky} /> Note:{purchNote} </small>
                       <small> <FontAwesomeIcon icon={faPesetaSign} /> Total: </small>
                     </div>

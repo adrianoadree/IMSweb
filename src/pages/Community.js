@@ -1,31 +1,27 @@
 import { Card, Placeholder, Form, Button, Toast, ToastContainer } from "react-bootstrap";
-import CommunityPosts from "../components/posts";
 import Navigation from "../layout/Navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUserLarge } from "@fortawesome/free-solid-svg-icons";
 import { useState, useEffect } from "react";
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from "../firebase-config";
-import { addDoc, collection, getDocs } from "firebase/firestore";
+import { addDoc, collection, orderBy, query, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from 'react-router-dom';
 
 
-function Community({isAuth}) {
+function Community({ isAuth }) {
+
+    const communityCollectionRef = collection(db, "community")
 
     const [show, setShow] = useState(false);
     const [inputValue, setInputValue] = useState();
     const [posts, setPosts] = useState([]);
-
-    const [user, setUser] = useState({});
-    const communityCollectionRef = collection(db, "community")
+    const [comments, setComments] = useState([]);
+    const [user, setUser] = useState({})
     const [newPost, setNewPost] = useState("");
     let navigate = useNavigate();
 
-    useEffect(() =>{
-        if(!isAuth){
-            navigate("/login");
-        }
-    },[]);
+
 
     onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser);
@@ -34,22 +30,25 @@ function Community({isAuth}) {
 
     //add document to database
     const addPost = async () => {
-        await addDoc(communityCollectionRef, { community_postAuthor: user.email, community_post: newPost });
+        await addDoc(communityCollectionRef, { community_postAuthor: user.email, community_post: newPost, community_postTimestamp: serverTimestamp().seconds * 1000  });
         setShow(true)
-        setInputValue("")
     }
 
 
-    //read collection from stockcard
+    //read collection from community
     useEffect(() => {
-        const getPosts = async () => {
-            const data = await getDocs(communityCollectionRef);
-            setPosts(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-        };
-        getPosts()
+        const q = query(communityCollectionRef, orderBy("community_postTimestamp", "desc"));
+
+        const unsub = onSnapshot(q, (snapshot) =>
+            setPosts(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+
+        return unsub;
     }, [])
 
-    
+
+
+
 
     return (
 
@@ -70,11 +69,6 @@ function Community({isAuth}) {
                         </Toast.Body>
                     </Toast>
                 </ToastContainer>
-
-
-
-
-
                 <Card className="shadow mb-4">
                     <Card.Header className="bg-primary">
                         <small className="text-white">Create Post</small>
@@ -104,14 +98,16 @@ function Community({isAuth}) {
 
                 {posts.map((posts) => {
                     return (
-                        <Card className="my-4 shadow">
+                        <Card className="my-4 shadow" key={posts.id}>
                             <Card.Header className="bg-primary">
                                 <div className="row">
                                     <div className="col-10">
                                         <small className="text-white"><FontAwesomeIcon icon={faUserLarge} /> {posts.community_postAuthor}</small>
                                     </div>
                                     <div className="col-2 ">
-                                        <small className="text-white" ></small>
+                                        <small className="text-white" >
+                                        
+                                        </small>
                                     </div>
                                 </div>
                             </Card.Header>
@@ -121,6 +117,7 @@ function Community({isAuth}) {
                             <Card.Footer className="bg-light">
                                 <div className="row">
                                     <div className="col-12 text-muted">Comment Section</div>
+
                                     <div className="row">
                                         <div className="col-4">
                                             <small><FontAwesomeIcon icon={faUserLarge} /> {user?.email}</small>

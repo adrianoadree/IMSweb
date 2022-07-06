@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Modal, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
-import { addDoc, collection, getDocs } from 'firebase/firestore';
+import { addDoc, collection, query, onSnapshot } from 'firebase/firestore';
 import { db } from "../firebase-config";
 import NewSupplierModal from "./NewSupplierModal";
 
@@ -18,24 +18,24 @@ function NewProductModal(props) {
 
   const [supplierModalShow, setSupplierModalShow] = React.useState(false);
   const [supplier, setSupplier] = useState([]);
-  const supplierCollectionRef = collection(db, "supplier")
 
 
   //Create product to database
   const addProduct = async () => {
-    await addDoc(stockcardCollectionRef, { product_name: newProductName, purchase_price: Number(newPriceP), product_supplier:newProdSupplier, selling_price: Number(newPriceS), quantity: Number(newQuanity) });
+    await addDoc(stockcardCollectionRef, { product_name: newProductName, purchase_price: Number(newPriceP), product_supplier: newProdSupplier, selling_price: Number(newPriceS), quantity: Number(newQuanity) });
     alert('Successfuly Added to the Database')
   }
 
 
   //Read supplier collection from database
   useEffect(() => {
-    const getSupplier = async () => {
-      const data = await getDocs(supplierCollectionRef);
-      setSupplier(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-    };
-    getSupplier()
-    console.log("read supplier col")
+    const supplierCollectionRef = collection(db, "supplier")
+    const q = query(supplierCollectionRef);
+
+    const unsub = onSnapshot(q, (snapshot) =>
+      setSupplier(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+    );
+    return unsub;
   }, [])
 
 
@@ -69,11 +69,11 @@ function NewProductModal(props) {
           <div className="row mt-2">
             <div className="col-6">
               <label>Supplier Name</label>
-              <Form.Select 
-              defaultValue="0" 
-              aria-label="Default select example"
-              required
-              onChange={(event) => { setNewProdSupplier(event.target.value); }}>
+              <Form.Select
+                defaultValue="0"
+                aria-label="Default select example"
+                required
+                onChange={(event) => { setNewProdSupplier(event.target.value); }}>
                 <option
                   disabled
                   value="0">
@@ -82,6 +82,7 @@ function NewProductModal(props) {
                 {supplier.map((supplier) => {
                   return (
                     <option
+                      key={supplier.supplier_name}
                       value={supplier.supplier_name}>
                       {supplier.supplier_name}
                     </option>

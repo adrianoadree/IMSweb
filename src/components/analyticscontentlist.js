@@ -27,7 +27,7 @@ function AnalyticsContentList(){
                 <ListGroup as="ol" variant="flush" numbered>
                         {Stockcard.map((Stockcard) => { 
                             return(
-                                <ListGroup.Item as="li">
+                                <ListGroup.Item as="li" key={Stockcard.id}>
                                     <small>{Stockcard.product_name}</small>
                                 </ListGroup.Item>
                             )})}

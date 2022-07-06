@@ -1,27 +1,44 @@
 import Navigation from "../layout/Navigation";
-import { Button, Card, Nav, Table, Tab } from "react-bootstrap";
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faNoteSticky, faPesetaSign, faFile, faXmark, faCalendarDay } from '@fortawesome/free-solid-svg-icons'
 import ListGroup from 'react-bootstrap/ListGroup';
 import NewSalesModal from "../components/NewSalesModal";
 import { useState, useEffect } from "react";
 import { db } from "../firebase-config";
-import { getDocs, collection, doc, deleteDoc } from "firebase/firestore";
 import { useNavigate } from 'react-router-dom';
+import {
+    faPlus,
+    faNoteSticky,
+    faPesetaSign,
+    faFile,
+    faXmark,
+    faCalendarDay
+} from '@fortawesome/free-solid-svg-icons'
+import {
+    Button,
+    Card,
+    Nav,
+    Table,
+    Tab
+} from "react-bootstrap";
+import {
+    collection,
+    doc,
+    deleteDoc,
+    query,
+    onSnapshot
+} from "firebase/firestore";
 
 
 
 
-function SalesRecord({isAuth}) {
+function SalesRecord({ isAuth }) {
 
     const [modalShow, setModalShow] = useState(false);
     const [salesRecord, setSalesRecord] = useState([]);
-    const salesRecordCollectionRef = collection(db, "sales_record")
 
 
     const [salesId, setSalesId] = useState("xxx")
-    const docRef = doc(db, "sales_record", salesId)
     let navigate = useNavigate();
 
 
@@ -35,11 +52,14 @@ function SalesRecord({isAuth}) {
 
     //read salesRecord collection
     useEffect(() => {
-        const getSalesRecord = async () => {
-            const data = await getDocs(salesRecordCollectionRef);
-            setSalesRecord(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-        };
-        getSalesRecord()
+        const salesRecordCollectionRef = collection(db, "sales_record")
+        const q = query(salesRecordCollectionRef);
+
+        const unsub = onSnapshot(q, (snapshot) =>
+            setSalesRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+
+        return unsub;
     }, [])
 
     const deleteSalesRecord = async (id) => {
@@ -73,12 +93,13 @@ function SalesRecord({isAuth}) {
                                     </div>
                                 </div>
                             </Card.Header>
-                            <Card.Body className="">
+                            <Card.Body className="" style={{ height: "550px" }}>
                                 <ListGroup variant="flush">
                                     {salesRecord.map((salesRecord) => {
                                         return (
                                             <ListGroup.Item
                                                 action
+                                                key={salesRecord.id}
                                                 eventKey={salesRecord.id}
                                                 onClick={() => { setSalesId(salesRecord.id) }}>
                                                 <div className="row">

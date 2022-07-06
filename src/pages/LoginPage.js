@@ -19,6 +19,12 @@ function LoginPage({isAuth, setIsAuth }) {
     const [loginPassword, setLoginPassword] = useState("");
     let navigate = useNavigate();
 
+    useEffect(() => {
+        setisLoggedIn(isAuth)
+        if (isAuth) {
+          navigate("/");
+        }
+      }, []);
 
 
     onAuthStateChanged(auth, (currentUser) => {
@@ -36,7 +42,6 @@ function LoginPage({isAuth, setIsAuth }) {
             setIsAuth(true)
             setShow(false)
             navigate("/")
-            console.log(user)
         } catch (error) {
             setShow(true)
             console.log(error.message);
@@ -48,7 +53,6 @@ function LoginPage({isAuth, setIsAuth }) {
         <div className="row bg-light" style={{ height: "667px" }}>
             <div className="col-3" />
             <div className="col-6 p-5 ">
-                <h1>{isAuth}asdasd</h1>
                 <Card className="bg-white shadow">
                     <Card.Body >
                         <div className="row" style={{ height: "100px" }}>

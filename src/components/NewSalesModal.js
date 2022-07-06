@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { db } from "../firebase-config";
-import { getDocs, addDoc, collection,arrayUnion,updateDoc } from "firebase/firestore";
+import { addDoc, collection,arrayUnion,updateDoc, onSnapshot,query } from "firebase/firestore";
 
 
 function NewSalesModal(props) {
@@ -11,7 +11,6 @@ function NewSalesModal(props) {
     const [stockcard, setStockcard] = useState([]);
 
 
-    const stockcardCollectionRef = collection(db, "stockcard")
     const salesRecordCollectionRef = collection(db, "sales_record")
 
     const [newDocumentNumber, setNewDocumentNumber] = useState(0);
@@ -30,7 +29,7 @@ function NewSalesModal(props) {
                 document_note: newNote,
             });
         await updateDoc(salesRecordCollectionRef, {
-            soldProd: arrayUnion({ setNewProductName,product_quantity: Number(newQuanity)
+            soldProd: arrayUnion({ newProductName,product_quantity: Number(newQuanity)
             })
         });
         setNewDocumentNumber(newDocumentNumber+1);
@@ -42,11 +41,15 @@ function NewSalesModal(props) {
 
     //read collection from stockcard
     useEffect(() => {
-        const getStockcard = async () => {
-            const data = await getDocs(stockcardCollectionRef);
-            setStockcard(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-        };
-        getStockcard()
+
+        const stockcardCollectionRef = collection(db, "stockcard")
+        const q = query(stockcardCollectionRef);
+    
+        const unsub = onSnapshot(q, (snapshot) =>
+        setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+    
+        return unsub;
     }, [])
 
     var curr = new Date();
@@ -137,9 +140,10 @@ function NewSalesModal(props) {
                                         {stockcard.map((stockcard) => {
                                             return (
                                                 <option
+                                                    key={stockcard.product_name}
                                                     value={stockcard.product_name}
                                                     onChange={(event) => { setNewProductName(event.target.value); }}>
-                                                    {stockcard.product_name}
+                                                  {stockcard.product_name} Available Stock: {stockcard.quantity} 
                                                 </option>
                                             )
                                         })}
