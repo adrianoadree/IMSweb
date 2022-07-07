@@ -43,7 +43,7 @@ function Navigation() {
                 <LinkContainer to="/stockcard">
                   <NavDropdown.Item>Stockcard</NavDropdown.Item>
                 </LinkContainer>
-                <LinkContainer to="/inventory">
+                <LinkContainer to="/warehouse">
                   <NavDropdown.Item>Warehouse</NavDropdown.Item>
                 </LinkContainer>
               </NavDropdown>

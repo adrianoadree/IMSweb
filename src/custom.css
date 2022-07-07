@@ -48,3 +48,7 @@ li:hover{
 .p1{
     font-family: "Courier New", monospace;
 }
+.btn-outline-danger{
+	background-color: #f5d7d5;
+}
+

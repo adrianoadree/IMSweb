@@ -13,6 +13,7 @@ import SupplierList from './pages/SupplierList';
 import StockcardPage from './pages/StockcardPage';
 import SalesRecord from './pages/SalesRecord';
 import LoginPage from './pages/LoginPage';
+import Warehouse from './pages/Warehouse';
 import { useState } from 'react';
 
 function App() {
@@ -36,6 +37,7 @@ function App() {
         <Route path='/analytics' element={<Analytics isAuth={isAuth}/>}/>
         <Route path='/itemforecasting' element={<Itemforecast isAuth={isAuth}/>}/>
         <Route path='/community' element={<Community isAuth={isAuth}/>}/>
+        <Route path='/warehouse' element={<Warehouse/>}/>
     
 
 

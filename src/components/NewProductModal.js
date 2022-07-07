@@ -20,6 +20,7 @@ function NewProductModal(props) {
   const [newPriceS, setNewPriceS] = useState(0);
   const [newQuanity, setNewQuantity] = useState(0);
   const [newProdSupplier, setNewProdSupplier] = useState("");
+  const [newProdCategory, setNewProdCategory] = useState("");
 
   const [supplierModalShow, setSupplierModalShow] = React.useState(false);
   const [supplier, setSupplier] = useState([]);
@@ -41,7 +42,7 @@ function NewProductModal(props) {
 
   //Create product to database
   const addProduct = async () => {
-    await addDoc(stockcardCollectionRef, { product_name: newProductName, purchase_price: Number(newPriceP), product_supplier: newProdSupplier, selling_price: Number(newPriceS), quantity: Number(newQuanity) });
+    await addDoc(stockcardCollectionRef, { product_name: newProductName, purchase_price: Number(newPriceP), product_supplier: newProdSupplier, selling_price: Number(newPriceS), quantity: Number(newQuanity), product_category: newProdCategory });
     successToast();
   }
 
@@ -96,6 +97,15 @@ function NewProductModal(props) {
                 placeholder="Item name"
                 required
                 onChange={(event) => { setNewProductName(event.target.value); }}
+              />
+            </div>
+            <div className="col-6">
+              <label>Category</label>
+              <input type="text"
+                className="form-control"
+                placeholder="Category"
+                required
+                onChange={(event) => { setNewProdCategory(event.target.value); }}
               />
             </div>
           </div>
