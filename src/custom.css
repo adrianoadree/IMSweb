@@ -52,3 +52,9 @@ li:hover{
 	background-color: #f5d7d5;
 }
 
+.grid {
+	display: inline-block;
+	border: 1px solid #bebfc2;
+	width: 200px;
+	height: 200px;
+}

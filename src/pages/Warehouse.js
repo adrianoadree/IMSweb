@@ -8,7 +8,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashCan, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import NewWarehouseModal from '../components/NewWarehouseModal';
 import NewMapModal from '../components/NewMapModal';
-import GetID from '../components/NewMapModal';
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import Map from '../components/Map'
 
 
 function Warehouse({isAuth}) {
@@ -28,10 +30,8 @@ function Warehouse({isAuth}) {
   const [whRow, setWHRow] = useState(0);
   const [whId4D, setWHId4D] = useState("");
 
-  //delete row 
 
   onSnapshot(warehouseDocRef, (doc) => {
-    setWHId4D(doc.id)
     setWHName(doc.data().wh_name)
     setWHAdd(doc.data().address)
     setWHNotes(doc.data().wh_notes)
@@ -53,30 +53,43 @@ function Warehouse({isAuth}) {
 
   }, [])
   
-    const [cell, setCell] = useState([]);
-    const cellCollectionRef = collection(db, "wh_cell")
-  
-    useEffect(() => {
-    const qC = query(cellCollectionRef);
-
-    const unsub = onSnapshot(qC, (snapshot) =>
-      setCell(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-    );
-
-    return unsub;
-
-  }, [])
-  
+   const deleteToast = () => {
+    toast.error('Warehouse Deletion Successful', {
+      position: "top-right",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  } 
+ 
     const deleteWarehouse = async (id) => {
     const warehouseDoc = doc(db, "warehouse", id)
     await deleteDoc(warehouseDoc);
-    alert('Item Removed from the Database')
+    deleteToast();
 
   }
+  
+
 
   return (
+
     <div className="row bg-light">
       <Navigation />
+        
+        <ToastContainer
+        position="top-right"
+        autoClose={1500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
       <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
         <div className="row bg-light">
@@ -86,10 +99,10 @@ function Warehouse({isAuth}) {
             <Card className='shadow'>
               <Card.Header className='bg-primary'>
                 <div className='row'>
-                  <div className='col-10 pt-2 text-white'>
+                  <div className='col-9 pt-2 text-white'>
                     <h6>Your Warehouses:</h6>
                   </div>
-                  <div className='col-2'>
+                  <div className='col-3'>
                     <Button variant="primary"
                       onClick={() => setModalShowWH(true)}>
                       <FontAwesomeIcon icon={faPlus} />
@@ -102,7 +115,8 @@ function Warehouse({isAuth}) {
            
                   <NewWarehouseModal
                     show={modalShowWH}
-                    onHide={() => setModalShowWH(false)} />
+                    onHide={() => setModalShowWH(false)} 
+                    />
 
 
 
@@ -116,18 +130,14 @@ function Warehouse({isAuth}) {
                       onClick={() => { setWHId(warehouse.id) }}
                      >
                         <div className='row'>
-                          <div className="col-10 pt-1">
-                          <div className="col-4">
-                            <small>{warehouse.id}</small>
-                            </div>
-                            <div className="col-5">
+                          <div className="col-9 pt-1">
                             <small>{warehouse.wh_name}</small>
-                            </div>
                           </div>
-                          <div className='col-2'>
+                          <div className='col-3'>
                             <Button
                               variant="outline-danger"
                               size="sm"
+                              onClick={() => { deleteWarehouse(warehouse.id) }}
                             >
                               <FontAwesomeIcon icon={faTrashCan} />
                             </Button>
@@ -167,7 +177,6 @@ function Warehouse({isAuth}) {
                         	</div>
                         </Card.Header>
                         <Card.Body>
-                          <small>ID:</small><br />
                           <small>Address:</small><br />
                           <small>Notes:</small><br />
                         </Card.Body>
@@ -188,7 +197,10 @@ function Warehouse({isAuth}) {
                   </div>
                   <NewMapModal
                     show={modalShowMap}
-                    onHide={() => setModalShowMap(false)} />
+                    onHide={() => setModalShowMap(false)} 
+                    whId = {whId}
+                    whCol = {whCol}
+                    whRow = {whRow}/>
                   <div className='row'>
                     <div className='col-12 mt-4'>
                       <Card className='shadow'>
@@ -210,37 +222,23 @@ function Warehouse({isAuth}) {
                         	</div>
                         </Card.Header>
                         <Card.Body>
-                        
-                        {warehouse.map((warehouse) => {
-                        return (
-                        <div>
-                        <small>ID: {whId4D} </small><br />
                           <small>Address: {whAdd} </small><br />
                           <small>Notes: {whNotes} </small><br />
-                                         </div>
-                                                  )
-                        })}
                         </Card.Body>
                         <Card.Body>
-				{cell.map((cell) => {
-                    return (
-                      <ListGroup.Item 
-                     >
-                        <div className='row'>
-                          <div className="col-10 pt-1">
-                          <div className="col-4">
-                            <small>{whId.CL001}</small>
-                            </div>
-                          </div>
-                        </div>
 
-                      </ListGroup.Item>
-                    )
-                  })}
                         </Card.Body>
 
                       </Card>
-
+<Card className='shadow'>
+<Card.Body>
+                        <Map
+                        whId = {whId}
+                        whRow = {whRow}
+                        whCol = {whCol}
+                        />
+</Card.Body>
+</Card>
                     </div>
                   </div>
 
