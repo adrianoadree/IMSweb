@@ -9,7 +9,7 @@ import { addDoc, collection, orderBy, query, onSnapshot, serverTimestamp } from 
 import { useNavigate } from 'react-router-dom';
 import moment from "moment";
 
-import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import { ToastContainer, toast  } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 

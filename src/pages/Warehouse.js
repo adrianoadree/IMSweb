@@ -86,10 +86,10 @@ function Warehouse({isAuth}) {
             <Card className='shadow'>
               <Card.Header className='bg-primary'>
                 <div className='row'>
-                  <div className='col-10 pt-2 text-white'>
+                  <div className='col-9 pt-2 text-white'>
                     <h6>Your Warehouses:</h6>
                   </div>
-                  <div className='col-2'>
+                  <div className='col-3'>
                     <Button variant="primary"
                       onClick={() => setModalShowWH(true)}>
                       <FontAwesomeIcon icon={faPlus} />

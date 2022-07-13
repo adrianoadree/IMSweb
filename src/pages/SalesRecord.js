@@ -37,11 +37,8 @@ function SalesRecord({ isAuth }) {
     const [modalShow, setModalShow] = useState(false);
     const [salesRecord, setSalesRecord] = useState([]);
 
-
     const [salesId, setSalesId] = useState("xxx")
     let navigate = useNavigate();
-
-
 
     useEffect(() => {
         if (!isAuth) {
@@ -49,8 +46,7 @@ function SalesRecord({ isAuth }) {
         }
     }, []);
 
-
-    //read salesRecord collection
+    //read  sales_record collection
     useEffect(() => {
         const salesRecordCollectionRef = collection(db, "sales_record")
         const q = query(salesRecordCollectionRef);
@@ -58,7 +54,6 @@ function SalesRecord({ isAuth }) {
         const unsub = onSnapshot(q, (snapshot) =>
             setSalesRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
         );
-
         return unsub;
     }, [])
 
@@ -67,14 +62,9 @@ function SalesRecord({ isAuth }) {
         await deleteDoc(supplierDoc);
     }
 
-
-
     return (
         <div>
-
-
             <Navigation />
-
             <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
                 <div className="row bg-light">
                     <div className='col-3 p-5'>
@@ -104,7 +94,6 @@ function SalesRecord({ isAuth }) {
                                                 onClick={() => { setSalesId(salesRecord.id) }}>
                                                 <div className="row">
                                                     <div className="col-9">
-                                                        <small><strong>{salesRecord.supplier_name}</strong></small><br />
                                                         <small>Doc No: {salesRecord.document_number}</small><br />
                                                         <small>Date</small>
 
