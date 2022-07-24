@@ -1,75 +1,80 @@
 import Navigation from "../layout/Navigation";
 import { Link } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import ListGroup from 'react-bootstrap/ListGroup';
-import NewSalesModal from "../components/NewSalesModal";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
-import { useNavigate } from 'react-router-dom';
-import {
-    faPlus,
-    faNoteSticky,
-    faPesetaSign,
-    faFile,
-    faXmark,
-    faCalendarDay
-} from '@fortawesome/free-solid-svg-icons'
-import {
-    Button,
-    Card,
-    Nav,
-    Table,
-    Tab
-} from "react-bootstrap";
-import {
-    collection,
-    doc,
-    deleteDoc,
-    query,
-    onSnapshot
-} from "firebase/firestore";
-
-
+import { collection, onSnapshot, query, doc, getDoc, deleteDoc } from "firebase/firestore";
+import { Tab, ListGroup, Card, Table, Button, Nav } from "react-bootstrap";
+import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import NewSalesModal from "../components/NewSalesModal";
+import moment from "moment";
 
 
 function SalesRecord({ isAuth }) {
 
-    const [modalShow, setModalShow] = useState(false);
-    const [salesRecord, setSalesRecord] = useState([]);
+    const [modalShow, setModalShow] = useState(false); //add new sales record modal
+    const [salesRecord, setSalesRecord] = useState([]); //sales_record spec doc
+    const [salesRecordCollection, setSalesRecordCollection] = useState([]); //sales_record collection
+    const [docId, setDocId] = useState("xx") // doc id variable
+    const [list, setList] = useState([{}]); // array of sold_product list
 
-    const [salesId, setSalesId] = useState("xxx")
-    let navigate = useNavigate();
 
+    //---------------------FUNCTIONS---------------------
+
+    //fetch sales_record Document
     useEffect(() => {
-        if (!isAuth) {
-            navigate("/login");
-        }
-    }, []);
+        async function fetchSalesRecord() {
 
-    //read  sales_record collection
+            const salesRecord = doc(db, "sales_record", docId)
+            const docSnap = await getDoc(salesRecord)
+
+            if (docSnap.exists()) {
+                setSalesRecord(docSnap.data());
+            }
+        }
+        fetchSalesRecord();
+
+    }, [docId])
+
+    //read sales_record collection
     useEffect(() => {
         const salesRecordCollectionRef = collection(db, "sales_record")
         const q = query(salesRecordCollectionRef);
 
         const unsub = onSnapshot(q, (snapshot) =>
-            setSalesRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
         );
         return unsub;
     }, [])
 
+
+    //fetch sold_product spec Document
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, "sold_products", docId), (doc) => {
+            setList(doc.data().product_list);
+        });
+        return unsub;
+    }, [docId])
+
+    //delete
     const deleteSalesRecord = async (id) => {
-        const supplierDoc = doc(db, "sales_record", id)
-        await deleteDoc(supplierDoc);
+        const salesRecDoc = doc(db, "sales_record", id)
+        const soldProdListDoc = doc(db, "sold_products", id)
+        await deleteDoc(salesRecDoc);
+        await deleteDoc(soldProdListDoc);
     }
+
 
     return (
         <div>
             <Navigation />
             <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
                 <div className="row bg-light">
-                    <div className='col-3 p-5'>
-                        <Card className="shadow">
-                            <Card.Header className="bg-primary text-white">
+                    <div className="col-3 p-5">
+                        <Card>
+                            <Card.Header
+                                className="bg-primary text-white"
+                            >
                                 <div className="row">
                                     <div className="col-9 pt-2">
                                         <h6>Transaction List</h6>
@@ -83,88 +88,35 @@ function SalesRecord({ isAuth }) {
                                     </div>
                                 </div>
                             </Card.Header>
-                            <Card.Body className="" style={{ height: "550px" }}>
+                            <Card.Body style={{ height: "550px" }}>
                                 <ListGroup variant="flush">
-                                    {salesRecord.map((salesRecord) => {
+                                    {salesRecordCollection.map((salesRecordCollection) => {
                                         return (
                                             <ListGroup.Item
                                                 action
-                                                key={salesRecord.id}
-                                                eventKey={salesRecord.id}
-                                                onClick={() => { setSalesId(salesRecord.id) }}>
+                                                key={salesRecordCollection.id}
+                                                eventKey={salesRecordCollection.id}
+                                                onClick={() => { setDocId(salesRecordCollection.id) }}>
                                                 <div className="row">
                                                     <div className="col-9">
-                                                        <small>Doc No: {salesRecord.document_number}</small><br />
-                                                        <small>Date</small>
-
+                                                        <small><strong>Doc No: {salesRecordCollection.document_number}</strong></small><br />
+                                                        <small>Date: {salesRecordCollection.document_date}</small><br />
                                                     </div>
-
                                                     <div className="col-3">
-                                                        <Button
-                                                            className="text-dark"
-                                                            variant="outline-light"
-                                                            onClick={() => { deleteSalesRecord(salesRecord.id) }}
-                                                        >
-                                                            <FontAwesomeIcon icon={faXmark} />
-                                                        </Button>{' '}
+
                                                     </div>
                                                 </div>
                                             </ListGroup.Item>
                                         );
                                     })}
                                 </ListGroup>
+
                             </Card.Body>
                         </Card>
 
-
-
                     </div>
-
-
-
-                    <div className='col-9 p-5'>
+                    <div className="col-9 p-5">
                         <Tab.Content>
-                            <Tab.Pane eventKey={salesId}>
-                                <div>
-                                    <Nav className="shadow" fill variant="pills" defaultActiveKey="/salesRecord">
-                                        <Nav.Item>
-                                            <Nav.Link as={Link} to="/records" >Purchase History</Nav.Link>
-                                        </Nav.Item>
-                                        <Nav.Item>
-                                            <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
-                                        </Nav.Item>
-                                    </Nav>
-                                    <span><br></br></span>
-                                    <div className="row px-5 py-3 bg-white shadow">
-                                        <div className="row pt-4 px-2 bg-white">
-                                            <small> <FontAwesomeIcon icon={faFile} /> Document Number: </small>
-                                            <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: </small>
-                                            <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: </small>
-                                            <small> <FontAwesomeIcon icon={faPesetaSign} /> Total: </small>
-                                        </div>
-
-                                        <span><br /></span>
-                                        <Table striped bordered hover size="sm">
-                                            <thead className='bg-primary'>
-                                                <tr>
-                                                    <th className='px-3'>Item Code</th>
-                                                    <th className='px-3'>Item Name</th>
-                                                    <th className='px-3'>Quantity</th>
-                                                    <th className='px-3'>Price</th>
-                                                    <th className='text-center'>Modify / Delete</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody style={{ height: "300px" }}>
-
-                                            </tbody>
-                                        </Table>
-
-
-                                    </div>
-
-
-                                </div>
-                            </Tab.Pane>
                             <Tab.Pane eventKey={0}>
                                 <div>
                                     <Nav className="shadow" fill variant="pills" defaultActiveKey="/salesRecord">
@@ -181,18 +133,15 @@ function SalesRecord({ isAuth }) {
                                             <small> <FontAwesomeIcon icon={faFile} /> Document Number: </small>
                                             <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: </small>
                                             <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: </small>
-                                            <small> <FontAwesomeIcon icon={faPesetaSign} /> Total: </small>
                                         </div>
 
                                         <span><br /></span>
                                         <Table striped bordered hover size="sm">
                                             <thead className='bg-primary'>
                                                 <tr>
-                                                    <th className='px-3'>Item Code</th>
                                                     <th className='px-3'>Item Name</th>
                                                     <th className='px-3'>Quantity</th>
                                                     <th className='px-3'>Price</th>
-                                                    <th className='text-center'>Modify / Delete</th>
                                                 </tr>
                                             </thead>
                                             <tbody style={{ height: "300px" }}>
@@ -206,18 +155,81 @@ function SalesRecord({ isAuth }) {
 
                                 </div>
                             </Tab.Pane>
+
+                            <Tab.Pane eventKey={docId}>
+                                <div>
+                                    <Nav className="shadow" fill variant="pills" defaultActiveKey="/salesRecord">
+                                        <   Nav.Item>
+                                            <Nav.Link as={Link} to="/records" >Purchase History</Nav.Link>
+                                        </Nav.Item>
+                                        <Nav.Item>
+                                            <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
+                                        </Nav.Item>
+                                    </Nav>
+                                    <span><br></br></span>
+                                    <div className="row px-5 py-3 bg-white shadow">
+                                        <div className="row pt-4 px-2 bg-white">
+
+                                            <div className="col-11 ">
+                                                <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong>{salesRecord.document_number}</strong></small><br />
+                                                <small> <FontAwesomeIcon icon={faCalendarDay} /> Date:  <strong>{moment(salesRecord.document_date).format('LL')}</strong></small><br />
+                                                <small> <FontAwesomeIcon icon={faNoteSticky} /> Note:  <strong>{salesRecord.document_note}</strong></small><br />
+                                            </div>
+                                            <div className="col-1">
+                                                <Button
+                                                    className="text-black"
+                                                    size="lg"
+                                                    variant="outline-light"
+                                                    onClick={() => { deleteSalesRecord(docId) }}
+                                                >
+                                                    <FontAwesomeIcon icon={faTrashCan} />
+                                                </Button>
+                                            </div>
+
+                                        </div>
+
+                                        <span><br /></span>
+                                        <div style={{ height: "400px" }}>
+                                            <Table striped bordered hover size="sm">
+                                                <thead className='bg-primary'>
+                                                    <tr>
+                                                        <th className='px-3'>Item Name</th>
+                                                        <th className='px-3'>Quantity</th>
+                                                        <th className='px-3'>Price</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {list.map((product) => (
+                                                        <tr>
+                                                            <td key={product.productName}>{product.productName} </td>
+                                                            <td key={product.productQuantity}>{product.productQuantity}</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </Tab.Pane>
                         </Tab.Content>
                     </div>
+
+
+
+
                 </div>
-
-
 
 
             </Tab.Container>
 
-        </div>
-
+        </div >
     );
+
+
+
 }
 
 export default SalesRecord;

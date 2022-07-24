@@ -2,30 +2,38 @@ import React from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { db } from "../firebase-config";
-import { addDoc, collection, arrayUnion, updateDoc, onSnapshot, query } from "firebase/firestore";
-
+import { addDoc, collection, arrayUnion, updateDoc, onSnapshot, query, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import moment from "moment";
 
 function NewSalesModal(props) {
 
-    const [setModalShow] = React.useState(false);
+    const [setModalShow] = useState(false);
     const [purchRecord, setPurchRecord] = useState([]);
-
 
 
     const [newDocumentNumber, setNewDocumentNumber] = useState(0);
     const [newNote, setNewNote] = useState("");
     const [newDate, setNewDate] = useState(new Date());
 
+    var curr = new Date();
+    curr.setDate(curr.getDate());
+    var date = curr.toISOString().substr(0, 10);
+
+
+    //---------------------FUNCTIONS---------------------
+
     //add document to database
-    const addRecord = async () => {
-        const salesRecordCollectionRef = collection(db, "sales_record")
-        await addDoc(salesRecordCollectionRef,
-            {
-                document_number: Number(newDocumentNumber),
-                document_date: newDate,
-                document_note: newNote,
-                product_list: productList
-            });
+    const addRecord = () => {
+        setDoc(doc(db, "sales_record", "SR00" + newDocumentNumber), {
+            document_date: date,
+            document_note: newNote,
+            document_number: "SR00" + newDocumentNumber,
+        });
+
+        setDoc(doc(db, "sold_products", "SR00" + newDocumentNumber), {
+            product_list: productList
+        });
+
         setModalShow(false)
         alert('Successfuly Added to the Database')
     }
@@ -44,12 +52,10 @@ function NewSalesModal(props) {
         return unsub;
     }, [])
 
-    var curr = new Date();
-    curr.setDate(curr.getDate());
-    var date = curr.toISOString().substr(0, 10);
 
 
 
+    //Dynamic Add Product Button ------------------------------------------------------------
     const [productList, setProductList] = useState([{ productName: "", productQuantity: 0 }]);
 
     const handleProductChange = (e, index) => {
@@ -59,8 +65,9 @@ function NewSalesModal(props) {
         setProductList(list)
     }
 
+    const productName = [];
     const handleItemAdd = () => {
-        setProductList([...productList, { productName: " ", productQuantity: 0 }])
+        setProductList([...productList, { productName, productQuantity: 0 }])
     }
 
     const handleItemRemove = (index) => {
@@ -68,7 +75,7 @@ function NewSalesModal(props) {
         list.splice(index, 1)
         setProductList(list)
     }
-
+    //End of Dynamic Button functions ---------------------------
 
 
 
@@ -99,10 +106,8 @@ function NewSalesModal(props) {
                         <label>Date</label>
                         <input
                             className="form-control"
-                            type="date"
-                            defaultValue={date}
-                            placeholder="Date"
-                            onChange={(event) => { setNewDate(event.target.value); }}
+                            value={moment(date).format('LL')}
+                            disabled
                         />
                     </div>
                 </div>
@@ -133,6 +138,16 @@ function NewSalesModal(props) {
                                 name="productName"
                                 placeholder="Product Name"
                                 value={product.productName}
+                                onChange={(e) => handleProductChange(e, index)}
+                                required
+                            />
+                            <Form.Control
+                                hidden
+                                size="md"
+                                type="boolean"
+                                name="productName"
+                                placeholder="Boolean"
+                                value={product.productBoolean}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
                             />
