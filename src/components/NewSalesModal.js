@@ -7,13 +7,11 @@ import moment from "moment";
 
 function NewSalesModal(props) {
 
+    //---------------------VARIABLES---------------------
     const [setModalShow] = useState(false);
     const [purchRecord, setPurchRecord] = useState([]);
-
-
     const [newDocumentNumber, setNewDocumentNumber] = useState(0);
     const [newNote, setNewNote] = useState("");
-    const [newDate, setNewDate] = useState(new Date());
 
     var curr = new Date();
     curr.setDate(curr.getDate());

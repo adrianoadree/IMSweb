@@ -170,20 +170,16 @@ function LandingPage({ isAuth }) {
                                     <Table striped bordered hover size="sm">
                                         <thead className="bg-primary">
                                             <tr>
-                                                <th>Supplier Name</th>
+                                                <th>Document Number</th>
                                                 <th>Date</th>
-                                                <th>Product Name</th>
-                                                <th>Quantity</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {purchRecord.map((purchRecord) => {
                                                 return (
                                                     <tr>
-                                                        <td>{purchRecord.product_supplier}</td>
+                                                        <td>{purchRecord.document_number}</td>
                                                         <td>{date}</td>
-                                                        <td>{purchRecord.product_name}</td>
-                                                        <td>{purchRecord.product_quantity}</td>
                                                     </tr>
                                                 )
                                             })}

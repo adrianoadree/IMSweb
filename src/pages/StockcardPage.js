@@ -1,27 +1,19 @@
 import Navigation from "../layout/Navigation";
-import { Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
-import { collection, onSnapshot, query, doc, getDoc, deleteDoc } from "firebase/firestore";
-import { Tab, ListGroup, Card, Table, Button, Nav } from "react-bootstrap";
-import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import NewSalesModal from "../components/NewSalesModal";
+import { setDoc, collection, onSnapshot, query, doc } from "firebase/firestore";
+import { Tab, ListGroup, Card, Button, Form } from "react-bootstrap";
 import moment from "moment";
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 
 
 function StockcardPage({ isAuth }) {
 
-  const [modalShow, setModalShow] = useState(false); //add new sales record modal
-  const [salesRecord, setSalesRecord] = useState([]); //sales_record spec doc
-  const [salesRecordCollection, setSalesRecordCollection] = useState([]); //sales_record collection
-  const [docId, setDocId] = useState("xx") // doc id variable
-  const [list, setList] = useState([{}]); // array of sold_product list
 
-
-  //---------------------FUNCTIONS---------------------
 
   //fetch sales_record Document
+  /*
   useEffect(() => {
     async function fetchSalesRecord() {
 
@@ -35,27 +27,20 @@ function StockcardPage({ isAuth }) {
     fetchSalesRecord();
 
   }, [docId])
-
-  //read sales_record collection
-  useEffect(() => {
-    const salesRecordCollectionRef = collection(db, "sales_record")
-    const q = query(salesRecordCollectionRef);
-
-    const unsub = onSnapshot(q, (snapshot) =>
-      setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-    );
-    return unsub;
-  }, [])
+  */
 
 
   //fetch sold_product spec Document
+  /*
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "sold_products", docId), (doc) => {
       setList(doc.data().product_list);
     });
     return unsub;
   }, [docId])
-
+  /*
+  
+  /*
   //delete
   const deleteSalesRecord = async (id) => {
     const salesRecDoc = doc(db, "sales_record", id)
@@ -63,7 +48,83 @@ function StockcardPage({ isAuth }) {
     await deleteDoc(salesRecDoc);
     await deleteDoc(soldProdListDoc);
   }
+  */
 
+
+  //---------------------VARIABLES---------------------
+
+  const [stockcard, setStockcard] = useState([]);
+  const [newDocumentNumber, setNewDocumentNumber] = useState(0);
+  const [newNote, setNewNote] = useState("");
+
+  var curr = new Date();
+  curr.setDate(curr.getDate());
+  var date = curr.toISOString().substr(0, 10);
+
+
+
+
+  //---------------------FUNCTIONS---------------------
+
+  //add document to database
+  const addRecord = () => {
+    setDoc(doc(db, "purchase_record", "PR00" + newDocumentNumber), {
+      document_date: date,
+      document_note: newNote,
+      document_number: "PR00" + newDocumentNumber,
+      productList
+      
+    });
+
+    successToast();
+  }
+
+  //read stockcard collection
+  useEffect(() => {
+    const stockcardCollectionRef = collection(db, "stockcard")
+    const q = query(stockcardCollectionRef);
+
+    const unsub = onSnapshot(q, (snapshot) =>
+      setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+    );
+    return unsub;
+  }, [])
+
+  
+  //Toastify
+  const successToast = () => {
+    toast.success(' New Purchase Recorded! ', {
+      position: "top-right",
+      autoClose: 3500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
+
+  //Dynamic Add Product Button ------------------------------------------------------------
+  const [productList, setProductList] = useState([{ productName: "", productQuantity: 0 }]);
+
+  const handleProductChange = (e, index) => {
+    const { name, value } = e.target
+    const list = [...productList];
+    list[index][name] = value
+    setProductList(list)
+  }
+
+  const productName = [];
+  const handleItemAdd = () => {
+    setProductList([...productList, { productName, productQuantity: 0 }])
+  }
+
+  const handleItemRemove = (index) => {
+    const list = [...productList]
+    list.splice(index, 1)
+    setProductList(list)
+  }
+  //End of Dynamic Button functions ---------------------------
 
 
 
@@ -84,37 +145,15 @@ function StockcardPage({ isAuth }) {
                     <h6>Transaction List</h6>
                   </div>
                   <div className="col-3">
-                    <Button onClick={() => setModalShow(true)}><FontAwesomeIcon icon={faPlus} /></Button>
-                    <NewSalesModal
-                      show={modalShow}
-                      onHide={() => setModalShow(false)}
-                    />
+
                   </div>
                 </div>
               </Card.Header>
               <Card.Body style={{ height: "550px" }}>
                 <ListGroup variant="flush">
-                  {salesRecordCollection.map((salesRecordCollection) => {
-                    return (
-                      <ListGroup.Item
-                        action
-                        key={salesRecordCollection.id}
-                        eventKey={salesRecordCollection.id}
-                        onClick={() => { setDocId(salesRecordCollection.id) }}>
-                        <div className="row">
-                          <div className="col-9">
-                            <small><strong>Doc No: {salesRecordCollection.document_number}</strong></small><br />
-                            <small>Date: {salesRecordCollection.document_date}</small><br />
-                          </div>
-                          <div className="col-3">
 
-                          </div>
-                        </div>
-                      </ListGroup.Item>
-                    );
-                  })}
+
                 </ListGroup>
-
               </Card.Body>
             </Card>
 
@@ -122,108 +161,129 @@ function StockcardPage({ isAuth }) {
           <div className="col-9 p-5">
             <Tab.Content>
               <Tab.Pane eventKey={0}>
-                <div>
-                  <Nav className="shadow" fill variant="pills" defaultActiveKey="/salesRecord">
-                    <   Nav.Item>
-                      <Nav.Link as={Link} to="/records" >Purchase History</Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                      <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
-                    </Nav.Item>
-                  </Nav>
-                  <span><br></br></span>
-                  <div className="row px-5 py-3 bg-white shadow">
-                    <div className="row pt-4 px-2 bg-white">
-                      <small> <FontAwesomeIcon icon={faFile} /> Document Number: </small>
-                      <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: </small>
-                      <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: </small>
-                    </div>
-
-                    <span><br /></span>
-                    <Table striped bordered hover size="sm">
-                      <thead className='bg-primary'>
-                        <tr>
-                          <th className='px-3'>Item Name</th>
-                          <th className='px-3'>Quantity</th>
-                          <th className='px-3'>Price</th>
-                        </tr>
-                      </thead>
-                      <tbody style={{ height: "300px" }}>
-
-                      </tbody>
-                    </Table>
-
-
+                <div className="row mt-2">
+                  <div className="col-8">
+                    <label>Document Number</label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      placeholder="Document Number"
+                      onChange={(event) => { setNewDocumentNumber(event.target.value); }} />
                   </div>
-
-
+                  <div className="col-4">
+                    <label>Date</label>
+                    <input
+                      className="form-control"
+                      value={moment(date).format('LL')}
+                      disabled
+                    />
+                  </div>
                 </div>
-              </Tab.Pane>
+                <div className="row mt-2">
+                  <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+                    <Form.Label>Note: (Optional)</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      onChange={(event) => { setNewNote(event.target.value); }}
+                    />
+                  </Form.Group>
+                </div>
 
-              <Tab.Pane eventKey={docId}>
-                <div>
-                  <Nav className="shadow" fill variant="pills" defaultActiveKey="/salesRecord">
-                    <   Nav.Item>
-                      <Nav.Link as={Link} to="/records" >Purchase History</Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                      <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
-                    </Nav.Item>
-                  </Nav>
-                  <span><br></br></span>
-                  <div className="row px-5 py-3 bg-white shadow">
-                    <div className="row pt-4 px-2 bg-white">
-
-                      <div className="col-11 ">
-                        <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong>{salesRecord.document_number}</strong></small><br />
-                        <small> <FontAwesomeIcon icon={faCalendarDay} /> Date:  <strong>{moment(salesRecord.document_date).format('LL')}</strong></small><br />
-                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note:  <strong>{salesRecord.document_note}</strong></small><br />
-                      </div>
-                      <div className="col-1">
-                        <Button
-                          className="text-black"
-                          size="lg"
-                          variant="outline-light"
-                          onClick={() => { deleteSalesRecord(docId) }}
+                <h5>Products</h5>
+                <hr></hr>
+                <div className="row mb-2">
+                  <div className="col-6">Product Name</div>
+                  <div className="col-3">Quantity</div>
+                </div>
+                {productList.map((product, index) => (
+                  <div key={index} className="row">
+                    <div className="col-6 mb-3">
+                      <Form.Control
+                        hidden
+                        size="md"
+                        type="text"
+                        name="productName"
+                        placeholder="Product Name"
+                        value={product.productName}
+                        onChange={(e) => handleProductChange(e, index)}
+                        required
+                      />
+                      <Form.Control
+                        hidden
+                        size="md"
+                        type="boolean"
+                        name="productName"
+                        placeholder="Boolean"
+                        value={product.productBoolean}
+                        onChange={(e) => handleProductChange(e, index)}
+                        required
+                      />
+                      <Form.Select
+                        defaultValue={0}
+                        name="productName"
+                        value={product.productName}
+                        onChange={(e) => handleProductChange(e, index)}
+                        required
+                      >
+                        <option
+                          value={0}
                         >
-                          <FontAwesomeIcon icon={faTrashCan} />
+                          Select item
+                        </option>
+                        {stockcard.map((prod) => {
+                          return (
+                            <option
+                              key={prod.description}
+                              value={prod.description}
+                            >
+                              {prod.description}
+                            </option>
+                          )
+                        })}
+                      </Form.Select>
+                      {productList.length - 1 === index && productList.length < 4 && (
+                        <Button
+                          className="mt-3"
+                          variant="outline-primary"
+                          size="md"
+                          onClick={handleItemAdd}>
+                          Add
                         </Button>
-                      </div>
-
+                      )}
                     </div>
-
-                    <span><br /></span>
-                    <div style={{ height: "400px" }}>
-                      <Table striped bordered hover size="sm">
-                        <thead className='bg-primary'>
-                          <tr>
-                            <th className='px-3'>Item Name</th>
-                            <th className='px-3'>Quantity</th>
-                            <th className='px-3'>Price</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {list.map((product) => (
-                            <tr>
-                              <td key={product.productName}>{product.productName} </td>
-                              <td key={product.productQuantity}>{product.productQuantity}</td>
-                              <td></td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </Table>
+                    <div className="col-3">
+                      <Form.Control
+                        size="md"
+                        type="number"
+                        name="productQuantity"
+                        placeholder="Quantity"
+                        min={0}
+                        value={product.productQuantity}
+                        onChange={(e) => handleProductChange(e, index)}
+                        required
+                      />
                     </div>
-                  </div>
+                    <div className="col-3">
+                      {productList.length > 1 && (
+                        <Button
+                          variant="outline-danger"
+                          size="md"
+                          onClick={() => handleItemRemove(index)}>
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                  </div >
 
 
-                </div>
+                ))}
+
+
+
               </Tab.Pane>
             </Tab.Content>
           </div>
-
-
-
-
         </div>
 
 

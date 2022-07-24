@@ -12,6 +12,8 @@ import moment from "moment";
 
 function SalesRecord({ isAuth }) {
 
+    //---------------------VARIABLES---------------------
+
     const [modalShow, setModalShow] = useState(false); //add new sales record modal
     const [salesRecord, setSalesRecord] = useState([]); //sales_record spec doc
     const [salesRecordCollection, setSalesRecordCollection] = useState([]); //sales_record collection
@@ -177,9 +179,8 @@ function SalesRecord({ isAuth }) {
                                             </div>
                                             <div className="col-1">
                                                 <Button
-                                                    className="text-black"
                                                     size="lg"
-                                                    variant="outline-light"
+                                                    variant="outline-danger"
                                                     onClick={() => { deleteSalesRecord(docId) }}
                                                 >
                                                     <FontAwesomeIcon icon={faTrashCan} />

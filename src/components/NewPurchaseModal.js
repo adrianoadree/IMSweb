@@ -1,90 +1,73 @@
-import React from "react";
-import { Button, Form, Modal } from "react-bootstrap";
-import { useState, useEffect } from "react";
+import Navigation from "../layout/Navigation";
+import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
-import { addDoc, collection, query, onSnapshot, where, doc, serverTimestamp } from "firebase/firestore";
-import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import { setDoc, collection, onSnapshot, query, doc } from "firebase/firestore";
+import { Modal, ListGroup, Card, Button, Form } from "react-bootstrap";
+import moment from "moment";
 import "react-toastify/dist/ReactToastify.css";
-
+import { ToastContainer, toast } from "react-toastify";
 
 function NewPurchaseModal(props) {
 
-    const [setModalShow] = useState(false);
-
-    const [stockcard, setStockcard] = useState([]);
-    const [supplier, setSupplier] = useState([]);
-    const purchaseRecordCollectionRef = collection(db, "purchase_record")
 
 
-    //data variable declaration
+
+
+    //---------------------VARIABLES---------------------
+    const [stockcard, setStockcard] = useState([]); //stockcard collection
     const [newDocumentNumber, setNewDocumentNumber] = useState(0);
     const [newNote, setNewNote] = useState("");
-    const [newDate, setNewDate] = useState(new Date());
-    const [newProductName, setNewProductName] = useState("");
-    const [newSupplierName, setNewSupplierName] = useState("");
-    const [newQuanity, setNewProductQuantity] = useState(0);
+
+    var curr = new Date();
+    curr.setDate(curr.getDate());
+    var date = curr.toISOString().substr(0, 10);
 
 
-
-    const successToast = () => {
-        toast.success(' New Purchase Recorded! ', {
-            position: "top-right",
-            autoClose: 3500,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-        });
-    }
-
+    //---------------------FUNCTIONS---------------------
 
     //add document to database
-    const addRecord = async () => {
-        await addDoc(purchaseRecordCollectionRef, {
-            document_number: Number(newDocumentNumber),
-            document_date: newDate,
+    const addRecord = () => {
+        setDoc(doc(db, "purchase_record", "PR00" + newDocumentNumber), {
+            document_date: date,
             document_note: newNote,
-            product_name: newProductName,
-            product_supplier: newSupplierName,
-            product_quantity: Number(newQuanity)
-
+            document_number: "PR00" + newDocumentNumber,
+            productList
         });
-        successToast();
-        setModalShow(false)
         alert('Successfuly Added to the Database')
     }
-
-    //read supplier collection
-    useEffect(() => {
-        const supplierCollectionRef = collection(db, "supplier")
-        const q = query(supplierCollectionRef);
-
-        const unsub = onSnapshot(q, (snapshot) =>
-            setSupplier(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-
-        return unsub;
-    }, [])
 
     //read collection from stockcard
     useEffect(() => {
         const stockcardCollectionRef = collection(db, "stockcard")
-        const q = query(stockcardCollectionRef, where("product_supplier", "==", newSupplierName));
+        const q = query(stockcardCollectionRef);
 
         const unsub = onSnapshot(q, (snapshot) =>
             setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
         );
         return unsub;
+    }, [])
 
-    }, [newSupplierName])
+    //Dynamic Add Product Button ------------------------------------------------------------
+    const [productList, setProductList] = useState([{ productName: "", productQuantity: 0 }]);
 
+    const handleProductChange = (e, index) => {
+        const { name, value } = e.target
+        const list = [...productList];
+        list[index][name] = value
+        setProductList(list)
+    }
 
+    const productName = [];
+    const handleItemAdd = () => {
+        setProductList([...productList, { productName, productQuantity: 0 }])
+    }
 
-
-    var curr = new Date();
-    curr.setDate(curr.getDate());
-    var date = curr.toISOString().substr(0, 10);
+    const handleItemRemove = (index) => {
+        const list = [...productList]
+        list.splice(index, 1)
+        setProductList(list)
+    }
+    //End of Dynamic Button functions ---------------------------
 
 
     return (
@@ -116,85 +99,20 @@ function NewPurchaseModal(props) {
             <Modal.Body className="p-5">
 
                 <div className="row mt-2">
-                    <div className="col-6">
-                        <label>Supplier Name</label>
-                        <Form.Select
-                            defaultValue="0"
-                            aria-label="Default select example"
-                            required
-                            onChange={(event) => { setNewSupplierName(event.target.value); }}
-                        >
-                            <option
-                                disabled
-                                value="0">
-                                Select Supplier
-                            </option>
-                            {supplier.map((supplier) => {
-                                return (
-                                    <option
-                                        key={supplier.supplier_name}
-                                        value={supplier.supplier_name}>
-                                        {supplier.supplier_name}
-                                    </option>
-                                )
-                            })}
-                        </Form.Select>
-
-                    </div>
-
-                </div>
-                <div className="row mt-4">
-                    <div className="col-6">
-                        <label>Product Name</label>
-                        <Form.Select
-                            defaultValue="0"
-                            aria-label="Default select example"
-                            required
-                            onChange={(event) => { setNewProductName(event.target.value); }}>
-                            <option
-                                disabled
-                                value="0">
-                                Select Product
-                            </option>
-                            {stockcard.map((stockcard) => {
-                                return (
-                                    <option
-                                        key={stockcard.product_name}
-                                        value={stockcard.product_name}>
-                                        {stockcard.product_name}
-                                    </option>
-                                )
-                            })}
-                        </Form.Select>
-
-                    </div>
-                    <div className="col-4">
-                        <label>Quantity</label>
-                        <input className="form-control"
-                            type="number"
-                            min={1}
-                            placeholder="Quantity"
-                            onChange={(event) => { setNewProductQuantity(event.target.value); }}
-                        />
-                    </div>
-                </div>
-                <hr />
-                <div className="row mt-2">
                     <div className="col-8">
                         <label>Document Number</label>
                         <input
                             type="number"
                             className="form-control"
-                            disabled
+                            placeholder="Document Number"
                             onChange={(event) => { setNewDocumentNumber(event.target.value); }} />
                     </div>
                     <div className="col-4">
                         <label>Date</label>
-                        <input className="form-control"
-                            type="date"
-                            defaultValue={date}
-                            placeholder="Date"
-                            onChange={(event) => { setNewDate(event.target.value); }}
+                        <input
+                            className="form-control"
+                            value={moment(date).format('LL')}
+                            disabled
                         />
                     </div>
                 </div>
@@ -203,12 +121,98 @@ function NewPurchaseModal(props) {
                         <Form.Label>Note: (Optional)</Form.Label>
                         <Form.Control
                             as="textarea"
-                            rows={2}
+                            rows={3}
                             onChange={(event) => { setNewNote(event.target.value); }}
                         />
                     </Form.Group>
                 </div>
 
+                <h5>Products</h5>
+                <hr></hr>
+                <div className="row mb-2">
+                    <div className="col-6">Product Name</div>
+                    <div className="col-3">Quantity</div>
+                </div>
+                {productList.map((product, index) => (
+                    <div key={index} className="row">
+                        <div className="col-6 mb-3">
+                            <Form.Control
+                                hidden
+                                size="md"
+                                type="text"
+                                name="productName"
+                                placeholder="Product Name"
+                                value={product.productName}
+                                onChange={(e) => handleProductChange(e, index)}
+                                required
+                            />
+                            <Form.Control
+                                hidden
+                                size="md"
+                                type="boolean"
+                                name="productName"
+                                placeholder="Boolean"
+                                value={product.productBoolean}
+                                onChange={(e) => handleProductChange(e, index)}
+                                required
+                            />
+                            <Form.Select
+                                defaultValue={0}
+                                name="productName"
+                                value={product.productName}
+                                onChange={(e) => handleProductChange(e, index)}
+                                required
+                            >
+                                <option
+                                    value={0}
+                                >
+                                    Select item
+                                </option>
+                                {stockcard.map((prod) => {
+                                    return (
+                                        <option
+                                            key={prod.description}
+                                            value={prod.description}
+                                        >
+                                            {prod.description}
+                                        </option>
+                                    )
+                                })}
+                            </Form.Select>
+                            {productList.length - 1 === index && productList.length < 4 && (
+                                <Button
+                                    className="mt-3"
+                                    variant="outline-primary"
+                                    size="md"
+                                    onClick={handleItemAdd}>
+                                    Add
+                                </Button>
+                            )}
+                        </div>
+                        <div className="col-3">
+                            <Form.Control
+                                size="md"
+                                type="number"
+                                name="productQuantity"
+                                placeholder="Quantity"
+                                min={0}
+                                value={product.productQuantity}
+                                onChange={(e) => handleProductChange(e, index)}
+                                required
+                            />
+                        </div>
+                        <div className="col-3">
+                            {productList.length > 1 && (
+                                <Button
+                                    variant="outline-danger"
+                                    size="md"
+                                    onClick={() => handleItemRemove(index)}>
+                                    Remove
+                                </Button>
+                            )}
+                        </div>
+                    </div >
+                ))}
 
             </Modal.Body>
             <Modal.Footer>
