@@ -1,8 +1,8 @@
 import Navigation from "../layout/Navigation";
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
-import { setDoc, collection, onSnapshot, query, doc } from "firebase/firestore";
-import { Modal, ListGroup, Card, Button, Form } from "react-bootstrap";
+import { setDoc, collection, onSnapshot, query, doc, updateDoc, where } from "firebase/firestore";
+import { Modal, Button, Form } from "react-bootstrap";
 import moment from "moment";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
@@ -10,13 +10,11 @@ import { ToastContainer, toast } from "react-toastify";
 function NewPurchaseModal(props) {
 
 
-
-
-
     //---------------------VARIABLES---------------------
     const [stockcard, setStockcard] = useState([]); //stockcard collection
-    const [newDocumentNumber, setNewDocumentNumber] = useState(0);
-    const [newNote, setNewNote] = useState("");
+    const [varRef, setVarRef] = useState([]); // variable collection
+    const [newNote, setNewNote] = useState(""); // note form input
+
 
     var curr = new Date();
     curr.setDate(curr.getDate());
@@ -25,16 +23,14 @@ function NewPurchaseModal(props) {
 
     //---------------------FUNCTIONS---------------------
 
-    //add document to database
-    const addRecord = () => {
-        setDoc(doc(db, "purchase_record", "PR00" + newDocumentNumber), {
-            document_date: date,
-            document_note: newNote,
-            document_number: "PR00" + newDocumentNumber,
-            productList
+
+    //fetch variable collection
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
+            setVarRef(doc.data());
         });
-        alert('Successfuly Added to the Database')
-    }
+        return unsub;
+    }, [])
 
     //read collection from stockcard
     useEffect(() => {
@@ -46,6 +42,7 @@ function NewPurchaseModal(props) {
         );
         return unsub;
     }, [])
+
 
     //Dynamic Add Product Button ------------------------------------------------------------
     const [productList, setProductList] = useState([{ productName: "", productQuantity: 0 }]);
@@ -69,6 +66,23 @@ function NewPurchaseModal(props) {
     }
     //End of Dynamic Button functions ---------------------------
 
+
+    //add document to database
+    const addRecord = async (purchDocNum) => {
+        setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
+            document_date: date,
+            document_note: newNote,
+            document_number: "PR" + Number(purchDocNum),
+            productList
+        });
+
+        //input update document, (update doc number)
+        const varColRef = doc(db, "variables", "var")
+        const newData = { purchDocNum: Number(purchDocNum) + 1 }
+        await updateDoc(varColRef, newData)
+
+        alert('Successfuly Added to the Database')
+    }
 
     return (
 
@@ -102,10 +116,10 @@ function NewPurchaseModal(props) {
                     <div className="col-8">
                         <label>Document Number</label>
                         <input
-                            type="number"
                             className="form-control"
-                            placeholder="Document Number"
-                            onChange={(event) => { setNewDocumentNumber(event.target.value); }} />
+                            type="text"
+                            value={varRef.purchDocNum}
+                            disabled />
                     </div>
                     <div className="col-4">
                         <label>Date</label>
@@ -127,7 +141,7 @@ function NewPurchaseModal(props) {
                     </Form.Group>
                 </div>
 
-                <h5>Products</h5>
+                <h5>Buy Products</h5>
                 <hr></hr>
                 <div className="row mb-2">
                     <div className="col-6">Product Name</div>
@@ -141,12 +155,11 @@ function NewPurchaseModal(props) {
                                 size="md"
                                 type="text"
                                 name="productName"
-                                placeholder="Product Name"
                                 value={product.productName}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
                             />
-                            <Form.Control
+                            <Form.Select
                                 hidden
                                 size="md"
                                 type="boolean"
@@ -179,7 +192,7 @@ function NewPurchaseModal(props) {
                                     )
                                 })}
                             </Form.Select>
-                            {productList.length - 1 === index && productList.length < 4 && (
+                            {productList.length - 1 === index && productList.length < 10 && (
                                 <Button
                                     className="mt-3"
                                     variant="outline-primary"
@@ -219,7 +232,7 @@ function NewPurchaseModal(props) {
                 <Button
                     className="btn btn-success"
                     style={{ width: "150px" }}
-                    onClick={addRecord}>
+                    onClick={() => { addRecord(varRef.purchDocNum) }}>
                     Save
                 </Button>
             </Modal.Footer>

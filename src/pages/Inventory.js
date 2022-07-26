@@ -141,7 +141,7 @@ function Inventory({ isAuth }) {
                         onClick={() => { setProdId(stockcard.id) }}>
                         <div className='row'>
                           <div className="col-9 pt-1">
-                            <small>{stockcard.product_name}</small>
+                            <small>{stockcard.description}</small>
                           </div>
                           <div className='col-3'>
                             <Button

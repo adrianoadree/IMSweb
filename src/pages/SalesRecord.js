@@ -23,6 +23,7 @@ function SalesRecord({ isAuth }) {
 
     //---------------------FUNCTIONS---------------------
 
+
     //fetch sales_record Document
     useEffect(() => {
         async function fetchSalesRecord() {

@@ -40,8 +40,8 @@ function NewSalesModal(props) {
     //read collection from purchase_record
     useEffect(() => {
 
-        const purchRecordCollectionRef = collection(db, "purchase_record")
-        const q = query(purchRecordCollectionRef);
+        const purchaseProductRef = collection(db, "purchase_product")
+        const q = query(purchaseProductRef);
 
         const unsub = onSnapshot(q, (snapshot) =>
             setPurchRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -120,7 +120,7 @@ function NewSalesModal(props) {
                     </Form.Group>
                 </div>
 
-                <h5>Products</h5>
+                <h5>Sell Products</h5>
                 <hr></hr>
                 <div className="row mb-2">
                     <div className="col-6">Product Name</div>
@@ -167,12 +167,12 @@ function NewSalesModal(props) {
                                             key={purchRecord.product_name}
                                             value={purchRecord.product_name}
                                         >
-                                            {purchRecord.product_name}
+                                            {purchRecord.productName}
                                         </option>
                                     )
                                 })}
                             </Form.Select>
-                            {productList.length - 1 === index && productList.length < 4 && (
+                            {productList.length - 1 === index && productList.length < 10 && (
                                 <Button
                                     className="mt-3"
                                     variant="outline-primary"
