@@ -2,9 +2,9 @@ import Navigation from "../layout/Navigation";
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
-import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where } from "firebase/firestore";
+import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
 import { Tab, ListGroup, Card, Table, Button, Nav } from "react-bootstrap";
-import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faTemperatureArrowDown } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faTemperatureArrowDown, faPesoSign } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import moment from "moment";
@@ -22,7 +22,7 @@ function Records({ isAuth }) {
   const [docId, setDocId] = useState("PR10001") // doc id variable
   const [list, setList] = useState([]); // array of purchase_record list of prodNames
   const [queryList, setQueryList] = useState([]); //compound query access
-  const [listner, setListner] = useState(0); 
+  const [stockcardData, setStockcardData] = useState([{}]);
 
 
   //---------------------FUNCTIONS---------------------
@@ -32,7 +32,7 @@ function Records({ isAuth }) {
     //read purchase_record collection
     function readPurchRecCol() {
       const purchaseRecordCollectionRef = collection(db, "purchase_record")
-      const q = query(purchaseRecordCollectionRef);
+      const q = query(purchaseRecordCollectionRef, orderBy("document_number", "desc"));
 
       const unsub = onSnapshot(q, (snapshot) =>
         setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -42,67 +42,61 @@ function Records({ isAuth }) {
 
     //fetch purchase_record spec Document
     async function readPurchDoc() {
-
       const salesRecord = doc(db, "purchase_record", docId)
       const docSnap = await getDoc(salesRecord)
       if (docSnap.exists()) {
         setPurchaseRecord(docSnap.data());
       }
     }
-
-
-
     readPurchRecCol();
     readPurchDoc();
 
   }, [docId])
 
+  //-----------------------------------------------------------------------------
 
-  
-    useEffect(() => {
-      //read list of product names in product list
-      function fetchPurchDoc() {
-        const unsub = onSnapshot(doc(db, "purchase_record", docId), (doc) => {
-          setList(doc.data().productList);
-          const TempArr = [];
-          list.map((name) => {
-            TempArr.push(name.productName)
-          })
-          setQueryList(TempArr)
-          console.log(queryList)
-          
-        });
-        return unsub;
-      }
-      fetchPurchDoc() 
-    }, [docId])
-  
-  /*
-  //query selected id
+
+
   useEffect(() => {
+    console.log("Updated query list: ", queryList)
 
-    async function xxx() {
+    //query stockcard document that contains, [queryList] datas
+    async function queryStockcardData() {
       const stockcardRef = collection(db, "stockcard")
-
-
-      if (queryList.length < 0) {
-        const q = await query(stockcardRef, where("description", "in", [...queryList]));
-        const unsub = onSnapshot(q, (snapshot) =>
-          setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
-          console.log(stockcardData)
-        );
-        return unsub;
-      }
-
-
+      
+      const q = await query(stockcardRef, where("description", "in", [...queryList]));
+      const unsub = onSnapshot(q, (snapshot) =>
+        setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
+        console.log("test: ",stockcardData)
+      );
+      return unsub;
+ 
     }
-    xxx();
-  }, [queryList])
-*/
+    queryStockcardData();
+  }, [queryList])  //queryList listener, rerenders when queryList changes
 
 
 
 
+  useEffect(() => {
+    const TempArr = [];
+    list.map((name) => {
+      TempArr.push(name.productName)
+    })
+    setQueryList(TempArr)
+  }, [list])//list listener, rerenders when list value changes
+
+
+  useEffect(() => {
+    //read list of product names in product list
+    async function fetchPurchDoc() {
+      const unsub = await onSnapshot(doc(db, "purchase_record", docId), (doc) => {
+        setList(doc.data().productList);
+      });
+      return unsub;
+    }
+    fetchPurchDoc()
+  }, [docId])
 
 
 
@@ -248,19 +242,22 @@ function Records({ isAuth }) {
                         <thead className='bg-primary'>
                           <tr>
                             <th className='px-3'>Item Name</th>
-                            <th className='px-3'>Quantity</th>
-                            <th className='px-3'>Price</th>
+                            <th className="text-center">Quantity</th>
+                            <th className="text-center">Price</th>
                           </tr>
                         </thead>
                         <tbody>
                           {list.map((product, index) => (
                             <tr key={index}>
-                              <td key={product.productName}>{product.productName} </td>
-                              <td key={product.productQuantity}>{product.productQuantity}</td>
-                              <td></td>
+                              <td className='px-3' key={product.productName}>{product.productName} </td>
+                              <td className="text-center" key={product.productQuantity}>{product.productQuantity}</td>
+                              <td className="text-center"><FontAwesomeIcon icon={faPesoSign} />{ }</td>
                             </tr>
-                          ))}
+                          ))
+                          }
                         </tbody>
+
+
                       </Table>
                     </div>
 
