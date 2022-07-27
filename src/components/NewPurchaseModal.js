@@ -44,7 +44,7 @@ function NewPurchaseModal(props) {
 
 
     //Dynamic Add Product Button ------------------------------------------------------------
-    const [productList, setProductList] = useState([{ productId: "", productQuantity: 0 }]);
+    const [productList, setProductList] = useState([{ productId: "", productQuantity: 1 }]);
 
     const handleProductChange = (e, index) => {
         const { name, value } = e.target
@@ -53,7 +53,7 @@ function NewPurchaseModal(props) {
         setProductList(list)
     }
     const handleItemAdd = () => {
-        setProductList([...productList, { productId: "", productQuantity: 0 }])
+        setProductList([...productList, { productId: "", productQuantity: 1 }])
     }
 
     const handleItemRemove = (index) => {
@@ -242,7 +242,7 @@ function NewPurchaseModal(props) {
                                 type="number"
                                 name="productQuantity"
                                 placeholder="Quantity"
-                                min={0}
+                                min={1}
                                 value={product.productQuantity}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
