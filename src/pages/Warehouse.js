@@ -15,8 +15,8 @@ import Map from '../components/Map'
 
 function Warehouse({isAuth}) {
 
-  const [modalShowWH, setModalShowWH] = React.useState(false);
-  const [modalShowMap, setModalShowMap] = React.useState(false);
+  const [modalShowWH, setModalShowWH] = useState(false);
+  const [modalShowMap, setModalShowMap] = useState(false);
 
   const [warehouse, setWarehouse] = useState([]);
   const warehouseCollectionRef = collection(db, "warehouse")
@@ -39,7 +39,7 @@ function Warehouse({isAuth}) {
     setWHCol(doc.data().col)
     setWHRow(doc.data().row)
   }, [])
-
+  
 
   //Read collection from database
   useEffect(() => {
@@ -69,11 +69,8 @@ function Warehouse({isAuth}) {
     const warehouseDoc = doc(db, "warehouse", id)
     await deleteDoc(warehouseDoc);
     deleteToast();
-
   }
   
-
-
   return (
 
     <div className="row bg-light">
@@ -117,9 +114,6 @@ function Warehouse({isAuth}) {
                     show={modalShowWH}
                     onHide={() => setModalShowWH(false)} 
                     />
-
-
-
 
                   {warehouse.map((warehouse) => {
                     return (
@@ -198,9 +192,9 @@ function Warehouse({isAuth}) {
                   <NewMapModal
                     show={modalShowMap}
                     onHide={() => setModalShowMap(false)} 
-                    whId = {whId}
-                    whCol = {whCol}
-                    whRow = {whRow}/>
+                    whid = {whId}
+                    whcol = {whCol}
+                    whrow = {whRow}/>
                   <div className='row'>
                     <div className='col-12 mt-4'>
                       <Card className='shadow'>
@@ -232,11 +226,15 @@ function Warehouse({isAuth}) {
                       </Card>
 <Card className='shadow'>
 <Card.Body>
+                        {whInit?
                         <Map
-                        whId = {whId}
-                        whRow = {whRow}
-                        whCol = {whCol}
+                        wh_id = {whId}
+                        wh_row = {whRow}
+                        wh_col = {whCol}
                         />
+                        :
+                        <p></p>
+                        }
 </Card.Body>
 </Card>
                     </div>

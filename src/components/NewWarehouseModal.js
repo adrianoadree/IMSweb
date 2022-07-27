@@ -1,4 +1,5 @@
-import { addDoc, setDoc, doc } from 'firebase/firestore';
+import { addDoc, setDoc, doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { padStart } from "lodash";
 import { Modal, Button } from 'react-bootstrap';
 import React from "react";
 import { collection } from 'firebase/firestore';
@@ -10,14 +11,26 @@ import "react-toastify/dist/ReactToastify.css";
 
 function NewWarehouseModal(props) {
 
-
-
   const warehouseCollectionRef = collection(db, "warehouse")
+      const masterdataDocRef = doc(db, "masterdata", "warehouse")
+      const [cntr, setCntr] = useState(0);
 
   const closeModal=()=>{
       document.querySelector("#warehouse-modal").style.display = 'none';
       document.querySelector(".modal-backdrop").style.display = 'none';
   } 
+  
+var format = "";
+
+  onSnapshot(masterdataDocRef, (doc) => {
+setCntr(doc.data().idCntr)
+  }, [])
+ 
+const createFormat = () => {
+  format = cntr + "";
+  while(format.length < 3) {format = "0" + format};
+  format = "WH" + format;
+ }
   
   /*const addWarehouse = async () => {
     db.collection("warehouse").get().then(snap => {
@@ -49,7 +62,8 @@ function NewWarehouseModal(props) {
   }
 
   const addWarehouse = async () => {
-    await addDoc(warehouseCollectionRef,
+  	createFormat();
+    await setDoc(doc(db, "warehouse", format),
       {
         wh_name: newWHName
         , wh_notes: newWHNotes
@@ -57,7 +71,12 @@ function NewWarehouseModal(props) {
         , col: 0
         , row: 0
         , isInit: false
+        , cells: []
       });
+    await updateDoc(masterdataDocRef,{
+	idCntr : Number(cntr) + 1
+      });
+      format="";
       
    closeModal();
    successToast();
@@ -79,6 +98,7 @@ function NewWarehouseModal(props) {
       aria-labelledby="contained-modal-title-vcenter"
       centered
     >
+
       <ToastContainer
         position="top-right"
         autoClose={3500}
@@ -94,12 +114,13 @@ function NewWarehouseModal(props) {
       <Modal.Header closeButton>
         <Modal.Title id="contained-modal-title-vcenter" className="px-3">
           Add a Warehouse
+              
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
         <div className="p-3">
           <div className="row my-2">
-            <label>Name</label>
+            <label>{format}</label>
             <div className="col-8">
               <input type="text"
                 className="form-control"

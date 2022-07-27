@@ -22,7 +22,7 @@ function NewProductModal(props) {
   const [newProdSupplier, setNewProdSupplier] = useState("");
   const [newProdCategory, setNewProdCategory] = useState("");
 
-  const [supplierModalShow, setSupplierModalShow] = React.useState(false);
+  const [supplierModalShow, setSupplierModalShow] = useState(false);
   const [supplier, setSupplier] = useState([]);
 
 
@@ -42,7 +42,11 @@ function NewProductModal(props) {
 
   //Create product to database
   const addProduct = async () => {
-    await addDoc(stockcardCollectionRef, { product_name: newProductName, purchase_price: Number(newPriceP), product_supplier: newProdSupplier, selling_price: Number(newPriceS), quantity: Number(newQuanity), product_category: newProdCategory });
+    await addDoc(stockcardCollectionRef, { 
+    description: newProductName,
+    p_price: Number(newPriceP),
+    s_price: Number(newPriceS),
+    category: newProdCategory });
     successToast();
   }
 
@@ -110,42 +114,6 @@ function NewProductModal(props) {
             </div>
           </div>
           <div className="row mt-2">
-            <div className="col-6">
-              <label>Supplier Name</label>
-              <Form.Select
-                defaultValue="0"
-                aria-label="Default select example"
-                required
-                onChange={(event) => { setNewProdSupplier(event.target.value); }}>
-                <option
-                  disabled
-                  value="0">
-                  Select Supplier
-                </option>
-                {supplier.map((supplier) => {
-                  return (
-                    <option
-                      key={supplier.supplier_name}
-                      value={supplier.supplier_name}>
-                      {supplier.supplier_name}
-                    </option>
-                  )
-                })}
-              </Form.Select>
-            </div>
-            <div className="col-6">
-              <label className="text-muted">Not on the List?</label><br></br>
-              <Button variant="outline-primary"
-                onClick={() => setSupplierModalShow(true)}
-              >
-                New Supplier
-              </Button>
-              <NewSupplierModal
-                show={supplierModalShow}
-                onHide={() => setSupplierModalShow(false)} />
-            </div>
-          </div>
-          <div className="row mt-2">
             <div className='col-4'>
               <label>Purchase Price</label>
               <input
@@ -165,17 +133,6 @@ function NewProductModal(props) {
                 onChange={(event) => { setNewPriceS(event.target.value); }} />
             </div>
 
-          </div>
-          <div className="row mt-2">
-            <div className="col-3">
-              <label>Quantity</label>
-              <input
-                type="number"
-                min={0}
-                className="form-control"
-                placeholder="Quantity"
-                onChange={(event) => { setNewQuantity(event.target.value); }} />
-            </div>
           </div>
 
 

@@ -158,6 +158,7 @@ function Inventory({ isAuth }) {
                             </Button>
                           </div>
                         </div>
+
                       </ListGroup.Item>
                     )
                   })}

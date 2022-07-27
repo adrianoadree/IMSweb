@@ -12,7 +12,10 @@ function NewMapModal(props) {
 
 
   const warehouseCollectionRef = collection(db, "warehouse");
-  const cellCollectionRef = collection(db, "wh_cell");
+  const [arr, setArr] = useState([]);
+    const [newCol, setnewCol] = useState("");
+  const [newRow, setnewRow] = useState("");
+
 
   const successToast = () => {
     toast.success(' Warehouse Initialized for Mapping ', {
@@ -32,7 +35,7 @@ function NewMapModal(props) {
   } 
 
   const addMap = async () => {
-   const getMap = doc(db, 'warehouse', props.wh_id);
+   const getMap = doc(db, 'warehouse', props.whid);
     await updateDoc(getMap,{
         col: newCol
         , row: newRow
@@ -44,18 +47,14 @@ function NewMapModal(props) {
 
   }
 
-
+  /*const createCells = () => {
+	  setArr(Array(newCol*newRow).fill(1));
+   }*/
 
   //data variables
-  const [newCol, setnewCol] = useState("");
-  const [newRow, setnewRow] = useState("");
-
-
-	
 
   return (
     <Modal id="map-modal"
-      {...props}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered
