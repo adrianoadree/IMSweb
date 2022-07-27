@@ -1,134 +1,142 @@
-import React from "react";
-import { Card, Nav } from "react-bootstrap";
-import { Link } from 'react-router-dom';
 import Navigation from "../layout/Navigation";
+import { Link } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { db } from "../firebase-config";
+import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
+import { Tab, ListGroup, Card, Table, Button, Nav } from "react-bootstrap";
+import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faTemperatureArrowDown, faPesoSign } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCalendarDays } from "@fortawesome/free-regular-svg-icons";
-import ListGroup from 'react-bootstrap/ListGroup';
-import { useState, useEffect } from 'react';
-import { db } from '../firebase-config';
 import NewPurchaseModal from "../components/NewPurchaseModal";
-import { useNavigate } from 'react-router-dom';
-import {
-  faPlus,
-  faNoteSticky,
-  faXmark,
-  faUser,
-  faPesetaSign
-} from '@fortawesome/free-solid-svg-icons'
-import {
-  collection,
-  doc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  where
-} from 'firebase/firestore';
-import {
-  Table,
-  Button,
-  Tab
-} from "react-bootstrap"
 import moment from "moment";
-import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
+
 
 
 function Records({ isAuth }) {
 
+  //---------------------VARIABLES---------------------
 
-  const [modalShow, setModalShow] = useState(false);
-  const [purchaseRecord, setPurchaseRecord] = useState([]);
-  const [stockcard, setStockcard] = useState([]);
-
-
-  const [purchId, setPurchId] = useState("fKO2XH9vF3N3iJ0qGdbf")
-  const docRef = doc(db, "purchase_record", purchId)
-
-
-  const [purchDocNumber, setPurchDocNumber] = useState(0);
-  const [purchNote, setPurchNote] = useState();
-  const [purchDate, setPurchDate] = useState(new Date());
-  const [purchProduct, setPurchProduct] = useState();
-  const [purchSupplier, setPurchSupplier] = useState();
-  const [purchQuantity, setPurchQuantity] = useState(0);
-
-  let navigate = useNavigate();
+  const [modalShow, setModalShow] = useState(false); //add new sales record modal
+  const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]); //purchase_record Collection
+  const [purchaseRecord, setPurchaseRecord] = useState([]); //purchase_record spec doc
+  const [docId, setDocId] = useState("PR10001") // doc id variable
+  const [list, setList] = useState([
+    { productId: "productName1", productQuantity: 1 },
+    { productId: "productName2", productQuantity: 2 },
+  ]); // array of purchase_record list of prodNames
+  const [queryList, setQueryList] = useState([]); //compound query access
+  const [stockcardData, setStockcardData] = useState([{}]);
 
 
+  //---------------------FUNCTIONS---------------------
+
+  //read Functions
   useEffect(() => {
-    if (!isAuth) {
-      navigate("/login");
+    //read purchase_record collection
+    function readPurchRecCol() {
+      const purchaseRecordCollectionRef = collection(db, "purchase_record")
+      const q = query(purchaseRecordCollectionRef, orderBy("document_number", "desc"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
     }
-  }, []);
 
-  const deleteToast = () => {
-    toast.error('Purchase Record DELETED from the Database', {
-        position: "top-right",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        });
-}
+    //fetch purchase_record spec Document
+    async function readPurchDoc() {
+      const salesRecord = doc(db, "purchase_record", docId)
+      const docSnap = await getDoc(salesRecord)
+      if (docSnap.exists()) {
+        setPurchaseRecord(docSnap.data());
+      }
+    }
+    readPurchRecCol();
+    readPurchDoc();
+
+  }, [docId])
+
+  //-----------------------------------------------------------------------------
 
 
-  //access document from a collection
-  onSnapshot(docRef, (doc) => {
-    setPurchNote(doc.data().document_note)
-    setPurchDate(doc.data().document_date)
-    setPurchProduct(doc.data().product_name)
-    setPurchQuantity(doc.data().product_quantity)
-    setPurchSupplier(doc.data().product_supplier)
-  }, [])
 
-  //read Purchaserecord collection from Firebase
   useEffect(() => {
-    const purchaseRecordCollectionRef = collection(db, "purchase_record")
-    const q = query(purchaseRecordCollectionRef, orderBy("document_date", "desc"));
-
-    const unsub = onSnapshot(q, (snapshot) =>
-      setPurchaseRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-    );
-
-    return unsub;
-  }, [])
+    console.log("Updated query list: ", queryList)
+  }, [queryList])  //queryList listener, rerenders when queryList changes
 
 
+  useEffect(() => {
+    console.log("stockcardData values: ", stockcardData)
+  }, [stockcardData])  //queryList listener, rerenders when queryList changes
+
+  useEffect(() => {
+    console.log("list value: ", list)
+  }, [list])  //queryList listener, rerenders when queryList changes
 
 
-  //Delete Data from firebase
-  const deleteTransaction = async (id) => {
-    const transcationDoc = doc(db, "purchase_record", id)
-    deleteToast();
-    await deleteDoc(transcationDoc);
+
+  useEffect(() => {
+    //query stockcard document that contains, [queryList] datas
+    async function queryStockcardData() {
+      const stockcardRef = collection(db, "stockcard")
+
+      if (queryList.length !== 0) {
+        const q = await query(stockcardRef, where("__name__", "in", [...queryList]));
+        const unsub = onSnapshot(q, (snapshot) =>
+          setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
+        );
+        return unsub;
+      }
+    }
+    queryStockcardData();
+  }, [queryList])  //queryList listener, rerenders when queryList changes
+
+
+  //stores list.productId array to queryList
+  useEffect(() => {
+    const TempArr = [];
+    list.map((name) => {
+      TempArr.push(name.productId)
+    })
+    setQueryList(TempArr)
+  }, [list])//list listener, rerenders when list value changes
+
+
+  useEffect(() => {
+    //read list of product names in product list
+    async function fetchPurchDoc() {
+      const unsub = await onSnapshot(doc(db, "purchase_record", docId), (doc) => {
+        setList(doc.data().productList);
+      });
+      return unsub;
+    }
+    fetchPurchDoc()
+  }, [docId])
+
+
+
+
+  //delete
+  const deleteSalesRecord = async (id) => {
+    const purchaseRecDoc = doc(db, "purchase_record", id)
+    const purchaseListRecDoc = doc(db, "purchase_products", id)
+    await deleteDoc(purchaseListRecDoc);
+    await deleteDoc(purchaseRecDoc);
   }
+
+
 
 
   return (
     <div>
       <Navigation />
-
-      <ToastContainer
-                position="top-right"
-                autoClose={1500}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
-
-      <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+      <Tab.Container id="list-group-tabs-example" defaultActiveKey="main">
         <div className="row bg-light">
-          <div className='col-3 p-5'>
-            <Card className="shadow">
-              <Card.Header className="bg-primary text-white">
+          <div className="col-3 p-5">
+            <Card>
+              <Card.Header
+                className="bg-primary text-white"
+              >
                 <div className="row">
                   <div className="col-9 pt-2">
                     <h6>Transaction List</h6>
@@ -142,85 +150,38 @@ function Records({ isAuth }) {
                   </div>
                 </div>
               </Card.Header>
-              <Card.Body className="" style={{ height: "550px" }}>
-                <ListGroup variant="flush">
-                  {purchaseRecord.map((purchaseRecord) => {
+              <Card.Body style={{ height: "550px" }}>
+                <ListGroup
+                  variant="flush"
+                >
+                  {purchaseRecordCollection.map((purch) => {
                     return (
                       <ListGroup.Item
                         action
-                        key={purchaseRecord.id}
-                        eventKey={purchaseRecord.id}
-                        onClick={() => { setPurchId(purchaseRecord.id) }}>
+                        key={purch.id}
+                        eventKey={purch.id}
+                        onClick={() => { setDocId(purch.id) }}>
                         <div className="row">
                           <div className="col-9">
-                            <small>{purchaseRecord.product_supplier}</small><br />
-                            <small className="text-muted">Doc No: {purchaseRecord.document_number}</small><br />
-                            <small className="text-muted">Date: {moment(purchaseRecord.document_date.toDate().toString()).format('L')}
-                            </small>
+                            <small><strong>Doc No: {purch.document_number}</strong></small><br />
+                            <small>Date: {purch.document_date}</small><br />
                           </div>
                           <div className="col-3">
-                            <Button
-                              className="text-dark"
-                              variant="outline-light"
-                              onClick={() => { deleteTransaction(purchaseRecord.id) }}
-                            >
-                              <FontAwesomeIcon icon={faXmark} />
-                            </Button>
+
                           </div>
                         </div>
                       </ListGroup.Item>
                     );
                   })}
                 </ListGroup>
+
               </Card.Body>
             </Card>
 
-
-
           </div>
-
-
-
-          <div className='col-9 p-5'>
+          <div className="col-9 p-5">
             <Tab.Content>
-              <Tab.Pane eventKey={purchId}>
-                <div>
-                  <Nav className="shadow" fill variant="pills" defaultActiveKey="/records">
-                    <   Nav.Item>
-                      <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                      <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
-                    </Nav.Item>
-                  </Nav>
-                  <span><br></br></span>
-                  <div className="row px-5 py-3 bg-white shadow">
-                    <div className="row pt-4 px-2 bg-white ">
-                        <small> <FontAwesomeIcon icon={faUser} /> Supplier Name: <strong>{purchSupplier}</strong> </small><br />
-                        <small> <FontAwesomeIcon icon={faCalendarDays} /> Date:{ } </small><br />
-                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note:{purchNote} </small>
-                    </div>
-
-                    <span><br /></span>
-                    <Table striped bordered hover size="sm">
-                      <thead className='bg-primary'>
-                        <tr>
-                          <th className='px-3'>Item Name</th>
-                          <th className='px-3'>Quantity</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className='px-3'>{purchProduct}</td>
-                          <td className='px-3'>{purchQuantity}</td>
-                        </tr>
-                      </tbody>
-                    </Table>
-                  </div>
-                </div>
-              </Tab.Pane>
-
-              <Tab.Pane eventKey={0}>
+              <Tab.Pane eventKey="main">
                 <div>
                   <Nav className="shadow" fill variant="pills" defaultActiveKey="/records">
                     <   Nav.Item>
@@ -233,8 +194,8 @@ function Records({ isAuth }) {
                   <span><br></br></span>
                   <div className="row px-5 py-3 bg-white shadow">
                     <div className="row pt-4 px-2 bg-white">
-                      <small> <FontAwesomeIcon icon={faUser} /> Supplier Name: </small>
-                      <small> <FontAwesomeIcon icon={faCalendarDays} /> Date: </small>
+                      <small> <FontAwesomeIcon icon={faFile} /> Document Number: </small>
+                      <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: </small>
                       <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: </small>
                     </div>
 
@@ -242,8 +203,10 @@ function Records({ isAuth }) {
                     <Table striped bordered hover size="sm">
                       <thead className='bg-primary'>
                         <tr>
-                          <th className='px-3'>Item Name</th>
-                          <th className='px-3'>Quantity</th>
+                          <th className='px-3'>Item Code</th>
+                          <th className="text-center">Quantity</th>
+                          <th className='text-center'>Description</th>
+                          <th className='text-center'>Purchase Price</th>
                         </tr>
                       </thead>
                       <tbody style={{ height: "300px" }}>
@@ -257,19 +220,96 @@ function Records({ isAuth }) {
 
                 </div>
               </Tab.Pane>
+
+              <Tab.Pane eventKey={docId}>
+                <div>
+                  <Nav className="shadow" fill variant="pills" defaultActiveKey="/records">
+                    <   Nav.Item>
+                      <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                      <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
+                    </Nav.Item>
+                  </Nav>
+                  <span><br></br></span>
+
+                  <div className="row px-5 py-3 bg-white shadow">
+                    <div className="row pt-4 px-2 bg-white">
+                      <div className="col-11">
+                        <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong>{purchaseRecord.document_number}</strong></small><br />
+                        <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: <strong>{moment(purchaseRecord.document_date).format('LL')}</strong></small><br />
+                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: <strong>{purchaseRecord.document_note}</strong></small><br />
+                      </div>
+                      <div className="col-1">
+                        <Button
+                          size="lg"
+                          variant="outline-danger"
+                          onClick={() => { deleteSalesRecord(docId) }}
+                        >
+                          <FontAwesomeIcon icon={faTrashCan} />
+                        </Button>
+                      </div>
+
+                    </div>
+
+
+                    <span><br /></span>
+                    <div style={{ height: "400px" }}>
+                      <Table striped bordered hover size="sm">
+                        <thead className='bg-primary'>
+                          <tr>
+                            <th className='px-3'>Item Code</th>
+                            <th className="text-center">Quantity</th>
+                            <th className='text-center'>Description</th>
+                            <th className='text-center'>Purchase Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {list.map((prod, index) => (
+                            <tr key={index}>
+                              <td className='px-3' key={prod.productId}>
+                                {prod.productId}
+                              </td>
+
+                              <td className="text-center" key={prod.productQuantity}>
+                                {prod.productQuantity}
+                              </td>
+
+                              <td className="text-center" key={stockcardData[index]?.description}>
+                                {stockcardData[index]?.description}
+                              </td>
+
+                              <td className="text-center" >
+                                <FontAwesomeIcon icon={faPesoSign} />
+                                {stockcardData[index]?.p_price}
+                              </td>
+                            </tr>
+                          ))
+                          }
+                        </tbody>
+                    
+
+
+                      </Table>
+                    </div>
+
+                  </div>
+
+
+                </div>
+              </Tab.Pane>
             </Tab.Content>
           </div>
+
+
+
+
         </div>
-
-
 
 
       </Tab.Container>
 
-    </div>
-
-
-
+    </div >
 
   );
 

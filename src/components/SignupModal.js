@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import { createUserWithEmailAndPassword,signOut } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signOut } from 'firebase/auth'
 import { auth } from "../firebase-config";
+
+import { ToastContainer, toast  } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
+
 
 function SignupModal(props) {
 
@@ -9,7 +15,23 @@ function SignupModal(props) {
     const [registerPassword, setRegisterPassword] = useState("");
     const [signupModalShow, setSignupModalShow] = useState(false);
 
-   
+
+    const successToast = () => {
+        toast.success(' Account SUCCESSFULLY Registered ', {
+            position: "top-right",
+            autoClose: 3500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+        });
+    }
+
+
+
+
+
     const register = async () => {
         try {
             const user = await createUserWithEmailAndPassword(auth,
@@ -18,11 +40,16 @@ function SignupModal(props) {
             );
             setSignupModalShow(false)
             await signOut(auth)
+            successToast()
             console.log(user)
         } catch (error) {
             console.log(error.message);
         }
     };
+
+
+
+
 
 
     return (
@@ -31,7 +58,19 @@ function SignupModal(props) {
             size="md"
             aria-labelledby="contained-modal-title-vcenter"
             centered
-            >
+        >
+            <ToastContainer
+                position="top-right"
+                autoClose={3500}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+            />
+
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter">
                     Create an Account
@@ -63,7 +102,7 @@ function SignupModal(props) {
                             }} />
                     </Form.Group>
                     <Button variant="primary"
-                    onClick={register}>
+                        onClick={register}>
                         Submit
                     </Button>
                 </Form>

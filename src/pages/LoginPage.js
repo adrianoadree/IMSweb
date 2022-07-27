@@ -8,9 +8,9 @@ import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 
-function LoginPage({isAuth, setIsAuth }) {
+function LoginPage({ isAuth, setIsAuth }) {
 
-    const [isLoggedin,setisLoggedIn] = useState(false)
+    const [isLoggedin, setisLoggedIn] = useState(false)
     const [signupModalShow, setSignupModalShow] = useState(false);
     const [show, setShow] = useState(false);
 
@@ -22,9 +22,9 @@ function LoginPage({isAuth, setIsAuth }) {
     useEffect(() => {
         setisLoggedIn(isAuth)
         if (isAuth) {
-          navigate("/");
+            navigate("/");
         }
-      }, []);
+    }, []);
 
 
     onAuthStateChanged(auth, (currentUser) => {
@@ -48,16 +48,15 @@ function LoginPage({isAuth, setIsAuth }) {
         }
     };
 
-
     return (
         <div className="row bg-light" style={{ height: "667px" }}>
             <div className="col-3" />
             <div className="col-6 p-5 ">
+                
                 <Card className="bg-white shadow">
                     <Card.Body >
                         <div className="row" style={{ height: "100px" }}>
                             <h1 className="mt-5 text-center">IMS</h1>
-                            {user?.email}
                         </div>
                         <div className="row p-4">
                             <Alert show={show} variant="danger">

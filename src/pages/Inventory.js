@@ -1,10 +1,10 @@
 import React from 'react';
-import { Tab, Button, Card, ListGroup, Modal, } from 'react-bootstrap';
+import { Tab, Button, Card, ListGroup } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashCan, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faXmark,faPlus } from '@fortawesome/free-solid-svg-icons'
 import NewProductModal from '../components/NewProductModal';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -12,10 +12,10 @@ import {
   doc,
   deleteDoc,
   onSnapshot,
-  query,
-  where
+  query
+
 } from 'firebase/firestore';
-import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import { ToastContainer, toast} from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
@@ -24,11 +24,7 @@ import "react-toastify/dist/ReactToastify.css";
 function Inventory({ isAuth }) {
 
   const [modalShow, setModalShow] = useState(false);
-  const [show, setShow] = useState(false);
-  const [addShow, setAddShow] = useState(false);
-
   const [stockcard, setStockcard] = useState([]);
-  const stockcardCollectionRef = collection(db, "stockcard")
   const [prodId, setProdId] = useState("xx");
   const stockcardDocRef = doc(db, "stockcard", prodId)
   const [prodName, setProdName] = useState("");
@@ -48,7 +44,7 @@ function Inventory({ isAuth }) {
   }, []);
 
   const deleteToast = () => {
-    toast.error('Purchase Record DELETED from the Database', {
+    toast.error('Product DELETED from the Database', {
       position: "top-right",
       autoClose: 1500,
       hideProgressBar: false,
@@ -223,8 +219,6 @@ function Inventory({ isAuth }) {
                         <Card.Body>
                           <small>Supplier Name: </small><br />
                           <small>Supplier Lead time: </small><br />
-                          <small>Maximum Storage Capacity:</small><br />
-                          <small>Safety Stock:</small><br />
                         </Card.Body>
                       </Card>
                     </div>
@@ -293,8 +287,6 @@ function Inventory({ isAuth }) {
                         <Card.Body>
                           <small>Supplier Name: <strong className='mx-2'>{prodSupplier}</strong></small><br />
                           <small>Supplier Lead time: </small><br />
-                          <small>Maximum Storage Capacity:</small><br />
-                          <small>Safety Stock:</small><br />
                         </Card.Body>
                       </Card>
                     </div>

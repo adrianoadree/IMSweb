@@ -18,9 +18,19 @@ function LandingPage({ isAuth }) {
     const [salesModalShow, setSalesModalShow] = React.useState(false);
 
     const [purchRecord, setPurchRecord] = useState([]);
+    const [salesRecord, setSalesRecord] = useState([]);
+
+
+    var curr = new Date();
+    curr.setDate(curr.getDate());
+    var date = curr.toISOString().substr(0, 10);
 
 
     let navigate = useNavigate();
+
+
+    //---------------------FUNCTIONS---------------------
+
 
     useEffect(() => {
         if (!isAuth) {
@@ -28,10 +38,16 @@ function LandingPage({ isAuth }) {
         }
     }, []);
 
+    //read sales_record collection
+    useEffect(() => {
+        const purchaseRecordCollectionRef = collection(db, "sales_record")
+        const q = query(purchaseRecordCollectionRef, where("document_date", "==", date));
 
-    var curr = new Date();
-    curr.setDate(curr.getDate());
-    var date = curr.toISOString().substr(0, 10);
+        const unsub = onSnapshot(q, (snapshot) =>
+            setSalesRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+        return unsub;
+    }, [])
 
     //read from purchase_record collection
     useEffect(() => {
@@ -116,12 +132,7 @@ function LandingPage({ isAuth }) {
                         <small className="text-white">Date: {date}</small>
                     </Card.Header>
                     <Card.Body style={{ height: "550px" }}>
-
-
                         <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-
-
-
                             <Nav fill variant="pills" defaultActiveKey={1}>
                                 <Nav.Item>
                                     <Nav.Link eventKey={0}>
@@ -143,26 +154,15 @@ function LandingPage({ isAuth }) {
                                             <tr>
                                                 <th>Document Number</th>
                                                 <th>Date</th>
-                                                <th>Total</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>3</td>
-                                                <td></td>
-                                                <td></td>
-
-                                            </tr>
+                                            {salesRecord.map((salesRecord) => (
+                                                <tr>
+                                                    <td>{salesRecord.document_number}</td>
+                                                    <td>{salesRecord.document_date}</td>
+                                                </tr>
+                                            ))}
                                         </tbody>
                                     </Table>
                                 </Tab.Pane>
@@ -170,20 +170,16 @@ function LandingPage({ isAuth }) {
                                     <Table striped bordered hover size="sm">
                                         <thead className="bg-primary">
                                             <tr>
-                                                <th>Supplier Name</th>
+                                                <th>Document Number</th>
                                                 <th>Date</th>
-                                                <th>Product Name</th>
-                                                <th>Quantity</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {purchRecord.map((purchRecord) => {
                                                 return (
                                                     <tr>
-                                                        <td>{purchRecord.product_supplier}</td>
+                                                        <td>{purchRecord.document_number}</td>
                                                         <td>{date}</td>
-                                                        <td>{purchRecord.product_name}</td>
-                                                        <td>{purchRecord.product_quantity}</td>
                                                     </tr>
                                                 )
                                             })}
