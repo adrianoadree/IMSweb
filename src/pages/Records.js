@@ -20,7 +20,10 @@ function Records({ isAuth }) {
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]); //purchase_record Collection
   const [purchaseRecord, setPurchaseRecord] = useState([]); //purchase_record spec doc
   const [docId, setDocId] = useState("PR10001") // doc id variable
-  const [list, setList] = useState([]); // array of purchase_record list of prodNames
+  const [list, setList] = useState([
+    { productId: "productName1", productQuantity: 1 },
+    { productId: "productName2", productQuantity: 2 },
+  ]); // array of purchase_record list of prodNames
   const [queryList, setQueryList] = useState([]); //compound query access
   const [stockcardData, setStockcardData] = useState([{}]);
 
@@ -59,29 +62,41 @@ function Records({ isAuth }) {
 
   useEffect(() => {
     console.log("Updated query list: ", queryList)
+  }, [queryList])  //queryList listener, rerenders when queryList changes
 
+
+  useEffect(() => {
+    console.log("stockcardData values: ", stockcardData)
+  }, [stockcardData])  //queryList listener, rerenders when queryList changes
+
+  useEffect(() => {
+    console.log("list value: ", list)
+  }, [list])  //queryList listener, rerenders when queryList changes
+
+
+
+  useEffect(() => {
     //query stockcard document that contains, [queryList] datas
     async function queryStockcardData() {
       const stockcardRef = collection(db, "stockcard")
-      
-      const q = await query(stockcardRef, where("description", "in", [...queryList]));
-      const unsub = onSnapshot(q, (snapshot) =>
-        setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
-        console.log("test: ",stockcardData)
-      );
-      return unsub;
- 
+
+      if (queryList.length !== 0) {
+        const q = await query(stockcardRef, where("__name__", "in", [...queryList]));
+        const unsub = onSnapshot(q, (snapshot) =>
+          setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
+        );
+        return unsub;
+      }
     }
     queryStockcardData();
   }, [queryList])  //queryList listener, rerenders when queryList changes
 
 
-
-
+  //stores list.productId array to queryList
   useEffect(() => {
     const TempArr = [];
     list.map((name) => {
-      TempArr.push(name.productName)
+      TempArr.push(name.productId)
     })
     setQueryList(TempArr)
   }, [list])//list listener, rerenders when list value changes
@@ -97,6 +112,7 @@ function Records({ isAuth }) {
     }
     fetchPurchDoc()
   }, [docId])
+
 
 
 
@@ -187,9 +203,10 @@ function Records({ isAuth }) {
                     <Table striped bordered hover size="sm">
                       <thead className='bg-primary'>
                         <tr>
-                          <th className='px-3'>Item Name</th>
-                          <th className='px-3'>Quantity</th>
-                          <th className='px-3'>Price</th>
+                          <th className='px-3'>Item Code</th>
+                          <th className="text-center">Quantity</th>
+                          <th className='text-center'>Description</th>
+                          <th className='text-center'>Purchase Price</th>
                         </tr>
                       </thead>
                       <tbody style={{ height: "300px" }}>
@@ -241,21 +258,36 @@ function Records({ isAuth }) {
                       <Table striped bordered hover size="sm">
                         <thead className='bg-primary'>
                           <tr>
-                            <th className='px-3'>Item Name</th>
+                            <th className='px-3'>Item Code</th>
                             <th className="text-center">Quantity</th>
-                            <th className="text-center">Price</th>
+                            <th className='text-center'>Description</th>
+                            <th className='text-center'>Purchase Price</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {list.map((product, index) => (
+                          {list.map((prod, index) => (
                             <tr key={index}>
-                              <td className='px-3' key={product.productName}>{product.productName} </td>
-                              <td className="text-center" key={product.productQuantity}>{product.productQuantity}</td>
-                              <td className="text-center"><FontAwesomeIcon icon={faPesoSign} />{ }</td>
+                              <td className='px-3' key={prod.productId}>
+                                {prod.productId}
+                              </td>
+
+                              <td className="text-center" key={prod.productQuantity}>
+                                {prod.productQuantity}
+                              </td>
+
+                              <td className="text-center" key={stockcardData[index]?.description}>
+                                {stockcardData[index]?.description}
+                              </td>
+
+                              <td className="text-center" >
+                                <FontAwesomeIcon icon={faPesoSign} />
+                                {stockcardData[index]?.p_price}
+                              </td>
                             </tr>
                           ))
                           }
                         </tbody>
+                    
 
 
                       </Table>

@@ -9,20 +9,19 @@ import { ToastContainer, toast } from "react-toastify";
 
 function NewPurchaseModal(props) {
 
-
     //---------------------VARIABLES---------------------
     const [stockcard, setStockcard] = useState([]); //stockcard collection
     const [varRef, setVarRef] = useState([]); // variable collection
     const [newNote, setNewNote] = useState(""); // note form input
+    const [stockcardData, setStockcardData] = useState([{}]);
+    const [queryList, setQueryList] = useState([]); //compound query access
 
 
     var curr = new Date();
     curr.setDate(curr.getDate());
     var date = curr.toISOString().substr(0, 10);
 
-
     //---------------------FUNCTIONS---------------------
-
 
     //fetch variable collection
     useEffect(() => {
@@ -45,7 +44,7 @@ function NewPurchaseModal(props) {
 
 
     //Dynamic Add Product Button ------------------------------------------------------------
-    const [productList, setProductList] = useState([{ productName: "", productQuantity: 0 }]);
+    const [productList, setProductList] = useState([{ productId: "", productQuantity: 0 }]);
 
     const handleProductChange = (e, index) => {
         const { name, value } = e.target
@@ -53,10 +52,8 @@ function NewPurchaseModal(props) {
         list[index][name] = value
         setProductList(list)
     }
-
-    const productName = [];
     const handleItemAdd = () => {
-        setProductList([...productList, { productName, productQuantity: 0 }])
+        setProductList([...productList, { productId: "", productQuantity: 0 }])
     }
 
     const handleItemRemove = (index) => {
@@ -65,6 +62,52 @@ function NewPurchaseModal(props) {
         setProductList(list)
     }
     //End of Dynamic Button functions ---------------------------
+
+
+
+
+
+
+    //stores list.productId array to queryList
+    useEffect(() => {
+        const TempArr = [];
+        productList.map((name) => {
+            TempArr.push(name.productId)
+        })
+        setQueryList(TempArr)
+    }, [productList])//list listener, rerenders when list value changes
+
+    useEffect(() => {
+        console.log("queryList newval: ", queryList)
+    }, [queryList])
+
+
+    useEffect(() => {
+        console.log("productList newval: ", productList)
+    }, [productList])
+
+    useEffect(() => {
+        console.log("stockcardData newval: ", stockcardData)
+    }, [stockcardData])
+
+    useEffect(() => {
+        //query stockcard document that contains, [queryList] datas
+        function queryStockcardData() {
+            const stockcardRef = collection(db, "stockcard")
+
+            if (queryList.length !== 0) {
+                const q = query(stockcardRef, where("description", "in", [...queryList]));
+                const unsub = onSnapshot(q, (snapshot) =>
+                    setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
+                );
+                return unsub;
+            }
+
+        }
+        queryStockcardData();
+    }, [queryList])
+
+
 
 
     //add document to database
@@ -79,7 +122,11 @@ function NewPurchaseModal(props) {
         //input update document, (update doc number)
         const varColRef = doc(db, "variables", "var")
         const newData = { purchDocNum: Number(purchDocNum) + 1 }
+
         await updateDoc(varColRef, newData)
+
+
+
 
         alert('Successfuly Added to the Database')
     }
@@ -111,7 +158,6 @@ function NewPurchaseModal(props) {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body className="p-5">
-
                 <div className="row mt-2">
                     <div className="col-8">
                         <label>Document Number</label>
@@ -130,16 +176,14 @@ function NewPurchaseModal(props) {
                         />
                     </div>
                 </div>
-                <div className="row mt-2">
-                    <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-                        <Form.Label>Note: (Optional)</Form.Label>
-                        <Form.Control
-                            as="textarea"
-                            rows={3}
-                            onChange={(event) => { setNewNote(event.target.value); }}
-                        />
-                    </Form.Group>
-                </div>
+                <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+                    <Form.Label>Note: (Optional)</Form.Label>
+                    <Form.Control
+                        as="textarea"
+                        rows={3}
+                        onChange={(event) => { setNewNote(event.target.value); }}
+                    />
+                </Form.Group>
 
                 <h5>Buy Products</h5>
                 <hr></hr>
@@ -154,25 +198,15 @@ function NewPurchaseModal(props) {
                                 hidden
                                 size="md"
                                 type="text"
-                                name="productName"
-                                value={product.productName}
-                                onChange={(e) => handleProductChange(e, index)}
-                                required
-                            />
-                            <Form.Select
-                                hidden
-                                size="md"
-                                type="boolean"
-                                name="productName"
-                                placeholder="Boolean"
-                                value={product.productBoolean}
+                                name="productId"
+                                value={product.productId}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
                             />
                             <Form.Select
                                 defaultValue={0}
-                                name="productName"
-                                value={product.productName}
+                                name="productId"
+                                value={product.productId}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
                             >
@@ -184,8 +218,8 @@ function NewPurchaseModal(props) {
                                 {stockcard.map((prod) => {
                                     return (
                                         <option
-                                            key={prod.description}
-                                            value={prod.description}
+                                            key={prod.id}
+                                            value={prod.id}
                                         >
                                             {prod.description}
                                         </option>
