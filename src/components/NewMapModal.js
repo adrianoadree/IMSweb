@@ -4,6 +4,8 @@ import React from "react";
 import { collection } from 'firebase/firestore';
 import { db } from '../firebase-config';
 import { useState } from 'react';
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function NewMapModal(props) {
 
@@ -12,17 +14,33 @@ function NewMapModal(props) {
   const warehouseCollectionRef = collection(db, "warehouse");
   const cellCollectionRef = collection(db, "wh_cell");
 
+  const successToast = () => {
+    toast.success(' Warehouse Initialized for Mapping ', {
+      position: "top-right",
+      autoClose: 3500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
 
+  const closeModal=()=>{
+      document.querySelector("#map-modal").style.display = 'none';
+      document.querySelector(".modal-backdrop").style.display = 'none';
+  } 
 
   const addMap = async () => {
-   const getMap = doc(db, 'warehouse',"WH001");
+   const getMap = doc(db, 'warehouse', props.wh_id);
     await updateDoc(getMap,{
         col: newCol
         , row: newRow
         , isInit: true
       });
 
-    alert('Successfuly Added to the Database')
+   closeModal();
+   successToast();
 
   }
 
@@ -36,7 +54,7 @@ function NewMapModal(props) {
 	
 
   return (
-    <Modal
+    <Modal id="map-modal"
       {...props}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
