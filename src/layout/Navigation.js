@@ -44,7 +44,7 @@ function Navigation() {
                   <NavDropdown.Item>Warehouse</NavDropdown.Item>
                 </LinkContainer>
               </NavDropdown>
-              <LinkContainer to="/analytics">
+              <LinkContainer to="/itemforecasting">
                 <Nav.Link>Analytics</Nav.Link>
               </LinkContainer>
               <LinkContainer to="/community">

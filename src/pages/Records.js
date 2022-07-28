@@ -45,8 +45,8 @@ function Records({ isAuth }) {
 
     //fetch purchase_record spec Document
     async function readPurchDoc() {
-      const salesRecord = doc(db, "purchase_record", docId)
-      const docSnap = await getDoc(salesRecord)
+      const purchRecord = doc(db, "purchase_record", docId)
+      const docSnap = await getDoc(purchRecord)
       if (docSnap.exists()) {
         setPurchaseRecord(docSnap.data());
       }

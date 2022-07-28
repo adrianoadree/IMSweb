@@ -4,7 +4,7 @@ import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faXmark,faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faXmark, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import NewProductModal from '../components/NewProductModal';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -12,10 +12,11 @@ import {
   doc,
   deleteDoc,
   onSnapshot,
-  query
+  query,
+  getDoc
 
 } from 'firebase/firestore';
-import { ToastContainer, toast} from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
@@ -23,19 +24,16 @@ import "react-toastify/dist/ReactToastify.css";
 
 function Inventory({ isAuth }) {
 
-  const [modalShow, setModalShow] = useState(false);
-  const [stockcard, setStockcard] = useState([]);
-  const [prodId, setProdId] = useState("xx");
-  const stockcardDocRef = doc(db, "stockcard", prodId)
-  const [prodName, setProdName] = useState("");
-  const [prodSupplier, setProdSupplier] = useState("");
-  const [prodQuantity, setProdQuantity] = useState(0);
-  const [prodPurchPrice, setProdPurchPrice] = useState(0);
-  const [prodSalesPrice, setProdSalesPrice] = useState(0);
-  const [prodCategory, setProdCategory] = useState("");
-  const [prodId4D, setProdId4D] = useState("");
+  //---------------------VARIABLES---------------------
+
+  const [modalShow, setModalShow] = useState(false); //show/hide modal
+  const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+  const [docId, setDocId] = useState("xx"); //document Id
+  const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
+
   let navigate = useNavigate();
 
+  //---------------------FUNCTIONS---------------------
 
   useEffect(() => {
     if (!isAuth) {
@@ -43,29 +41,18 @@ function Inventory({ isAuth }) {
     }
   }, []);
 
-  const deleteToast = () => {
-    toast.error('Product DELETED from the Database', {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
-  }
 
-
-  //access document from a collection
-  onSnapshot(stockcardDocRef, (doc) => {
-
-    setProdId4D(doc.id)
-    setProdName(doc.data().description)
-    setProdQuantity(doc.data().quantity)
-    setProdPurchPrice(doc.data().s_price)
-    setProdSalesPrice(doc.data().p_price)
-    setProdCategory(doc.data().category)
-  }, [])
+  //access stockcard document
+  useEffect(() => {
+    async function readSupplierDoc() {
+      const stockcardRef = doc(db, "stockcard", docId)
+      const docSnap = await getDoc(stockcardRef)
+      if (docSnap.exists()) {
+        setStockcardDoc(docSnap.data());
+      }
+    }
+    readSupplierDoc()
+  }, [docId])
 
 
   //Read stock card collection from database
@@ -81,6 +68,19 @@ function Inventory({ isAuth }) {
 
   }, [])
 
+
+  //delete Toast
+  const deleteToast = () => {
+    toast.error('Product DELETED from the Database', {
+      position: "top-right",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
 
   //delete row 
   const deleteStockcard = async (id) => {
@@ -117,7 +117,7 @@ function Inventory({ isAuth }) {
                   <div className='col-9 pt-2 text-white'>
                     <h6>Product List</h6>
                   </div>
-                  
+
                   <div className='col-3'>
                     <Button variant="primary"
                       onClick={() => setModalShow(true)}>
@@ -130,7 +130,7 @@ function Inventory({ isAuth }) {
                   </div>
                 </div>
               </Card.Header>
-              <Card.Body style={{ height: "500px"}} id='scrollbar'>
+              <Card.Body style={{ height: "500px" }} id='scrollbar'>
                 <ListGroup variant="flush">
                   {stockcard.map((stockcard) => {
                     return (
@@ -138,21 +138,11 @@ function Inventory({ isAuth }) {
                         action
                         key={stockcard.id}
                         eventKey={stockcard.id}
-                        onClick={() => { setProdId(stockcard.id) }}>
+                        onClick={() => { setDocId(stockcard.id) }}>
                         <div className='row'>
-                          <div className="col-9 pt-1">
-                            <small>{stockcard.description}</small>
-                          </div>
-                          <div className='col-3'>
-                            <Button
-                              className="text-dark"
-                              variant="outline-light"
-                              size="sm"
-                              onClick={() => { deleteStockcard(stockcard.id) }}
-                            >
-                              <FontAwesomeIcon icon={faXmark} />
-                            </Button>
-                          </div>
+                          <small><strong>{stockcard.description}</strong></small>
+                          <small>{stockcard.id}</small>
+
                         </div>
                       </ListGroup.Item>
                     )
@@ -181,8 +171,8 @@ function Inventory({ isAuth }) {
                           StockCard
                         </Card.Header>
                         <Card.Body>
-                        <small>Product ID: </small><br />
-                          <small>Product Name: </small><br />
+                          <small>Product ID: </small><br />
+                          <small>Product Description: </small><br />
                           <small>Category:</small><br />
                           <small>Available Stock:</small><br />
                           <small>Purchase :</small><br />
@@ -214,17 +204,6 @@ function Inventory({ isAuth }) {
                     <div className='col-6 mt-4'>
                       <Card className='shadow'>
                         <Card.Header className='bg-primary text-white'>
-                          Forecasting Data Card
-                        </Card.Header>
-                        <Card.Body>
-                          <small>Supplier Name: </small><br />
-                          <small>Supplier Lead time: </small><br />
-                        </Card.Body>
-                      </Card>
-                    </div>
-                    <div className='col-6 mt-4'>
-                      <Card className='shadow'>
-                        <Card.Header className='bg-primary text-white'>
                           Warehousing Card
                         </Card.Header>
                         <Card.Body>
@@ -237,11 +216,23 @@ function Inventory({ isAuth }) {
                 </div>
               </Tab.Pane>
 
-              <Tab.Pane eventKey={prodId}>
+              <Tab.Pane eventKey={docId}>
                 <div className='row px-5'>
                   <div className='row bg-white shadow'>
-                    <h1 className='text-center pt-4 p1'>Inventory</h1>
-                    <hr />
+                    <div className="col-10">
+                      <h1 className='text-center pt-4 p1'>{stockcardDoc.description}</h1>
+                      <hr />
+                    </div>
+                    <div className="col-2 pt-4">
+                      <Button
+                        size="md"
+                        variant="outline-danger"
+                        onClick={() => { deleteStockcard(docId) }}
+                      >
+                        Delete<FontAwesomeIcon icon={faTrashCan} />
+                      </Button>
+                    </div>
+
                   </div>
 
                   <div className='row'>
@@ -251,13 +242,13 @@ function Inventory({ isAuth }) {
                           StockCard
                         </Card.Header>
                         <Card.Body>
-                          <small>Product ID: <strong className='mx-2'>{prodId4D}</strong></small><br />
-                          <small>Product Name: <strong className='mx-2'>{prodName}</strong></small><br />
-                          <small>Category: <span className='mx-2'>{prodCategory}</span></small><br />
-                          <small>Available Stock: <span className='mx-2'>{prodQuantity}</span></small><br />
-                          <small>Purchase Price: <span className='mx-2'>{prodPurchPrice}</span></small><br />
-                          <small>Selling Price: <span className='mx-2'>{prodSalesPrice}</span></small><br />
-                          
+                          <small>Product ID: <strong className='mx-2'>{docId}</strong></small><br />
+                          <small>Product Description: <strong className='mx-2'>{stockcardDoc.description}</strong></small><br />
+                          <small>Category: <span className='mx-2'>{stockcardDoc.category}</span></small><br />
+                          <small>Available Stock: <span className='mx-2'>{stockcardDoc.qty}</span></small><br />
+                          <small>Purchase Price: <span className='mx-2'>{stockcardDoc.p_price}</span></small><br />
+                          <small>Selling Price: <span className='mx-2'>{stockcardDoc.s_price}</span></small><br />
+
                         </Card.Body>
                       </Card>
                     </div>
@@ -279,17 +270,6 @@ function Inventory({ isAuth }) {
                   </div>
 
                   <div className='row'>
-                    <div className='col-6 mt-4'>
-                      <Card className='shadow'>
-                        <Card.Header className='bg-primary text-white'>
-                          Forecasting Data Card
-                        </Card.Header>
-                        <Card.Body>
-                          <small>Supplier Name: <strong className='mx-2'>{prodSupplier}</strong></small><br />
-                          <small>Supplier Lead time: </small><br />
-                        </Card.Body>
-                      </Card>
-                    </div>
                     <div className='col-6 mt-4'>
                       <Card className='shadow'>
                         <Card.Header className='bg-primary text-white'>

@@ -44,7 +44,7 @@ function NewSalesModal(props) {
 
 
     //Dynamic Add Product Button ------------------------------------------------------------
-    const [productList, setProductList] = useState([{ productName: "", productQuantity: 1 }]);
+    const [productList, setProductList] = useState([{ productId: "", productQuantity: 1 }]);
 
     const handleProductChange = (e, index) => {
         const { name, value } = e.target
@@ -54,7 +54,7 @@ function NewSalesModal(props) {
     }
 
     const handleItemAdd = () => {
-        setProductList([...productList, { productName: "", productQuantity: 1 }])
+        setProductList([...productList, { productId: "", productQuantity: 1 }])
     }
 
     const handleItemRemove = (index) => {
@@ -144,9 +144,8 @@ function NewSalesModal(props) {
                                 hidden
                                 size="md"
                                 type="text"
-                                name="productName"
-                                placeholder="Product Name"
-                                value={product.productName}
+                                name="productId"
+                                value={product.productId}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
                             />
@@ -162,8 +161,8 @@ function NewSalesModal(props) {
                             />
                             <Form.Select
                                 defaultValue={0}
-                                name="productName"
-                                value={product.productName}
+                                name="productId"
+                                value={product.productId}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
                             >
@@ -175,8 +174,8 @@ function NewSalesModal(props) {
                                 {stockcard.map((prod) => {
                                     return (
                                         <option
-                                            key={prod.description}
-                                            value={prod.description}
+                                            key={prod.id}
+                                            value={prod.id}
                                         >
                                             {prod.description}
                                         </option>

@@ -85,12 +85,12 @@ function Itemforecast({ isAuth }) {
           <Card.Header className="bg-primary text-white">
             Product List
           </Card.Header>
-          <Card.Body style={{ height: '800px' }}>
+          <Card.Body style={{ height: '600px' }}  id="scrollbar">
             <ListGroup as="ol" variant="flush" numbered>
               {stockcard.map((stockcard) => {
                 return (
                   <ListGroup.Item as="li">
-                    <small>{stockcard.product_name}</small>
+                    <small>{stockcard.id}</small>
                   </ListGroup.Item>
                 )
               })}
@@ -103,20 +103,11 @@ function Itemforecast({ isAuth }) {
       </div>
 
       <div className="col-9 p-5">
-        <Nav className="shadow" fill variant="pills" defaultActiveKey="/analytics">
-          <Nav.Item>
-            <Nav.Link as={Link} to="/analytics" >Top Used Item</Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link as={Link} to="/itemforecasting" active>Reorder Point Forecast</Nav.Link>
-          </Nav.Item>
-        </Nav>
-
-        <span><br></br></span>
-
 
         <div className="row bg-white shadow">
           <div className="row p-5" style={{ height: "500px" }}>
+            <h3 className='text-center p1'>ReorderPoint Forecasting</h3>
+            <hr />
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 width={500}

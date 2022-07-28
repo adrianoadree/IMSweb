@@ -7,21 +7,19 @@ import moment from "moment";
 
 
 function StockcardPage({ isAuth }) {
-
   //---------------------VARIABLES---------------------
-  const [setModalShow] = useState(false);
-  const [stockcard, setStockcard] = useState([]);
-  const [newDocumentNumber, setNewDocumentNumber] = useState(0);
-  const [newNote, setNewNote] = useState("");
+  const [stockcard, setStockcard] = useState([]); //stockcard collection
   const [varRef, setVarRef] = useState([]); // variable collection
+  const [newNote, setNewNote] = useState(""); // note form input
+  const [stockcardData, setStockcardData] = useState([{}]);
+  const [queryList, setQueryList] = useState(["IT00018"]); //compound query access
+
 
   var curr = new Date();
   curr.setDate(curr.getDate());
   var date = curr.toISOString().substr(0, 10);
 
-
   //---------------------FUNCTIONS---------------------
-
 
   //fetch variable collection
   useEffect(() => {
@@ -31,22 +29,22 @@ function StockcardPage({ isAuth }) {
     return unsub;
   }, [])
 
-  //read collection from purchase_record
+  //read collection from stockcard
   useEffect(() => {
-
-    const stockcardCollRef = collection(db, "stockcard")
-    const q = query(stockcardCollRef, where("qty", ">=", 1));
+    const stockcardCollectionRef = collection(db, "stockcard")
+    const q = query(stockcardCollectionRef);
 
     const unsub = onSnapshot(q, (snapshot) =>
       setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
     );
+
 
     return unsub;
   }, [])
 
 
   //Dynamic Add Product Button ------------------------------------------------------------
-  const [productList, setProductList] = useState([{ productName: "", productQuantity: 1 }]);
+  const [productList, setProductList] = useState([{ productId: "", productQuantity: 1 }]);
 
   const handleProductChange = (e, index) => {
     const { name, value } = e.target
@@ -54,9 +52,8 @@ function StockcardPage({ isAuth }) {
     list[index][name] = value
     setProductList(list)
   }
-
   const handleItemAdd = () => {
-    setProductList([...productList, { productName: "", productQuantity: 1 }])
+    setProductList([...productList, { productId: "", productQuantity: 1 }])
   }
 
   const handleItemRemove = (index) => {
@@ -69,30 +66,100 @@ function StockcardPage({ isAuth }) {
 
 
 
+
+
+  //stores list.productId array to queryList
+  useEffect(() => {
+    const TempArr = [];
+    productList.map((name) => {
+      TempArr.push(name.productId)
+    })
+    setQueryList(TempArr)
+  }, [productList])//list listener, rerenders when list value changes
+
+  useEffect(() => {
+    console.log("queryList newval: ", queryList)
+  }, [queryList])
+
+
+  useEffect(() => {
+    console.log("productList newval: ", productList)
+  }, [productList])
+
+  useEffect(() => {
+    console.log("stockcardData newval: ", stockcardData)
+  }, [stockcardData])
+
+  useEffect(() => {
+    //query stockcard document that contains, [queryList] datas
+    function queryStockcardData() {
+      const stockcardRef = collection(db, "stockcard")
+
+      if (queryList.length !== 0) {
+        const q = query(stockcardRef, where("description", "in", [...queryList]));
+        const unsub = onSnapshot(q, (snapshot) =>
+          setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
+        );
+        return unsub;
+      }
+
+    }
+    queryStockcardData();
+  }, [queryList])
+
+
+
+
+
+
+
+
+  const [varHolder, setValHolder] = useState([]);
+
+  function updateQuantity(qty) {
+    productList.map((val) => {
+      const stockcardDocRef = doc(db, "stoclcard", val.productId)
+
+      const unsub = onSnapshot(doc(db, "stockcard", val.productId), (doc) => {
+        setValHolder(doc.data());
+      });
+
+      const newData = { qty: qty + val.productQuantity }
+      updateDoc(stockcardDocRef, newData)
+      return unsub;
+    })
+  }
+
+
   //add document to database
-  const addRecord = async (salesDocNum) => {
-    setDoc(doc(db, "sales_record", "SR" + Number(salesDocNum)), {
+  const addRecord = async (purchDocNum) => {
+
+    //set new document
+    setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
       document_date: date,
       document_note: newNote,
-      document_number: "SR" + Number(salesDocNum),
+      document_number: "PR" + Number(purchDocNum),
       productList
     });
 
-    //update docNum variable
+    //input update document, (update doc number)
     const varColRef = doc(db, "variables", "var")
-    const newData = { salesDocNum: Number(salesDocNum) + 1 }
-    await updateDoc(varColRef, newData)
+    const newData = { purchDocNum: Number(purchDocNum) + 1 }
 
-    setModalShow(false)
+    updateQuantity(varHolder.productQuantity)
+
+    await updateDoc(varColRef, newData)
     alert('Successfuly Added to the Database')
   }
+
+
 
 
   return (
     <div>
       <Navigation />
       <div className="row bg-light">
-        <h1 className="text-center"> Sales Transaction</h1>
+        <h1 className="text-center"> Purchase Transaction</h1>
         <div className="col-6 p-5 guide">
 
           <div className="row mt-2">
@@ -101,7 +168,7 @@ function StockcardPage({ isAuth }) {
               <input
                 className="form-control"
                 type="text"
-                value={varRef.salesDocNum}
+                value={varRef.purchDocNum}
                 disabled />
             </div>
             <div className="col-4">
@@ -113,18 +180,16 @@ function StockcardPage({ isAuth }) {
               />
             </div>
           </div>
-          <div className="row mt-2">
-            <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-              <Form.Label>Note: (Optional)</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                onChange={(event) => { setNewNote(event.target.value); }}
-              />
-            </Form.Group>
-          </div>
+          <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+            <Form.Label>Note: (Optional)</Form.Label>
+            <Form.Control
+              as="textarea"
+              rows={3}
+              onChange={(event) => { setNewNote(event.target.value); }}
+            />
+          </Form.Group>
 
-          <h5>Sell Products</h5>
+          <h5>Buy Products</h5>
           <hr></hr>
           <div className="row mb-2">
             <div className="col-6">Product Name</div>
@@ -137,26 +202,15 @@ function StockcardPage({ isAuth }) {
                   hidden
                   size="md"
                   type="text"
-                  name="productName"
-                  placeholder="Product Name"
-                  value={product.productName}
-                  onChange={(e) => handleProductChange(e, index)}
-                  required
-                />
-                <Form.Control
-                  hidden
-                  size="md"
-                  type="boolean"
-                  name="productName"
-                  placeholder="Boolean"
-                  value={product.productBoolean}
+                  name="productId"
+                  value={product.productId}
                   onChange={(e) => handleProductChange(e, index)}
                   required
                 />
                 <Form.Select
                   defaultValue={0}
-                  name="productName"
-                  value={product.productName}
+                  name="productId"
+                  value={product.productId}
                   onChange={(e) => handleProductChange(e, index)}
                   required
                 >
@@ -168,13 +222,12 @@ function StockcardPage({ isAuth }) {
                   {stockcard.map((prod) => {
                     return (
                       <option
-                        key={prod.description}
-                        value={prod.description}
+                        key={prod.id}
+                        value={prod.id}
                       >
                         {prod.description}
                       </option>
                     )
-
                   })}
                 </Form.Select>
                 {productList.length - 1 === index && productList.length < 10 && (
@@ -210,17 +263,17 @@ function StockcardPage({ isAuth }) {
                 )}
               </div>
             </div >
-
-
           ))}
 
 
           <Button
             className="btn btn-success"
             style={{ width: "150px" }}
-            onClick={() => { addRecord(varRef.salesDocNum) }}>
+            onClick={() => { addRecord(varRef.purchDocNum, varHolder.qty) }}>
             Save
           </Button>
+
+
 
         </div>
 
@@ -228,6 +281,19 @@ function StockcardPage({ isAuth }) {
         <div className="col-6 p-5">
 
 
+          <h1>queryList values: </h1>
+          {queryList.map((val) => {
+            return (
+              <li>{val}</li>
+            )
+          })}
+
+          <h1>productList values: </h1>
+          {productList.map((val) => {
+            return (
+              <li>productList.productId :<strong>{val.productId}</strong> /  productList.productQuantity: <strong>{val.productQuantity}</strong></li>
+            )
+          })}
 
 
 
