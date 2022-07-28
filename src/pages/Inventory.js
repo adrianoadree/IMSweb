@@ -33,6 +33,7 @@ function Inventory({ isAuth }) {
   const [prodPurchPrice, setProdPurchPrice] = useState(0);
   const [prodSalesPrice, setProdSalesPrice] = useState(0);
   const [prodCategory, setProdCategory] = useState("");
+  const [prodImg, setProdImg] = useState("");
   const [prodId4D, setProdId4D] = useState("");
   let navigate = useNavigate();
 
@@ -58,13 +59,13 @@ function Inventory({ isAuth }) {
 
   //access document from a collection
   onSnapshot(stockcardDocRef, (doc) => {
-
     setProdId4D(doc.id)
     setProdName(doc.data().description)
     setProdQuantity(doc.data().quantity)
     setProdPurchPrice(doc.data().s_price)
     setProdSalesPrice(doc.data().p_price)
     setProdCategory(doc.data().category)
+    setProfImg(doc.data().img)
   }, [])
 
 
@@ -180,6 +181,7 @@ function Inventory({ isAuth }) {
                         <Card.Header className='bg-primary text-white'>
                           StockCard
                         </Card.Header>
+                        <Card.Img variant="top" src="" />
                         <Card.Body>
                         <small>Product ID: </small><br />
                           <small>Product Name: </small><br />
@@ -197,9 +199,6 @@ function Inventory({ isAuth }) {
                         </Card.Header>
                         <Card.Body>
                           <div className='bg-secondary' style={{ height: "50px" }}></div>
-
-
-
                         </Card.Body>
                         <Card.Footer className='bg-white'>
                           <Button size='sm'>
@@ -250,6 +249,7 @@ function Inventory({ isAuth }) {
                         <Card.Header className='bg-primary text-white'>
                           StockCard
                         </Card.Header>
+                        <Card.Img variant="top" src="{prodImg}" />
                         <Card.Body>
                           <small>Product ID: <strong className='mx-2'>{prodId4D}</strong></small><br />
                           <small>Product Name: <strong className='mx-2'>{prodName}</strong></small><br />
@@ -257,7 +257,6 @@ function Inventory({ isAuth }) {
                           <small>Available Stock: <span className='mx-2'>{prodQuantity}</span></small><br />
                           <small>Purchase Price: <span className='mx-2'>{prodPurchPrice}</span></small><br />
                           <small>Selling Price: <span className='mx-2'>{prodSalesPrice}</span></small><br />
-                          
                         </Card.Body>
                       </Card>
                     </div>
