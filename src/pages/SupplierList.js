@@ -4,12 +4,12 @@ import Navigation from '../layout/Navigation';
 import { db } from '../firebase-config';
 import NewSupplierModal from '../components/NewSupplierModal';
 import { useNavigate } from 'react-router-dom';
-import { Button, Tab, ListGroup, Card } from 'react-bootstrap';
-import { doc, onSnapshot, collection, deleteDoc, query, getDoc } from 'firebase/firestore';
+import { Button, Tab, ListGroup, Card, Modal } from 'react-bootstrap';
+import { doc, onSnapshot, collection, deleteDoc, query, getDoc, setDoc,updateDoc } from 'firebase/firestore';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashCan, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faTrashCan, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
 
 
 
@@ -17,6 +17,7 @@ import { faTrashCan, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 function SupplierList({ isAuth }) {
 
     //---------------------VARIABLES---------------------
+    const [editShow, setEditShow] = useState(false); //display/ hide edit modal
     const [modalShow, setModalShow] = useState(false);//display/hide modal
     const [supplier, setSupplier] = useState([]); //supplier Collection
     const [supplierDoc, setSupplierDoc] = useState([]); //supplier Doc
@@ -51,6 +52,7 @@ function SupplierList({ isAuth }) {
                 setSupplierDoc(docSnap.data());
             }
         }
+        console.log("Updated Supplier Info")
         readSupplierDoc()
     }, [docId])
 
@@ -77,6 +79,173 @@ function SupplierList({ isAuth }) {
     }
 
 
+
+
+    const handleClose = () => setEditShow(false);
+
+    function MyVerticallyCenteredModal(props) {
+
+
+        //-----------------VARIABLES------------------
+        const [newSuppName, setNewSuppName] = useState("");
+        const [newSuppAddress, setNewSuppAddress] = useState("");
+        const [newSuppEmail, setNewSuppEmail] = useState("");
+        const [newSuppMobileNum, setSuppNewMobileNum] = useState(0);
+        const [newSuppTelNum, setNewSuppTelNum] = useState(0);
+
+        //SetValues
+        useEffect(() => {
+            setNewSuppName(supplierDoc.supplier_name)
+            setNewSuppAddress(supplierDoc.supplier_address)
+            setNewSuppEmail(supplierDoc.supplier_emailaddress)
+            setSuppNewMobileNum(supplierDoc.supplier_mobileNum)
+            setNewSuppTelNum(supplierDoc.supplier_telNum)
+        }, [docId])
+
+
+        //delete Toast
+        const updateToast = () => {
+            toast.info(' Supplier Information Successfully Updated', {
+                position: "top-right",
+                autoClose: 1000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                })
+        }
+
+        //update Supplier Document
+        function updateSupplier() {
+            updateDoc(doc(db, "supplier", docId), {
+                supplier_name: newSuppName
+                , supplier_emailaddress: newSuppEmail
+                , supplier_address: newSuppAddress
+                , supplier_mobileNum: Number(newSuppMobileNum)
+                , supplier_telNum: Number(newSuppTelNum) 
+            });
+            updateToast()
+            handleClose();
+        }
+
+
+
+
+        return (
+            <Modal
+                {...props}
+                size="lg"
+                aria-labelledby="contained-modal-title-vcenter"
+                centered
+            >
+                <ToastContainer
+                    position="top-right"
+                    autoClose={1000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                />
+
+                <Modal.Header closeButton>
+                    <Modal.Title id="contained-modal-title-vcenter">
+                        Edit <strong>{newSuppName}</strong>
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+
+                    <div className="p-3">
+                        <div className="row my-2">
+                            <div className='row'>
+                                <div className='col-8'>
+                                    <label>Supplier Name</label>
+
+                                    <input type="text"
+                                        className="form-control"
+                                        placeholder="Supplier Name"
+                                        value={newSuppName}
+                                        onChange={(event) => { setNewSuppName(event.target.value); }}
+                                    />
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div className="row my-2">
+                            <div className="col-12">
+                                <label>Address</label>
+                                <input type="text"
+                                    className="form-control"
+                                    placeholder="Address"
+                                    rows={3}
+                                    value={newSuppAddress}
+                                    onChange={(event) => { setNewSuppAddress(event.target.value); }}
+                                />
+                            </div>
+                        </div>
+
+
+                        <h5>Contact Information</h5>
+                        <hr></hr>
+
+                        <div className="row my-2">
+                            <div className="col-7">
+                                <label>Email Address</label>
+                                <input type="email"
+                                    className="form-control"
+                                    placeholder="*****@email.com"
+                                    value={newSuppEmail}
+                                    onChange={(event) => { setNewSuppEmail(event.target.value); }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="row my-2">
+                            <div className="col-6">
+                                <label>Mobile Number</label>
+                                <input type="number"
+                                    className="form-control"
+                                    placeholder="09---------"
+                                    value={newSuppMobileNum}
+                                    onChange={(event) => { setSuppNewMobileNum(event.target.value); }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="row my-2">
+                            <div className="col-6">
+                                <label>Telephone Number</label>
+                                <input type="number"
+                                    className="form-control"
+                                    placeholder="Contact Number"
+                                    value={newSuppTelNum}
+                                    onChange={(event) => { setNewSuppTelNum(event.target.value); }}
+                                />
+                            </div>
+                        </div>
+
+
+                    </div>
+
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button
+                        onClick={() => { updateSupplier(docId) }}
+                    >
+                        Save Changes
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+        );
+    }
+
+
+
+
     return (
 
         <div className="row bg-light">
@@ -84,7 +253,7 @@ function SupplierList({ isAuth }) {
 
             <ToastContainer
                 position="top-right"
-                autoClose={1500}
+                autoClose={1000}
                 hideProgressBar={false}
                 newestOnTop={false}
                 closeOnClick
@@ -191,11 +360,28 @@ function SupplierList({ isAuth }) {
                                     </div>
                                     <div className="col-2 pt-4">
                                         <Button
-                                            size="md"
+                                            size="sm"
+                                            variant="outline-dark"
+                                            style={{ width: "100px" }}
+                                            onClick={() => setEditShow(true)}
+                                        >
+                                            Edit <FontAwesomeIcon icon={faEdit} />
+                                        </Button>
+                                        <MyVerticallyCenteredModal
+                                            show={editShow}
+                                            onHide={() => setEditShow(false)}
+                                        />
+
+
+
+                                        <Button
+                                            className="mt-2"
+                                            size="sm"
                                             variant="outline-danger"
+                                            style={{ width: "100px" }}
                                             onClick={() => { deleteSupplier(docId) }}
                                         >
-                                            Delete<FontAwesomeIcon icon={faTrashCan} />
+                                            Delete <FontAwesomeIcon icon={faTrashCan} />
                                         </Button>
                                     </div>
 

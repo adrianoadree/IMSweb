@@ -71,9 +71,9 @@ function LandingPage({ isAuth }) {
                     <Card.Body>
                         <div className="p-3">
                             <div className="row">
-                                <h6 className="text-muted">
-                                    <FontAwesomeIcon icon={faCartFlatbed} />Register New Product to the Inventory
-                                </h6>
+                                <p className="text-muted">
+                                    <FontAwesomeIcon icon={faCartFlatbed} /> Register New Product to the Inventory
+                                </p>
                                 <Button variant="outline-primary" onClick={() => setProductModalShow(true)}>
                                     <span>Add new Product</span>
                                 </Button>
@@ -83,9 +83,9 @@ function LandingPage({ isAuth }) {
                             </div>
                             <hr />
                             <div className="row">
-                                <h6 className="text-muted"><FontAwesomeIcon icon={faUserPlus} />
-                                    Register New Supplier
-                                </h6>
+                                <p className="text-muted">
+                                    <FontAwesomeIcon icon={faUserPlus} /> Register New Supplier
+                                </p>
                                 <Button variant="outline-primary" onClick={() => setSupplierModalShow(true)}>
                                     <span>Add new Supplier</span>
                                 </Button>
@@ -95,9 +95,9 @@ function LandingPage({ isAuth }) {
                             </div>
                             <hr />
                             <div className="row">
-                                <h6 className="text-muted">
+                                <p className="text-muted">
                                     <FontAwesomeIcon icon={faFileInvoice} /> Record New Transaction
-                                </h6>
+                                </p>
                                 <ButtonGroup className="mt-2" >
                                     <Button variant="outline-primary" onClick={() => setSalesModalShow(true)}>
                                         <span>Sales</span>
@@ -133,7 +133,7 @@ function LandingPage({ isAuth }) {
                     </Card.Header>
                     <Card.Body style={{ height: "550px" }}>
                         <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-                            <Nav fill variant="pills" defaultActiveKey={1}>
+                            <Nav fill variant="pills" defaultActiveKey={1} className="shadow">
                                 <Nav.Item>
                                     <Nav.Link eventKey={0}>
                                         Sales

@@ -1,23 +1,16 @@
 import React from 'react';
-import { Tab, Button, Card, ListGroup } from 'react-bootstrap';
+import { Tab, Button, Card, ListGroup, Modal } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faXmark, faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrashCan } from '@fortawesome/free-solid-svg-icons'
 import NewProductModal from '../components/NewProductModal';
 import { useNavigate } from 'react-router-dom';
-import {
-  collection,
-  doc,
-  deleteDoc,
-  onSnapshot,
-  query,
-  getDoc
-
-} from 'firebase/firestore';
+import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { faEdit } from '@fortawesome/free-regular-svg-icons';
 
 
 
@@ -25,7 +18,7 @@ import "react-toastify/dist/ReactToastify.css";
 function Inventory({ isAuth }) {
 
   //---------------------VARIABLES---------------------
-
+  const [editShow, setEditShow] = useState(false);
   const [modalShow, setModalShow] = useState(false); //show/hide modal
   const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
   const [docId, setDocId] = useState("xx"); //document Id
@@ -44,14 +37,14 @@ function Inventory({ isAuth }) {
 
   //access stockcard document
   useEffect(() => {
-    async function readSupplierDoc() {
+    async function readStockcardDoc() {
       const stockcardRef = doc(db, "stockcard", docId)
       const docSnap = await getDoc(stockcardRef)
       if (docSnap.exists()) {
         setStockcardDoc(docSnap.data());
       }
     }
-    readSupplierDoc()
+    readStockcardDoc()
   }, [docId])
 
 
@@ -88,6 +81,146 @@ function Inventory({ isAuth }) {
     deleteToast();
     await deleteDoc(stockcardDoc);
   }
+
+  const handleClose = () => setEditShow(false);
+
+  //Edit Modal
+  function MyVerticallyCenteredModal(props) {
+
+    const [newStockcardDescription, setNewStockcardDescription] = useState("");
+    const [newStockcardCategory, setNewStockcardCategory] = useState("");
+    const [newStockcardPPrice, setNewStockcardPPrice] = useState(0);
+    const [newStockcardSPrice, setNewStockcardSPrice] = useState(0);
+
+    //SetValues
+    useEffect(() => {
+      setNewStockcardDescription(stockcardDoc.description)
+      setNewStockcardCategory(stockcardDoc.category)
+      setNewStockcardSPrice(stockcardDoc.s_price)
+      setNewStockcardPPrice(stockcardDoc.p_price)
+    }, [docId])
+
+
+    //update stockcard Document
+    function updateStockcard() {
+      updateDoc(doc(db, "stockcard", docId), {
+        description: newStockcardDescription
+        , category: newStockcardCategory
+        , s_price: Number(newStockcardSPrice)
+        , p_price: Number(newStockcardPPrice)
+      });
+      updateToast()
+      handleClose();
+    }
+
+    //delete Toast
+    const updateToast = () => {
+      toast.info(' Stockcard Information Successfully Updated', {
+        position: "top-right",
+        autoClose: 1000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      })
+    }
+
+    return (
+      <Modal
+        {...props}
+        size="lg"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+      >
+        <ToastContainer
+          position="top-right"
+          autoClose={1000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">
+            Edit {docId}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="p-3">
+            <div className="row">
+              <div className="col-6">
+                <label>Item Name</label>
+                <input type="text"
+                  className="form-control"
+                  placeholder="Item name"
+                  value={newStockcardDescription}
+                  required
+                  onChange={(event) => { setNewStockcardDescription(event.target.value); }}
+                />
+              </div>
+              <div className="col-6">
+                <label>Category</label>
+                <input type="text"
+                  className="form-control"
+                  placeholder="Category"
+                  value={newStockcardCategory}
+                  required
+                  onChange={(event) => { setNewStockcardCategory(event.target.value); }}
+
+                />
+              </div>
+            </div>
+            <div className="row mt-2">
+              <div className='col-4'>
+                <label>Purchase Price</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="form-control"
+                  placeholder="Purchase Price"
+                  value={newStockcardPPrice}
+                  onChange={(event) => { setNewStockcardPPrice(event.target.value); }}
+
+                />
+              </div>
+              <div className="col-4">
+                <label>Selling Price</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="form-control"
+                  placeholder="Selling Price"
+                  value={newStockcardSPrice}
+                  onChange={(event) => { setNewStockcardSPrice(event.target.value); }}
+                />
+              </div>
+
+            </div>
+
+
+
+
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            onClick={() => { updateStockcard(docId) }}
+          >
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
+
+
+
+
 
   return (
     <div className="row bg-light">
@@ -225,11 +358,27 @@ function Inventory({ isAuth }) {
                     </div>
                     <div className="col-2 pt-4">
                       <Button
-                        size="md"
+                        size="sm"
+                        variant="outline-dark"
+                        style={{ width: "100px" }}
+                        onClick={() => setEditShow(true)}
+                      >
+                        Edit <FontAwesomeIcon icon={faEdit} />
+                      </Button>
+                      <MyVerticallyCenteredModal
+                        show={editShow}
+                        onHide={() => setEditShow(false)}
+                      />
+
+
+                      <Button
+                        className="mt-2"
+                        size="sm"
                         variant="outline-danger"
+                        style={{ width: "100px" }}
                         onClick={() => { deleteStockcard(docId) }}
                       >
-                        Delete<FontAwesomeIcon icon={faTrashCan} />
+                        Delete <FontAwesomeIcon icon={faTrashCan} />
                       </Button>
                     </div>
 

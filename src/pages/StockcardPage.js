@@ -31,10 +31,10 @@ function StockcardPage({ isAuth }) {
     return unsub;
   }, [])
 
-  //read collection from stockcard
+  //read collection from stockcard where qty is not 0
   useEffect(() => {
     const stockcardCollectionRef = collection(db, "stockcard")
-    const q = query(stockcardCollectionRef);
+    const q = query(stockcardCollectionRef, where("qty", ">", 0));
 
     const unsub = onSnapshot(q, (snapshot) =>
       setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -89,15 +89,15 @@ function StockcardPage({ isAuth }) {
 
 
   //add document to database
-  const addRecord = async (purchDocNum, qty) => {
-    setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
+  const addRecord = async (salesDocNum, qty) => {
+    setDoc(doc(db, "sales_record", "SR" + Number(salesDocNum)), {
       document_date: date,
       document_note: newNote,
-      document_number: "PR" + Number(purchDocNum),
+      document_number: "PR" + Number(salesDocNum),
       productList
     });
 
-    updatePurchDocNum(purchDocNum) //update variables.purchDocNum function
+    updatePurchDocNum(salesDocNum) //update variables.purchDocNum function
     updateQuantity(qty)  //update stockcard.qty function
     setProductList([{ productId: "", productQuantity: 1 }]) // set number of productList row to default
     successToast() //display success toast
@@ -119,7 +119,7 @@ function StockcardPage({ isAuth }) {
     productList.map((val) => {
 
       const varColRef = doc(db, "stockcard", val.productId)
-      const newData = { qty: qty + Number(val.productQuantity) }
+      const newData = { qty: qty - Number(val.productQuantity) }
 
       updateDoc(varColRef, newData)
     })
@@ -135,7 +135,7 @@ function StockcardPage({ isAuth }) {
 
   //success toastify
   const successToast = () => {
-    toast.success('Purchase Transaction Successfully Recorded!', {
+    toast.success('Sales Transaction Successfully Recorded!', {
       position: "top-right",
       autoClose: 4996,
       hideProgressBar: false,
@@ -153,10 +153,8 @@ function StockcardPage({ isAuth }) {
     <div>
       <Navigation />
       <div className="row bg-light">
-        <h1 className="text-center"> Purchase Transaction</h1>
+        <h1 className="text-center"> Sales Transaction</h1>
         <div className="col-6 p-5 guide">
-
-
 
           <ToastContainer
             position="top-right"
@@ -176,7 +174,7 @@ function StockcardPage({ isAuth }) {
               <input
                 className="form-control"
                 type="text"
-                value={varRef.purchDocNum}
+                value={varRef.salesDocNum}
                 disabled />
             </div>
             <div className="col-4">

@@ -52,8 +52,8 @@ function NewSupplierModal(props) {
         supplier_name: newSupplierName
       , supplier_emailaddress: newSupplierEmailAddress
       , supplier_address: newSupplierAddress
-      , supplier_mobileNum: newSupplierMobileNumber
-      , supplier_telNum: newSupplierTelephoneNumber
+      , supplier_mobileNum: Number(newSupplierMobileNumber)
+      , supplier_telNum: Number(newSupplierTelephoneNumber)
     });
 
     //update docNum variable
@@ -80,7 +80,7 @@ function NewSupplierModal(props) {
 
       <ToastContainer
         position="top-right"
-        autoClose={3500}
+        autoClose={1000}
         hideProgressBar={false}
         newestOnTop={false}
         closeOnClick
@@ -105,6 +105,7 @@ function NewSupplierModal(props) {
                 <input type="text"
                   className="form-control"
                   placeholder="Supplier Name"
+                  autoFocus
                   onChange={(event) => { setnewSupplierName(event.target.value); }}
                 /></div>
 

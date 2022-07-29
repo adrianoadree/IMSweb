@@ -100,6 +100,7 @@ function NewProductModal(props) {
                 className="form-control"
                 placeholder="Item name"
                 required
+                autoFocus
                 onChange={(event) => { setNewProductName(event.target.value); }}
               />
             </div>

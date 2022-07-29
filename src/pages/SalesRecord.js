@@ -193,6 +193,7 @@ function SalesRecord({ isAuth }) {
                         <small> <FontAwesomeIcon icon={faFile} /> Document Number: </small>
                         <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: </small>
                         <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: </small>
+                        
                       </div>
   
                       <span><br /></span>
@@ -202,7 +203,8 @@ function SalesRecord({ isAuth }) {
                             <th className='px-3'>Item Code</th>
                             <th className="text-center">Quantity</th>
                             <th className='text-center'>Description</th>
-                            <th className='text-center'>Purchase Price</th>
+                            <th className='text-center'>Selling Price</th>
+                            <th className='text-center'>Extension</th>
                           </tr>
                         </thead>
                         <tbody style={{ height: "300px" }}>
@@ -231,18 +233,18 @@ function SalesRecord({ isAuth }) {
   
                     <div className="row px-5 py-3 bg-white shadow">
                       <div className="row pt-4 px-2 bg-white">
-                        <div className="col-11">
+                        <div className="col-9">
                           <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong>{purchaseRecord.document_number}</strong></small><br />
                           <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: <strong>{moment(purchaseRecord.document_date).format('LL')}</strong></small><br />
                           <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: <strong>{purchaseRecord.document_note}</strong></small><br />
                         </div>
-                        <div className="col-1">
+                        <div className="col-3">
                           <Button
-                            size="lg"
+                            size="md"
                             variant="outline-danger"
                             onClick={() => { deleteSalesRecord(docId) }}
                           >
-                            <FontAwesomeIcon icon={faTrashCan} />
+                           Delete Record <FontAwesomeIcon icon={faTrashCan} />
                           </Button>
                         </div>
   
@@ -257,7 +259,8 @@ function SalesRecord({ isAuth }) {
                               <th className='px-3'>Item Code</th>
                               <th className="text-center">Quantity</th>
                               <th className='text-center'>Description</th>
-                              <th className='text-center'>Purchase Price</th>
+                              <th className='text-center'>Selling Price</th>
+                              <th className='text-center'>Extension</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -277,7 +280,11 @@ function SalesRecord({ isAuth }) {
   
                                 <td className="text-center" >
                                   <FontAwesomeIcon icon={faPesoSign} />
-                                  {stockcardData[index]?.p_price}
+                                  {stockcardData[index]?.s_price}
+                                </td>
+                                <td className="text-center" >
+                                  <FontAwesomeIcon icon={faPesoSign} />
+                                  {prod.productQuantity * stockcardData[index]?.s_price}
                                 </td>
                               </tr>
                             ))

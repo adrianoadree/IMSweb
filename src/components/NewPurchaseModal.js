@@ -9,6 +9,7 @@ import { ToastContainer, toast } from "react-toastify";
 
 function NewPurchaseModal(props) {
 
+
     //---------------------VARIABLES---------------------
     const [stockcard, setStockcard] = useState([]); //stockcard collection
     const [varRef, setVarRef] = useState([]); // variable collection
@@ -31,7 +32,7 @@ function NewPurchaseModal(props) {
         return unsub;
     }, [])
 
-    //read collection from stockcard
+    //read collection from stockcard where qty is not 0
     useEffect(() => {
         const stockcardCollectionRef = collection(db, "stockcard")
         const q = query(stockcardCollectionRef);
@@ -147,14 +148,16 @@ function NewPurchaseModal(props) {
     }
 
 
-    return (
 
+
+    return (
         <Modal
             {...props}
             size="lg"
             aria-labelledby="contained-modal-title-vcenter"
             centered
         >
+
             <ToastContainer
                 position="top-right"
                 autoClose={3500}
@@ -166,7 +169,6 @@ function NewPurchaseModal(props) {
                 draggable
                 pauseOnHover
             />
-
 
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter" className="px-3">
@@ -279,6 +281,7 @@ function NewPurchaseModal(props) {
                 ))}
 
 
+
             </Modal.Body>
             <Modal.Footer>
                 <Button
@@ -290,7 +293,6 @@ function NewPurchaseModal(props) {
             </Modal.Footer>
         </Modal>
     );
-
 
 
 }
