@@ -189,7 +189,6 @@ function SupplierList({ isAuth }) {
                                         <h1 className='text-center pt-4 p1'>{supplierDoc.supplier_name}</h1>
                                         <hr />
                                     </div>
-
                                     <div className="col-2 pt-4">
                                         <Button
                                             size="md"

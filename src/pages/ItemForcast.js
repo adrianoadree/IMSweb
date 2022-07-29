@@ -89,7 +89,7 @@ function Itemforecast({ isAuth }) {
             <ListGroup as="ol" variant="flush" numbered>
               {stockcard.map((stockcard) => {
                 return (
-                  <ListGroup.Item as="li">
+                  <ListGroup.Item as="li" key={stockcard.id}>
                     <small>{stockcard.id}</small>
                   </ListGroup.Item>
                 )

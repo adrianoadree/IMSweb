@@ -9,7 +9,7 @@ import { addDoc, collection, orderBy, query, onSnapshot, serverTimestamp } from 
 import { useNavigate } from 'react-router-dom';
 import moment from "moment";
 
-import { ToastContainer, toast  } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
@@ -36,7 +36,6 @@ function Community({ isAuth }) {
         await addDoc(communityCollectionRef, { community_postAuthor: user.email, community_post: newPost, community_postTimestamp: serverTimestamp() });
         successToast();
     }
-
 
     //read collection from community
     useEffect(() => {
@@ -123,7 +122,7 @@ function Community({ isAuth }) {
                                     </div>
                                     <div className="col-3 ">
                                         <small className="text-white" >
-                                            {moment(posts.community_postTimestamp.toDate().toString()).calendar()}
+                                            {new Date(posts.community_postTimestamp?.seconds * 1000).toLocaleDateString("en-US")}
                                         </small>
                                     </div>
                                 </div>
@@ -136,11 +135,15 @@ function Community({ isAuth }) {
                                     <div className="col-12 text-muted">Comment Section</div>
 
                                     <div className="row">
-                                        <div className="col-4">
-                                            <small><FontAwesomeIcon icon={faUserLarge} /> {user?.email}</small>
+                                        <div className="col-10">
+                                            <Form.Control type="text" placeholder="Enter Comment here...." />
                                         </div>
-                                        <div className="col-8">
-                                            <input className="col-12" placeholder="Enter your comment here..."></input>
+                                        <div className="col-2">
+                                            <Button
+                                            variant="outline-primary"
+                                            >
+                                                <small>Comment</small>
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>

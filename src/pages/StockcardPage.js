@@ -4,6 +4,8 @@ import { db } from "../firebase-config";
 import { setDoc, collection, onSnapshot, query, doc, updateDoc, where } from "firebase/firestore";
 import { Button, Form } from "react-bootstrap";
 import moment from "moment";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 function StockcardPage({ isAuth }) {
@@ -11,8 +13,8 @@ function StockcardPage({ isAuth }) {
   const [stockcard, setStockcard] = useState([]); //stockcard collection
   const [varRef, setVarRef] = useState([]); // variable collection
   const [newNote, setNewNote] = useState(""); // note form input
-  const [stockcardData, setStockcardData] = useState([{}]);
   const [queryList, setQueryList] = useState(["IT00018"]); //compound query access
+  const [queryQuantity, setQqueryQuantity] = useState([0]); //compound query access
 
 
   var curr = new Date();
@@ -66,8 +68,6 @@ function StockcardPage({ isAuth }) {
 
 
 
-
-
   //stores list.productId array to queryList
   useEffect(() => {
     const TempArr = [];
@@ -77,64 +77,19 @@ function StockcardPage({ isAuth }) {
     setQueryList(TempArr)
   }, [productList])//list listener, rerenders when list value changes
 
+  //stores list.productId array to queryList
   useEffect(() => {
-    console.log("queryList newval: ", queryList)
-  }, [queryList])
-
-
-  useEffect(() => {
-    console.log("productList newval: ", productList)
-  }, [productList])
-
-  useEffect(() => {
-    console.log("stockcardData newval: ", stockcardData)
-  }, [stockcardData])
-
-  useEffect(() => {
-    //query stockcard document that contains, [queryList] datas
-    function queryStockcardData() {
-      const stockcardRef = collection(db, "stockcard")
-
-      if (queryList.length !== 0) {
-        const q = query(stockcardRef, where("description", "in", [...queryList]));
-        const unsub = onSnapshot(q, (snapshot) =>
-          setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
-        );
-        return unsub;
-      }
-
-    }
-    queryStockcardData();
-  }, [queryList])
-
-
-
-
-
-
-
-
-  const [varHolder, setValHolder] = useState([]);
-
-  function updateQuantity(qty) {
-    productList.map((val) => {
-      const stockcardDocRef = doc(db, "stoclcard", val.productId)
-
-      const unsub = onSnapshot(doc(db, "stockcard", val.productId), (doc) => {
-        setValHolder(doc.data());
-      });
-
-      const newData = { qty: qty + val.productQuantity }
-      updateDoc(stockcardDocRef, newData)
-      return unsub;
+    const TempArr = [];
+    productList.map((name) => {
+      TempArr.push(name.productQuantity)
     })
-  }
+    setQqueryQuantity(TempArr)
+  }, [productList])//list listener, rerenders when list value changes
+
 
 
   //add document to database
-  const addRecord = async (purchDocNum) => {
-
-    //set new document
+  const addRecord = async (purchDocNum, qty) => {
     setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
       document_date: date,
       document_note: newNote,
@@ -142,14 +97,53 @@ function StockcardPage({ isAuth }) {
       productList
     });
 
-    //input update document, (update doc number)
+    updatePurchDocNum(purchDocNum) //update variables.purchDocNum function
+    updateQuantity(qty)  //update stockcard.qty function
+    setProductList([{ productId: "", productQuantity: 1 }]) // set number of productList row to default
+    successToast() //display success toast
+  }
+
+
+  const [quantityHolder, setQuantityHolder] = useState([]);//stockcard spec doc access
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "stockcard", "IT00001"), (doc) => {
+      setQuantityHolder(doc.data());
+    });
+
+    return unsub;
+  }, [])
+
+  //update stockcard.qty function
+  function updateQuantity(qty) {
+    productList.map((val) => {
+
+      const varColRef = doc(db, "stockcard", val.productId)
+      const newData = { qty: qty + Number(val.productQuantity) }
+
+      updateDoc(varColRef, newData)
+    })
+  }
+
+  //update variables.purchDocNum function
+  function updatePurchDocNum(purchDocNum) {
     const varColRef = doc(db, "variables", "var")
     const newData = { purchDocNum: Number(purchDocNum) + 1 }
 
-    updateQuantity(varHolder.productQuantity)
+    updateDoc(varColRef, newData)
+  }
 
-    await updateDoc(varColRef, newData)
-    alert('Successfuly Added to the Database')
+  //success toastify
+  const successToast = () => {
+    toast.success('Purchase Transaction Successfully Recorded!', {
+      position: "top-right",
+      autoClose: 4996,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
   }
 
 
@@ -161,6 +155,20 @@ function StockcardPage({ isAuth }) {
       <div className="row bg-light">
         <h1 className="text-center"> Purchase Transaction</h1>
         <div className="col-6 p-5 guide">
+
+
+
+          <ToastContainer
+            position="top-right"
+            autoClose={3500}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+          />
 
           <div className="row mt-2">
             <div className="col-8">
@@ -269,7 +277,7 @@ function StockcardPage({ isAuth }) {
           <Button
             className="btn btn-success"
             style={{ width: "150px" }}
-            onClick={() => { addRecord(varRef.purchDocNum, varHolder.qty) }}>
+            onClick={() => { addRecord(varRef.purchDocNum, quantityHolder.qty) }}>
             Save
           </Button>
 
@@ -284,17 +292,30 @@ function StockcardPage({ isAuth }) {
           <h1>queryList values: </h1>
           {queryList.map((val) => {
             return (
-              <li>{val}</li>
+              <li key={val}>{val}</li>
+            )
+          })}
+
+          {queryQuantity.map((val) => {
+            return (
+              <li key={val}>{val}</li>
             )
           })}
 
           <h1>productList values: </h1>
-          {productList.map((val) => {
+          {productList.map((val, index) => {
             return (
-              <li>productList.productId :<strong>{val.productId}</strong> /  productList.productQuantity: <strong>{val.productQuantity}</strong></li>
+              <li key={index}>productList.productId :<strong>{val.productId}</strong> /  productList.productQuantity: <strong>{val.productQuantity}</strong></li>
             )
           })}
 
+
+          <Button
+            className="btn btn-success"
+            style={{ width: "150px" }}
+            onClick={() => { updateQuantity(quantityHolder.qty) }}>
+            Save
+          </Button>
 
 
 
