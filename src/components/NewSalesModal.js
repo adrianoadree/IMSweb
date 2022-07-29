@@ -98,10 +98,13 @@ function NewSalesModal(props) {
             productList
         });
 
+        props.onHide() //close Modal
+        successToast() //display success toast
+
+
         updateSalesDocNum(salesDocNum) //update variables.purchDocNum function
         updateQuantity(qty)  //update stockcard.qty function
         setProductList([{ productId: "", productQuantity: 1 }]) // set number of productList row to default
-        successToast() //display success toast
     }
 
 

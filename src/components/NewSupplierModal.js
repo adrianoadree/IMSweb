@@ -61,9 +61,7 @@ function NewSupplierModal(props) {
     const newData = { supplierId: Number(supplierId) + 1 }
     await updateDoc(varColRef, newData)
 
-
-
-
+    props.onHide()
     successToast();
   }
 

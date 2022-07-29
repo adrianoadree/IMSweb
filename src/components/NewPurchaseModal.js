@@ -88,23 +88,6 @@ function NewPurchaseModal(props) {
     }, [productList])//list listener, rerenders when list value changes
 
 
-
-    //add document to database
-    const addRecord = async (purchDocNum, qty) => {
-        setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
-            document_date: date,
-            document_note: newNote,
-            document_number: "PR" + Number(purchDocNum),
-            productList
-        });
-
-        updatePurchDocNum(purchDocNum) //update variables.purchDocNum function
-        updateQuantity(qty)  //update stockcard.qty function
-        setProductList([{ productId: "", productQuantity: 1 }]) // set number of productList row to default
-        successToast() //display success toast
-    }
-
-
     const [quantityHolder, setQuantityHolder] = useState([]);//stockcard spec doc access
 
     useEffect(() => {
@@ -148,7 +131,24 @@ function NewPurchaseModal(props) {
     }
 
 
+    //add document to database
+    const addRecord = async (purchDocNum, qty) => {
+        setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
+            document_date: date,
+            document_note: newNote,
+            document_number: "PR" + Number(purchDocNum),
+            productList
+        });
 
+        
+        successToast() //display success toast
+        props.onHide() //close Modal
+        
+        updatePurchDocNum(purchDocNum) //update variables.purchDocNum function
+        updateQuantity(qty)  //update stockcard.qty function
+        setProductList([{ productId: "", productQuantity: 1 }]) // set number of productList row to default
+
+    }
 
     return (
         <Modal
