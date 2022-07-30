@@ -86,7 +86,7 @@ function Community({ isAuth }) {
             <div className="col-3" />
             <div className="col-6 p-5">
                 <Card className="shadow mb-4">
-                    <Card.Header className="bg-primary">
+                    <Card.Header className="bg-dark">
                         <small className="text-white">Create Post</small>
                     </Card.Header>
                     <Card.Body>
@@ -103,7 +103,7 @@ function Community({ isAuth }) {
                     <Card.Footer className="bg-white">
                         <div className="row px-2">
                             <Button
-                                variant="outline-primary"
+                                variant="outline-dark"
                                 onClick={addPost}>
                                 Post</Button>
                         </div>

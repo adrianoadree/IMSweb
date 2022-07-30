@@ -5,7 +5,7 @@ import { db } from '../firebase-config';
 import NewSupplierModal from '../components/NewSupplierModal';
 import { useNavigate } from 'react-router-dom';
 import { Button, Tab, ListGroup, Card, Modal } from 'react-bootstrap';
-import { doc, onSnapshot, collection, deleteDoc, query, getDoc, setDoc,updateDoc } from 'firebase/firestore';
+import { doc, onSnapshot, collection, deleteDoc, query, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -113,7 +113,7 @@ function SupplierList({ isAuth }) {
                 pauseOnHover: true,
                 draggable: true,
                 progress: undefined,
-                })
+            })
         }
 
         //update Supplier Document
@@ -123,7 +123,7 @@ function SupplierList({ isAuth }) {
                 , supplier_emailaddress: newSuppEmail
                 , supplier_address: newSuppAddress
                 , supplier_mobileNum: Number(newSuppMobileNum)
-                , supplier_telNum: Number(newSuppTelNum) 
+                , supplier_telNum: Number(newSuppTelNum)
             });
             updateToast()
             handleClose();
@@ -273,7 +273,9 @@ function SupplierList({ isAuth }) {
                                     <h6>Supplier List</h6>
                                 </div>
                                 <div className="col-3">
-                                    <Button variant="primary" onClick={() => setModalShow(true)}>
+                                    <Button
+                                        variant="outline-light"
+                                        onClick={() => setModalShow(true)}>
                                         <FontAwesomeIcon icon={faPlus} />
                                     </Button>
                                     <NewSupplierModal

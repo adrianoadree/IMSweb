@@ -40,6 +40,9 @@ function Navigation() {
                 <LinkContainer to="/inventory">
                   <NavDropdown.Item>Inventory </NavDropdown.Item>
                 </LinkContainer>
+                <LinkContainer to="/stockcard">
+                  <NavDropdown.Item>Stockcard </NavDropdown.Item>
+                </LinkContainer>
                 <LinkContainer to="/warehouse">
                   <NavDropdown.Item>Warehouse</NavDropdown.Item>
                 </LinkContainer>
@@ -49,9 +52,6 @@ function Navigation() {
               </LinkContainer>
               <LinkContainer to="/community">
                 <Nav.Link>Community</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/stockcard">
-                <Nav.Link>Stockcard</Nav.Link>
               </LinkContainer>
               
             </Nav>

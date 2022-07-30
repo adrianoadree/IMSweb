@@ -145,7 +145,11 @@ function Records({ isAuth }) {
                     <h6>Transaction List</h6>
                   </div>
                   <div className="col-3">
-                    <Button onClick={() => setModalShow(true)}><FontAwesomeIcon icon={faPlus} /></Button>
+                    <Button
+                      variant="outline-light"
+                      onClick={() => setModalShow(true)}>
+                      <FontAwesomeIcon icon={faPlus} />
+                    </Button>
                     <NewPurchaseModal
                       show={modalShow}
                       onHide={() => setModalShow(false)}

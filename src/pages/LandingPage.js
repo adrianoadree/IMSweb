@@ -152,15 +152,15 @@ function LandingPage({ isAuth }) {
                                     <Table striped bordered hover size="sm">
                                         <thead className="bg-primary">
                                             <tr>
-                                                <th>Document Number</th>
-                                                <th>Date</th>
+                                                <th className="px-3">Document Number</th>
+                                                <th className="px-3">Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {salesRecord.map((salesRecord) => (
                                                 <tr>
-                                                    <td>{salesRecord.document_number}</td>
-                                                    <td>{salesRecord.document_date}</td>
+                                                    <td className="px-3">{salesRecord.document_number}</td>
+                                                    <td className="px-3">{salesRecord.document_date}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -170,16 +170,16 @@ function LandingPage({ isAuth }) {
                                     <Table striped bordered hover size="sm">
                                         <thead className="bg-primary">
                                             <tr>
-                                                <th>Document Number</th>
-                                                <th>Date</th>
+                                                <th className="px-3">Document Number</th>
+                                                <th className="px-3">Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {purchRecord.map((purchRecord) => {
                                                 return (
                                                     <tr>
-                                                        <td>{purchRecord.document_number}</td>
-                                                        <td>{date}</td>
+                                                        <td className="px-3">{purchRecord.document_number}</td>
+                                                        <td className="px-3">{date}</td>
                                                     </tr>
                                                 )
                                             })}

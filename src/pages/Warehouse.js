@@ -13,7 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Map from '../components/Map'
 
 
-function Warehouse({isAuth}) {
+function Warehouse({ isAuth }) {
 
   const [modalShowWH, setModalShowWH] = useState(false);
   const [modalShowMap, setModalShowMap] = useState(false);
@@ -39,7 +39,7 @@ function Warehouse({isAuth}) {
     setWHCol(doc.data().col)
     setWHRow(doc.data().row)
   }, [])
-  
+
 
   //Read collection from database
   useEffect(() => {
@@ -52,8 +52,8 @@ function Warehouse({isAuth}) {
     return unsub;
 
   }, [])
-  
-   const deleteToast = () => {
+
+  const deleteToast = () => {
     toast.error('Warehouse Deletion Successful', {
       position: "top-right",
       autoClose: 1500,
@@ -63,20 +63,20 @@ function Warehouse({isAuth}) {
       draggable: true,
       progress: undefined,
     });
-  } 
- 
-    const deleteWarehouse = async (id) => {
+  }
+
+  const deleteWarehouse = async (id) => {
     const warehouseDoc = doc(db, "warehouse", id)
     await deleteDoc(warehouseDoc);
     deleteToast();
   }
-  
+
   return (
 
     <div className="row bg-light">
       <Navigation />
-        
-        <ToastContainer
+
+      <ToastContainer
         position="top-right"
         autoClose={1500}
         hideProgressBar={false}
@@ -100,7 +100,8 @@ function Warehouse({isAuth}) {
                     <h6>Your Warehouses:</h6>
                   </div>
                   <div className='col-3'>
-                    <Button variant="primary"
+                    <Button
+                      variant="outline-light"
                       onClick={() => setModalShowWH(true)}>
                       <FontAwesomeIcon icon={faPlus} />
                     </Button>
@@ -109,20 +110,20 @@ function Warehouse({isAuth}) {
               </Card.Header>
               <Card.Body style={{ height: "500px" }}>
                 <ListGroup variant="flush">
-           
+
                   <NewWarehouseModal
                     show={modalShowWH}
-                    onHide={() => setModalShowWH(false)} 
-                    />
+                    onHide={() => setModalShowWH(false)}
+                  />
 
                   {warehouse.map((warehouse) => {
                     return (
-                      <ListGroup.Item 
-                      action 
-                      key={warehouse.id}
-                      eventKey={warehouse.id}
-                      onClick={() => { setWHId(warehouse.id) }}
-                     >
+                      <ListGroup.Item
+                        action
+                        key={warehouse.id}
+                        eventKey={warehouse.id}
+                        onClick={() => { setWHId(warehouse.id) }}
+                      >
                         <div className='row'>
                           <div className="col-9 pt-1">
                             <small>{warehouse.wh_name}</small>
@@ -149,7 +150,7 @@ function Warehouse({isAuth}) {
 
           <div className='col-9 p-5'>
             <Tab.Content>
-        	<Tab.Pane eventKey={0}>
+              <Tab.Pane eventKey={0}>
                 <div className='row px-5'>
                   <div className='row'>
                     <h1 className='text-center py-3 p1'>Warehouse Management</h1>
@@ -159,16 +160,16 @@ function Warehouse({isAuth}) {
                     <div className='col-12 mt-4'>
                       <Card className='shadow'>
                         <Card.Header className='bg-primary text-white'>
-                        	<div className="container-fluid">
-                        		<div className="row">
-				        	<div className="col-6">
-				          		<h3>Warehouse Name:</h3>
-				        	</div>
-				        	<div className="col-6 text-right">
-				        	</div>
-				        	
-		                	</div>
-                        	</div>
+                          <div className="container-fluid">
+                            <div className="row">
+                              <div className="col-6">
+                                <h3>Warehouse Name:</h3>
+                              </div>
+                              <div className="col-6 text-right">
+                              </div>
+
+                            </div>
+                          </div>
                         </Card.Header>
                         <Card.Body>
                           <small>Address:</small><br />
@@ -182,8 +183,8 @@ function Warehouse({isAuth}) {
 
                 </div>
               </Tab.Pane>
-        
-        
+
+
               <Tab.Pane eventKey={whId}>
                 <div className='row px-5'>
                   <div className='row'>
@@ -191,29 +192,29 @@ function Warehouse({isAuth}) {
                   </div>
                   <NewMapModal
                     show={modalShowMap}
-                    onHide={() => setModalShowMap(false)} 
-                    whid = {whId}
-                    whcol = {whCol}
-                    whrow = {whRow}/>
+                    onHide={() => setModalShowMap(false)}
+                    whid={whId}
+                    whcol={whCol}
+                    whrow={whRow} />
                   <div className='row'>
                     <div className='col-12 mt-4'>
                       <Card className='shadow'>
                         <Card.Header className='bg-primary text-white'>
-                        	<div className="container-fluid">
-                        		<div className="row">
-				        	<div className="col-6">
-				          		<h3>Warehouse Name: {whName}</h3>
-				        	</div>
-				        	<div className="col-6 text-right">
-				        	{whInit?
-				        	<button type="button" className="btn btn-light float-end" disabled> Set-Up Map </button>
-				        	:
-				        	<button type="button" className="btn btn-light float-end" onClick={() => { setModalShowMap(true)}}> Set-Up Map </button>
-				        	}
-				        	</div>
-				        	
-		                	</div>
-                        	</div>
+                          <div className="container-fluid">
+                            <div className="row">
+                              <div className="col-6">
+                                <h3>Warehouse Name: {whName}</h3>
+                              </div>
+                              <div className="col-6 text-right">
+                                {whInit ?
+                                  <button type="button" className="btn btn-light float-end" disabled> Set-Up Map </button>
+                                  :
+                                  <button type="button" className="btn btn-light float-end" onClick={() => { setModalShowMap(true) }}> Set-Up Map </button>
+                                }
+                              </div>
+
+                            </div>
+                          </div>
                         </Card.Header>
                         <Card.Body>
                           <small>Address: {whAdd} </small><br />
@@ -224,19 +225,19 @@ function Warehouse({isAuth}) {
                         </Card.Body>
 
                       </Card>
-<Card className='shadow'>
-<Card.Body>
-                        {whInit?
-                        <Map
-                        wh_id = {whId}
-                        wh_row = {whRow}
-                        wh_col = {whCol}
-                        />
-                        :
-                        <p></p>
-                        }
-</Card.Body>
-</Card>
+                      <Card className='shadow'>
+                        <Card.Body>
+                          {whInit ?
+                            <Map
+                              wh_id={whId}
+                              wh_row={whRow}
+                              wh_col={whCol}
+                            />
+                            :
+                            <p></p>
+                          }
+                        </Card.Body>
+                      </Card>
                     </div>
                   </div>
 
