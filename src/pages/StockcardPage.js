@@ -17,7 +17,7 @@ import JsBarcode from "jsbarcode";
 
 
 
-function StockcardPage({ isAuth }) {
+function StockcardPage() {
 
 
   //---------------------VARIABLES---------------------
@@ -28,18 +28,11 @@ function StockcardPage({ isAuth }) {
   const [docId, setDocId] = useState("xx"); //document Id
   const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
 
-  let navigate = useNavigate();
 
   //---------------------FUNCTIONS---------------------
 
-  useEffect(() => {
-    if (!isAuth) {
-      navigate("/login");
-    }
-  }, []);
 
   JsBarcode(".barcode").init();//initialize barcode
-
 
   //access stockcard document
   useEffect(() => {
@@ -66,7 +59,6 @@ function StockcardPage({ isAuth }) {
     return unsub;
 
   }, [])
-
 
   //delete Toast
   const deleteToast = () => {
@@ -217,7 +209,6 @@ function StockcardPage({ isAuth }) {
     );
   }
 
-
   //Edit Barcode Modal-----------------------------------------------------------------------------
   function EditBarcodeModal(props) {
 
@@ -304,6 +295,7 @@ function StockcardPage({ isAuth }) {
     );
   }
 
+  //display barcode function
   function DisplayBarcodeInfo() {
 
     if (stockcardDoc.barcode !== 0)
@@ -374,8 +366,7 @@ function StockcardPage({ isAuth }) {
   }
 
 
-
-
+  //-----------------------Main Return Value-------------------------------
   return (
     <div className="row bg-light">
       <Navigation />
@@ -447,7 +438,7 @@ function StockcardPage({ isAuth }) {
               <Tab.Pane eventKey={0}>
                 <div className='row px-5'>
                   <div className='row bg-white shadow'>
-                    <h1 className='text-center pt-4 p1'>Inventory</h1>
+                    <h1 className='text-center pt-4 p1'>Stockcard</h1>
                     <hr />
                   </div>
 

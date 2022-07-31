@@ -1,6 +1,7 @@
-import { Route,Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './custom.css';
+import { AuthContextProvider } from './context/AuthContext';
 
 //pages
 import Analytics from './pages/Analytics';
@@ -15,33 +16,35 @@ import SalesRecord from './pages/SalesRecord';
 import LoginPage from './pages/LoginPage';
 import Warehouse from './pages/Warehouse';
 import { useState } from 'react';
+import Protected from './layout/Protected';
+
 
 function App() {
 
 
-  const [isAuth, setIsAuth] = useState(true);
 
   return (
 
-    
+
     <div className="App">
+      <AuthContextProvider>
+        <Routes>
+          <Route path='/login' element={<LoginPage />} />
 
-      <Routes>
-        <Route path='/login' element={<LoginPage isAuth={isAuth} setIsAuth={setIsAuth}/>}/>
-        <Route path='/' element={<LandingPage isAuth={isAuth}/>}/>
-        <Route path='/supplier' element={<SupplierList isAuth={isAuth}/>}/>
-        <Route path='/inventory' element={<Inventory isAuth={isAuth}/>}/>
-        <Route path='/records' element={<Records isAuth={isAuth}/>}/>
-        <Route path='/salesrecord' element={<SalesRecord isAuth={isAuth}/>}/>
-        <Route path='/stockcard' element={<StockcardPage isAuth={isAuth}/>}/>
-        <Route path='/analytics' element={<Analytics isAuth={isAuth}/>}/>
-        <Route path='/itemforecasting' element={<Itemforecast isAuth={isAuth}/>}/>
-        <Route path='/community' element={<Community isAuth={isAuth}/>}/>
-        <Route path='/warehouse' element={<Warehouse/>}/>
-    
+          <Route path='/' element={<Protected><LandingPage /></Protected>} />
+          <Route path='/supplier' element={<Protected><SupplierList /></Protected>} />
+          <Route path='/inventory' element={<Protected><Inventory /></Protected>} />
+          <Route path='/records' element={<Protected><Records /></Protected>} />
+          <Route path='/salesrecord' element={<Protected><SalesRecord /></Protected>} />
+          <Route path='/stockcard' element={<Protected><StockcardPage /></Protected>} />
+          <Route path='/itemforecasting' element={<Protected><Itemforecast /></Protected>} />
+          <Route path='/community' element={<Protected><Community /></Protected>} />
+          <Route path='/warehouse' element={<Protected><Warehouse /></Protected>} />
 
 
-      </Routes>
+          <Route path='/analytics' element={<Analytics />} />
+        </Routes>
+      </AuthContextProvider>
 
     </div>
   );

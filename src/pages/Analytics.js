@@ -55,17 +55,8 @@ const data = [
 
 
 
-function Analytics({isAuth}) {
+function Analytics() {
   
-  let navigate = useNavigate();
-
-
-  useEffect(() => {
-    if (!isAuth) {
-      navigate("/login");
-    }
-  }, []);
-
   return (
     <div className="row bg-light">
       <Navigation />

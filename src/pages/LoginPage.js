@@ -1,132 +1,56 @@
-import React from "react";
-import { Card, Form, Button, InputGroup, FormControl, Alert } from "react-bootstrap";
+import React, { useEffect } from 'react';
+import { GoogleButton } from 'react-google-button';
+import { UserAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom'
+import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faLock, faUser } from "@fortawesome/free-solid-svg-icons";
-import SignupModal from "../components/SignupModal";
-import { auth } from "../firebase-config";
-import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
-import { useState, useEffect } from "react";
-import { useNavigate } from 'react-router-dom';
+import { faGoog } from '@fortawesome/free-solid-svg-icons'
 
-function LoginPage({ isAuth, setIsAuth }) {
+const LoginPage = () => {
 
-    const [isLoggedin, setisLoggedIn] = useState(false)
-    const [signupModalShow, setSignupModalShow] = useState(false);
-    const [show, setShow] = useState(false);
+    const { googleSignIn, user } = UserAuth();
+    const navigate = useNavigate();
 
-    const [user, setUser] = useState({});
-    const [loginEmail, setLoginEmail] = useState("");
-    const [loginPassword, setLoginPassword] = useState("");
-    let navigate = useNavigate();
-
-    useEffect(() => {
-        setisLoggedIn(isAuth)
-        if (isAuth) {
-            navigate("/");
-        }
-    }, []);
-
-
-    onAuthStateChanged(auth, (currentUser) => {
-        setUser(currentUser);
-    });
-
-
-    const login = async () => {
+    const handleGoogleSignIn = async () => {
         try {
-            const user = await signInWithEmailAndPassword(
-                auth,
-                loginEmail,
-                loginPassword
-            );
-            setIsAuth(true)
-            setShow(false)
-            navigate("/")
+            await googleSignIn();
         } catch (error) {
-            setShow(true)
-            console.log(error.message);
+            console.log(error);
         }
     };
 
+    useEffect(() => {
+        if (user != null) {
+            navigate('/');
+        }
+    }, [user]);
+
     return (
-        <div className="row bg-light" style={{ height: "667px" }}>
-            <div className="col-3" />
-            <div className="col-6 p-5 ">
-                
-                <Card className="bg-white shadow">
-                    <Card.Body >
-                        <div className="row" style={{ height: "100px" }}>
-                            <h1 className="mt-5 text-center">IMS</h1>
-                        </div>
-                        <div className="row p-4">
-                            <Alert show={show} variant="danger">
-                                <p className="text-center">
-                                    Wrong email or password. Please try again
-                                </p>
-                            </Alert>
-                            <Form.Label className="mt-1" htmlFor="formEmail">Email Address</Form.Label>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text className="bg-muted" id="basic-addon3">
-                                    <FontAwesomeIcon icon={faUser} />
-                                </InputGroup.Text>
-                                <Form.Control
-                                    type="email"
-                                    placeholder="Enter email"
-                                    onChange={(event) => {
-                                        setLoginEmail(event.target.value);
-                                    }} />
-                            </InputGroup>
+        <div>
+            <div className='bg-light row p-5' style={{ height: "600px" }}>
+
+                <div className='col-4'></div>
+                <div className='col-4 bg-white shadow' >
 
 
-                            <Form.Label htmlFor="formPassword">Password</Form.Label>
-                            <InputGroup className="mb-3">
-                                <InputGroup.Text className="bg-muted" id="basic-addon3">
-                                    <FontAwesomeIcon icon={faLock} />
-                                </InputGroup.Text>
-                                <Form.Control
-                                    type="password"
-                                    placeholder="Password"
-                                    onChange={(event) => {
-                                        setLoginPassword(event.target.value);
-                                    }} />
+                    <div className='row mt-4 p-5'>
+                        <h1 className='text-center text-3xl font-bold py-8'>IMS</h1>
+                        <small className='text-center text-muted'>Inventory Management System</small>
 
-                            </InputGroup>
-                            <div className="row p-2">
-                                <Button
-                                    variant="primary"
-                                    onClick={login}>
-                                    Login
-                                </Button>
-                            </div>
-                            <br></br>
-                            <hr />
-                            <div className="row px-5">
-                                <Button
-                                    variant="success"
-                                    onClick={() => setSignupModalShow(true)}>
-                                    Signup
-                                </Button>
-                                <SignupModal
-                                    show={signupModalShow}
-                                    onHide={() => setSignupModalShow(false)}
-                                />
-
-                            </div>
-
-
-                        </div>
+                    </div>
+                    <div className='row p-5'>
+                        <p className='text-center text-muted'>Login with</p>
+                        <hr />
+                            <GoogleButton onClick={handleGoogleSignIn}  style={{width:"500px"}}/>
+                    </div>
 
 
 
-                    </Card.Body>
-                </Card>
+                </div>
+                <div className='col-4'></div>
 
             </div>
-            <div className="col-3"></div>
-
-
         </div>
-    )
-
+    );
 }
 export default LoginPage;
