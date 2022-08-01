@@ -129,7 +129,7 @@ function SupplierList({ isAuth }) {
                                 </div>
                             </div>
                         </Card.Header>
-                        <Card.Body style={{ height: "500px" }}>
+                        <Card.Body style={{ height: "500px" }} id='scrollbar'>
                             <ListGroup variant="flush">
                                 {supplier.map((supplier) => {
                                     return (

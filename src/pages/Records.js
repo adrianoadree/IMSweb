@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
 import { Tab, ListGroup, Card, Table, Button, Nav } from "react-bootstrap";
-import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faTemperatureArrowDown, faPesoSign } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import moment from "moment";
@@ -150,7 +150,7 @@ function Records({ isAuth }) {
                   </div>
                 </div>
               </Card.Header>
-              <Card.Body style={{ height: "550px" }}>
+              <Card.Body style={{ height: "550px" }} id='scrollbar'>
                 <ListGroup
                   variant="flush"
                 >

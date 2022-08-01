@@ -2,16 +2,16 @@ import React from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { db } from "../firebase-config";
-import { addDoc, collection, arrayUnion, updateDoc, onSnapshot, query, doc, setDoc, serverTimestamp } from "firebase/firestore";
+import { collection, updateDoc, onSnapshot, query, doc, setDoc, where } from "firebase/firestore";
 import moment from "moment";
 
 function NewSalesModal(props) {
 
     //---------------------VARIABLES---------------------
     const [setModalShow] = useState(false);
-    const [purchRecord, setPurchRecord] = useState([]);
-    const [newDocumentNumber, setNewDocumentNumber] = useState(0);
+    const [stockcard, setStockcard] = useState([]);
     const [newNote, setNewNote] = useState("");
+    const [varRef, setVarRef] = useState([]); // variable collection
 
     var curr = new Date();
     curr.setDate(curr.getDate());
@@ -20,41 +20,31 @@ function NewSalesModal(props) {
 
     //---------------------FUNCTIONS---------------------
 
-    //add document to database
-    const addRecord = () => {
-        setDoc(doc(db, "sales_record", "SR00" + newDocumentNumber), {
-            document_date: date,
-            document_note: newNote,
-            document_number: "SR00" + newDocumentNumber,
+
+    //fetch variable collection
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
+            setVarRef(doc.data());
         });
-
-        setDoc(doc(db, "sold_products", "SR00" + newDocumentNumber), {
-            product_list: productList
-        });
-
-        setModalShow(false)
-        alert('Successfuly Added to the Database')
-    }
-
+        return unsub;
+    }, [])
 
     //read collection from purchase_record
     useEffect(() => {
 
-        const purchaseProductRef = collection(db, "purchase_product")
-        const q = query(purchaseProductRef);
+        const stockcardCollRef = collection(db, "stockcard")
+        const q = query(stockcardCollRef, where("qty", ">=", 1));
 
         const unsub = onSnapshot(q, (snapshot) =>
-            setPurchRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
         );
 
         return unsub;
     }, [])
 
 
-
-
     //Dynamic Add Product Button ------------------------------------------------------------
-    const [productList, setProductList] = useState([{ productName: "", productQuantity: 0 }]);
+    const [productList, setProductList] = useState([{ productName: "", productQuantity: 1 }]);
 
     const handleProductChange = (e, index) => {
         const { name, value } = e.target
@@ -63,9 +53,8 @@ function NewSalesModal(props) {
         setProductList(list)
     }
 
-    const productName = [];
     const handleItemAdd = () => {
-        setProductList([...productList, { productName, productQuantity: 0 }])
+        setProductList([...productList, { productName: "", productQuantity: 1 }])
     }
 
     const handleItemRemove = (index) => {
@@ -74,6 +63,28 @@ function NewSalesModal(props) {
         setProductList(list)
     }
     //End of Dynamic Button functions ---------------------------
+
+
+
+
+    //add document to database
+    const addRecord = async (salesDocNum) => {
+        setDoc(doc(db, "sales_record", "SR" + Number(salesDocNum)), {
+            document_date: date,
+            document_note: newNote,
+            document_number: "SR" + Number(salesDocNum),
+            productList
+        });
+
+        //update docNum variable
+        const varColRef = doc(db, "variables", "var")
+        const newData = { salesDocNum: Number(salesDocNum) + 1 }
+        await updateDoc(varColRef, newData)
+
+        setModalShow(false)
+        alert('Successfuly Added to the Database')
+    }
+
 
 
 
@@ -95,10 +106,10 @@ function NewSalesModal(props) {
                     <div className="col-8">
                         <label>Document Number</label>
                         <input
-                            type="number"
                             className="form-control"
-                            placeholder="Document Number"
-                            onChange={(event) => { setNewDocumentNumber(event.target.value); }} />
+                            type="text"
+                            value={varRef.salesDocNum}
+                            disabled />
                     </div>
                     <div className="col-4">
                         <label>Date</label>
@@ -161,15 +172,16 @@ function NewSalesModal(props) {
                                 >
                                     Select item
                                 </option>
-                                {purchRecord.map((purchRecord) => {
+                                {stockcard.map((prod) => {
                                     return (
                                         <option
-                                            key={purchRecord.product_name}
-                                            value={purchRecord.product_name}
+                                            key={prod.description}
+                                            value={prod.description}
                                         >
-                                            {purchRecord.productName}
+                                            {prod.description}
                                         </option>
                                     )
+
                                 })}
                             </Form.Select>
                             {productList.length - 1 === index && productList.length < 10 && (
@@ -188,7 +200,7 @@ function NewSalesModal(props) {
                                 type="number"
                                 name="productQuantity"
                                 placeholder="Quantity"
-                                min={0}
+                                min={1}
                                 value={product.productQuantity}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
@@ -216,7 +228,7 @@ function NewSalesModal(props) {
                 <Button
                     className="btn btn-success"
                     style={{ width: "150px" }}
-                    onClick={addRecord}>
+                    onClick={() => { addRecord(varRef.salesDocNum) }}>
                     Save
                 </Button>
             </Modal.Footer>
