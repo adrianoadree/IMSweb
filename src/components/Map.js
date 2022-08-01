@@ -25,6 +25,8 @@ var data;
   const [addShow, setAddShow] = useState(false);
   const [imageUrl, setImageUrl] = useState(undefined);
   const [prodId, setProdId] = useState("xx");
+    const [queryList, setQueryList] = useState([]); //compound query access
+  const [stockcardData, setStockcardData] = useState([{}]);
 
 
 const updateCntr = () => {
@@ -52,7 +54,7 @@ cntr++;
 	<div className="row g-0">
 	{
 cells.map((cells, index) => (
-        <div key="{index}" className={'col-' + Number(12/colm)}>
+        <div className={'col-' + Number(12/colm)}>
         <div className="wh_cell">
 		<div className="whc_header">
 			<div className="whch_left">
@@ -61,7 +63,7 @@ cells.map((cells, index) => (
 		              </Button>
 			</div>
 			<div className="whch_right">
-				<h4>{cells.id}</h4>
+				<h4 key={cells.id}>{cells.id}</h4>
 			</div>
 		</div>
               <div className="whc_body">	
@@ -79,7 +81,7 @@ cells.map((cells, index) => (
                               onClick={() => { setModalShow(true) }}
                             >
                               <FontAwesomeIcon icon={faEye} />
-                            </Button>   {info}
+                            </Button>   {stockcardData[info]?.description}
                           <ProductQuickView
                                                 show={modalShow}
                       onHide={() => setModalShow(false)}

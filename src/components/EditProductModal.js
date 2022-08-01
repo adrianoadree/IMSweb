@@ -1,33 +1,37 @@
 import React from "react";
 import { Button, Modal, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
-import { addDoc, collection, query, onSnapshot, doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, query, onSnapshot, updateDoc, doc } from 'firebase/firestore';
 import { db } from "../firebase-config";
-import NewSupplierModal from "./NewSupplierModal";
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-function NewProductModal(props) {
+function EditProductModal(props) {
 
-  const stockcardCollectionRef = collection(db, "stockcard")
+  const stockcardDocRef = doc(db, "stockcard", props.productid)
 
   //data variable declaration
   const [newProductName, setNewProductName] = useState("");
   const [newPriceP, setNewPriceP] = useState(0);
   const [newPriceS, setNewPriceS] = useState(0);
-  const [newQuanity, setNewQuantity] = useState(0);
-  const [newProdSupplier, setNewProdSupplier] = useState("");
+  const [newProdImg, setNewProdImg] = useState(0);
   const [newProdCategory, setNewProdCategory] = useState("");
         const masterdataDocRef = doc(db, "masterdata", "stockcard")
+        
       const [cntr, setCntr] = useState(0);
-
-  const [supplierModalShow, setSupplierModalShow] = useState(false);
-  const [supplier, setSupplier] = useState([]);
 
 var format = "";
 
   onSnapshot(masterdataDocRef, (doc) => {
 setCntr(doc.data().idCntr)
+  }, [])
+ 
+   onSnapshot(stockcardDocRef, (doc) => {
+    setNewProductName(doc.data().description)
+    setNewPriceP(doc.data().s_price)
+    setNewPriceS(doc.data().p_price)
+    setNewProdCategory(doc.data().category)
+    setNewProdImg(doc.data().img)
   }, [])
  
 const createFormat = () => {
@@ -37,7 +41,7 @@ const createFormat = () => {
  }
 
   const successToast = () => {
-    toast.success(' New Product Successfully Registered to the Database ', {
+    toast.success(' Product Successfully Updated ', {
       position: "top-right",
       autoClose: 3500,
       hideProgressBar: false,
@@ -47,37 +51,32 @@ const createFormat = () => {
       progress: undefined,
     });
   }
-
-  //Create product to database
-  const addProduct = async () => {
-    	createFormat();
-    await setDoc(doc(db, "stockcard", format),
-    { 
+  
+    const closeModal=()=>{
+      document.querySelector("#updateProdModal").style.display = 'none';
+      document.querySelector(".modal-backdrop").style.display = 'none';
+  } 
+  
+    const updateProduct = async () => {
+   const getProduct = doc(db, 'stockcard', props.productid);
+    await updateDoc(getProduct, {
     description: newProductName,
     p_price: Number(newPriceP),
     s_price: Number(newPriceS),
     category: newProdCategory
-    });
-    successToast();
+      });
+
+   closeModal();
+   successToast();
+
   }
 
-
-  //Read supplier collection from database
-  useEffect(() => {
-    const supplierCollectionRef = collection(db, "supplier")
-    const q = query(supplierCollectionRef);
-
-    const unsub = onSnapshot(q, (snapshot) =>
-      setSupplier(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-    );
-    return unsub;
-  }, [])
 
 
   return (
 
 
-    <Modal
+    <Modal id = "updateProdModal"
       {...props}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
@@ -109,7 +108,7 @@ const createFormat = () => {
               <label>Item Name</label>
               <input type="text"
                 className="form-control"
-                placeholder="Item name"
+                value={newProductName}
                 required
                 onChange={(event) => { setNewProductName(event.target.value); }}
               />
@@ -118,7 +117,7 @@ const createFormat = () => {
               <label>Category</label>
               <input type="text"
                 className="form-control"
-                placeholder="Category"
+                value={newProdCategory}
                 required
                 onChange={(event) => { setNewProdCategory(event.target.value); }}
               />
@@ -131,7 +130,7 @@ const createFormat = () => {
                 type="number"
                 min={0}
                 className="form-control"
-                placeholder="Purchase Price"
+                value={newPriceP}
                 onChange={(event) => { setNewPriceP(event.target.value); }} />
             </div>
             <div className="col-4">
@@ -140,7 +139,7 @@ const createFormat = () => {
                 type="number"
                 min={0}
                 className="form-control"
-                placeholder="Selling Price"
+                value={newPriceS}
                 onChange={(event) => { setNewPriceS(event.target.value); }} />
             </div>
 
@@ -156,8 +155,8 @@ const createFormat = () => {
           <Button
             className="btn btn-success"
             style={{ width: "150px" }}
-            onClick={addProduct} >
-            Save
+            onClick={updateProduct} >
+            Update
           </Button>
         </div>
       </Modal.Footer>
@@ -166,4 +165,4 @@ const createFormat = () => {
 
   )
 }
-export default NewProductModal;
+export default EditProductModal;

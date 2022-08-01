@@ -9,8 +9,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 function NewMapModal(props) {
 
-
-
   const warehouseCollectionRef = collection(db, "warehouse");
   const [arr, setArr] = useState([]);
     const [newCol, setnewCol] = useState("");

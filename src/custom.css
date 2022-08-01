@@ -94,3 +94,11 @@ li:hover{
 #scrollbar{
 overflow-y: scroll;
 }
+
+.align-card {
+  flex-direction: row;
+}
+
+.no-click {
+  pointer-events: none;
+}

@@ -275,8 +275,8 @@ function Records({ isAuth }) {
                                 {prod.productQuantity}
                               </td>
 
-                              <td className="text-center" key={stockcardData[index]?.description}>
-                                {stockcardData[index]?.description}
+                              <td className="text-center" key={stockcardData[prod.productId]?.description}>
+                                {stockcardData[prod.productId]?.description}
                               </td>
 
                               <td className="text-center" >

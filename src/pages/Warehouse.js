@@ -2,7 +2,8 @@ import React from 'react';
 import { Tab, Table, Button, Card, ListGroup, Modal } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
-import { db } from '../firebase-config';
+import { db, st } from '../firebase-config';
+import { ref } from 'firebase/storage';
 import { getDocs, collection, doc, deleteDoc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashCan, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
@@ -15,11 +16,13 @@ import Map from '../components/Map'
 
 function Warehouse({isAuth}) {
 
+
   const [modalShowWH, setModalShowWH] = useState(false);
   const [modalShowMap, setModalShowMap] = useState(false);
 
   const [warehouse, setWarehouse] = useState([]);
   const warehouseCollectionRef = collection(db, "warehouse")
+  const storageRef = ref(st,'/stockcard');
   const [whId, setWHId] = useState("xx");
   const warehouseDocRef = doc(db, "warehouse", whId)
   const [whName, setWHName] = useState("");
@@ -29,6 +32,8 @@ function Warehouse({isAuth}) {
   const [whCol, setWHCol] = useState(0);
   const [whRow, setWHRow] = useState(0);
   const [whId4D, setWHId4D] = useState("");
+  const [imgs,setImgs]=useState([]);
+  const promises=[];
 
 
   onSnapshot(warehouseDocRef, (doc) => {
@@ -69,6 +74,15 @@ function Warehouse({isAuth}) {
     const warehouseDoc = doc(db, "warehouse", id)
     await deleteDoc(warehouseDoc);
     deleteToast();
+  }
+  
+  const getImage=async()=>{
+  const imgRefs=await storageRef.listAll();
+  const urls=await Promise.all().then(
+  imgRefs.items.map((ref)=>ref.getDownloadURL()
+  ));
+  
+  alert("hello");
   }
   
   return (
@@ -153,6 +167,9 @@ function Warehouse({isAuth}) {
                 <div className='row px-5'>
                   <div className='row'>
                     <h1 className='text-center py-3 p1'>Warehouse Management</h1>
+                    				        	<Button
+				        	
+				        	onClick={()=>getImage()}>Show</Button>
                   </div>
 
                   <div className='row'>
@@ -166,7 +183,7 @@ function Warehouse({isAuth}) {
 				        	</div>
 				        	<div className="col-6 text-right">
 				        	</div>
-				        	
+
 		                	</div>
                         	</div>
                         </Card.Header>
@@ -229,8 +246,8 @@ function Warehouse({isAuth}) {
                         {whInit?
                         <Map
                         wh_id = {whId}
-                        wh_row = {whRow}
-                        wh_col = {whCol}
+                                              show={modalShowMap}
+                      onHide={() => setModalShowMap(false)}
                         />
                         :
                         <p></p>
