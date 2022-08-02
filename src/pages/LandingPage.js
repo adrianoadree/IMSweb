@@ -10,14 +10,8 @@ import NewSalesModal from "../components/NewSalesModal";
 import { useNavigate } from 'react-router-dom';
 import { collection, where, query, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase-config";
-import { UserAuth } from '../context/AuthContext';
 
-
-function LandingPage() {
-
-    const { user } = UserAuth();
-    const navigate = useNavigate();
-
+function LandingPage({ isAuth }) {
     const [productModalShow, setProductModalShow] = React.useState(false);
     const [supplierModalShow, setSupplierModalShow] = React.useState(false);
     const [purchaseModalShow, setPurchaseModalShow] = React.useState(false);
@@ -32,15 +26,17 @@ function LandingPage() {
     var date = curr.toISOString().substr(0, 10);
 
 
+    let navigate = useNavigate();
+
+
     //---------------------FUNCTIONS---------------------
 
 
-   /* useEffect(() => {
-        if (user == null) {
-            navigate('/login');
+    useEffect(() => {
+        if (!isAuth) {
+            navigate("/login");
         }
-    }, [user]);
-*/
+    }, []);
 
     //read sales_record collection
     useEffect(() => {

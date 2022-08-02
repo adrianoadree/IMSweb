@@ -14,7 +14,7 @@ import { faTrashCan, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
 
 
 
-function SupplierList() {
+function SupplierList({ isAuth }) {
 
     //---------------------VARIABLES---------------------
     const [editShow, setEditShow] = useState(false); //display/ hide edit modal
@@ -26,7 +26,12 @@ function SupplierList() {
 
     //---------------------FUNCTIONS---------------------
 
- 
+    useEffect(() => {
+        if (!isAuth) {
+            navigate("/login");
+        }
+    }, []);
+
 
     //Read supplier collection from database
     useEffect(() => {

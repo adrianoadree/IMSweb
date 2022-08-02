@@ -12,7 +12,7 @@ import moment from "moment";
 
 
 
-function Records() {
+function Records({ isAuth }) {
 
   //---------------------VARIABLES---------------------
 
@@ -136,7 +136,7 @@ function Records() {
       <Tab.Container id="list-group-tabs-example" defaultActiveKey="main">
         <div className="row bg-light">
           <div className="col-3 p-5">
-            <Card className="shadow">
+            <Card>
               <Card.Header
                 className="bg-primary text-white"
               >

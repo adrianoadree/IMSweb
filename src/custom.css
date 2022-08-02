@@ -1,66 +1,59 @@
-.guide {
-	border: 1px red solid;
+.guide{
+    border: 1px red solid;
 
 }
 
-.listcontainer {
-	height: 500px;
-	border: 1px solid gainsboro;
+.listcontainer{
+    height: 500px;
+    border: 1px solid gainsboro;
 
 }
 
-li:hover {
-	background-color: lightblue;
+li:hover{
+    background-color: lightblue;
 }
 
-.ButtonC {
-	width: 83px;
+.ButtonC{
+    width:83px;
 }
 
-.Buttongrp {
-	width: 83px;
+.Buttongrp{
+    width: 83px;
 }
 
-.border {
-	border: 0;
+.border{
+    border: 0;
 }
 
-.cborder {
-	border: 1px solid gainsboro;
+.cborder{
+    border: 1px solid gainsboro;
 }
 
-.ssave {
-	width: 100px;
+.ssave{
+    width: 100px;
 }
 
-.transparent {
-	background-color: transparent;
-	border: none;
-}
-
-
-.shadow {
-	box-shadow: 0px 5px 10px #00000036;
+.transparent{
+    background-color: transparent;
+    border: none;
 }
 
 
+.shadow{
+    box-shadow: 0px 5px 10px #00000036;
+  }
 
-.p1 {
-	font-family: "Courier New", monospace;
+
+
+.p1{
+    font-family: "Courier New", monospace;
 }
-
-.gogFont {
-	font-family: 'Product Sans';
-	font-style: normal;
-	font-size: 30px;
-}
-
-.btn-outline-danger {
+.btn-outline-danger{
 	background-color: #f5d7d5;
 }
 
 .expand {
-	width: 100%;
+	width:100%;
 }
 
 .wh_cell {
@@ -83,7 +76,7 @@ li:hover {
 	display: inline-block;
 	width: 30%;
 	height: 100%;
-	color: black;
+	color:black;
 }
 
 .whch_right {
@@ -98,6 +91,6 @@ li:hover {
 	width: 100%;
 }
 
-#scrollbar {
-	overflow-y: scroll;
+#scrollbar{
+overflow-y: scroll;
 }

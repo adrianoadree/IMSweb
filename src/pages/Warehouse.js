@@ -13,7 +13,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Map from '../components/Map'
 
 
-function Warehouse() {
+function Warehouse({ isAuth }) {
 
   const [modalShowWH, setModalShowWH] = useState(false);
   const [modalShowMap, setModalShowMap] = useState(false);

@@ -8,7 +8,7 @@ import { collection, query, onSnapshot,doc,getDoc } from "firebase/firestore";
 import { Card, Nav, ListGroup, Tab } from 'react-bootstrap';
 
 
-function Itemforecast() {
+function Itemforecast({ isAuth }) {
 
   //---------------------VARIABLES---------------------
 
