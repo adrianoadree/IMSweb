@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Modal, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
-import { addDoc, collection, query, onSnapshot, doc, setDoc } from 'firebase/firestore';
+import { addDoc, collection, query, onSnapshot, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from "../firebase-config";
 import NewSupplierModal from "./NewSupplierModal";
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
@@ -36,6 +36,11 @@ const createFormat = () => {
   format = "IT" + format;
  }
 
+  const closeModal=()=>{
+      document.querySelector("#newprod-modal").style.display = 'none';
+      document.querySelector(".modal-backdrop").style.display = 'none';
+  } 
+
   const successToast = () => {
     toast.success(' New Product Successfully Registered to the Database ', {
       position: "top-right",
@@ -56,8 +61,17 @@ const createFormat = () => {
     description: newProductName,
     p_price: Number(newPriceP),
     s_price: Number(newPriceS),
-    category: newProdCategory
+    category: newProdCategory,
+    barcode:Number(0),
+    qty:Number(0),
+    img:"",
     });
+        await updateDoc(masterdataDocRef,{
+	idCntr : Number(cntr) + 1
+      });
+      format="";
+      
+   closeModal();
     successToast();
   }
 
@@ -79,6 +93,7 @@ const createFormat = () => {
 
     <Modal
       {...props}
+      id="newprod-modal"
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered

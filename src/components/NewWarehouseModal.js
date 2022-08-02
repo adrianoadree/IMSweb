@@ -4,7 +4,7 @@ import { Modal, Button } from 'react-bootstrap';
 import React from "react";
 import { collection } from 'firebase/firestore';
 import { db, get, then } from '../firebase-config';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -22,9 +22,14 @@ function NewWarehouseModal(props) {
   
 var format = "";
 
-  onSnapshot(masterdataDocRef, (doc) => {
+   useEffect(() => {
+        const unsub =   onSnapshot(masterdataDocRef, (doc) => {
 setCntr(doc.data().idCntr)
-  }, [])
+	 });
+        return unsub;
+    }, [])
+
+
  
 const createFormat = () => {
   format = cntr + "";
@@ -71,7 +76,7 @@ const createFormat = () => {
         , col: 0
         , row: 0
         , isInit: false
-        , cells: []
+        , cell: newCellsArray
       });
     await updateDoc(masterdataDocRef,{
 	idCntr : Number(cntr) + 1
@@ -87,7 +92,7 @@ const createFormat = () => {
   const [newWHName, setnewWHName] = useState("");
   const [newWHNotes, setnewWHNotes] = useState("");
   const [newAddress, setnewAddress] = useState("");
-  const [collectionSize, setColSize] = useState("");  
+  const [newCellsArray, setNewCellsArray] = useState([{ id: "", products: [] }]);
   const [idFormat, setIdFormat] = useState("");  
 
 
@@ -122,6 +127,7 @@ const createFormat = () => {
           <div className="row my-2">
             <label>{format}</label>
             <div className="col-8">
+            <label>Warehouse Name</label>
               <input type="text"
                 className="form-control"
                 placeholder="Warehouse"

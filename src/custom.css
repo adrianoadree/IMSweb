@@ -74,14 +74,14 @@ li:hover{
 
 .whch_left {
 	display: inline-block;
-	width: 30%;
+	width: 69%;
 	height: 100%;
 	color:black;
 }
 
 .whch_right {
 	display: inline-block;
-	width: 69%;
+	width: 30%;
 	height: 100%;
 	text-align: right;
 }

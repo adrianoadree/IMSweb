@@ -17,6 +17,10 @@ function EditProductModal(props) {
   const [newProdImg, setNewProdImg] = useState(0);
   const [newProdCategory, setNewProdCategory] = useState("");
         const masterdataDocRef = doc(db, "masterdata", "stockcard")
+
+
+
+
         
       const [cntr, setCntr] = useState(0);
 

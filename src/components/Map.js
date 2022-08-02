@@ -9,6 +9,7 @@ import { faTrashCan, faPenToSquare, faPlus, faXmark, faQrcode, faEye } from '@fo
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProductQuickView from './ProductQuickView';
+import QRCode from "react-qr-code";
 
 
 function Map(props) {
@@ -25,30 +26,41 @@ var data;
   const [addShow, setAddShow] = useState(false);
   const [imageUrl, setImageUrl] = useState(undefined);
   const [prodId, setProdId] = useState("xx");
-    const [queryList, setQueryList] = useState([]); //compound query access
+  const [queryList, setQueryList] = useState([]); //compound query access
   const [stockcardData, setStockcardData] = useState([{}]);
 
 
-const updateCntr = () => {
-cntr++;
-}
+	const updateCntr = () => {
+	cntr++;
+	}
 
-
-/*const cellContents = async () => {
-  await onSnapshot(doc(db, "warehouse", props.whId), (doc) => {
-    return doc.data().cells;
-  });
-};*/
-
-  onSnapshot(mapDocRef, (doc) => {
-    setCells(doc.data().cell)
-    setCol(doc.data().col)
-  }, [])
+   useEffect(() => {
+        const unsub = onSnapshot(mapDocRef, (doc) => {
+	    setCells(doc.data().cell)
+	    setCol(doc.data().col)
+	 });
+        return unsub;
+    }, [])
   
+  useEffect(() => {
+    //query stockcard document that contains, [queryList] datas
+    async function queryStockcardData() {
+      const stockcardRef = collection(db, "stockcard")
 
-//setRow(props.whRow);
-//setCol(props.whCol);
+      if (queryList.length !== 0) {
+        const q = await query(stockcardRef, where("__name__", "in", [...queryList]));
+        const unsub = onSnapshot(q, (snapshot) =>
+          setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
+        );
+        return unsub;
+      }
+    }
+    queryStockcardData();
+  }, [queryList]) 
 
+    //Dynamic Add Product Button ------------------------------------------------------------
+
+    //End of Dynamic Button functions ---------------------------
   return(
 	<div>
 	<div className="row g-0">
@@ -58,9 +70,7 @@ cells.map((cells, index) => (
         <div className="wh_cell">
 		<div className="whc_header">
 			<div className="whch_left">
-			      <Button variant="light">
-		              <FontAwesomeIcon icon={faQrcode} />
-		              </Button>
+          <QRCode value={cells.id} size={50}/>
 			</div>
 			<div className="whch_right">
 				<h4 key={cells.id}>{cells.id}</h4>
@@ -74,19 +84,8 @@ cells.map((cells, index) => (
                         key={info}
                         eventKey={info}
                         onClick={() => { setProdId(info) }}>
-                                                        <Button
-                              className="text-dark"
-                              variant="outline-light"
-                              size="sm"
-                              onClick={() => { setModalShow(true) }}
-                            >
-                              <FontAwesomeIcon icon={faEye} />
-                            </Button>   {stockcardData[info]?.description}
-                          <ProductQuickView
-                                                show={modalShow}
-                      onHide={() => setModalShow(false)}
-                      productId={prodId}
-                          />
+<span key={info}> {info}</span>
+
                       </ListGroup.Item>
                       ))}
                        </ListGroup>
@@ -95,6 +94,8 @@ cells.map((cells, index) => (
         </div>
         ))}
     </div>
+    :
+    <div>Noap</div>
     </div>
 );
 

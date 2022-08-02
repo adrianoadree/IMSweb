@@ -1,35 +1,34 @@
 import Navigation from "../layout/Navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState,  } from "react";
 import { db } from "../firebase-config";
-import { setDoc, collection, onSnapshot, query, doc, updateDoc, where } from "firebase/firestore";
+import { setDoc, collection, onSnapshot, query, doc, updateDoc, where, getDoc } from "firebase/firestore";
 import { Modal, Button, Form } from "react-bootstrap";
 import moment from "moment";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 
-function NewPurchaseModal(props) {
+function FillMapModal(props) {
 
-    //---------------------VARIABLES---------------------
+
     const [stockcard, setStockcard] = useState([]); //stockcard collection
     const [varRef, setVarRef] = useState([]); // variable collection
     const [newNote, setNewNote] = useState(""); // note form input
     const [stockcardData, setStockcardData] = useState([{}]);
     const [queryList, setQueryList] = useState([]); //compound query access
-
-
-    var curr = new Date();
-    curr.setDate(curr.getDate());
-    var date = curr.toISOString().substr(0, 10);
-
-    //---------------------FUNCTIONS---------------------
-
-    //fetch variable collection
-    useEffect(() => {
-        const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
-            setVarRef(doc.data());
-        });
-        return unsub;
-    }, [])
+    const [warehouseMap, setWarehouseMap] = useState([]);
+    
+    
+   useEffect(() => {
+    async function readWarehouseDoc() {
+      const warehouseRef = doc(db, "warehouse", props.whid)
+      const docSnap = await getDoc(warehouseRef)
+      if (docSnap.exists()) {
+        setWarehouseMap(docSnap.data().cell);
+        
+      }
+    }
+    readWarehouseDoc()
+  }, [props.whid])
 
     //read collection from stockcard
     useEffect(() => {
@@ -45,6 +44,7 @@ function NewPurchaseModal(props) {
 
     //Dynamic Add Product Button ------------------------------------------------------------
     const [productList, setProductList] = useState([{ productId: "", productQuantity: 1 }]);
+    const [prodList, setProdList] = useState([])
 
     const handleProductChange = (e, index) => {
     console.log("e: ", e)
@@ -52,14 +52,19 @@ function NewPurchaseModal(props) {
         const { name, value } = e.target
         console.log("name: ", name)
         const list = [...productList];
+        const list2 = [...prodList];
         list[index][name] = value
+        list2[index] = value
         console.log("value: ", value)
         
         setProductList(list)
+        setProdList(list2)
         console.log("change productList newval: ", productList)
+        console.log("change productList newval: ", prodList)
     }
     const handleItemAdd = () => {
         setProductList([...productList, { productId: "", productQuantity: 1 }])
+        setProdList([...prodList, ""])
         console.log("add productList newval: ", productList)
     }
 
@@ -113,33 +118,26 @@ function NewPurchaseModal(props) {
 
 
 
-
     //add document to database
-    const addRecord = async (purchDocNum) => {
-        setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
-            document_date: date,
-            document_note: newNote,
-            document_number: "PR" + Number(purchDocNum),
-            productList
+    
+    const updateCell= async () => {
+    
+    	var list= warehouseMap;
+    	var list2 = warehouseMap[props.cellindex];
+	console.log(list);
+	console.log(list2);
+   /* const getWarehouse= doc(db, 'warehouse', props.whid);
+        updateDoc(getWarehouse, {
+            
         });
-
-        //input update document, (update doc number)
-        const varColRef = doc(db, "variables", "var")
-        const newData = { purchDocNum: Number(purchDocNum) + 1 }
-
-        await updateDoc(varColRef, newData)
-
-
-
-
-        alert('Successfuly Added to the Database')
+        alert('Successfuly Added to the Database')*/
     }
-
+    
     return (
 
         <Modal
             {...props}
-            size="lg"
+            dialogClassName="modal-90w"
             aria-labelledby="contained-modal-title-vcenter"
             centered
         >
@@ -158,59 +156,32 @@ function NewPurchaseModal(props) {
 
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter" className="px-3">
-                    Add Purchase Record
+                    Fill Cell
                 </Modal.Title>
             </Modal.Header>
-            <Modal.Body className="p-5">
-                <div className="row mt-2">
-                    <div className="col-8">
-                        <label>Document Number</label>
-                        <input
-                            className="form-control"
-                            type="text"
-                            value={varRef.purchDocNum}
-                            disabled />
-                    </div>
-                    <div className="col-4">
-                        <label>Date</label>
-                        <input
-                            className="form-control"
-                            value={moment(date).format('LL')}
-                            disabled
-                        />
-                    </div>
-                </div>
-                <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-                    <Form.Label>Note: (Optional)</Form.Label>
-                    <Form.Control
-                        as="textarea"
-                        rows={3}
-                        onChange={(event) => { setNewNote(event.target.value); }}
-                    />
-                </Form.Group>
+            <Modal.Body className="p-3">
 
-                <h5>Buy Products</h5>
+                <span className="text-center"><h6>Add Products</h6></span>
                 <hr></hr>
                 <div className="row mb-2">
-                    <div className="col-6">Product Name</div>
-                    <div className="col-3">Quantity</div>
+                    <div className="col-12">Product Name</div>
                 </div>
                 {productList.map((product, index) => (
                     <div key={index} className="row">
-                        <div className="col-6 mb-3">
+                        <div className="col-9 mb-3">
                             <Form.Control
                                 hidden
                                 size="md"
                                 type="text"
-                                name="productId"
-                                value={product.productId}
+                                name="index"
+                                value={index}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
                             />
                             <Form.Select
                                 defaultValue={0}
                                 name="productId"
-                                value={product.productId}
+                                value={index}
                                 onChange={(e) => handleProductChange(e, index)}
                                 required
                             >
@@ -230,27 +201,7 @@ function NewPurchaseModal(props) {
                                     )
                                 })}
                             </Form.Select>
-                            {productList.length - 1 === index && productList.length < 10 && (
-                                <Button
-                                    className="mt-3"
-                                    variant="outline-primary"
-                                    size="md"
-                                    onClick={handleItemAdd}>
-                                    Add
-                                </Button>
-                            )}
-                        </div>
-                        <div className="col-3">
-                            <Form.Control
-                                size="md"
-                                type="number"
-                                name="productQuantity"
-                                placeholder="Quantity"
-                                min={1}
-                                value={product.productQuantity}
-                                onChange={(e) => handleProductChange(e, index)}
-                                required
-                            />
+
                         </div>
                         <div className="col-3">
                             {productList.length > 1 && (
@@ -259,6 +210,15 @@ function NewPurchaseModal(props) {
                                     size="md"
                                     onClick={() => handleItemRemove(index)}>
                                     Remove
+                                </Button>
+                            )}
+                                                        {productList.length - 1 === index && productList.length < 10 && (
+                                <Button
+                                    className="mt-3 float-end"
+                                    variant="outline-primary"
+                                    size="md"
+                                    onClick={handleItemAdd}>
+                                    Add
                                 </Button>
                             )}
                         </div>
@@ -270,7 +230,8 @@ function NewPurchaseModal(props) {
                 <Button
                     className="btn btn-success"
                     style={{ width: "150px" }}
-                    onClick={() => { addRecord(varRef.purchDocNum) }}>
+                    onClick={() => { updateCell() }}
+                    >
                     Save
                 </Button>
             </Modal.Footer>
@@ -281,4 +242,4 @@ function NewPurchaseModal(props) {
 
 }
 
-export default NewPurchaseModal;
+export default FillMapModal;

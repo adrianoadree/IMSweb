@@ -2,61 +2,109 @@ import React from 'react';
 import { Tab, Table, Button, Card, ListGroup, Modal } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
-import { db, st } from '../firebase-config';
+import { db, storage } from '../firebase-config';
 import { ref } from 'firebase/storage';
-import { getDocs, collection, doc, deleteDoc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { getDoc, collection, doc, deleteDoc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashCan, faPenToSquare, faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 import NewWarehouseModal from '../components/NewWarehouseModal';
-import NewMapModal from '../components/NewMapModal';
+import FillMapModal from '../components/FillMapModal';
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Map from '../components/Map'
+import QRCode from "react-qr-code";
 
 
 function Warehouse({isAuth}) {
 
-
+function refreshPage() {
+    window.location.reload(false);
+  }
   const [modalShowWH, setModalShowWH] = useState(false);
   const [modalShowMap, setModalShowMap] = useState(false);
+  const [init, setInit] = useState(true);
 
+  const [warehouseDoc, setWarehouseDoc] = useState([]);
   const [warehouse, setWarehouse] = useState([]);
-  const warehouseCollectionRef = collection(db, "warehouse")
-  const storageRef = ref(st,'/stockcard');
+  const storageRef = ref(storage,'/stockcard');
+  const masterdataDocRef = doc(db, "masterdata", "warehouse");
+  const [cells, setCells] = useState([]);
   const [whId, setWHId] = useState("xx");
-  const warehouseDocRef = doc(db, "warehouse", whId)
-  const [whName, setWHName] = useState("");
-  const [whAdd, setWHAdd] = useState("");
-  const [whNotes, setWHNotes] = useState("");
-  const [whInit, setWHInit] = useState(false);
-  const [whCol, setWHCol] = useState(0);
-  const [whRow, setWHRow] = useState(0);
-  const [whId4D, setWHId4D] = useState("");
-  const [imgs,setImgs]=useState([]);
-  const promises=[];
+  const [cellId, setCellId] = useState("");
+  const [cellIndex, setCellIndex] = useState(0);
+  
+  const [newCol, setNewCol] = useState("");
+  const [newRow, setNewRow] = useState("");
+  const [newCellsArray, setNewCellsArray] = useState([{ id: "", products: [] }]);
+  const [cntr, setCntr] = useState(0);
+  const [cellNamesArray, setCellNamesArray] = useState([]);
 
 
-  onSnapshot(warehouseDocRef, (doc) => {
+  
+   /*useEffect(() => {
+        const unsub =   onSnapshot(warehouseDocRef, (doc) => {
     setWHName(doc.data().wh_name)
     setWHAdd(doc.data().address)
     setWHNotes(doc.data().wh_notes)
     setWHInit(doc.data().isInit)
     setWHCol(doc.data().col)
     setWHRow(doc.data().row)
-  }, [])
+	 });
+        return unsub;
+    }, [])*/
+    
+    useEffect(() => {
+    async function readWarehouseDoc() {
+      const warehouseRef = doc(db, "warehouse", whId)
+      const docSnap = await getDoc(warehouseRef)
+      if (docSnap.exists()) {
+        setWarehouseDoc(docSnap.data());
+        setCells(docSnap.data().cell);
+        setInit(docSnap.data().isInit);
+      }
+    }
+    readWarehouseDoc()
+  }, [whId])
   
+    useEffect(() => {
+    const collectionRef = collection(db, "warehouse");
+    const q = query(collectionRef);
 
-  //Read collection from database
-  useEffect(() => {
-    const qW = query(warehouseCollectionRef);
-
-    const unsub = onSnapshot(qW, (snapshot) =>
+    const unsub = onSnapshot(q, (snapshot) =>
       setWarehouse(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
     );
 
     return unsub;
 
   }, [])
+var format = "";
+var tempArray = [];
+var tempProdArray = [];
+
+const pushCellsArray = () => {
+	var N = newCol*newRow;
+	const arr = Array.from(Array(N+1).keys()).slice(1);
+	for (var i=1; i < N+1; i++) {
+		var tempObj = {};
+		var format = i + "";
+		while(format.length < 2) {format = "0" + format;}
+		format = "CL" + (cntr-1) + format;
+		tempObj["id"] = format;
+		tempObj["products"] = tempProdArray;
+		tempArray.push(tempObj);
+    }
+    console.log(tempArray);
+}
+
+
+
+   useEffect(() => {
+        const unsub =   onSnapshot(masterdataDocRef, (doc) => {
+setCntr(doc.data().idCntr)
+	 });
+        return unsub;
+    }, [])
+  
   
    const deleteToast = () => {
     toast.error('Warehouse Deletion Successful', {
@@ -66,7 +114,6 @@ function Warehouse({isAuth}) {
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
-      progress: undefined,
     });
   } 
  
@@ -76,14 +123,25 @@ function Warehouse({isAuth}) {
     deleteToast();
   }
   
-  const getImage=async()=>{
-  const imgRefs=await storageRef.listAll();
-  const urls=await Promise.all().then(
-  imgRefs.items.map((ref)=>ref.getDownloadURL()
-  ));
-  
-  alert("hello");
+    const addMap = async () => {
+    pushCellsArray();
+    setInit(true);
+    refreshPage();
+   const getMap = doc(db, 'warehouse', whId);
+    await updateDoc(getMap,{
+        col: Number(newCol)
+        , row: Number(newRow)
+        , isInit: true
+        , cell: tempArray
+      });
+      
   }
+  
+  function getCLID (props) {
+  	setCellIndex(props);
+  	setModalShowMap(true);
+  }
+  
   
   return (
 
@@ -139,7 +197,10 @@ function Warehouse({isAuth}) {
                      >
                         <div className='row'>
                           <div className="col-9 pt-1">
-                            <small>{warehouse.wh_name}</small>
+                          <div className='row'>
+                          <small><strong>{warehouse.wh_name}</strong></small>
+                          <small>{warehouse.id}</small>
+                          </div>
                           </div>
                           <div className='col-3'>
                             <Button
@@ -167,9 +228,6 @@ function Warehouse({isAuth}) {
                 <div className='row px-5'>
                   <div className='row'>
                     <h1 className='text-center py-3 p1'>Warehouse Management</h1>
-                    				        	<Button
-				        	
-				        	onClick={()=>getImage()}>Show</Button>
                   </div>
 
                   <div className='row'>
@@ -199,19 +257,14 @@ function Warehouse({isAuth}) {
 
                 </div>
               </Tab.Pane>
-        
+
         
               <Tab.Pane eventKey={whId}>
+                
                 <div className='row px-5'>
                   <div className='row'>
                     <h1 className='text-center py-3 p1'>Warehouse Management</h1>
                   </div>
-                  <NewMapModal
-                    show={modalShowMap}
-                    onHide={() => setModalShowMap(false)} 
-                    whid = {whId}
-                    whcol = {whCol}
-                    whrow = {whRow}/>
                   <div className='row'>
                     <div className='col-12 mt-4'>
                       <Card className='shadow'>
@@ -219,41 +272,104 @@ function Warehouse({isAuth}) {
                         	<div className="container-fluid">
                         		<div className="row">
 				        	<div className="col-6">
-				          		<h3>Warehouse Name: {whName}</h3>
-				        	</div>
-				        	<div className="col-6 text-right">
-				        	{whInit?
-				        	<button type="button" className="btn btn-light float-end" disabled> Set-Up Map </button>
-				        	:
-				        	<button type="button" className="btn btn-light float-end" onClick={() => { setModalShowMap(true)}}> Set-Up Map </button>
-				        	}
+				          		<h3>Warehouse Name: {warehouseDoc.wh_name}</h3>
 				        	</div>
 				        	
 		                	</div>
                         	</div>
                         </Card.Header>
                         <Card.Body>
-                          <small>Address: {whAdd} </small><br />
-                          <small>Notes: {whNotes} </small><br />
+                          <small>Address: {warehouseDoc.address} </small><br />
+                          <small>Notes: {warehouseDoc.wh_notes} </small><br />
                         </Card.Body>
+
                         <Card.Body>
+                           {init?
+				<div className="row g-0">
+				{
+					cells.map((cells, index) => (
+						<div className={'col-' + Number(12/warehouseDoc.col)}>
+						<div className="wh_cell">
+							<div className="whc_header">
+								<div className="whch_left">
+						  <QRCode value={cells.id} size={50}/>
+						  							       <Button
+							       	variant ="outline-dark"
+									    className="rounded-circle ms-3 mt-1"
+									    style={{ width: "40px"}}
+									    onClick={() => { getCLID(index) }}>
+									    <FontAwesomeIcon icon={faPlus} />
+									</Button>
+								</div>
+								<div className="whch_right">
+									<h4 key={cells.id}>{cells.id}</h4>
+								</div>
+							</div>
+						      <div className="whc_body">
+						                              <FillMapModal
+                    show={modalShowMap}
+                    onHide={() => setModalShowMap(false)}
+                    whid = {whId}
+                    cellindex = {cellIndex}
+                    />	
+							<ListGroup variant="flush">
+							  {cells.products.map((info,i)=>(
+							      <ListGroup.Item
+								action
+								key={info}
+								eventKey={info}
+								>
+								<span key={info}> {info}</span>
+								
+									
 
-                        </Card.Body>
+							      </ListGroup.Item>
+							      
+							      ))}
+							       </ListGroup>
 
-                      </Card>
-<Card className='shadow'>
-<Card.Body>
-                        {whInit?
-                        <Map
-                        wh_id = {whId}
-                                              show={modalShowMap}
-                      onHide={() => setModalShowMap(false)}
-                        />
+							</div>
+						</div>
+						</div>
+				))}
+			    </div>
+
                         :
-                        <p></p>
-                        }
-</Card.Body>
-</Card>
+                        <div>
+                        <div className="text-center">
+                        Warehouse Map Not Initialized
+                        </div>
+                                <div className="p-3">
+          <div className="row">
+            <div className="col-6">
+                        <label>No. of Columns</label>
+              <input type="number"
+                className="form-control"
+                placeholder="Column"
+                onChange={(event) => { setNewCol(event.target.value); }}
+              />
+            </div>
+            <div className="col-6">
+              <label>No. of Rows</label>
+              <input type="number"
+                className="form-control"
+                placeholder="Row"
+                onChange={(event) => { setNewRow(event.target.value); }}
+              />
+            </div>
+          </div>
+        </div>
+            <Button
+          className="btn btn-success"
+          style={{ width: "150px" }}
+          onClick={addMap}>
+          Save
+        </Button>
+        </div>
+        			}
+                        </Card.Body>
+	
+                      </Card>
                     </div>
                   </div>
 

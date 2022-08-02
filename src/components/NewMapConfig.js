@@ -7,12 +7,13 @@ import { useState } from 'react';
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-function NewMapModal(props) {
+function NewMapConfig(props) {
 
   const warehouseCollectionRef = collection(db, "warehouse");
   const [arr, setArr] = useState([]);
   const [newCol, setNewCol] = useState("");
   const [newRow, setNewRow] = useState("");
+  const [cellsArray, setCellsArray] = useState([{ id: "", products: [] }]);
 
 
   const successToast = () => {
@@ -27,11 +28,6 @@ function NewMapModal(props) {
     });
   }
 
-  const closeModal=()=>{
-      document.querySelector("#map-modal").style.display = 'none';
-      document.querySelector(".modal-backdrop").style.display = 'none';
-  } 
-
   const addMap = async () => {
    const getMap = doc(db, 'warehouse', props.whid);
     await updateDoc(getMap,{
@@ -40,8 +36,8 @@ function NewMapModal(props) {
         , isInit: true
       });
 
-   closeModal();
    successToast();
+
   }
 
   /*const createCells = () => {
@@ -51,18 +47,7 @@ function NewMapModal(props) {
   //data variables
 
   return (
-    <Modal id="map-modal"
-      size="lg"
-      aria-labelledby="contained-modal-title-vcenter"
-      centered
-    >
-      <Modal.Header closeButton>
-        <Modal.Title id="contained-modal-title-vcenter" className="px-3">
-          Initialize Map
-        </Modal.Title>
-      </Modal.Header>
-      
-      <Modal.Body>
+  	<div>
         <div className="p-3">
           <div className="row my-2">
             <label>No. of Columns</label>
@@ -85,18 +70,15 @@ function NewMapModal(props) {
             </div>
           </div>
         </div>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button
+            <Button
           className="btn btn-success"
           style={{ width: "150px" }}
           onClick={addMap}>
           Save
         </Button>
-      </Modal.Footer>
-    </Modal>
+    </div>
   );
 }
 
 
-export default NewMapModal;
+export default NewMapConfig;

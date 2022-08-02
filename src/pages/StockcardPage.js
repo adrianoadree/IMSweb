@@ -1,244 +1,655 @@
-import Navigation from "../layout/Navigation";
-import { useEffect, useState } from "react";
-import { db } from "../firebase-config";
-import { setDoc, collection, onSnapshot, query, doc, updateDoc, where } from "firebase/firestore";
-import { Button, Form } from "react-bootstrap";
-import moment from "moment";
+import React from 'react';
+import { Tab, Button, Card, ListGroup, Modal, Form, Alert } from 'react-bootstrap';
+import Navigation from '../layout/Navigation';
+import { useState, useEffect } from 'react';
+import { db,storage } from '../firebase-config';
+import { ref, uploadBytesResumable, uploadTask, getDownloadURL,on } from 'firebase/storage';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faTrashCan, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
+import NewProductModal from '../components/NewProductModal';
+import { useNavigate } from 'react-router-dom';
+import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { faEdit } from '@fortawesome/free-regular-svg-icons';
+import Barcode from 'react-barcode';
+import JsBarcode from "jsbarcode";
 
 
-function StockcardPage({ isAuth }) {
+
+
+function StockcardPage() {
+
 
   //---------------------VARIABLES---------------------
-  const [setModalShow] = useState(false);
-  const [stockcard, setStockcard] = useState([]);
-  const [newDocumentNumber, setNewDocumentNumber] = useState(0);
-  const [newNote, setNewNote] = useState("");
-  const [varRef, setVarRef] = useState([]); // variable collection
+  const [barcodeModalShow, setBarcodeModalShow] = useState(false); //show/hide edit barcode modal
+  const [editShow, setEditShow] = useState(false); //show/hide edit modal
+  const [modalShow, setModalShow] = useState(false); //show/hide new product modal
+  const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+  const [docId, setDocId] = useState("xx"); //document Id
+  const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
+  
+          
 
-  var curr = new Date();
-  curr.setDate(curr.getDate());
-  var date = curr.toISOString().substr(0, 10);
+
+
 
 
   //---------------------FUNCTIONS---------------------
 
 
-  //fetch variable collection
-  useEffect(() => {
-    const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
-      setVarRef(doc.data());
-    });
-    return unsub;
-  }, [])
+  JsBarcode(".barcode").init();//initialize barcode
 
-  //read collection from purchase_record
+  //access stockcard document
   useEffect(() => {
+    async function readStockcardDoc() {
+      const stockcardRef = doc(db, "stockcard", docId)
+      const docSnap = await getDoc(stockcardRef)
+      if (docSnap.exists()) {
+        setStockcardDoc(docSnap.data());
+      }
+    }
+    readStockcardDoc()
+  }, [docId])
 
-    const stockcardCollRef = collection(db, "stockcard")
-    const q = query(stockcardCollRef, where("qty", ">=", 1));
+
+  //Read stock card collection from database
+  useEffect(() => {
+    const collectionRef = collection(db, "stockcard");
+    const q = query(collectionRef);
 
     const unsub = onSnapshot(q, (snapshot) =>
       setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
     );
 
     return unsub;
+
   }, [])
 
-
-  //Dynamic Add Product Button ------------------------------------------------------------
-  const [productList, setProductList] = useState([{ productName: "", productQuantity: 1 }]);
-
-  const handleProductChange = (e, index) => {
-    const { name, value } = e.target
-    const list = [...productList];
-    list[index][name] = value
-    setProductList(list)
-  }
-
-  const handleItemAdd = () => {
-    setProductList([...productList, { productName: "", productQuantity: 1 }])
-  }
-
-  const handleItemRemove = (index) => {
-    const list = [...productList]
-    list.splice(index, 1)
-    setProductList(list)
-  }
-  //End of Dynamic Button functions ---------------------------
-
-
-
-
-  //add document to database
-  const addRecord = async (salesDocNum) => {
-    setDoc(doc(db, "sales_record", "SR" + Number(salesDocNum)), {
-      document_date: date,
-      document_note: newNote,
-      document_number: "SR" + Number(salesDocNum),
-      productList
+  //delete Toast
+  const deleteToast = () => {
+    toast.error('Product DELETED from the Database', {
+      position: "top-right",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
     });
+  }
 
-    //update docNum variable
-    const varColRef = doc(db, "variables", "var")
-    const newData = { salesDocNum: Number(salesDocNum) + 1 }
-    await updateDoc(varColRef, newData)
+  //delete row 
+  const deleteStockcard = async (id) => {
+    const stockcardDoc = doc(db, "stockcard", id)
+    deleteToast();
+    await deleteDoc(stockcardDoc);
+  }
 
-    setModalShow(false)
-    alert('Successfuly Added to the Database')
+  const handleClose = () => setEditShow(false);
+
+  //Edit Stockcard Data Modal-----------------------------------------------------------------------------
+  function MyVerticallyCenteredModal(props) {
+
+    const [newStockcardDescription, setNewStockcardDescription] = useState("");
+    const [newStockcardCategory, setNewStockcardCategory] = useState("");
+    const [newStockcardPPrice, setNewStockcardPPrice] = useState(0);
+    const [newStockcardSPrice, setNewStockcardSPrice] = useState(0);
+    const [newStockcardImg, setNewStockcardImg] = useState("");
+    
+    const [image, setImage] = useState('');
+    const [percent, setPercent] = useState(0);
+    
+    var imgurl = "";
+    
+    function handleChange(event) {
+    setImage(event.target.files[0]);
+    
+    }
+    
+    const handleUpload = () => {
+    	  if(image == null)
+	    return;
+	  const storageRef = ref(storage,`/stockcard/${image.name}`);
+	  const uploadTask = uploadBytesResumable(storageRef,image);
+	
+	uploadTask.on("state_changed", (snapshot) => {
+	const percent = Math.round(
+                (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            );
+            setPercent(percent);
+        },
+        (err) => console.log(err),
+        ()=>{
+            getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+            console.log(url);
+                setNewStockcardImg(prevState => url);
+            });
+            }
+     
+    	); 
+    
+    }
+
+    //SetValues
+    useEffect(() => {
+      setNewStockcardDescription(stockcardDoc.description)
+      setNewStockcardCategory(stockcardDoc.category)
+      setNewStockcardSPrice(stockcardDoc.s_price)
+      setNewStockcardPPrice(stockcardDoc.p_price)
+    }, [docId])
+
+
+    //update stockcard Document
+    function updateStockcard() {
+    console.log(newStockcardImg);
+      updateDoc(doc(db, "stockcard", docId), {
+        description: newStockcardDescription
+        , category: newStockcardCategory
+        , s_price: Number(newStockcardSPrice)
+        , p_price: Number(newStockcardPPrice)
+        , img: imgurl
+      });
+      updateToast()
+      handleClose();
+    }
+
+    //delete Toast
+    const updateToast = () => {
+      toast.info(' Stockcard Information Successfully Updated', {
+        position: "top-right",
+        autoClose: 1000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      })
+    }
+
+    return (
+      <Modal
+        {...props}
+        size="lg"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+      >
+        <ToastContainer
+          position="top-right"
+          autoClose={1000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">
+            Edit {docId}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="p-3">
+            <div className="row">
+              <div className="col-6">
+                <label>Item Name</label>
+                <input type="text"
+                  className="form-control"
+                  placeholder="Item name"
+                  value={newStockcardDescription}
+                  required
+                  onChange={(event) => { setNewStockcardDescription(event.target.value); }}
+                />
+              </div>
+              <div className="col-6">
+                <label>Category</label>
+                <input type="text"
+                  className="form-control"
+                  placeholder="Category"
+                  value={newStockcardCategory}
+                  required
+                  onChange={(event) => { setNewStockcardCategory(event.target.value); }}
+
+                />
+              </div>
+            </div>
+            <div className="row mt-2">
+              <div className='col-4'>
+                <label>Purchase Price</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="form-control"
+                  placeholder="Purchase Price"
+                  value={newStockcardPPrice}
+                  onChange={(event) => { setNewStockcardPPrice(event.target.value); }}
+                />
+              </div>
+              <div className="col-4">
+                <label>Selling Price</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="form-control"
+                  placeholder="Selling Price"
+                  value={newStockcardSPrice}
+                  onChange={(event) => { setNewStockcardSPrice(event.target.value); }}
+                />
+              </div>
+              </div>
+		<div className="row">
+		  <div className="col-12">
+			<label>Product Image</label>
+			<input 
+		   type="file"
+		   className="form-control"
+		   onChange={handleChange}
+		 />
+			 <div className = "float-end">
+				 <Button
+				 variation="btn btn-primary"
+				 onClick={handleUpload}>Upload Image</Button>
+			 	<span className="ms-2">{percent} % done</span>
+			 </div>
+		 </div>
+ 		</div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            onClick={() => { updateStockcard(docId) }}
+          >
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
+
+  //Edit Barcode Modal-----------------------------------------------------------------------------
+  function EditBarcodeModal(props) {
+
+    const [newBarcodeValue, setNewBarcodeValue] = useState(100000000000);
+    const handleEditBarcodeClose = () => setBarcodeModalShow(false);
+
+    //SetValues
+    useEffect(() => {
+      setNewBarcodeValue(stockcardDoc.barcode)
+    }, [docId])
+
+    function updateBarcode() {
+      updateDoc(doc(db, "stockcard", docId), {
+        barcode: Number(newBarcodeValue)
+      });
+      setupBarcodeValue()
+      handleEditBarcodeClose()
+    }
+
+    //delete Toast
+    const setupBarcodeValue = () => {
+      toast.info('Barcode Value Updated from the Database', {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+
+
+    return (
+      <Modal
+        {...props}
+        size="md"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+      >
+        <ToastContainer
+          position="top-right"
+          autoClose={1000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">
+            Set Barcode value
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className='row p-3'>
+
+
+
+            <div className='row'>
+
+            <Barcode
+              format="EAN13"
+              value={newBarcodeValue}
+              height="50"
+              width="3"
+            />
+
+
+              <label>Enter 12-digit Barcode Value</label>
+
+              <Form.Control
+                type="number"
+                placeholder="EAN-13 Barcode Value"
+                min={1000000000000}
+                value={newBarcodeValue}
+                required
+                onChange={(event) => { setNewBarcodeValue(event.target.value); }}
+              />
+
+            </div>
+          </div>
+
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            onClick={() => { updateBarcode(docId) }}
+          >
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
+
+  //display barcode function
+  function DisplayBarcodeInfo() {
+
+    if (stockcardDoc.barcode !== 0)
+      return (
+        <Card className='shadow'>
+          <Card.Header className='bg-primary text-white'>
+            Barcode
+          </Card.Header>
+          <Card.Body
+          className="px-5">
+            <Barcode
+              format="EAN13"
+              value={stockcardDoc.barcode}
+              height="50"
+              width="2"
+            />
+          </Card.Body>
+          <Card.Footer className='bg-white'>
+            <Button
+              size='sm'
+              variant="outline-dark"
+              onClick={() => setBarcodeModalShow(true)}
+            >
+              Edit Barcode Value
+            </Button>
+            <EditBarcodeModal
+              show={barcodeModalShow}
+              onHide={() => setBarcodeModalShow(false)}
+            />
+
+          </Card.Footer>
+        </Card>
+      )
+
+    else {
+      return (
+        <Card className='shadow'>
+          <Card.Header className='bg-primary text-white'>
+            Barcode
+          </Card.Header>
+          <Card.Body className="pt-4" style={{ height: "125px" }}>
+
+            <Alert className="text-center" variant="warning">
+              <FontAwesomeIcon icon={faTriangleExclamation} /> Empty Barcode value
+            </Alert>
+
+          </Card.Body>
+          <Card.Footer className='bg-white'>
+            <Button
+              size='sm'
+              variant="outline-dark"
+              onClick={() => setBarcodeModalShow(true)}
+            >
+              Setup Barcode
+            </Button>
+            <EditBarcodeModal
+              show={barcodeModalShow}
+              onHide={() => setBarcodeModalShow(false)}
+            />
+
+          </Card.Footer>
+        </Card>
+      )
+    }
+
+
   }
 
 
+  //-----------------------Main Return Value-------------------------------
   return (
-    <div>
+    <div className="row bg-light">
       <Navigation />
-      <div className="row bg-light">
-        <h1 className="text-center"> Sales Transaction</h1>
-        <div className="col-6 p-5 guide">
 
-          <div className="row mt-2">
-            <div className="col-8">
-              <label>Document Number</label>
-              <input
-                className="form-control"
-                type="text"
-                value={varRef.salesDocNum}
-                disabled />
-            </div>
-            <div className="col-4">
-              <label>Date</label>
-              <input
-                className="form-control"
-                value={moment(date).format('LL')}
-                disabled
-              />
-            </div>
-          </div>
-          <div className="row mt-2">
-            <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-              <Form.Label>Note: (Optional)</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                onChange={(event) => { setNewNote(event.target.value); }}
-              />
-            </Form.Group>
-          </div>
 
-          <h5>Sell Products</h5>
-          <hr></hr>
-          <div className="row mb-2">
-            <div className="col-6">Product Name</div>
-            <div className="col-3">Quantity</div>
-          </div>
-          {productList.map((product, index) => (
-            <div key={index} className="row">
-              <div className="col-6 mb-3">
-                <Form.Control
-                  hidden
-                  size="md"
-                  type="text"
-                  name="productName"
-                  placeholder="Product Name"
-                  value={product.productName}
-                  onChange={(e) => handleProductChange(e, index)}
-                  required
-                />
-                <Form.Control
-                  hidden
-                  size="md"
-                  type="boolean"
-                  name="productName"
-                  placeholder="Boolean"
-                  value={product.productBoolean}
-                  onChange={(e) => handleProductChange(e, index)}
-                  required
-                />
-                <Form.Select
-                  defaultValue={0}
-                  name="productName"
-                  value={product.productName}
-                  onChange={(e) => handleProductChange(e, index)}
-                  required
-                >
-                  <option
-                    value={0}
-                  >
-                    Select item
-                  </option>
-                  {stockcard.map((prod) => {
+      <ToastContainer
+        position="top-right"
+        autoClose={1500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
+      <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+        <div className="row bg-light">
+
+          <div className='col-3 p-5'>
+
+            <Card className='shadow'>
+              <Card.Header className='bg-primary'>
+                <div className='row'>
+                  <div className='col-9 pt-2 text-white'>
+                    <h6>Product List</h6>
+                  </div>
+
+                  <div className='col-3'>
+                    <Button variant="outline-light"
+                      onClick={() => setModalShow(true)}>
+                      <FontAwesomeIcon icon={faPlus} />
+                    </Button>
+                    <NewProductModal
+                      show={modalShow}
+                      onHide={() => setModalShow(false)}
+                    />
+                  </div>
+                </div>
+              </Card.Header>
+              <Card.Body style={{ height: "500px" }} id='scrollbar'>
+                <ListGroup variant="flush">
+                  {stockcard.map((stockcard) => {
                     return (
-                      <option
-                        key={prod.description}
-                        value={prod.description}
-                      >
-                        {prod.description}
-                      </option>
+                      <ListGroup.Item
+                        action
+                        key={stockcard.id}
+                        eventKey={stockcard.id}
+                        onClick={() => { setDocId(stockcard.id) }}>
+                        <div className='row'>
+                          <small><strong>{stockcard.description}</strong></small>
+                          <small>{stockcard.id}</small>
+
+                        </div>
+                      </ListGroup.Item>
                     )
-
                   })}
-                </Form.Select>
-                {productList.length - 1 === index && productList.length < 10 && (
-                  <Button
-                    className="mt-3"
-                    variant="outline-primary"
-                    size="md"
-                    onClick={handleItemAdd}>
-                    Add
-                  </Button>
-                )}
-              </div>
-              <div className="col-3">
-                <Form.Control
-                  size="md"
-                  type="number"
-                  name="productQuantity"
-                  placeholder="Quantity"
-                  min={1}
-                  value={product.productQuantity}
-                  onChange={(e) => handleProductChange(e, index)}
-                  required
-                />
-              </div>
-              <div className="col-3">
-                {productList.length > 1 && (
-                  <Button
-                    variant="outline-danger"
-                    size="md"
-                    onClick={() => handleItemRemove(index)}>
-                    Remove
-                  </Button>
-                )}
-              </div>
-            </div >
+
+                </ListGroup>
+              </Card.Body>
+            </Card>
+          </div>
 
 
-          ))}
+          <div className='col-9 p-5'>
+
+            <Tab.Content>
+              <Tab.Pane eventKey={0}>
+                <div className='row px-5'>
+                  <div className='row bg-white shadow'>
+                    <h1 className='text-center pt-4 p1'>Stockcard</h1>
+                    <hr />
+                  </div>
+
+                  <div className='row'>
+                    <div className='col-6 mt-4'>
+                      <Card className='shadow'>
+                        <Card.Header className='bg-primary text-white'>
+                          StockCard
+                        </Card.Header>
+                        <Card.Body>
+                          <small>Product ID: </small><br />
+                          <small>Product Description: </small><br />
+                          <small>Category:</small><br />
+                          <small>Available Stock:</small><br />
+                          <small>Purchase :</small><br />
+                          <small>Selling Price:</small><br />
+                        </Card.Body>
+                      </Card>
+                    </div>
+                    <div className='col-6 mt-4'>
+                      <Card className='shadow'>
+                        <Card.Header className='bg-primary text-white'>
+                          Barcode
+                        </Card.Header>
+                        <Card.Body>
+                          <div className='bg-secondary' style={{ height: "50px" }}></div>
 
 
-          <Button
-            className="btn btn-success"
-            style={{ width: "150px" }}
-            onClick={() => { addRecord(varRef.salesDocNum) }}>
-            Save
-          </Button>
 
+                        </Card.Body>
+                        <Card.Footer className='bg-white'>
+                        </Card.Footer>
+                      </Card>
+                    </div>
+                  </div>
+
+                  <div className='row'>
+                    <div className='col-6 mt-4'>
+                      <Card className='shadow'>
+                        <Card.Header className='bg-primary text-white'>
+                          Warehousing Card
+                        </Card.Header>
+                        <Card.Body>
+                          <small>Warehouse Name: </small><br />
+                          <small>Warehouse Location: </small><br />
+                        </Card.Body>
+                      </Card>
+                    </div>
+                  </div>
+                </div>
+              </Tab.Pane>
+
+              <Tab.Pane eventKey={docId}>
+                <div className='row px-5'>
+                  <div className='row bg-white shadow'>
+                    <div className="col-10">
+                      <h1 className='text-center pt-4 p1'>{stockcardDoc.description}</h1>
+                      <hr />
+                    </div>
+                    <div className="col-2 pt-4">
+                      <Button
+                        size="sm"
+                        variant="outline-dark"
+                        style={{ width: "100px" }}
+                        onClick={() => setEditShow(true)}
+                      >
+                        Edit <FontAwesomeIcon icon={faEdit} />
+                      </Button>
+                      <MyVerticallyCenteredModal
+                        show={editShow}
+                        onHide={() => setEditShow(false)}
+                      />
+
+
+                      <Button
+                        className="mt-2"
+                        size="sm"
+                        variant="outline-danger"
+                        style={{ width: "100px" }}
+                        onClick={() => { deleteStockcard(docId) }}
+                      >
+                        Delete <FontAwesomeIcon icon={faTrashCan} />
+                      </Button>
+                    </div>
+
+                  </div>
+
+                  <div className='row'>
+                    <div className='col-6 mt-4'>
+                      <Card className='shadow'>
+                        <Card.Header className='bg-primary text-white'>
+                          StockCard
+                        </Card.Header>
+                        <Card.Body>
+                        <div className ="row">
+		                <div className="col-6">
+		                	<Card.Img variant="top" src={stockcardDoc.img} />
+		                </div>
+		                <div className="col-6">
+		                                          <small>Product ID: <strong className='mx-2'>{docId}</strong></small><br />
+                          <small>Product Description: <strong className='mx-2'>{stockcardDoc.description}</strong></small><br />
+                          <small>Category: <span className='mx-2'>{stockcardDoc.category}</span></small><br />
+                          <small>Available Stock: <span className='mx-2'>{stockcardDoc.qty}</span></small><br />
+                          <small>Purchase Price: <span className='mx-2'>{stockcardDoc.p_price}</span></small><br />
+                          <small>Selling Price: <span className='mx-2'>{stockcardDoc.s_price}</span></small><br />
+		                </div>                        
+                        </div>                                         
+
+                        </Card.Body>
+                      </Card>
+                    </div>
+                    <div className='col-6 mt-4'>
+                      <DisplayBarcodeInfo />
+                    </div>
+                  </div>
+
+                  <div className='row'>
+                    <div className='col-6 mt-4'>
+                      <Card className='shadow'>
+                        <Card.Header className='bg-primary text-white'>
+                          Warehousing Card
+                        </Card.Header>
+                        <Card.Body>
+                          <small>Warehouse Name: </small><br />
+                          <small>Warehouse Location: </small><br />
+                        </Card.Body>
+                      </Card>
+                    </div>
+                  </div>
+                </div>
+              </Tab.Pane>
+            </Tab.Content>
+          </div>
         </div>
-
-
-        <div className="col-6 p-5">
-
+      </Tab.Container>
 
 
 
 
 
 
-        </div>
-
-      </div>
-
-
-    </div >
+    </div>
   );
 
 
