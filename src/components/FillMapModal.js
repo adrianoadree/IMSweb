@@ -64,7 +64,7 @@ function FillMapModal(props) {
     }
     const handleItemAdd = () => {
         setProductList([...productList, { productId: "", productQuantity: 1 }])
-        setProdList([...prodList, ""])
+        setProdList([...prodList, )
         console.log("add productList newval: ", productList)
     }
 
@@ -122,10 +122,10 @@ function FillMapModal(props) {
     
     const updateCell= async () => {
     
-    	var list= warehouseMap;
-    	var list2 = warehouseMap[props.cellindex];
-	console.log(list);
-	console.log(list2);
+    	warehouseMap[props.cellindex].products = [9,8,7,6];
+    	
+	console.log(warehouseMap);
+
    /* const getWarehouse= doc(db, 'warehouse', props.whid);
         updateDoc(getWarehouse, {
             
