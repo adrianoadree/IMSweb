@@ -1,3 +1,21 @@
+.custom-nav {
+	background-color: #00babf !important;
+	color: #ffffff !important;
+}
+
+.custom-nav a {
+	color: #ffffff !important;
+}
+
+.custom-nav .dropdown-menu a:hover,
+.custom-nav .dropdown-menu a.active {
+	background-color: #027c81 !important;
+}
+
+.custom-nav .dropdown-menu {
+	background-color: #00a8ad !important;
+}
+
 .guide{
     border: 1px red solid;
 

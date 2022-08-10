@@ -21,37 +21,37 @@ function Navigation() {
   return (
     <div>
 
-      <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
+      <Navbar collapseOnSelect expand="lg" className="custom-nav">
         <Container>
           <LinkContainer to="/">
-            <Navbar.Brand>IMS</Navbar.Brand>
+            <Navbar.Brand><img src=".../assets/logo.png"/></Navbar.Brand>
           </LinkContainer>
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
-              <NavDropdown title="Records" id="collasible-nav-dropdown">
+              <NavDropdown title="RECORDS" id="collasible-nav-dropdown">
                 <LinkContainer to="/records">
-                  <NavDropdown.Item>Transaction History</NavDropdown.Item>
+                  <NavDropdown.Item>TRASACTION HISTORY</NavDropdown.Item>
                 </LinkContainer>
                 <LinkContainer to="/supplier">
-                  <NavDropdown.Item>Supplier List</NavDropdown.Item>
+                  <NavDropdown.Item>SUPPLIER LIST</NavDropdown.Item>
                 </LinkContainer>
               </NavDropdown>
-              <NavDropdown title="Inventory" id="collasible-nav-dropdown">
+              <NavDropdown title="INVENTORY" id="collasible-nav-dropdown">
                 <LinkContainer to="/inventory">
-                  <NavDropdown.Item>Inventory </NavDropdown.Item>
+                  <NavDropdown.Item>INVENTORY</NavDropdown.Item>
                 </LinkContainer>
                 <LinkContainer to="/warehouse">
-                  <NavDropdown.Item>Warehouse</NavDropdown.Item>
+                  <NavDropdown.Item>WAREHOUSE</NavDropdown.Item>
                 </LinkContainer>
+              <LinkContainer to="/stockcard">
+                <NavDropdown.Item>Stockcard</NavDropdown.Item>
+              </LinkContainer>
               </NavDropdown>
               <LinkContainer to="/analytics">
-                <Nav.Link>Analytics</Nav.Link>
+                <Nav.Link>ANALYTICS</Nav.Link>
               </LinkContainer>
               <LinkContainer to="/community">
-                <Nav.Link>Community</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/stockcard">
-                <Nav.Link>Stockcard</Nav.Link>
+                <Nav.Link>COMMUNITY</Nav.Link>
               </LinkContainer>
               
             </Nav>

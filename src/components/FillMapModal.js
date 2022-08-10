@@ -63,9 +63,9 @@ function FillMapModal(props) {
         console.log("change productList newval: ", prodList)
     }
     const handleItemAdd = () => {
-        setProductList([...productList, { productId: "", productQuantity: 1 }])
-        setProdList([...prodList, )
-        console.log("add productList newval: ", productList)
+        setProdList([...prodList]);
+        setProductList([...productList, { productId: "", productQuantity: 1 }]);
+        console.log("add productList newval: ", productList);
     }
 
     const handleItemRemove = (index) => {
