@@ -2,8 +2,7 @@ import React from 'react';
 import { Tab, Button, Card, ListGroup, Modal, Form, Alert } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
-import { db,storage } from '../firebase-config';
-import { ref, uploadBytesResumable, uploadTask, getDownloadURL,on } from 'firebase/storage';
+import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrashCan, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
 import NewProductModal from '../components/NewProductModal';
@@ -18,7 +17,7 @@ import JsBarcode from "jsbarcode";
 
 
 
-function StockcardPage() {
+function StockcardPage({ isAuth }) {
 
 
   //---------------------VARIABLES---------------------
@@ -28,17 +27,19 @@ function StockcardPage() {
   const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
   const [docId, setDocId] = useState("xx"); //document Id
   const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
-  
-          
 
-
-
-
+  let navigate = useNavigate();
 
   //---------------------FUNCTIONS---------------------
 
+  useEffect(() => {
+    if (!isAuth) {
+      navigate("/login");
+    }
+  }, []);
 
   JsBarcode(".barcode").init();//initialize barcode
+
 
   //access stockcard document
   useEffect(() => {
@@ -65,6 +66,7 @@ function StockcardPage() {
     return unsub;
 
   }, [])
+
 
   //delete Toast
   const deleteToast = () => {
@@ -95,41 +97,6 @@ function StockcardPage() {
     const [newStockcardCategory, setNewStockcardCategory] = useState("");
     const [newStockcardPPrice, setNewStockcardPPrice] = useState(0);
     const [newStockcardSPrice, setNewStockcardSPrice] = useState(0);
-    const [newStockcardImg, setNewStockcardImg] = useState("");
-    
-    const [image, setImage] = useState('');
-    const [percent, setPercent] = useState(0);
-    
-    var imgurl = "";
-    
-    function handleChange(event) {
-    setImage(event.target.files[0]);
-    
-    }
-    
-    const handleUpload = () => {
-    	  if(image == null)
-	    return;
-	  const storageRef = ref(storage,`/stockcard/${image.name}`);
-	  const uploadTask = uploadBytesResumable(storageRef,image);
-	
-	uploadTask.on("state_changed", (snapshot) => {
-	const percent = Math.round(
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-            );
-            setPercent(percent);
-        },
-        (err) => console.log(err),
-        ()=>{
-            getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-            console.log(url);
-                setNewStockcardImg(prevState => url);
-            });
-            }
-     
-    	); 
-    
-    }
 
     //SetValues
     useEffect(() => {
@@ -142,13 +109,11 @@ function StockcardPage() {
 
     //update stockcard Document
     function updateStockcard() {
-    console.log(newStockcardImg);
       updateDoc(doc(db, "stockcard", docId), {
         description: newStockcardDescription
         , category: newStockcardCategory
         , s_price: Number(newStockcardSPrice)
         , p_price: Number(newStockcardPPrice)
-        , img: imgurl
       });
       updateToast()
       handleClose();
@@ -238,23 +203,7 @@ function StockcardPage() {
                   onChange={(event) => { setNewStockcardSPrice(event.target.value); }}
                 />
               </div>
-              </div>
-		<div className="row">
-		  <div className="col-12">
-			<label>Product Image</label>
-			<input 
-		   type="file"
-		   className="form-control"
-		   onChange={handleChange}
-		 />
-			 <div className = "float-end">
-				 <Button
-				 variation="btn btn-primary"
-				 onClick={handleUpload}>Upload Image</Button>
-			 	<span className="ms-2">{percent} % done</span>
-			 </div>
-		 </div>
- 		</div>
+            </div>
           </div>
         </Modal.Body>
         <Modal.Footer>
@@ -267,6 +216,7 @@ function StockcardPage() {
       </Modal>
     );
   }
+
 
   //Edit Barcode Modal-----------------------------------------------------------------------------
   function EditBarcodeModal(props) {
@@ -281,7 +231,7 @@ function StockcardPage() {
 
     function updateBarcode() {
       updateDoc(doc(db, "stockcard", docId), {
-        barcode: Number(newBarcodeValue)
+        barcode: newBarcodeValue
       });
       setupBarcodeValue()
       handleEditBarcodeClose()
@@ -327,24 +277,13 @@ function StockcardPage() {
         <Modal.Body>
           <div className='row p-3'>
 
-
-
             <div className='row'>
-
-            <Barcode
-              format="EAN13"
-              value={newBarcodeValue}
-              height="50"
-              width="3"
-            />
-
-
               <label>Enter 12-digit Barcode Value</label>
 
               <Form.Control
                 type="number"
                 placeholder="EAN-13 Barcode Value"
-                min={1000000000000}
+                min={100000000000}
                 value={newBarcodeValue}
                 required
                 onChange={(event) => { setNewBarcodeValue(event.target.value); }}
@@ -365,7 +304,6 @@ function StockcardPage() {
     );
   }
 
-  //display barcode function
   function DisplayBarcodeInfo() {
 
     if (stockcardDoc.barcode !== 0)
@@ -374,13 +312,14 @@ function StockcardPage() {
           <Card.Header className='bg-primary text-white'>
             Barcode
           </Card.Header>
-          <Card.Body
-          className="px-5">
+          <Card.Body>
+
+
             <Barcode
               format="EAN13"
               value={stockcardDoc.barcode}
               height="50"
-              width="2"
+              width="3"
             />
           </Card.Body>
           <Card.Footer className='bg-white'>
@@ -435,7 +374,8 @@ function StockcardPage() {
   }
 
 
-  //-----------------------Main Return Value-------------------------------
+
+
   return (
     <div className="row bg-light">
       <Navigation />
@@ -507,7 +447,7 @@ function StockcardPage() {
               <Tab.Pane eventKey={0}>
                 <div className='row px-5'>
                   <div className='row bg-white shadow'>
-                    <h1 className='text-center pt-4 p1'>Stockcard</h1>
+                    <h1 className='text-center pt-4 p1'>Inventory</h1>
                     <hr />
                   </div>
 
@@ -602,19 +542,12 @@ function StockcardPage() {
                           StockCard
                         </Card.Header>
                         <Card.Body>
-                        <div className ="row">
-		                <div className="col-6">
-		                	<Card.Img variant="top" src={stockcardDoc.img} />
-		                </div>
-		                <div className="col-6">
-		                                          <small>Product ID: <strong className='mx-2'>{docId}</strong></small><br />
+                          <small>Product ID: <strong className='mx-2'>{docId}</strong></small><br />
                           <small>Product Description: <strong className='mx-2'>{stockcardDoc.description}</strong></small><br />
                           <small>Category: <span className='mx-2'>{stockcardDoc.category}</span></small><br />
                           <small>Available Stock: <span className='mx-2'>{stockcardDoc.qty}</span></small><br />
                           <small>Purchase Price: <span className='mx-2'>{stockcardDoc.p_price}</span></small><br />
                           <small>Selling Price: <span className='mx-2'>{stockcardDoc.s_price}</span></small><br />
-		                </div>                        
-                        </div>                                         
 
                         </Card.Body>
                       </Card>

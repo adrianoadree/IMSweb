@@ -26,6 +26,7 @@ function Records({ isAuth }) {
   ]); // array of purchase_record list of prodNames
   const [queryList, setQueryList] = useState([]); //compound query access
   const [stockcardData, setStockcardData] = useState([{}]);
+  const [total, setTotal] = useState(0); //total amount
 
 
   //---------------------FUNCTIONS---------------------
@@ -45,8 +46,8 @@ function Records({ isAuth }) {
 
     //fetch purchase_record spec Document
     async function readPurchDoc() {
-      const salesRecord = doc(db, "purchase_record", docId)
-      const docSnap = await getDoc(salesRecord)
+      const purchRecord = doc(db, "purchase_record", docId)
+      const docSnap = await getDoc(purchRecord)
       if (docSnap.exists()) {
         setPurchaseRecord(docSnap.data());
       }
@@ -57,8 +58,6 @@ function Records({ isAuth }) {
   }, [docId])
 
   //-----------------------------------------------------------------------------
-
-
 
   useEffect(() => {
     console.log("Updated query list: ", queryList)
@@ -92,6 +91,7 @@ function Records({ isAuth }) {
   }, [queryList])  //queryList listener, rerenders when queryList changes
 
 
+
   //stores list.productId array to queryList
   useEffect(() => {
     const TempArr = [];
@@ -116,6 +116,7 @@ function Records({ isAuth }) {
 
 
 
+
   //delete
   const deleteSalesRecord = async (id) => {
     const purchaseRecDoc = doc(db, "purchase_record", id)
@@ -123,6 +124,8 @@ function Records({ isAuth }) {
     await deleteDoc(purchaseListRecDoc);
     await deleteDoc(purchaseRecDoc);
   }
+
+
 
 
 
@@ -142,7 +145,11 @@ function Records({ isAuth }) {
                     <h6>Transaction List</h6>
                   </div>
                   <div className="col-3">
-                    <Button onClick={() => setModalShow(true)}><FontAwesomeIcon icon={faPlus} /></Button>
+                    <Button
+                      variant="outline-light"
+                      onClick={() => setModalShow(true)}>
+                      <FontAwesomeIcon icon={faPlus} />
+                    </Button>
                     <NewPurchaseModal
                       show={modalShow}
                       onHide={() => setModalShow(false)}
@@ -207,6 +214,7 @@ function Records({ isAuth }) {
                           <th className="text-center">Quantity</th>
                           <th className='text-center'>Description</th>
                           <th className='text-center'>Purchase Price</th>
+                          <th className='text-center'>Extension</th>
                         </tr>
                       </thead>
                       <tbody style={{ height: "300px" }}>
@@ -235,18 +243,18 @@ function Records({ isAuth }) {
 
                   <div className="row px-5 py-3 bg-white shadow">
                     <div className="row pt-4 px-2 bg-white">
-                      <div className="col-11">
+                      <div className="col-9">
                         <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong>{purchaseRecord.document_number}</strong></small><br />
                         <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: <strong>{moment(purchaseRecord.document_date).format('LL')}</strong></small><br />
                         <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: <strong>{purchaseRecord.document_note}</strong></small><br />
                       </div>
-                      <div className="col-1">
+                      <div className="col-3">
                         <Button
-                          size="lg"
+                          size="md"
                           variant="outline-danger"
                           onClick={() => { deleteSalesRecord(docId) }}
                         >
-                          <FontAwesomeIcon icon={faTrashCan} />
+                          Delete Record <FontAwesomeIcon icon={faTrashCan} />
                         </Button>
                       </div>
 
@@ -262,10 +270,13 @@ function Records({ isAuth }) {
                             <th className="text-center">Quantity</th>
                             <th className='text-center'>Description</th>
                             <th className='text-center'>Purchase Price</th>
+                            <th className='text-center'>Extension</th>
                           </tr>
                         </thead>
                         <tbody>
+
                           {list.map((prod, index) => (
+
                             <tr key={index}>
                               <td className='px-3' key={prod.productId}>
                                 {prod.productId}
@@ -283,11 +294,20 @@ function Records({ isAuth }) {
                                 <FontAwesomeIcon icon={faPesoSign} />
                                 {stockcardData[index]?.p_price}
                               </td>
+
+                              <td className="text-center" >
+                                <FontAwesomeIcon icon={faPesoSign} />
+                                {
+
+                                  stockcardData[index]?.p_price * prod.productQuantity
+                                }
+                              </td>
                             </tr>
+
                           ))
                           }
                         </tbody>
-                    
+
 
 
                       </Table>

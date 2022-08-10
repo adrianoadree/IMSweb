@@ -17,7 +17,16 @@ function Navigation() {
   const logout = async () => {
     await signOut(auth)
   }
+    /*
+    <LinkContainer to="/inventory">
+    <NavDropdown.Item>Inventory </NavDropdown.Item>
+  </LinkContainer>
 
+
+              <LinkContainer to="/testPage">
+                <Nav.Link>Test Page</Nav.Link>
+              </LinkContainer>
+*/
   return (
     <div>
 
@@ -44,7 +53,7 @@ function Navigation() {
                   <NavDropdown.Item>WAREHOUSE</NavDropdown.Item>
                 </LinkContainer>
               <LinkContainer to="/stockcard">
-                <NavDropdown.Item>Stockcard</NavDropdown.Item>
+                <NavDropdown.Item>STOCKCARD</NavDropdown.Item>
               </LinkContainer>
               </NavDropdown>
               <LinkContainer to="/analytics">
@@ -53,13 +62,11 @@ function Navigation() {
               <LinkContainer to="/community">
                 <Nav.Link>COMMUNITY</Nav.Link>
               </LinkContainer>
-              
             </Nav>
-
             <Nav>
               <NavDropdown
                 id="nav-dropdown-dark-example"
-                title={user?.email}
+                title={user?.displayName}
                 menuVariant="dark"
               >
                 <NavDropdown.Divider />
