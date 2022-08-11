@@ -26,29 +26,27 @@ const LoginPage = () => {
     }, [user]);
 
 
+    
     return (
         <div>
             <div className='bg-light row p-5' style={{ height: "600px" }}>
+
                 <div className='col-4'></div>
                 <div className='col-4 bg-white shadow' >
 
+
                     <div className='row mt-4 p-5'>
                         <h1 className='text-center text-3xl font-bold py-8'>IMS</h1>
-                        <small className='text-center text-muted'>Inventory Management System</small>
-<<<<<<< HEAD
-=======
+                        <small className='text-center text-muted p1'>Inventory Management System</small>
 
->>>>>>> parent of 76dbd3d (Revert "changed login method")
                     </div>
                     <div className='row p-5'>
-                        <p className='text-center text-muted'>Login with</p>
                         <hr />
-<<<<<<< HEAD
-                        <GoogleButton type="light" onClick={handleGoogleSignIn} style={{ width: "500px" }} />
-=======
-                            <GoogleButton onClick={handleGoogleSignIn}  style={{width:"500px"}}/>
->>>>>>> parent of 76dbd3d (Revert "changed login method")
+                        <GoogleButton
+                            type="light" onClick={handleGoogleSignIn} style={{ width: "500px" }} />
                     </div>
+
+
 
                 </div>
                 <div className='col-4'></div>
@@ -56,5 +54,5 @@ const LoginPage = () => {
             </div>
         </div>
     );
-}
+    }
 export default LoginPage; 
