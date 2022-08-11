@@ -17,16 +17,7 @@ const Navigation = () => {
   const logout = async () => {
     await signOut(auth)
   }
-    /*
-    <LinkContainer to="/inventory">
-    <NavDropdown.Item>Inventory </NavDropdown.Item>
-  </LinkContainer>
 
-
-              <LinkContainer to="/testPage">
-                <Nav.Link>Test Page</Nav.Link>
-              </LinkContainer>
-*/
   return (
     <div>
 
@@ -46,9 +37,11 @@ const Navigation = () => {
                 </LinkContainer>
               </NavDropdown>
               <NavDropdown title="Inventory" id="collasible-nav-dropdown">
-
-                <LinkContainer to="/stockcard">
+                <LinkContainer to="/inventory">
                   <NavDropdown.Item>Inventory </NavDropdown.Item>
+                </LinkContainer>
+                <LinkContainer to="/stockcard">
+                  <NavDropdown.Item>Stockcard </NavDropdown.Item>
                 </LinkContainer>
                 <LinkContainer to="/warehouse">
                   <NavDropdown.Item>Warehouse</NavDropdown.Item>
@@ -60,13 +53,13 @@ const Navigation = () => {
               <LinkContainer to="/community">
                 <Nav.Link>Community</Nav.Link>
               </LinkContainer>
-
+              
             </Nav>
 
             <Nav>
               <NavDropdown
                 id="nav-dropdown-dark-example"
-                title={user?.displayName}
+                title={user?.email}
                 menuVariant="dark"
               >
                 <NavDropdown.Divider />

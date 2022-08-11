@@ -10,7 +10,7 @@ import NewSalesModal from "../components/NewSalesModal";
 import moment from "moment";
 
 
-function SalesRecord({ isAuth }) {
+function SalesRecord() {
 
   //---------------------VARIABLES---------------------
 
@@ -129,7 +129,7 @@ function SalesRecord({ isAuth }) {
       <Tab.Container id="list-group-tabs-example" defaultActiveKey="main">
         <div className="row bg-light">
           <div className="col-3 p-5">
-            <Card>
+            <Card className="shadow">
               <Card.Header
                 className="bg-primary text-white"
               >

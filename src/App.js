@@ -17,17 +17,24 @@ import LoginPage from './pages/LoginPage';
 import Warehouse from './pages/Warehouse';
 import { useState } from 'react';
 import Protected from './layout/Protected';
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 76dbd3d (Revert "changed login method")
 
 function App() {
 
 
-  const [isAuth, setIsAuth] = useState(true);
 
   return (
 
 
     <div className="App">
+      <AuthContextProvider>
+        <Routes>
+          <Route path='/login' element={<LoginPage />} />
 
+<<<<<<< HEAD
 
 
       <AuthContextProvider>
@@ -42,6 +49,22 @@ function App() {
           <Route path='/itemforecasting' element={<Protected><Itemforecast /></Protected>} />
           <Route path='/community' element={<Protected><Community /></Protected>} />
           <Route path='/warehouse' element={<Protected><Warehouse /></Protected>} />
+=======
+          <Route path='/' element={<Protected><LandingPage /></Protected>} />
+          <Route path='/supplier' element={<Protected><SupplierList /></Protected>} />
+          <Route path='/inventory' element={<Protected><Inventory /></Protected>} />
+          <Route path='/records' element={<Protected><Records /></Protected>} />
+          <Route path='/salesrecord' element={<Protected><SalesRecord /></Protected>} />
+          <Route path='/stockcard' element={<Protected><StockcardPage /></Protected>} />
+          <Route path='/itemforecasting' element={<Protected><Itemforecast /></Protected>} />
+          <Route path='/community' element={<Protected><Community /></Protected>} />
+          <Route path='/warehouse' element={<Protected><Warehouse /></Protected>} />
+
+
+          <Route path='/analytics' element={<Analytics />} />
+        </Routes>
+      </AuthContextProvider>
+>>>>>>> parent of 76dbd3d (Revert "changed login method")
 
 
           <Route path='/analytics' element={<Analytics />} />

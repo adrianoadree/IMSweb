@@ -11,8 +11,16 @@ import { useNavigate } from 'react-router-dom';
 import { collection, where, query, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase-config";
 import { UserAuth } from '../context/AuthContext';
+<<<<<<< HEAD
+=======
 
-function LandingPage({ isAuth }) {
+
+function LandingPage() {
+
+    const { user } = UserAuth();
+    const navigate = useNavigate();
+>>>>>>> parent of 76dbd3d (Revert "changed login method")
+
     const [productModalShow, setProductModalShow] = React.useState(false);
     const [supplierModalShow, setSupplierModalShow] = React.useState(false);
     const [purchaseModalShow, setPurchaseModalShow] = React.useState(false);
@@ -27,6 +35,7 @@ function LandingPage({ isAuth }) {
     var date = curr.toISOString().substr(0, 10);
 
 
+<<<<<<< HEAD
     const { user } = UserAuth();
     const navigate = useNavigate();
 
@@ -35,6 +44,17 @@ function LandingPage({ isAuth }) {
     //---------------------FUNCTIONS---------------------
 
 
+=======
+    //---------------------FUNCTIONS---------------------
+
+
+   /* useEffect(() => {
+        if (user == null) {
+            navigate('/login');
+        }
+    }, [user]);
+*/
+>>>>>>> parent of 76dbd3d (Revert "changed login method")
 
     //read sales_record collection
     useEffect(() => {

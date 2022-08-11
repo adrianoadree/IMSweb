@@ -13,7 +13,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
-function Community({ isAuth }) {
+function Community() {
 
     const communityCollectionRef = collection(db, "community")
 

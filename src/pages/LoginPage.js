@@ -35,11 +35,19 @@ const LoginPage = () => {
                     <div className='row mt-4 p-5'>
                         <h1 className='text-center text-3xl font-bold py-8'>IMS</h1>
                         <small className='text-center text-muted'>Inventory Management System</small>
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 76dbd3d (Revert "changed login method")
                     </div>
                     <div className='row p-5'>
                         <p className='text-center text-muted'>Login with</p>
                         <hr />
+<<<<<<< HEAD
                         <GoogleButton type="light" onClick={handleGoogleSignIn} style={{ width: "500px" }} />
+=======
+                            <GoogleButton onClick={handleGoogleSignIn}  style={{width:"500px"}}/>
+>>>>>>> parent of 76dbd3d (Revert "changed login method")
                     </div>
 
                 </div>

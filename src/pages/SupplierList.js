@@ -26,6 +26,11 @@ function SupplierList() {
 
     //---------------------FUNCTIONS---------------------
 
+<<<<<<< HEAD
+=======
+ 
+
+>>>>>>> parent of 76dbd3d (Revert "changed login method")
     //Read supplier collection from database
     useEffect(() => {
         const supplierCollectionRef = collection(db, "supplier")
