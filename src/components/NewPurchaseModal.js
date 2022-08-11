@@ -130,6 +130,10 @@ function NewPurchaseModal(props) {
         });
     }
 
+    useEffect(() => {
+        console.log(productList)
+    }, [productList])//list listener, rerenders when list value changes
+
 
     //add document to database
     const addRecord = async (purchDocNum, qty) => {
@@ -140,10 +144,9 @@ function NewPurchaseModal(props) {
             productList
         });
 
-        
         successToast() //display success toast
         props.onHide() //close Modal
-        
+
         updatePurchDocNum(purchDocNum) //update variables.purchDocNum function
         updateQuantity(qty)  //update stockcard.qty function
         setProductList([{ productId: "", productQuantity: 1 }]) // set number of productList row to default
@@ -191,7 +194,6 @@ function NewPurchaseModal(props) {
                         <input
                             className="form-control"
                             value={moment(date).format('LL')}
-                            disabled
                         />
                     </div>
                 </div>

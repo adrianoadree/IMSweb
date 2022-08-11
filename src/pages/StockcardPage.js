@@ -32,12 +32,6 @@ function StockcardPage({ isAuth }) {
 
   //---------------------FUNCTIONS---------------------
 
-  useEffect(() => {
-    if (!isAuth) {
-      navigate("/login");
-    }
-  }, []);
-
   JsBarcode(".barcode").init();//initialize barcode
 
 

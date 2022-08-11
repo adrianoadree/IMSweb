@@ -4,7 +4,7 @@ import { auth } from '../firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { useState } from 'react';
 
-function Navigation() {
+const Navigation = () => {
 
   const [user, setUser] = useState({});
 

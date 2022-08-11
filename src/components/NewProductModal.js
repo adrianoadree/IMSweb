@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Modal, Form } from "react-bootstrap";
 import { useState, useEffect } from "react";
-import { addDoc, collection, query, onSnapshot } from 'firebase/firestore';
+import { addDoc, collection, query, onSnapshot, setDoc, doc } from 'firebase/firestore';
 import { db } from "../firebase-config";
 import NewSupplierModal from "./NewSupplierModal";
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
@@ -24,6 +24,15 @@ function NewProductModal(props) {
 
   const [supplierModalShow, setSupplierModalShow] = useState(false);
   const [supplier, setSupplier] = useState([]);
+  const [varRef, setVarRef] = useState([]); // variable collection
+
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
+      setVarRef(doc.data());
+    });
+    return unsub;
+  }, [])
 
 
   const successToast = () => {
@@ -42,11 +51,18 @@ function NewProductModal(props) {
 
   //Create product to database
   const addProduct = async () => {
-    await addDoc(stockcardCollectionRef, { 
-    description: newProductName,
-    p_price: Number(newPriceP),
-    s_price: Number(newPriceS),
-    category: newProdCategory });
+  
+    setDoc(doc(db, "stockcard", "IT" + Number(varRef.purchDocNum)), {
+      description: newProductName,
+      p_price: Number(newPriceP),
+      s_price: Number(newPriceS),
+      qty: 0,
+      category: newProdCategory
+  });
+
+
+
+
     successToast();
   }
 
