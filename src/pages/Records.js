@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
-import { Tab, ListGroup, Card, Table, Button, Nav } from "react-bootstrap";
-import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign } from '@fortawesome/free-solid-svg-icons'
+import { Tab, ListGroup, Card, Table, Button, Nav,FormControl } from "react-bootstrap";
+import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign,faSearch } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { Create, Calendar, Document, InformationCircle } from 'react-ionicons'
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import moment from "moment";
 
@@ -134,206 +135,310 @@ function Records({ isAuth }) {
     <div>
       <Navigation />
       <Tab.Container id="list-group-tabs-example" defaultActiveKey="main">
-        <div className="row bg-light">
-          <div className="col-3 p-5">
-            <Card>
-              <Card.Header
-                className="bg-primary text-white"
-              >
-                <div className="row">
-                  <div className="col-9 pt-2">
-                    <h6>Transaction List</h6>
-                  </div>
-                  <div className="col-3">
-                    <Button
-                      variant="outline-light"
-                      onClick={() => setModalShow(true)}>
-                      <FontAwesomeIcon icon={faPlus} />
-                    </Button>
-                    <NewPurchaseModal
-                      show={modalShow}
-                      onHide={() => setModalShow(false)}
-                    />
-                  </div>
-                </div>
-              </Card.Header>
-              <Card.Body style={{ height: "550px" }} id='scrollbar'>
-                <ListGroup
-                  variant="flush"
-                >
-                  {purchaseRecordCollection.map((purch) => {
-                    return (
-                      <ListGroup.Item
-                        action
-                        key={purch.id}
-                        eventKey={purch.id}
-                        onClick={() => { setDocId(purch.id) }}>
-                        <div className="row">
-                          <div className="col-9">
-                            <small><strong>Doc No: {purch.document_number}</strong></small><br />
-                            <small>Date: {purch.document_date}</small><br />
-                          </div>
-                          <div className="col-3">
-
-                          </div>
-                        </div>
-                      </ListGroup.Item>
-                    );
-                  })}
-                </ListGroup>
-
-              </Card.Body>
-            </Card>
-
-          </div>
-          <div className="col-9 p-5">
-            <Tab.Content>
-              <Tab.Pane eventKey="main">
-                <div>
-                  <Nav className="shadow" fill variant="pills" defaultActiveKey="/records">
-                    <   Nav.Item>
-                      <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
-                    </Nav.Item>
-                    <Nav.Item>
-                      <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
-                    </Nav.Item>
-                  </Nav>
-                  <span><br></br></span>
-                  <div className="row px-5 py-3 bg-white shadow">
-                    <div className="row pt-4 px-2 bg-white">
-                      <small> <FontAwesomeIcon icon={faFile} /> Document Number: </small>
-                      <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: </small>
-                      <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: </small>
+        <div className="row">
+          <div className="row py-4 px-5">
+            <div className='col-4'>
+              <Card className='sidebar-card'>
+                <Card.Header>
+                  <div className='row'>
+                    <div className="col-1">
+                      <Button className="fc-search no-click me-0"
+                        onClick={() => setModalShow(true)}>
+                        <FontAwesomeIcon icon={faSearch} />
+                      </Button>
                     </div>
-
-                    <span><br /></span>
-                    <Table striped bordered hover size="sm">
-                      <thead className='bg-primary'>
-                        <tr>
-                          <th className='px-3'>Item Code</th>
-                          <th className="text-center">Quantity</th>
-                          <th className='text-center'>Description</th>
-                          <th className='text-center'>Purchase Price</th>
-                          <th className='text-center'>Extension</th>
-                        </tr>
-                      </thead>
-                      <tbody style={{ height: "300px" }}>
-
-                      </tbody>
-                    </Table>
-
-
+                    <div className="col-11">
+                      <FormControl
+                          placeholder="Search"
+                          aria-label="Search"
+                          aria-describedby="basic-addon2"
+                          className="fc-search mw-0"
+                        />
+                    </div>
                   </div>
-
-
-                </div>
-              </Tab.Pane>
-
-              <Tab.Pane eventKey={docId}>
-                <div>
-                  <Nav className="shadow" fill variant="pills" defaultActiveKey="/records">
-                    <   Nav.Item>
+                </Card.Header>
+                <Card.Body style={{ height: "500px" }}>
+                  <div className="row g-1 sidebar-header">
+                    <div className="col-3">
+                      Doc
+                    </div>
+                    <div className="col-5">
+                      Supplier
+                    </div>
+                    <div className="col-4">
+                      Date
+                    </div>
+                  </div>
+                  <div id='scrollbar'>
+                    <ListGroup variant="flush">
+                      {purchaseRecordCollection.map((purch) => {
+                        return (
+                          <ListGroup.Item
+                            action
+                            key={purch.id}
+                            eventKey={purch.id}
+                            onClick={() => { setDocId(purch.id) }}>
+                                <div className="row gx-0 sidebar-contents">
+                                <div className="col-3">
+                                  {purch.document_number}
+                                </div>
+                                <div className="col-5">
+                                  {purch.supplier}
+                                </div>
+                                <div className="col-4">
+                                  {purch.document_date}
+                                </div>
+                              </div>
+                          </ListGroup.Item>
+                        )
+                      })}
+                    </ListGroup>
+                  </div>
+                </Card.Body>
+              </Card>
+            </div>
+            <div className="col-8">
+              <Tab.Content>
+              <Tab.Pane eventKey="main">
+                <div className="">
+                  <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
+                    <Nav.Item>
                       <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
                       <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
                     </Nav.Item>
                   </Nav>
-                  <span><br></br></span>
-
-                  <div className="row px-5 py-3 bg-white shadow">
-                    <div className="row pt-4 px-2 bg-white">
-                      <div className="col-9">
-                        <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong>{purchaseRecord.document_number}</strong></small><br />
-                        <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: <strong>{moment(purchaseRecord.document_date).format('LL')}</strong></small><br />
-                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: <strong>{purchaseRecord.document_note}</strong></small><br />
-                      </div>
-                      <div className="col-3">
+                  <div className="row py-1">
+                    <div className="col">
+                    <span>
+                        <InformationCircle
+                          className="me-2 pull-down"
+                          color={'#459aa9'} 
+                          title={'Category'}
+                          height="40px"
+                          width="40px"
+                        />
+                      </span>
+                      <h4 className="data-id">Document ID</h4>
+                    </div>
+                    <div className="col">
+                      <div className="float-end">
+                        <NewPurchaseModal
+                        show={modalShow}
+                        onHide={() => setModalShow(false)}
+                        />
                         <Button
-                          size="md"
-                          variant="outline-danger"
+                          className="add me-1"
+                          data-title="Add New Purchase Record"
+                          onClick={() => setModalShow(true)}
+                        >
+                          <FontAwesomeIcon icon={faPlus} />
+                        </Button>
+                        <Button
+                          className="delete me-1"
+                          data-title="Delete Purchase Record"
                           onClick={() => { deleteSalesRecord(docId) }}
                         >
-                          Delete Record <FontAwesomeIcon icon={faTrashCan} />
+                          <FontAwesomeIcon icon={faTrashCan} />
                         </Button>
                       </div>
-
                     </div>
-
-
-                    <span><br /></span>
-                    <div style={{ height: "400px" }}>
-                      <Table striped bordered hover size="sm">
-                        <thead className='bg-primary'>
-                          <tr>
-                            <th className='px-3'>Item Code</th>
-                            <th className="text-center">Quantity</th>
-                            <th className='text-center'>Description</th>
-                            <th className='text-center'>Purchase Price</th>
-                            <th className='text-center'>Extension</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-
-                          {list.map((prod, index) => (
-
-                            <tr key={index}>
-                              <td className='px-3' key={prod.productId}>
-                                {prod.productId}
-                              </td>
-
-                              <td className="text-center" key={prod.productQuantity}>
-                                {prod.productQuantity}
-                              </td>
-
-                              <td className="text-center" key={stockcardData[prod.productId]?.description}>
-                                {stockcardData[index]?.description}
-                              </td>
-
-                              <td className="text-center" >
-                                <FontAwesomeIcon icon={faPesoSign} />
-                                {stockcardData[index]?.p_price}
-                              </td>
-
-                              <td className="text-center" >
-                                <FontAwesomeIcon icon={faPesoSign} />
-                                {
-
-                                  stockcardData[index]?.p_price * prod.productQuantity
-                                }
-                              </td>
-                            </tr>
-
-                          ))
-                          }
-                        </tbody>
-
-
-
-                      </Table>
-                    </div>
-
                   </div>
-
-
+                  <div className="row py-1" id="record-info">
+                    <div className="mb-3">
+                      <div className="row mt-2">
+                        <div className="col-12">
+                          <span className="data-icon lg">
+                            <Calendar
+                            className="me-2 pull-down"
+                            color={'#00000'} 
+                            title={'Category'}
+                            height="25px"
+                            width="25px"
+                            />
+                          </span>
+                          <span className="data-label lg">
+                            Document Date
+                          </span>
+                        </div>
+                      </div>
+                      <div className="row mt-2">
+                        <div className="col-12">
+                          <span className="data-icon lg">
+                            <Create
+                            className="me-2 pull-down"
+                            color={'#00000'} 
+                            title={'Category'}
+                            height="25px"
+                            width="25px"
+                            />
+                          </span>
+                          <span className="data-label lg">
+                            Document Note
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <Table striped bordered hover size="sm" className="purch-table">
+                      <thead>
+                        <tr>
+                          <th className='ic pth px-3'>Item Code</th>
+                          <th className="qc pth text-center">Quantity</th>
+                          <th className='dc pth text-center'>Description</th>
+                          <th className='pp pth text-center'>Purchase Price</th>
+                          <th className='ext pth text-center'>Extension</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {list.map((prod, index) => (
+                          <tr key={index}>
+                            <td className='ic pt-entry px-3'>
+                            </td>
+                            <td className="qc pt-entry text-center">
+                            </td>
+                            <td className="dc pt-entry text-center">
+                            </td>
+                            <td className="pp pt-entry text-center">
+                            </td>
+                            <td className="ext pt-entry text-center" >
+                            </td>
+                          </tr>
+                          ))
+                        }
+                      </tbody>
+                    </Table>
+                  </div>
                 </div>
               </Tab.Pane>
-            </Tab.Content>
+              <Tab.Pane eventKey={docId}>
+                <div>
+                  <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
+                    <Nav.Item>
+                      <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                      <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
+                    </Nav.Item>
+                  </Nav>
+                  <div className="row py-1">
+                    <div className="col">
+                      <span>
+                        <InformationCircle
+                          className="me-2 pull-down"
+                          color={'#459aa9'} 
+                          title={'Category'}
+                          height="40px"
+                          width="40px"
+                        />
+                      </span>
+                      <h4 className="data-id">{purchaseRecord.document_number}</h4>
+                    </div>
+                    <div className="col">
+                      <div className="float-end">
+                        <NewPurchaseModal
+                          show={modalShow}
+                          onHide={() => setModalShow(false)}
+                        />
+                        <Button
+                          className="add me-1"
+                          data-title="Add New Purchase Record"
+                          onClick={() => setModalShow(true)}
+                        >
+                          <FontAwesomeIcon icon={faPlus} />
+                        </Button>
+                        <Button
+                          className="delete me-1"
+                          data-title="Delete Purchase Record"
+                          onClick={() => { deleteSalesRecord(docId) }}
+                        >
+                          <FontAwesomeIcon icon={faTrashCan} />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="row py-1" id="record-info">
+                    <div className="mb-3">
+                    <div className="row mt-2">
+                      <div className="col-12">
+                        <span className="data-icon lg">
+                          <Calendar
+                            className="me-2 pull-down"
+                            color={'#00000'} 
+                            title={'Category'}
+                            height="25px"
+                            width="25px"
+                          />
+                        </span>
+                        <span className="data-label lg">
+                          {moment(purchaseRecord.document_date).format('LL')}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="row mt-2">
+                      <div className="col-12">
+                        <span className="data-icon lg">
+                          <Create
+                            className="me-2 pull-down"
+                            color={'#00000'} 
+                            title={'Category'}
+                            height="25px"
+                            width="25px"
+                          />
+                        </span>
+                        <span className="data-label lg">
+                            {purchaseRecord.document_note}
+                        </span>
+                      </div>
+                    </div>
+                    </div>
+                    <Table striped bordered hover size="sm" className="purch-table">
+                      <thead>
+                        <tr>
+                          <th className='ic pth px-3'>Item Code</th>
+                          <th className="qc pth text-center">Quantity</th>
+                          <th className='dc pth text-center'>Description</th>
+                          <th className='pp pth text-center'>Purchase Price</th>
+                          <th className='ext pth text-center'>Extension</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {list.map((prod, index) => (
+                          <tr key={index}>
+                            <td className='ic pt-entry px-3' key={prod.productId}>
+                              {prod.productId}
+                            </td>
+                            <td className="qc pt-entry text-center" key={prod.productQuantity}>
+                              {prod.productQuantity}
+                            </td>
+                            <td className="dc pt-entry text-center" key={stockcardData[prod.productId]?.description}>
+                              {stockcardData[index]?.description}
+                            </td>
+                            <td className="pp pt-entry text-center" >
+                              <FontAwesomeIcon icon={faPesoSign} />
+                              {stockcardData[index]?.p_price}
+                            </td>
+                            <td className="ext pt-entry text-center" >
+                              <FontAwesomeIcon icon={faPesoSign} />
+                                {
+                                  stockcardData[index]?.p_price * prod.productQuantity
+                                }
+                            </td>
+                          </tr>
+                          ))
+                        }
+                      </tbody>
+                    </Table>
+                  </div>
+                </div>
+              </Tab.Pane>
+              </Tab.Content>
+            </div>
           </div>
-
-
-
-
         </div>
-
-
       </Tab.Container>
-
     </div >
-
   );
-
-
 }
 
 export default Records;

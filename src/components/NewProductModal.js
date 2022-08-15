@@ -15,6 +15,7 @@ function NewProductModal(props) {
   const [newProductName, setNewProductName] = useState("");
   const [newPriceP, setNewPriceP] = useState(0);
   const [newPriceS, setNewPriceS] = useState(0);
+  const [newBarcode, setNewBarcode] = useState(0);
   const [newQuanity, setNewQuantity] = useState(0);
   const [newProdSupplier, setNewProdSupplier] = useState("");
   const [newProdCategory, setNewProdCategory] = useState("");
@@ -62,7 +63,7 @@ const createFormat = () => {
     p_price: Number(newPriceP),
     s_price: Number(newPriceS),
     category: newProdCategory,
-    barcode:Number(0),
+    barcode: Number(newBarcode),
     qty:Number(0),
     img:"",
     });
@@ -159,12 +160,16 @@ const createFormat = () => {
                 placeholder="Selling Price"
                 onChange={(event) => { setNewPriceS(event.target.value); }} />
             </div>
-
+            <div className="col-4">
+              <label>Barcode</label>
+              <input
+                type="number"
+                min={0}
+                className="form-control"
+                placeholder="Barcode"
+                onChange={(event) => { setNewBarcode(event.target.value); }} />
+            </div>
           </div>
-
-
-
-
         </div>
       </Modal.Body>
       <Modal.Footer>
