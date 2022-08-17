@@ -53,13 +53,16 @@ const Navigation = () => {
               <LinkContainer to="/community">
                 <Nav.Link>Community</Nav.Link>
               </LinkContainer>
+              <LinkContainer to="/testpage">
+                <Nav.Link>Test</Nav.Link>
+              </LinkContainer>
               
             </Nav>
 
             <Nav>
               <NavDropdown
                 id="nav-dropdown-dark-example"
-                title={user?.email}
+                title={user?.displayName}
                 menuVariant="dark"
               >
                 <NavDropdown.Divider />

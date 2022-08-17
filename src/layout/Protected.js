@@ -11,8 +11,4 @@ const Protected = ({ children }) => {
   return children;
 };
 
-<<<<<<< HEAD
 export default Protected;
-=======
-export default Protected;
->>>>>>> parent of 76dbd3d (Revert "changed login method")

@@ -1,4 +1,3 @@
-import Navigation from "../layout/Navigation";
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { setDoc, collection, onSnapshot, query, doc, updateDoc, where } from "firebase/firestore";
@@ -6,23 +5,34 @@ import { Modal, Button, Form } from "react-bootstrap";
 import moment from "moment";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
+import { UserAuth } from '../context/AuthContext'
+
 
 function NewPurchaseModal(props) {
-
 
     //---------------------VARIABLES---------------------
     const [stockcard, setStockcard] = useState([]); //stockcard collection
     const [varRef, setVarRef] = useState([]); // variable collection
     const [newNote, setNewNote] = useState(""); // note form input
-    const [queryList, setQueryList] = useState(["IT00018"]); //compound query access
-    const [queryQuantity, setQqueryQuantity] = useState([0]); //compound query access
+    const { user } = UserAuth();//user credentials
+    const [userID, setUserID] = useState("");
 
 
     var curr = new Date();
     curr.setDate(curr.getDate());
     var date = curr.toISOString().substr(0, 10);
 
+
+
     //---------------------FUNCTIONS---------------------
+
+    useEffect(() => {
+        if (user) {
+            setUserID(user.uid)
+        }
+        
+    }, [{ user }])
+
 
     //fetch variable collection
     useEffect(() => {
@@ -32,18 +42,28 @@ function NewPurchaseModal(props) {
         return unsub;
     }, [])
 
-    //read collection from stockcard where qty is not 0
+    //read collection from stockcard
     useEffect(() => {
-        const stockcardCollectionRef = collection(db, "stockcard")
-        const q = query(stockcardCollectionRef);
+        if(userID === undefined){
 
-        const unsub = onSnapshot(q, (snapshot) =>
-            setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
 
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else{
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", userID));
 
-        return unsub;
-    }, [])
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
 
 
     //Dynamic Add Product Button ------------------------------------------------------------
@@ -67,45 +87,37 @@ function NewPurchaseModal(props) {
     //End of Dynamic Button functions ---------------------------
 
 
-
-
-    //stores list.productId array to queryList
-    useEffect(() => {
-        const TempArr = [];
-        productList.map((name) => {
-            TempArr.push(name.productId)
-        })
-        setQueryList(TempArr)
-    }, [productList])//list listener, rerenders when list value changes
-
-    //stores list.productId array to queryList
-    useEffect(() => {
-        const TempArr = [];
-        productList.map((name) => {
-            TempArr.push(name.productQuantity)
-        })
-        setQqueryQuantity(TempArr)
-    }, [productList])//list listener, rerenders when list value changes
-
-
-    const [quantityHolder, setQuantityHolder] = useState([]);//stockcard spec doc access
-
-    useEffect(() => {
-        const unsub = onSnapshot(doc(db, "stockcard", "IT00001"), (doc) => {
-            setQuantityHolder(doc.data());
+    //add document to database
+    const addRecord = async (purchDocNum, qty) => {
+        setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
+            document_date: date,
+            document_note: newNote,
+            document_number: "PR" + Number(purchDocNum),
+            productList,
+            user: user.uid
         });
 
-        return unsub;
-    }, [])
+        updatePurchDocNum(purchDocNum) //update variables.purchDocNum function
+        updateQuantity(qty)  //update stockcard.qty function
+        setProductList([{ productId: "", productQuantity: 1 }]) // set number of productList row to default
+        successToast() //display success toast
+    }
 
-    //update stockcard.qty function
-    function updateQuantity(qty) {
+
+    const [multipleUpdate, setMultipleUpdate] = useState([]);//stockcard spec doc access
+
+       //update stockcard.qty function
+       function updateQuantity(qty) {
         productList.map((val) => {
 
-            const varColRef = doc(db, "stockcard", val.productId)
-            const newData = { qty: qty + Number(val.productQuantity) }
+            const unsub = onSnapshot(doc(db, "stockcard", val.productId), (doc) => {
+                setMultipleUpdate(doc.data());
+            });
+            updateDoc(doc(db, "stockcard", val.productId), {
+                qty: qty + Number(val.productQuantity)
+            });
+            return unsub;
 
-            updateDoc(varColRef, newData)
         })
     }
 
@@ -121,7 +133,7 @@ function NewPurchaseModal(props) {
     const successToast = () => {
         toast.success('Purchase Transaction Successfully Recorded!', {
             position: "top-right",
-            autoClose: 4996,
+            autoClose: 1000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -130,40 +142,18 @@ function NewPurchaseModal(props) {
         });
     }
 
-    useEffect(() => {
-        console.log(productList)
-    }, [productList])//list listener, rerenders when list value changes
-
-
-    //add document to database
-    const addRecord = async (purchDocNum, qty) => {
-        setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
-            document_date: date,
-            document_note: newNote,
-            document_number: "PR" + Number(purchDocNum),
-            productList
-        });
-
-        successToast() //display success toast
-        props.onHide() //close Modal
-
-        updatePurchDocNum(purchDocNum) //update variables.purchDocNum function
-        updateQuantity(qty)  //update stockcard.qty function
-        setProductList([{ productId: "", productQuantity: 1 }]) // set number of productList row to default
-
-    }
 
     return (
+
         <Modal
             {...props}
             size="lg"
             aria-labelledby="contained-modal-title-vcenter"
             centered
         >
-
             <ToastContainer
                 position="top-right"
-                autoClose={3500}
+                autoClose={1000}
                 hideProgressBar={false}
                 newestOnTop={false}
                 closeOnClick
@@ -172,6 +162,7 @@ function NewPurchaseModal(props) {
                 draggable
                 pauseOnHover
             />
+
 
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter" className="px-3">
@@ -194,6 +185,7 @@ function NewPurchaseModal(props) {
                         <input
                             className="form-control"
                             value={moment(date).format('LL')}
+                            disabled
                         />
                     </div>
                 </div>
@@ -283,18 +275,18 @@ function NewPurchaseModal(props) {
                 ))}
 
 
-
             </Modal.Body>
             <Modal.Footer>
                 <Button
                     className="btn btn-success"
                     style={{ width: "150px" }}
-                    onClick={() => { addRecord(varRef.purchDocNum, quantityHolder.qty) }}>
+                    onClick={() => { addRecord(varRef.purchDocNum, multipleUpdate.qty) }}>
                     Save
                 </Button>
             </Modal.Footer>
         </Modal>
     );
+
 
 
 }

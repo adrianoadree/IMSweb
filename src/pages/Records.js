@@ -8,6 +8,7 @@ import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign } f
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import moment from "moment";
+import { UserAuth } from '../context/AuthContext'
 
 
 
@@ -27,23 +28,50 @@ function Records() {
   const [queryList, setQueryList] = useState([]); //compound query access
   const [stockcardData, setStockcardData] = useState([{}]);
   const [total, setTotal] = useState(0); //total amount
-
+  const { user } = UserAuth();//user credentials
+  const [userID, setUserID] = useState("");
 
   //---------------------FUNCTIONS---------------------
 
+
+  useEffect(() => {
+    if (user) {
+      setUserID(user.uid)
+    }
+  }, [{ user }])
+
+
   //read Functions
+
   useEffect(() => {
     //read purchase_record collection
-    function readPurchRecCol() {
+    if (userID === undefined) {
+
       const purchaseRecordCollectionRef = collection(db, "purchase_record")
-      const q = query(purchaseRecordCollectionRef, orderBy("document_number", "desc"));
+      const q = query(purchaseRecordCollectionRef, where("user", "==", "DONOTDELETE"));
 
       const unsub = onSnapshot(q, (snapshot) =>
         setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
       return unsub;
     }
+    else {
 
+      const purchaseRecordCollectionRef = collection(db, "purchase_record")
+      const q = query(purchaseRecordCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+
+    }
+
+
+  }, [userID])
+
+
+  useEffect(() => {
     //fetch purchase_record spec Document
     async function readPurchDoc() {
       const purchRecord = doc(db, "purchase_record", docId)
@@ -52,10 +80,12 @@ function Records() {
         setPurchaseRecord(docSnap.data());
       }
     }
-    readPurchRecCol();
     readPurchDoc();
 
   }, [docId])
+
+
+
 
   //-----------------------------------------------------------------------------
 

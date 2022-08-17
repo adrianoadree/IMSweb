@@ -1,32 +1,27 @@
 import React from "react";
-import { Button, Modal, Form } from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
-import { addDoc, collection, query, onSnapshot, setDoc, doc } from 'firebase/firestore';
+import { onSnapshot, setDoc, doc, updateDoc } from 'firebase/firestore';
 import { db } from "../firebase-config";
-import NewSupplierModal from "./NewSupplierModal";
-import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-
-
+import { UserAuth } from '../context/AuthContext'
 
 function NewProductModal(props) {
 
-  const stockcardCollectionRef = collection(db, "stockcard")
 
-  //data variable declaration
+  //---------------------VARIABLES---------------------
   const [newProductName, setNewProductName] = useState("");
   const [newPriceP, setNewPriceP] = useState(0);
   const [newPriceS, setNewPriceS] = useState(0);
-  const [newQuanity, setNewQuantity] = useState(0);
-  const [newProdSupplier, setNewProdSupplier] = useState("");
   const [newProdCategory, setNewProdCategory] = useState("");
-
-  const [supplierModalShow, setSupplierModalShow] = useState(false);
-  const [supplier, setSupplier] = useState([]);
   const [varRef, setVarRef] = useState([]); // variable collection
+  const {user} = UserAuth();
 
 
+  //---------------------FUNCTIONS---------------------
+
+  //access "variables" collection
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
       setVarRef(doc.data());
@@ -34,7 +29,7 @@ function NewProductModal(props) {
     return unsub;
   }, [])
 
-
+  //Toastify
   const successToast = () => {
     toast.success(' New Product Successfully Registered to the Database ', {
       position: "top-right",
@@ -47,36 +42,31 @@ function NewProductModal(props) {
     });
   }
 
-
-
   //Create product to database
-  const addProduct = async () => {
-  
-    setDoc(doc(db, "stockcard", "IT" + Number(varRef.purchDocNum)), {
+  const addProduct = async (productId) => {
+
+    setDoc(doc(db, "stockcard", "IT" + Number(varRef.productId)), {
       description: newProductName,
       p_price: Number(newPriceP),
       s_price: Number(newPriceS),
       qty: 0,
-      category: newProdCategory
-  });
-
-
-
+      category: newProdCategory,
+      barcode: 0,
+      user: user.uid
+    });
+    updateNewProdId(productId)
 
     successToast();
   }
 
+  //update variables.purchDocNum function
+  function updateNewProdId(productId) {
+    const varColRef = doc(db, "variables", "var")
+    const newData = { productId: Number(productId) + 1 }
 
-  //Read supplier collection from database
-  useEffect(() => {
-    const supplierCollectionRef = collection(db, "supplier")
-    const q = query(supplierCollectionRef);
+    updateDoc(varColRef, newData)
+  }
 
-    const unsub = onSnapshot(q, (snapshot) =>
-      setSupplier(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-    );
-    return unsub;
-  }, [])
 
 
   return (
@@ -162,7 +152,7 @@ function NewProductModal(props) {
           <Button
             className="btn btn-success"
             style={{ width: "150px" }}
-            onClick={addProduct} >
+            onClick={() => { addProduct(varRef.productId) }}>
             Save
           </Button>
         </div>

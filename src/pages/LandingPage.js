@@ -11,15 +11,12 @@ import { useNavigate } from 'react-router-dom';
 import { collection, where, query, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase-config";
 import { UserAuth } from '../context/AuthContext';
-<<<<<<< HEAD
-=======
 
 
 function LandingPage() {
 
     const { user } = UserAuth();
     const navigate = useNavigate();
->>>>>>> parent of 76dbd3d (Revert "changed login method")
 
     const [productModalShow, setProductModalShow] = React.useState(false);
     const [supplierModalShow, setSupplierModalShow] = React.useState(false);
@@ -35,16 +32,6 @@ function LandingPage() {
     var date = curr.toISOString().substr(0, 10);
 
 
-<<<<<<< HEAD
-    const { user } = UserAuth();
-    const navigate = useNavigate();
-
-
-
-    //---------------------FUNCTIONS---------------------
-
-
-=======
     //---------------------FUNCTIONS---------------------
 
 
@@ -54,7 +41,6 @@ function LandingPage() {
         }
     }, [user]);
 */
->>>>>>> parent of 76dbd3d (Revert "changed login method")
 
     //read sales_record collection
     useEffect(() => {

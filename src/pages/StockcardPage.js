@@ -6,13 +6,13 @@ import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrashCan, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
 import NewProductModal from '../components/NewProductModal';
-import { useNavigate } from 'react-router-dom';
-import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, deleteDoc, onSnapshot, query, getDoc, updateDoc, where } from 'firebase/firestore';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { faEdit } from '@fortawesome/free-regular-svg-icons';
 import Barcode from 'react-barcode';
 import JsBarcode from "jsbarcode";
+import { UserAuth } from '../context/AuthContext'
 
 
 
@@ -27,15 +27,13 @@ function StockcardPage() {
   const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
   const [docId, setDocId] = useState("xx"); //document Id
   const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
-
+  const { user } = UserAuth();//user credentials
+  const [userID, setUserID] = useState("");
 
   //---------------------FUNCTIONS---------------------
 
-<<<<<<< HEAD
-=======
-
->>>>>>> parent of 76dbd3d (Revert "changed login method")
   JsBarcode(".barcode").init();//initialize barcode
+
 
   //access stockcard document
   useEffect(() => {
@@ -50,18 +48,35 @@ function StockcardPage() {
   }, [docId])
 
 
+  useEffect(() => {
+    if (user) {
+      setUserID(user.uid)
+    }
+  }, [{ user }])
+
   //Read stock card collection from database
   useEffect(() => {
-    const collectionRef = collection(db, "stockcard");
-    const q = query(collectionRef);
+    if (userID === undefined) {
 
-    const unsub = onSnapshot(q, (snapshot) =>
-      setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-    );
+      const stockcardCollectionRef = collection(db, "stockcard")
+      const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
 
-    return unsub;
+      const unsub = onSnapshot(q, (snapshot) =>
+        setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+      const stockcardCollectionRef = collection(db, "stockcard")
+      const q = query(stockcardCollectionRef, where("user", "==", userID));
 
-  }, [])
+      const unsub = onSnapshot(q, (snapshot) =>
+        setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
+
 
   //delete Toast
   const deleteToast = () => {

@@ -1,16 +1,11 @@
 import React from 'react';
-import { ListGroup, Table } from 'react-bootstrap';
+import { Table } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
-import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 import "react-toastify/dist/ReactToastify.css";
-import { faEdit } from '@fortawesome/free-regular-svg-icons';
-import Barcode from 'react-barcode';
-import JsBarcode from "jsbarcode";
-import { orderBy } from 'lodash';
+import { UserAuth } from '../context/AuthContext'
 
 
 
@@ -19,6 +14,8 @@ function Inventory() {
 
   //---------------------VARIABLES---------------------
   const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+  const { user } = UserAuth();//user credentials
+  const [userID, setUserID] = useState("");
 
 
 
@@ -36,6 +33,42 @@ function Inventory() {
     return unsub;
 
   }, [])
+
+
+  useEffect(() => {
+    if (user) {
+      setUserID(user.uid)
+    }
+  }, [{ user }])
+
+  //Read stock card collection from database
+  useEffect(() => {
+    if (userID === undefined) {
+
+      const stockcardCollectionRef = collection(db, "stockcard")
+      const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+      const stockcardCollectionRef = collection(db, "stockcard")
+      const q = query(stockcardCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
+
+
+
+
+
+
 
 
   return (
@@ -70,7 +103,7 @@ function Inventory() {
                       {prod.qty}
                     </td>
 
-                  
+
                   </tr>
                 ))
                 }
