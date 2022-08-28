@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, where, query, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase-config";
 import { UserAuth } from '../context/AuthContext';
+import moment from "moment";
 
 
 function LandingPage() {
@@ -64,80 +65,115 @@ function LandingPage() {
         return unsub;
     }, [])
 
+    function formatDate(string){
+        var options = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(string).toLocaleDateString([],options);
+    }
+
     return (
-        <div className="row bg-light">
+       <div>
             <Navigation />
+            <div className="row contents">
+                <div className="row py-4 px-5">
+                    <div className="sidebar h-auto">
+                        <Card className="sidebar-card">
+                            <Card.Header className="bg-primary text-white py-3 text-center left-curve right-curve">
+                                <h4><strong>Quick Access</strong></h4>
+                            </Card.Header>
+                            <Card.Body>
+                                <div className="p-1">
+                                    <div className="row py-1">
+                                        <div className="col-3  d-flex justify-content-center">
+                                            <FontAwesomeIcon icon={faCartFlatbed} size="4x" className="darkblue-icon"/>
+                                        </div>
+                                        <div className="col-9">
+                                            <div className="row mb-3">
+                                                <div className="col-12">
+                                                    <h5>Register New Product</h5>
+                                                </div>
+                                            </div>
+                                            <div className="row">
+                                                <div className="col-12">
+                                                    <Button variant="outline-primary" className="float-end" onClick={() => setProductModalShow(true)}>
+                                                        <strong>Add New Product</strong>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        <NewProductModal
+                                            show={productModalShow}
+                                            onHide={() => setProductModalShow(false)} />
+                                        </div>
+                                    </div>
+                                    <hr />
+                                    <div className="row py-1">
+                                        <div className="col-3 d-flex justify-content-center">
+                                            <FontAwesomeIcon icon={faUserPlus} size="4x" className="darkblue-icon"/>
+                                        </div>
+                                        <div className="col-9">
+                                            <div className="row mb-3">
+                                                <div className="col-12">
+                                                    <h5>Register New Supplier</h5>
+                                                </div>
+                                            </div>
+                                            <div className="row">
+                                                <div className="col-12">
+                                                    <Button variant="outline-primary" className="float-end" onClick={() => setSupplierModalShow(true)}>
+                                                        <strong>Add New Supplier</strong>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        <NewSupplierModal
+                                            show={productModalShow}
+                                            onHide={() => setProductModalShow(false)} />
+                                        </div>
+                                    </div>
+                                    <hr />
+                                    <div className="row py-1">
+                                        <div className="col-3 d-flex justify-content-center">
+                                            <FontAwesomeIcon icon={faFileInvoice} size="4x" className="darkblue-icon"/>
+                                        </div>
+                                        <div className="col-9">
+                                            <div className="row mb-3">
+                                                <div className="col-12">
+                                                    <h5>Register New Transaction</h5>
+                                                </div>
+                                            </div>
+                                            <div className="row">
+                                                <div className="col-12">
+                                                    <Button variant="outline-primary" className="float-end" onClick={() => setSalesModalShow(true)}>
+                                                        <strong>Sales</strong>
+                                                    </Button>
+                                                    <Button variant="outline-primary" className="float-end  me-2" onClick={() => setPurchaseModalShow(true)}>
+                                                        <strong>Purchase</strong>
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                            <NewSalesModal
+                                                show={productModalShow}
+                                                onHide={() => setProductModalShow(false)} />
+                                            </div>
+                                            <NewPurchaseModal
+                                                show={purchaseModalShow}
+                                                onHide={() => setPurchaseModalShow(false)} />
+                                    </div>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </div>
+                    <div className="divider">
 
-            <div className="col-1" />
-            <div className="col-4 py-5" >
-                <Card className="shadow">
-                    <Card.Header className="bg-primary  text-white py-3"><strong>Quick Access</strong></Card.Header>
-                    <Card.Body>
-                        <div className="p-3">
-                            <div className="row">
-                                <p className="text-muted">
-                                    <FontAwesomeIcon icon={faCartFlatbed} /> Register New Product to the Inventory
-                                </p>
-                                <Button variant="outline-primary" onClick={() => setProductModalShow(true)}>
-                                    <span>Add new Product</span>
-                                </Button>
-                                <NewProductModal
-                                    show={productModalShow}
-                                    onHide={() => setProductModalShow(false)} />
-                            </div>
-                            <hr />
-                            <div className="row">
-                                <p className="text-muted">
-                                    <FontAwesomeIcon icon={faUserPlus} /> Register New Supplier
-                                </p>
-                                <Button variant="outline-primary" onClick={() => setSupplierModalShow(true)}>
-                                    <span>Add new Supplier</span>
-                                </Button>
-                                <NewSupplierModal
-                                    show={supplierModalShow}
-                                    onHide={() => setSupplierModalShow(false)} />
-                            </div>
-                            <hr />
-                            <div className="row">
-                                <p className="text-muted">
-                                    <FontAwesomeIcon icon={faFileInvoice} /> Record New Transaction
-                                </p>
-                                <ButtonGroup className="mt-2" >
-                                    <Button variant="outline-primary" onClick={() => setSalesModalShow(true)}>
-                                        <span>Sales</span>
-                                    </Button>
-                                    <NewSalesModal
-                                        show={salesModalShow}
-                                        onHide={() => setSalesModalShow(false)} />
-
-                                    <Button variant="outline-primary" onClick={() => setPurchaseModalShow(true)}>
-                                        <span>Purchase</span>
-                                    </Button>
-                                    <NewPurchaseModal
-                                        show={purchaseModalShow}
-                                        onHide={() => setPurchaseModalShow(false)} />
-
-
-                                </ButtonGroup>
-                            </div>
-                            <hr />
-
-                        </div>
-                    </Card.Body>
-                </Card>
-
-
-
-            </div>
-            <div className="col-6 py-5" >
-                <Card className="shadow">
-                    <Card.Header className="bg-primary py-3 px-4">
-                        <h5 className="text-white">Today's Report</h5>
-                        <small className="text-white">Date: {date}</small>
-                    </Card.Header>
-                    <Card.Body style={{ height: "550px" }}>
+                    </div>
+                    <div className="data-contents p-3">
+                        <Card className="sidebar-card">
+                            <Card.Header className="py-3 text-center left-curve right-curve">
+                                <h4 className="mb-2"><strong>Today's Report</strong></h4>
+                                <span className="header-subtitle-strip">
+                                    <h5 className="header-subtitle">{moment(date).format('dddd')}, {moment(date).format('MMMM D, YYYY')}</h5>
+                                </span>
+                            </Card.Header>
+                            <Card.Body  className="folder-style">
                         <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-                            <Nav fill variant="pills" defaultActiveKey={1} className="shadow">
+                            <Nav variant="pills" defaultActiveKey={1}>
                                 <Nav.Item>
                                     <Nav.Link eventKey={0}>
                                         Sales
@@ -149,41 +185,39 @@ function LandingPage() {
                                     </Nav.Link>
                                 </Nav.Item>
                             </Nav>
-                            <br />
                             <Tab.Content>
-
                                 <Tab.Pane eventKey={0}>
-                                    <Table striped bordered hover size="sm">
+                                    <Table striped bordered hover size="sm" className="records-table light">
                                         <thead className="bg-primary">
                                             <tr>
-                                                <th className="px-3">Document Number</th>
-                                                <th className="px-3">Date</th>
+                                                <th className="pth text-center">Document Number</th>
+                                                <th className="pth text-center">Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {salesRecord.map((salesRecord) => (
                                                 <tr>
-                                                    <td className="px-3">{salesRecord.document_number}</td>
-                                                    <td className="px-3">{salesRecord.document_date}</td>
+                                                    <td className="pt-entry text-center">{salesRecord.document_number}</td>
+                                                    <td className="pt-entry text-center">{salesRecord.document_date}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </Table>
                                 </Tab.Pane>
                                 <Tab.Pane eventKey={1}>
-                                    <Table striped bordered hover size="sm">
+                                    <Table striped bordered hover size="sm" className="records-table light">
                                         <thead className="bg-primary">
                                             <tr>
-                                                <th className="px-3">Document Number</th>
-                                                <th className="px-3">Date</th>
+                                                <th className="pth text-center">Document Number</th>
+                                                <th className="pth text-center">Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {purchRecord.map((purchRecord) => {
                                                 return (
                                                     <tr>
-                                                        <td className="px-3">{purchRecord.document_number}</td>
-                                                        <td className="px-3">{date}</td>
+                                                        <td className="pt-entry text-center">{purchRecord.document_number}</td>
+                                                        <td className="pt-entry text-center">{date}</td>
                                                     </tr>
                                                 )
                                             })}
@@ -198,13 +232,11 @@ function LandingPage() {
                         </Tab.Container>
 
                     </Card.Body>
-                </Card>
-
-
+                        </Card>
+                    </div>
+                </div>
             </div>
-            <div className="col-1" />
-
-        </div >
+       </div>
     )
 }
 export default LandingPage;
