@@ -1,8 +1,10 @@
 import { Nav, Navbar, Container, NavDropdown } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
-import { auth } from '../firebase-config';
+import { auth, st } from '../firebase-config';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { getStorage, ref, storage, getDownloadURL } from "firebase/storage";
+
 
 const Navigation = () => {
 
@@ -18,13 +20,17 @@ const Navigation = () => {
     await signOut(auth)
   }
 
+  useEffect(() => {
+    const storage = getStorage();
+  }, [])
+
   return (
     <div>
-
-      <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
+      
+      <Navbar collapseOnSelect expand="lg" className="custom-nav">
         <Container>
           <LinkContainer to="/">
-            <Navbar.Brand>IMS</Navbar.Brand>
+            <Navbar.Brand><img id="brand-img"/></Navbar.Brand>
           </LinkContainer>
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
@@ -55,6 +61,9 @@ const Navigation = () => {
               </LinkContainer>
               <LinkContainer to="/testpage">
                 <Nav.Link>Test</Nav.Link>
+              </LinkContainer>
+              <LinkContainer to="/betapage">
+                <Nav.Link>Beta</Nav.Link>
               </LinkContainer>
               
             </Nav>

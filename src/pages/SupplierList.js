@@ -1,251 +1,143 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
+import { Tab, Button, Card, ListGroup, Modal, Form, Alert } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
+import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faTrashCan, faTriangleExclamation, faSearch } from '@fortawesome/free-solid-svg-icons'
+import { Person, Location, PhonePortrait, Layers, Mail, Call, InformationCircle } from 'react-ionicons'
 import NewSupplierModal from '../components/NewSupplierModal';
 import { useNavigate } from 'react-router-dom';
-import { Button, Tab, ListGroup, Card, Modal } from 'react-bootstrap';
-import { doc, onSnapshot, collection, deleteDoc, query, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashCan, faPlus, faEdit } from '@fortawesome/free-solid-svg-icons'
+import { faEdit } from '@fortawesome/free-regular-svg-icons';
+import Barcode from 'react-barcode';
+import JsBarcode from "jsbarcode";
+import InputGroup from "react-bootstrap/InputGroup";
+import FormControl from "react-bootstrap/FormControl";
 
 
 
 
 function SupplierList() {
 
-    //---------------------VARIABLES---------------------
-    const [editShow, setEditShow] = useState(false); //display/ hide edit modal
-    const [modalShow, setModalShow] = useState(false);//display/hide modal
-    const [supplier, setSupplier] = useState([]); //supplier Collection
-    const [supplierDoc, setSupplierDoc] = useState([]); //supplier Doc
-    const [docId, setDocId] = useState("xx"); //document id variable
-    let navigate = useNavigate();
+  //---------------------VARIABLES---------------------
+  const [editShow, setEditShow] = useState(false); //display/ hide edit modal
+  const [modalShow, setModalShow] = useState(false);//display/hide modal
+  const [supplier, setSupplier] = useState([]); //supplier Collection
+  const [supplierDoc, setSupplierDoc] = useState([]); //supplier Doc
+  const [docId, setDocId] = useState("xx"); //document id variable
+  let navigate = useNavigate();
 
-    //---------------------FUNCTIONS---------------------
+  //---------------------FUNCTIONS---------------------
+  
+  //Read supplier collection from database
+  useEffect(() => {
+      const supplierCollectionRef = collection(db, "supplier")
+      const q = query(supplierCollectionRef);
+      const unsub = onSnapshot(q, (snapshot) =>
+          setSupplier(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+  }, [])
 
- 
 
-    //Read supplier collection from database
+  useEffect(() => {
+      async function readSupplierDoc() {
+          const salesRecord = doc(db, "supplier", docId)
+          const docSnap = await getDoc(salesRecord)
+          if (docSnap.exists()) {
+              setSupplierDoc(docSnap.data());
+          }
+      }
+      console.log("Updated Supplier Info")
+      readSupplierDoc()
+  }, [docId])
+
+
+
+
+  //delete Toast
+  const deleteToast = () => {
+      toast.error('Supplier DELETED from the Database', {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+      });
+  }
+  //Delete collection from database
+  const deleteSupplier = async (id) => {
+      const supplierDoc = doc(db, "supplier", id)
+      deleteToast();
+      await deleteDoc(supplierDoc);
+  }
+
+
+
+
+  const handleClose = () => setEditShow(false);
+
+  function EditSupplierModal(props) {
+
+
+    //-----------------VARIABLES------------------
+    const [newSuppName, setNewSuppName] = useState("");
+    const [newSuppAddress, setNewSuppAddress] = useState("");
+    const [newSuppEmail, setNewSuppEmail] = useState("");
+    const [newSuppMobileNum, setSuppNewMobileNum] = useState(0);
+    const [newSuppTelNum, setNewSuppTelNum] = useState(0);
+
+    //SetValues
     useEffect(() => {
-        const supplierCollectionRef = collection(db, "supplier")
-        const q = query(supplierCollectionRef);
-        const unsub = onSnapshot(q, (snapshot) =>
-            setSupplier(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-    }, [])
-
-
-    useEffect(() => {
-        async function readSupplierDoc() {
-            const salesRecord = doc(db, "supplier", docId)
-            const docSnap = await getDoc(salesRecord)
-            if (docSnap.exists()) {
-                setSupplierDoc(docSnap.data());
-            }
-        }
-        console.log("Updated Supplier Info")
-        readSupplierDoc()
+        setNewSuppName(supplierDoc.supplier_name)
+        setNewSuppAddress(supplierDoc.supplier_address)
+        setNewSuppEmail(supplierDoc.supplier_emailaddress)
+        setSuppNewMobileNum(supplierDoc.supplier_mobileNum)
+        setNewSuppTelNum(supplierDoc.supplier_telNum)
     }, [docId])
 
 
-
-
     //delete Toast
-    const deleteToast = () => {
-        toast.error('Supplier DELETED from the Database', {
+    const updateToast = () => {
+        toast.info(' Supplier Information Successfully Updated', {
             position: "top-right",
-            autoClose: 1500,
+            autoClose: 1000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
             draggable: true,
             progress: undefined,
+        })
+    }
+
+    //update Supplier Document
+    function updateSupplier() {
+        updateDoc(doc(db, "supplier", docId), {
+            supplier_name: newSuppName
+            , supplier_emailaddress: newSuppEmail
+            , supplier_address: newSuppAddress
+            , supplier_mobileNum: Number(newSuppMobileNum)
+            , supplier_telNum: Number(newSuppTelNum)
         });
-    }
-    //Delete collection from database
-    const deleteSupplier = async (id) => {
-        const supplierDoc = doc(db, "supplier", id)
-        deleteToast();
-        await deleteDoc(supplierDoc);
-    }
-
-
-
-
-    const handleClose = () => setEditShow(false);
-
-    function MyVerticallyCenteredModal(props) {
-
-
-        //-----------------VARIABLES------------------
-        const [newSuppName, setNewSuppName] = useState("");
-        const [newSuppAddress, setNewSuppAddress] = useState("");
-        const [newSuppEmail, setNewSuppEmail] = useState("");
-        const [newSuppMobileNum, setSuppNewMobileNum] = useState(0);
-        const [newSuppTelNum, setNewSuppTelNum] = useState(0);
-
-        //SetValues
-        useEffect(() => {
-            setNewSuppName(supplierDoc.supplier_name)
-            setNewSuppAddress(supplierDoc.supplier_address)
-            setNewSuppEmail(supplierDoc.supplier_emailaddress)
-            setSuppNewMobileNum(supplierDoc.supplier_mobileNum)
-            setNewSuppTelNum(supplierDoc.supplier_telNum)
-        }, [docId])
-
-
-        //delete Toast
-        const updateToast = () => {
-            toast.info(' Supplier Information Successfully Updated', {
-                position: "top-right",
-                autoClose: 1000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-            })
-        }
-
-        //update Supplier Document
-        function updateSupplier() {
-            updateDoc(doc(db, "supplier", docId), {
-                supplier_name: newSuppName
-                , supplier_emailaddress: newSuppEmail
-                , supplier_address: newSuppAddress
-                , supplier_mobileNum: Number(newSuppMobileNum)
-                , supplier_telNum: Number(newSuppTelNum)
-            });
-            updateToast()
-            handleClose();
-        }
-
-
-
-
-        return (
-            <Modal
-                {...props}
-                size="lg"
-                aria-labelledby="contained-modal-title-vcenter"
-                centered
-            >
-                <ToastContainer
-                    position="top-right"
-                    autoClose={1000}
-                    hideProgressBar={false}
-                    newestOnTop={false}
-                    closeOnClick
-                    rtl={false}
-                    pauseOnFocusLoss
-                    draggable
-                    pauseOnHover
-                />
-
-                <Modal.Header closeButton>
-                    <Modal.Title id="contained-modal-title-vcenter">
-                        Edit <strong>{newSuppName}</strong>
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-
-                    <div className="p-3">
-                        <div className="row my-2">
-                            <div className='row'>
-                                <div className='col-8'>
-                                    <label>Supplier Name</label>
-
-                                    <input type="text"
-                                        className="form-control"
-                                        placeholder="Supplier Name"
-                                        value={newSuppName}
-                                        onChange={(event) => { setNewSuppName(event.target.value); }}
-                                    />
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div className="row my-2">
-                            <div className="col-12">
-                                <label>Address</label>
-                                <input type="text"
-                                    className="form-control"
-                                    placeholder="Address"
-                                    rows={3}
-                                    value={newSuppAddress}
-                                    onChange={(event) => { setNewSuppAddress(event.target.value); }}
-                                />
-                            </div>
-                        </div>
-
-
-                        <h5>Contact Information</h5>
-                        <hr></hr>
-
-                        <div className="row my-2">
-                            <div className="col-7">
-                                <label>Email Address</label>
-                                <input type="email"
-                                    className="form-control"
-                                    placeholder="*****@email.com"
-                                    value={newSuppEmail}
-                                    onChange={(event) => { setNewSuppEmail(event.target.value); }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="row my-2">
-                            <div className="col-6">
-                                <label>Mobile Number</label>
-                                <input type="number"
-                                    className="form-control"
-                                    placeholder="09---------"
-                                    value={newSuppMobileNum}
-                                    onChange={(event) => { setSuppNewMobileNum(event.target.value); }}
-                                />
-                            </div>
-                        </div>
-
-                        <div className="row my-2">
-                            <div className="col-6">
-                                <label>Telephone Number</label>
-                                <input type="number"
-                                    className="form-control"
-                                    placeholder="Contact Number"
-                                    value={newSuppTelNum}
-                                    onChange={(event) => { setNewSuppTelNum(event.target.value); }}
-                                />
-                            </div>
-                        </div>
-
-
-                    </div>
-
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button
-                        onClick={() => { updateSupplier(docId) }}
-                    >
-                        Save Changes
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-        );
+        updateToast()
+        handleClose();
     }
 
 
 
 
     return (
-
-        <div className="row bg-light">
-            <Navigation />
-
+        <Modal
+            {...props}
+            size="lg"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered
+        >
             <ToastContainer
                 position="top-right"
                 autoClose={1000}
@@ -258,175 +150,429 @@ function SupplierList() {
                 pauseOnHover
             />
 
-            <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+            <Modal.Header closeButton>
+                <Modal.Title id="contained-modal-title-vcenter">
+                    Edit <strong>{newSuppName}</strong>
+                </Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
 
-                <div className='col-3 p-5'>
-                    <Card className="shadow">
-                        <Card.Header className="bg-primary">
-                            <div className="row">
-                                <div className="col-9 pt-2 text-white">
-                                    <h6>Supplier List</h6>
-                                </div>
-                                <div className="col-3">
-                                    <Button
-                                        variant="outline-light"
-                                        onClick={() => setModalShow(true)}>
-                                        <FontAwesomeIcon icon={faPlus} />
-                                    </Button>
-                                    <NewSupplierModal
-                                        show={modalShow}
-                                        onHide={() => setModalShow(false)}
-                                    />
-                                </div>
+                <div className="p-3">
+                    <div className="row my-2">
+                        <div className='row'>
+                            <div className='col-8'>
+                                <label>Supplier Name</label>
+
+                                <input type="text"
+                                    className="form-control"
+                                    placeholder="Supplier Name"
+                                    value={newSuppName}
+                                    onChange={(event) => { setNewSuppName(event.target.value); }}
+                                />
                             </div>
-                        </Card.Header>
-                        <Card.Body style={{ height: "500px" }} id='scrollbar'>
-                            <ListGroup variant="flush">
-                                {supplier.map((supplier) => {
-                                    return (
-                                        <ListGroup.Item
-                                            action
-                                            key={supplier.id}
-                                            eventKey={supplier.id}
-                                            onClick={() => { setDocId(supplier.id) }}>
-                                            <div className='row'>
-                                                <small><strong>{supplier.supplier_name}</strong></small><br />
-                                                <small>{supplier.id}</small>
-                                            </div>
-                                        </ListGroup.Item>
-                                    );
-                                })}
-                            </ListGroup>
-                        </Card.Body>
-                    </Card>
+                        </div>
+
+                    </div>
+
+                    <div className="row my-2">
+                        <div className="col-12">
+                            <label>Address</label>
+                            <input type="text"
+                                className="form-control"
+                                placeholder="Address"
+                                rows={3}
+                                value={newSuppAddress}
+                                onChange={(event) => { setNewSuppAddress(event.target.value); }}
+                            />
+                        </div>
+                    </div>
+
+
+                    <h5>Contact Information</h5>
+                    <hr></hr>
+
+                    <div className="row my-2">
+                        <div className="col-7">
+                            <label>Email Address</label>
+                            <input type="email"
+                                className="form-control"
+                                placeholder="*****@email.com"
+                                value={newSuppEmail}
+                                onChange={(event) => { setNewSuppEmail(event.target.value); }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="row my-2">
+                        <div className="col-6">
+                            <label>Mobile Number</label>
+                            <input type="number"
+                                className="form-control"
+                                placeholder="09---------"
+                                value={newSuppMobileNum}
+                                onChange={(event) => { setSuppNewMobileNum(event.target.value); }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="row my-2">
+                        <div className="col-6">
+                            <label>Telephone Number</label>
+                            <input type="number"
+                                className="form-control"
+                                placeholder="Contact Number"
+                                value={newSuppTelNum}
+                                onChange={(event) => { setNewSuppTelNum(event.target.value); }}
+                            />
+                        </div>
+                    </div>
 
 
                 </div>
 
-                <div className='col-9 p-5'>
-                    <Tab.Content>
-                        <Tab.Pane eventKey={0}>
-
-                            <div className='row px-5'>
-                                <div className='row bg-white shadow'>
-                                    <h1 className='text-center pt-4 p1'>Supplier</h1>
-                                    <hr />
-                                </div>
-
-                                <div className='row'>
-                                    <div className='col-6 mt-4'>
-                                        <Card className='shadow'>
-                                            <Card.Header className='bg-primary text-white'>
-                                                Supplier Information
-                                            </Card.Header>
-                                            <Card.Body>
-                                                <small>Supplier ID: </small><br />
-                                                <small>Supplier Name: </small><br />
-                                                <small>Supplier Address: </small><br />
-
-                                            </Card.Body>
-                                        </Card>
-                                    </div>
-                                    <div className='col-6 mt-4'>
-                                        <Card className='shadow'>
-                                            <Card.Header className='bg-primary text-white'>
-                                                Contact Information
-
-                                            </Card.Header>
-                                            <Card.Body>
-                                                <small>Mobile Number: </small><br />
-                                                <small>Telephone Number: </small><br />
-                                                <small>Email Address: </small><br />
-                                            </Card.Body>
-                                        </Card>
-                                    </div>
-                                </div>
-
-
-                            </div>
-
-                        </Tab.Pane>
-
-                        <Tab.Pane eventKey={docId}>
-
-                            <div className='row px-5'>
-                                <div className='row bg-white shadow'>
-                                    <div className="col-10">
-                                        <h1 className='text-center pt-4 p1'>{supplierDoc.supplier_name}</h1>
-                                        <hr />
-                                    </div>
-                                    <div className="col-2 pt-4">
-                                        <Button
-                                            size="sm"
-                                            variant="outline-dark"
-                                            style={{ width: "100px" }}
-                                            onClick={() => setEditShow(true)}
-                                        >
-                                            Edit <FontAwesomeIcon icon={faEdit} />
-                                        </Button>
-                                        <MyVerticallyCenteredModal
-                                            show={editShow}
-                                            onHide={() => setEditShow(false)}
-                                        />
-
-
-
-                                        <Button
-                                            className="mt-2"
-                                            size="sm"
-                                            variant="outline-danger"
-                                            style={{ width: "100px" }}
-                                            onClick={() => { deleteSupplier(docId) }}
-                                        >
-                                            Delete <FontAwesomeIcon icon={faTrashCan} />
-                                        </Button>
-                                    </div>
-
-                                </div>
-
-                                <div className='row'>
-                                    <div className='col-6 mt-4'>
-                                        <Card className='shadow'>
-                                            <Card.Header className='bg-primary text-white'>
-                                                Supplier Information
-                                            </Card.Header>
-                                            <Card.Body>
-                                                <small>Supplier ID: <strong className='mx-2'>{docId}</strong></small><br />
-                                                <small>Supplier Name: <strong className='mx-2'>{supplierDoc.supplier_name}</strong></small><br />
-                                                <small>Supplier Address: <strong className='mx-2'>{supplierDoc.supplier_address}</strong> </small><br />
-                                            </Card.Body>
-                                        </Card>
-                                    </div>
-                                    <div className='col-6 mt-4'>
-                                        <Card className='shadow'>
-                                            <Card.Header className='bg-primary text-white'>
-                                                Contact Information
-
-                                            </Card.Header>
-                                            <Card.Body>
-                                                <small>Mobile Number: <strong className='mx-2'>{supplierDoc.supplier_mobileNum}</strong></small><br />
-                                                <small>Telephone Number: <strong className='mx-2'>{supplierDoc.supplier_telNum}</strong></small><br />
-                                                <small>Email Address: <strong className='mx-2'>{supplierDoc.supplier_emailaddress}</strong></small><br />
-                                            </Card.Body>
-                                        </Card>
-                                    </div>
-                                </div>
-
-
-                            </div>
-
-                        </Tab.Pane>
-                    </Tab.Content>
-                </div>
-            </Tab.Container >
-
-
-
-
-        </div >
-
-
-
+            </Modal.Body>
+            <Modal.Footer>
+                <Button
+                    onClick={() => { updateSupplier(docId) }}
+                >
+                    Save Changes
+                </Button>
+            </Modal.Footer>
+        </Modal>
     );
 }
+
+  return (
+    <div>
+      <Navigation />
+
+      <ToastContainer
+        position="top-right"
+        autoClose={1500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+
+      <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+        <div className="row contents">
+          <div className="row  py-4 px-5">
+            <div className='sidebar'>
+              <Card className='sidebar-card'>
+                <Card.Header>
+                  <div className='row'>
+                    <div className="col-1">
+                      <Button className="fc-search left-full-curve no-click me-0"
+                        onClick={() => setModalShow(true)}>
+                        <FontAwesomeIcon icon={faSearch} />
+                      </Button>
+                    </div>
+                    <div className="col-11">
+                      <FormControl
+                          placeholder="Search"
+                          aria-label="Search"
+                          aria-describedby="basic-addon2"
+                          className="fc-search right-full-curve mw-0"
+                        />
+                    </div>
+                  </div>
+                </Card.Header>
+                <Card.Body style={{ height: "500px" }}>
+                  <div className="row g-1 sidebar-header">
+                    <div className="col-4 left-curve">
+                      Supplier ID
+                    </div>
+                    <div className="col-8 right-curve">
+                      Supplier Name
+                    </div>
+                  </div>
+                  <div id='scrollbar'>
+                  <ListGroup variant="flush">
+                    {supplier.map((supplier) => {
+                      return (
+                        <ListGroup.Item
+                          action
+                          key={supplier.id}
+                          eventKey={supplier.id}
+                          onClick={() => { setDocId(supplier.id) }}>
+                              <div className="row gx-0 sidebar-contents">
+                              <div className="col-4">
+                                {supplier.id}
+                              </div>
+                              <div className="col-8">
+                                {supplier.supplier_name}
+                              </div>
+                            </div>
+                        </ListGroup.Item>
+                      )
+                    })}
+
+                  </ListGroup>
+                  </div>
+                </Card.Body>
+              </Card>
+            </div>
+
+            <div className="divider"></div>
+            <div className='data-contents'>
+              <Tab.Content>
+                <Tab.Pane eventKey={0}>
+                  <div className="module-contents row py-1 m-0">
+                    <div className='row m-0'>
+                      <h1 className='text-center pb-2 module-title'>Supplier List</h1>
+                      <hr></hr>
+                    </div>
+                    <div className="row py-1 m-0">
+                      <div className="col">
+                      <span>
+                          <InformationCircle
+                            className="me-2 pull-down"
+                            color={'#0d6efd'} 
+                            title={'Category'}
+                            height="40px"
+                            width="40px"
+                          />
+                        </span>
+                        <h4 className="data-id">ITEM CODE</h4>
+                      </div>
+                      <div className="col">
+                        <div className="float-end">
+                            <Button
+                            className="add me-1"
+                            data-title="Add New Supplier">
+                              <FontAwesomeIcon icon={faPlus} />
+                            </Button>
+                            <Button
+                            className="edit me-1"
+                            data-title="Edit Supplier">
+                              <FontAwesomeIcon icon={faEdit} />
+                            </Button>
+                            <Button
+                            className="delete me-1"
+                            data-title="Delete Supplier">
+                              <FontAwesomeIcon icon={faTrashCan} />
+                            </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="row py-1 data-specs m-0" id="supplier-info">
+                      <div className="col-12 py-3">
+                        <div className="row m-0 mb-4">
+                            <div className="col-6 px-1">
+                              <span className="data-icon">
+                                <Person
+                                  className="me-2 pull-down"
+                                  color={'#000000'}
+                                  height="25px"
+                                  width="25px"
+                                  title={'Description'}
+                                />
+                              </span>
+                              <span className="data-label">Supplier Name</span>
+                            </div>
+                            <div className="col-6 px-1">
+                              <span className="data-icon">
+                              <Location
+                                className="me-2 pull-down"
+                                color={'#00000'} 
+                                title={'Category'}
+                                height="25px"
+                                width="25px"
+                              />
+                              </span>
+                              <span className="data-label">
+                                Address
+                              </span>
+                            </div>
+                        </div>
+                        <div className="row m-0 mb-4">
+                          <div className="col-3 px-1">
+                            <span className="data-icon sm">
+                              <PhonePortrait
+                                className="me-2 pull-down"
+                                color={'#000000'}
+                                height="25px"
+                                width="25px"
+                                title={'Selling Price'}
+                              />
+                            </span>
+                            <span className="data-label sm">Selling Price</span>
+                          </div>
+                          <div className="col-3 px-1">
+                            <span className="data-icon sm">
+                            <Call
+                              className="me-2 pull-down"
+                              color={'#00000'} 
+                              title={'Purchase Price'}
+                              height="25px"
+                              width="25px"
+                            />
+                            </span>
+                            <span className="data-label sm">
+                              Purchase Price
+                            </span>
+                          </div>
+                          <div className="col-6 px-1">
+                            <span className="data-icon">
+                              <Mail
+                                className="me-2 pull-down"
+                                color={'#00000'} 
+                                title={'Category'}
+                                height="25px"
+                                width="25px"
+                                />
+                            </span>
+                            <span className="data-label">
+                              Barcode
+                            </span>
+                          </div>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+                </Tab.Pane>
+
+                <Tab.Pane eventKey={docId}>
+                <div className='row py-1 m-0' id="supplier-contents">
+                    <div className='row m-0'>
+                      <h1 className='text-center pb-2 module-title'>Supplier List</h1>
+                      <hr></hr>
+                    </div>
+                    <div className="row py-1 m-0">
+                      <div className="col">
+                      <span>
+                          <InformationCircle
+                            className="me-2 pull-down"
+                            color={'#0d6efd'} 
+                            title={'Category'}
+                            height="40px"
+                            width="40px"
+                          />
+                        </span>
+                        <h4 className="data-id">{docId}</h4>
+                      </div>
+                      <div className="col">
+                        <div className="float-end">
+                            <NewSupplierModal
+                              show={modalShow}
+                              onHide={() => setModalShow(false)}
+                            />
+                            <Button
+                            className="add me-1"
+                            data-title="Add New Supplier"
+                            onClick={() => setModalShow(true)}>
+                              <FontAwesomeIcon icon={faPlus} />
+                            </Button>
+                            <EditSupplierModal
+                              show={editShow}
+                              onHide={() => setEditShow(false)}
+                            />
+                            <Button
+                            className="edit me-1"
+                            data-title="Edit Supplier"
+                            onClick={() => setEditShow(true)}>
+                              <FontAwesomeIcon icon={faEdit} />
+                            </Button>
+                            <Button
+                            className="delete me-1"
+                            data-title="Delete Supplier"
+                            onClick={() => { deleteSupplier(docId) }}>
+                              <FontAwesomeIcon icon={faTrashCan} />
+                            </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="row py-1 data-specs" id="supplier-info">
+                      <div className="col-12 py-3">
+                        <div className="row m-0 mb-4">
+                            <div className="col-6 px-1">
+                              <span className="data-icon">
+                                <Person
+                                  className="me-2 pull-down"
+                                  color={'#000000'}
+                                  height="25px"
+                                  width="25px"
+                                  data-title={'Supplier Description'}
+                                />
+                              </span>
+                              <span className="data-label">
+                                {supplierDoc.supplier_name}
+                                </span>
+                            </div>
+                            <div className="col-6 px-1">
+                              <span className="data-icon">
+                              <Location
+                                className="me-2 pull-down"
+                                color={'#00000'} 
+                                data-title={'Supplier Category'}
+                                height="25px"
+                                width="25px"
+                              />
+                              </span>
+                              <span className="data-label">
+                              {supplierDoc.supplier_address}
+                              </span>
+                            </div>
+                        </div>
+                        <div className="row m-0 mb-4">
+                          <div className="col-3 px-1">
+                            <span className="data-icon md">
+                              <PhonePortrait
+                                className="me-2 pull-down"
+                                color={'#000000'}
+                                height="25px"
+                                width="25px"
+                                data-title={'Selling Price'}
+                              />
+                            </span>
+                            <span className="data-label md">
+                              {supplierDoc.supplier_mobileNum}
+                            </span>
+                          </div>
+                          <div className="col-3 px-1">
+                            <span className="data-icon md">
+                            <Call
+                              className="me-2 pull-down"
+                              color={'#00000'} 
+                              data-title={'Purchase Price'}
+                              height="25px"
+                              width="25px"
+                            />
+                            </span>
+                            <span className="data-label md">
+                            {supplierDoc.supplier_telNum}
+                            </span>
+                          </div>
+                          <div className="col-6 px-1">
+                            <span className="data-icon">
+                              <Mail
+                                className="me-2 pull-down"
+                                color={'#00000'} 
+                                data-title="Barcode"
+                                height="25px"
+                                width="25px"
+                              />
+                            </span>
+                            <span className="data-label">
+                              {supplierDoc.supplier_emailaddress}
+                            </span>
+                          </div>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+                </Tab.Pane>
+              </Tab.Content>
+            </div>
+          </div>
+        </div>
+      </Tab.Container>
+    </div>
+  );
+}
+
 export default SupplierList;

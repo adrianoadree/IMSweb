@@ -4,20 +4,24 @@ import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrashCan, faTriangleExclamation, faSearch } from '@fortawesome/free-solid-svg-icons'
+import { Cube, Grid, Pricetag, Layers, Barcode as Barc, Cart, InformationCircle } from 'react-ionicons'
 import NewProductModal from '../components/NewProductModal';
-import { collection, doc, deleteDoc, onSnapshot, query, getDoc, updateDoc, where } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc, where } from 'firebase/firestore';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { faEdit } from '@fortawesome/free-regular-svg-icons';
 import Barcode from 'react-barcode';
 import JsBarcode from "jsbarcode";
+import InputGroup from "react-bootstrap/InputGroup";
+import FormControl from "react-bootstrap/FormControl";
 import { UserAuth } from '../context/AuthContext'
 
 
 
 
-function StockcardPage() {
+function StockcardPage({ isAuth }) {
 
 
   //---------------------VARIABLES---------------------
@@ -46,7 +50,6 @@ function StockcardPage() {
     }
     readStockcardDoc()
   }, [docId])
-
 
   useEffect(() => {
     if (user) {
@@ -91,7 +94,16 @@ function StockcardPage() {
     });
   }
 
-  //delete row 
+  const checkBarcode = (bcdata) => {
+    var bcdataInt = parseInt(bcdata);
+    console.log(bcdata);
+    if (bcdataInt >= 0)
+      return false;
+    else
+      return true;
+  }
+
+    //delete row 
   const deleteStockcard = async (id) => {
     const stockcardDoc = doc(db, "stockcard", id)
     deleteToast();
@@ -101,7 +113,7 @@ function StockcardPage() {
   const handleClose = () => setEditShow(false);
 
   //Edit Stockcard Data Modal-----------------------------------------------------------------------------
-  function MyVerticallyCenteredModal(props) {
+  function EditProductModal(props) {
 
     const [newStockcardDescription, setNewStockcardDescription] = useState("");
     const [newStockcardCategory, setNewStockcardCategory] = useState("");
@@ -167,7 +179,7 @@ function StockcardPage() {
         </Modal.Header>
         <Modal.Body>
           <div className="p-3">
-            <div className="row">
+            <div className="row ">
               <div className="col-6">
                 <label>Item Name</label>
                 <input type="text"
@@ -226,6 +238,7 @@ function StockcardPage() {
       </Modal>
     );
   }
+
 
   //Edit Barcode Modal-----------------------------------------------------------------------------
   function EditBarcodeModal(props) {
@@ -313,7 +326,6 @@ function StockcardPage() {
     );
   }
 
-  //display barcode function
   function DisplayBarcodeInfo() {
 
     if (stockcardDoc.barcode !== 0)
@@ -384,11 +396,11 @@ function StockcardPage() {
   }
 
 
-  //-----------------------Main Return Value-------------------------------
-  return (
-    <div className="row bg-light">
-      <Navigation />
 
+
+  return (
+    <div>
+      <Navigation />
 
       <ToastContainer
         position="top-right"
@@ -403,185 +415,356 @@ function StockcardPage() {
       />
 
       <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-        <div className="row bg-light">
-
-          <div className='col-3 p-5'>
-
-            <Card className='shadow'>
-              <Card.Header className='bg-primary'>
-                <div className='row'>
-                  <div className='col-9 pt-2 text-white'>
-                    <h6>Product List</h6>
+        <div className="row contents">
+          <div className="row py-4 px-5">
+            <div className='sidebar'>
+              <Card className='sidebar-card'>
+                <Card.Header>
+                  <div className='row'>
+                    <div className="col-1 left-full-curve">
+                      <Button className="fc-search no-click me-0">
+                        <FontAwesomeIcon icon={faSearch} />
+                      </Button>
+                    </div>
+                    <div className="col-11">
+                      <FormControl
+                          placeholder="Search"
+                          aria-label="Search"
+                          aria-describedby="basic-addon2"
+                          className="fc-search right-full-curve mw-0"
+                        />
+                    </div>
                   </div>
-
-                  <div className='col-3'>
-                    <Button variant="outline-light"
-                      onClick={() => setModalShow(true)}>
-                      <FontAwesomeIcon icon={faPlus} />
-                    </Button>
-                    <NewProductModal
-                      show={modalShow}
-                      onHide={() => setModalShow(false)}
-                    />
+                </Card.Header>
+                <Card.Body style={{ height: "500px" }}>
+                  <div className="row g-1 sidebar-header">
+                    <div className="col-4 left-curve">
+                      Item Code
+                    </div>
+                    <div className="col-8 right-curve">
+                      Description
+                    </div>
                   </div>
-                </div>
-              </Card.Header>
-              <Card.Body style={{ height: "500px" }} id='scrollbar'>
-                <ListGroup variant="flush">
-                  {stockcard.map((stockcard) => {
-                    return (
-                      <ListGroup.Item
-                        action
-                        key={stockcard.id}
-                        eventKey={stockcard.id}
-                        onClick={() => { setDocId(stockcard.id) }}>
-                        <div className='row'>
-                          <small><strong>{stockcard.description}</strong></small>
-                          <small>{stockcard.id}</small>
+                  <div id='scrollbar'>
+                  <ListGroup variant="flush">
+                    {stockcard.map((stockcard) => {
+                      return (
+                        <ListGroup.Item
+                          action
+                          key={stockcard.id}
+                          eventKey={stockcard.id}
+                          onClick={() => { setDocId(stockcard.id) }}>
+                              <div className="row gx-0 sidebar-contents">
+                              <div className="col-4">
+                                {stockcard.id}
+                              </div>
+                              <div className="col-8">
+                                {stockcard.description}
+                              </div>
+                            </div>
+                        </ListGroup.Item>
+                      )
+                    })}
+
+                  </ListGroup>
+                  </div>
+                </Card.Body>
+              </Card>
+            </div>
+            <div className="divider"></div>
+            <div className='data-contents'>
+              <Tab.Content>
+                <Tab.Pane eventKey={0}>
+                  <div className="row py-1 m-0" id="product-contents">
+                    <div className='row m-0'>
+                      <h1 className='text-center pb-2 module-title'>Inventory</h1>
+                      <hr></hr>
+                    </div>
+                    <div className="row py-1 m-0">
+                      <div className="col">
+                      <span>
+                          <InformationCircle
+                            className="me-2 pull-down"
+                            color={'#0d6efd'} 
+                            title={'Category'}
+                            height="40px"
+                            width="40px"
+                          />
+                        </span>
+                        <h4 className="data-id">ITEM CODE</h4>
+                      </div>
+                      <div className="col">
+                        <div className="float-end">
+                            <Button
+                            className="add me-1"
+                            data-title="Add New Product">
+                              <FontAwesomeIcon icon={faPlus} />
+                            </Button>
+                            <Button
+                            className="edit me-1"
+                            data-title="Edit Product">
+                              <FontAwesomeIcon icon={faEdit} />
+                            </Button>
+                            <Button
+                            className="delete me-1"
+                            data-title="Delete Product">
+                              <FontAwesomeIcon icon={faTrashCan} />
+                            </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="row py-1 data-specs m-0" id="product-info">
+                      <div className="col-2">
+                        <div className="data-img">
 
                         </div>
-                      </ListGroup.Item>
-                    )
-                  })}
-
-                </ListGroup>
-              </Card.Body>
-            </Card>
-          </div>
-
-
-          <div className='col-9 p-5'>
-
-            <Tab.Content>
-              <Tab.Pane eventKey={0}>
-                <div className='row px-5'>
-                  <div className='row bg-white shadow'>
-                    <h1 className='text-center pt-4 p1'>Stockcard</h1>
-                    <hr />
-                  </div>
-
-                  <div className='row'>
-                    <div className='col-6 mt-4'>
-                      <Card className='shadow'>
-                        <Card.Header className='bg-primary text-white'>
-                          StockCard
-                        </Card.Header>
-                        <Card.Body>
-                          <small>Product ID: </small><br />
-                          <small>Product Description: </small><br />
-                          <small>Category:</small><br />
-                          <small>Available Stock:</small><br />
-                          <small>Purchase :</small><br />
-                          <small>Selling Price:</small><br />
-                        </Card.Body>
-                      </Card>
+                      </div>
+                      <div className="col-10 py-3">
+                        <div className="row mb-4">
+                            <div className="col-6 px-1">
+                              <span className="data-icon">
+                                <Cube
+                                  className="me-2 pull-down"
+                                  color={'#000000'}
+                                  height="25px"
+                                  width="25px"
+                                  title={'Description'}
+                                />
+                              </span>
+                              <span className="data-label">Product Description</span>
+                            </div>
+                            <div className="col-6 px-1">
+                              <span className="data-icon">
+                              <Grid
+                                className="me-2 pull-down"
+                                color={'#00000'} 
+                                title={'Category'}
+                                height="25px"
+                                width="25px"
+                              />
+                              </span>
+                              <span className="data-label">
+                                Product Category
+                              </span>
+                            </div>
+                        </div>
+                        <div className="row mb-4">
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                              <Pricetag
+                                className="me-2 pull-down"
+                                color={'#000000'}
+                                height="25px"
+                                width="25px"
+                                title={'Selling Price'}
+                              />
+                            </span>
+                            <span className="data-label sm">Selling Price</span>
+                          </div>
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                            <Cart
+                              className="me-2 pull-down"
+                              color={'#00000'} 
+                              title={'Purchase Price'}
+                              height="25px"
+                              width="25px"
+                            />
+                            </span>
+                            <span className="data-label sm">
+                              Purchase Price
+                            </span>
+                          </div>
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                              <Barc
+                                className="me-2 pull-down"
+                                color={'#00000'} 
+                                title={'Category'}
+                                height="25px"
+                                width="25px"
+                                />
+                            </span>
+                            <span className="data-label sm">
+                              Barcode
+                            </span>
+                          </div>
+                        </div>
                     </div>
-                    <div className='col-6 mt-4'>
-                      <Card className='shadow'>
-                        <Card.Header className='bg-primary text-white'>
-                          Barcode
-                        </Card.Header>
-                        <Card.Body>
-                          <div className='bg-secondary' style={{ height: "50px" }}></div>
-
-
-
-                        </Card.Body>
-                        <Card.Footer className='bg-white'>
-                        </Card.Footer>
-                      </Card>
-                    </div>
-                  </div>
-
-                  <div className='row'>
-                    <div className='col-6 mt-4'>
-                      <Card className='shadow'>
-                        <Card.Header className='bg-primary text-white'>
-                          Warehousing Card
-                        </Card.Header>
-                        <Card.Body>
-                          <small>Warehouse Name: </small><br />
-                          <small>Warehouse Location: </small><br />
-                        </Card.Body>
-                      </Card>
-                    </div>
-                  </div>
-                </div>
-              </Tab.Pane>
-
-              <Tab.Pane eventKey={docId}>
-                <div className='row px-5'>
-                  <div className='row bg-white shadow'>
-                    <div className="col-10">
-                      <h1 className='text-center pt-4 p1'>{stockcardDoc.description}</h1>
-                      <hr />
-                    </div>
-                    <div className="col-2 pt-4">
-                      <Button
-                        size="sm"
-                        variant="outline-dark"
-                        style={{ width: "100px" }}
-                        onClick={() => setEditShow(true)}
-                      >
-                        Edit <FontAwesomeIcon icon={faEdit} />
-                      </Button>
-                      <MyVerticallyCenteredModal
-                        show={editShow}
-                        onHide={() => setEditShow(false)}
-                      />
-
-
-                      <Button
-                        className="mt-2"
-                        size="sm"
-                        variant="outline-danger"
-                        style={{ width: "100px" }}
-                        onClick={() => { deleteStockcard(docId) }}
-                      >
-                        Delete <FontAwesomeIcon icon={faTrashCan} />
-                      </Button>
-                    </div>
-
-                  </div>
-
-                  <div className='row'>
-                    <div className='col-6 mt-4'>
-                      <Card className='shadow'>
-                        <Card.Header className='bg-primary text-white'>
-                          StockCard
-                        </Card.Header>
-                        <Card.Body>
-                          <small>Product ID: <strong className='mx-2'>{docId}</strong></small><br />
-                          <small>Product Description: <strong className='mx-2'>{stockcardDoc.description}</strong></small><br />
-                          <small>Category: <span className='mx-2'>{stockcardDoc.category}</span></small><br />
-                          <small>Available Stock: <span className='mx-2'>{stockcardDoc.qty}</span></small><br />
-                          <small>Purchase Price: <span className='mx-2'>{stockcardDoc.p_price}</span></small><br />
-                          <small>Selling Price: <span className='mx-2'>{stockcardDoc.s_price}</span></small><br />
-
-                        </Card.Body>
-                      </Card>
-                    </div>
-                    <div className='col-6 mt-4'>
-                      <DisplayBarcodeInfo />
-                    </div>
-                  </div>
-
-                  <div className='row'>
-                    <div className='col-6 mt-4'>
-                      <Card className='shadow'>
-                        <Card.Header className='bg-primary text-white'>
-                          Warehousing Card
-                        </Card.Header>
-                        <Card.Body>
-                          <small>Warehouse Name: </small><br />
-                          <small>Warehouse Location: </small><br />
-                        </Card.Body>
-                      </Card>
-                    </div>
+                    <div className="row data-specs-add m-0">
+                        <div className="col-4">
+                          Quantity:
+                        </div>
+                        <div className="col-4">
+                          Total Quantity In:
+                        </div>
+                        <div className="col-4">
+                          Total Quantity Out:
+                        </div>
+                      </div>
                   </div>
                 </div>
-              </Tab.Pane>
-            </Tab.Content>
+                </Tab.Pane>
+
+                <Tab.Pane eventKey={docId}>
+                <div className='row py-1 m-0' id="product-contents">
+                    <div className='row m-0'>
+                      <h1 className='text-center pb-2 module-title'>Inventory</h1>
+                      <hr></hr>
+                    </div>
+                    <div className="row py-1 m-0">
+                      <div className="col">
+                      <span>
+                          <InformationCircle
+                            className="me-2 pull-down"
+                            color={'#0d6efd'} 
+                            title={'Category'}
+                            height="40px"
+                            width="40px"
+                          />
+                        </span>
+                        <h4 className="data-id">{docId}</h4>
+                      </div>
+                      <div className="col">
+                        <div className="float-end">
+                            <NewProductModal
+                              show={modalShow}
+                              onHide={() => setModalShow(false)}
+                            />
+                            <Button
+                            className="add me-1"
+                            data-title="Add New Product"
+                            onClick={() => setModalShow(true)}>
+                              <FontAwesomeIcon icon={faPlus} />
+                            </Button>
+                            <EditProductModal
+                              show={editShow}
+                              onHide={() => setEditShow(false)}
+                            />
+                            <Button
+                            className="edit me-1"
+                            data-title="Edit Product"
+                            onClick={() => setEditShow(true)}>
+                              <FontAwesomeIcon icon={faEdit} />
+                            </Button>
+                            <Button
+                            className="delete me-1"
+                            data-title="Delete Product"
+                            onClick={() => { deleteStockcard(docId) }}>
+                              <FontAwesomeIcon icon={faTrashCan} />
+                            </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="row py-1 data-specs m-0" id="product-info">
+                      <div className="col-2">
+                        <div className="data-img">
+
+                        </div>
+                      </div>
+                      <div className="col-10 py-3">
+                        <div className="row mb-4">
+                            <div className="col-6 px-1">
+                              <span className="data-icon">
+                                <Cube
+                                  className="me-2 pull-down"
+                                  color={'#000000'}
+                                  height="25px"
+                                  width="25px"
+                                  data-title={'Product Description'}
+                                />
+                              </span>
+                              <span className="data-label">
+                                {stockcardDoc.description}
+                                </span>
+                            </div>
+                            <div className="col-6 px-1">
+                              <span className="data-icon">
+                              <Grid
+                                className="me-2 pull-down"
+                                color={'#00000'} 
+                                data-title={'Product Category'}
+                                height="25px"
+                                width="25px"
+                              />
+                              </span>
+                              <span className="data-label">
+                              {stockcardDoc.category}
+                              </span>
+                            </div>
+                        </div>
+                        <div className="row mb-4">
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                              <Pricetag
+                                className="me-2 pull-down"
+                                color={'#000000'}
+                                height="25px"
+                                width="25px"
+                                data-title={'Selling Price'}
+                              />
+                            </span>
+                            <span className="data-label sm">
+                              {stockcardDoc.s_price}
+                            </span>
+                          </div>
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                            <Cart
+                              className="me-2 pull-down"
+                              color={'#00000'} 
+                              data-title={'Purchase Price'}
+                              height="25px"
+                              width="25px"
+                            />
+                            </span>
+                            <span className="data-label sm">
+                            {stockcardDoc.p_price}
+                            </span>
+                          </div>
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                            <Button
+                            className="plain-button bc-button"
+                            data-hover="Edit Barcode"
+                            >
+                              <Barc
+                                className="me-2 pull-down"
+                                color={'#00000'} 
+                                data-title="Barcode"
+                                height="25px"
+                                width="25px"
+                              />
+                            </Button>
+                            </span>
+                            <span className="data-label sm">
+                            {
+                            checkBarcode(stockcard.barcode)?
+                              <span>Barcode not initialized</span>
+                              :
+                              <span>{stockcard.barcode}</span>
+                            }
+                            </span>
+                          </div>
+                        </div>
+                    </div>
+                    <div className="row data-specs-add">
+                        <div className="col-4">
+                          Quantity: {stockcardDoc.qty}
+                        </div>
+                        <div className="col-4">
+                          Total Quantity In:
+                        </div>
+                        <div className="col-4">
+                          Total Quantity Out:
+                        </div>
+                      </div>
+                    
+                  </div>
+                </div>
+                </Tab.Pane>
+              </Tab.Content>
+            </div>
           </div>
         </div>
       </Tab.Container>
