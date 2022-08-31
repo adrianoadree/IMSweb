@@ -45,9 +45,6 @@ const LoginPage = () => {
                         <GoogleButton
                             type="light" onClick={handleGoogleSignIn} style={{ width: "500px" }} />
                     </div>
-
-
-
                 </div>
                 <div className='col-4'></div>
 

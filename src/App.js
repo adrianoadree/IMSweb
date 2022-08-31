@@ -16,6 +16,7 @@ import SalesRecord from './pages/SalesRecord';
 import LoginPage from './pages/LoginPage';
 import Warehouse from './pages/Warehouse';
 import TestPage from './pages/TestPage';
+import BetaPage from './pages/BetaPage';
 
 
 import { useState } from 'react';
@@ -43,6 +44,7 @@ function App() {
           <Route path='/community' element={<Protected><Community /></Protected>} />
           <Route path='/warehouse' element={<Protected><Warehouse /></Protected>} />
           <Route path='/testpage' element={<Protected><TestPage /></Protected>} />
+          <Route path='/betapage' element={<Protected><BetaPage /></Protected>} />
 
 
           <Route path='/analytics' element={<Analytics />} />

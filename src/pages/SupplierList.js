@@ -321,12 +321,12 @@ function SupplierList() {
             <div className='data-contents'>
               <Tab.Content>
                 <Tab.Pane eventKey={0}>
-                  <div className="module-contents row py-1">
-                    <div className='row'>
-                      <h1 className='text-center mb-2'>Supplier List</h1>
+                  <div className="module-contents row py-1 m-0">
+                    <div className='row m-0'>
+                      <h1 className='text-center pb-2 module-title'>Supplier List</h1>
                       <hr></hr>
                     </div>
-                    <div className="row py-1">
+                    <div className="row py-1 m-0">
                       <div className="col">
                       <span>
                           <InformationCircle
@@ -359,10 +359,10 @@ function SupplierList() {
                         </div>
                       </div>
                     </div>
-                    <div className="row py-1 data-specs" id="supplier-info">
+                    <div className="row py-1 data-specs m-0" id="supplier-info">
                       <div className="col-12 py-3">
-                        <div className="row mb-4">
-                            <div className="col-6">
+                        <div className="row m-0 mb-4">
+                            <div className="col-6 px-1">
                               <span className="data-icon">
                                 <Person
                                   className="me-2 pull-down"
@@ -374,7 +374,7 @@ function SupplierList() {
                               </span>
                               <span className="data-label">Supplier Name</span>
                             </div>
-                            <div className="col-6">
+                            <div className="col-6 px-1">
                               <span className="data-icon">
                               <Location
                                 className="me-2 pull-down"
@@ -389,8 +389,8 @@ function SupplierList() {
                               </span>
                             </div>
                         </div>
-                        <div className="row mb-4">
-                          <div className="col-4">
+                        <div className="row m-0 mb-4">
+                          <div className="col-3 px-1">
                             <span className="data-icon sm">
                               <PhonePortrait
                                 className="me-2 pull-down"
@@ -402,7 +402,7 @@ function SupplierList() {
                             </span>
                             <span className="data-label sm">Selling Price</span>
                           </div>
-                          <div className="col-4">
+                          <div className="col-3 px-1">
                             <span className="data-icon sm">
                             <Call
                               className="me-2 pull-down"
@@ -416,8 +416,8 @@ function SupplierList() {
                               Purchase Price
                             </span>
                           </div>
-                          <div className="col-4">
-                            <span className="data-icon sm">
+                          <div className="col-6 px-1">
+                            <span className="data-icon">
                               <Mail
                                 className="me-2 pull-down"
                                 color={'#00000'} 
@@ -426,7 +426,7 @@ function SupplierList() {
                                 width="25px"
                                 />
                             </span>
-                            <span className="data-label sm">
+                            <span className="data-label">
                               Barcode
                             </span>
                           </div>
@@ -437,12 +437,12 @@ function SupplierList() {
                 </Tab.Pane>
 
                 <Tab.Pane eventKey={docId}>
-                <div className='row py-1' id="supplier-contents">
-                    <div className='row'>
-                      <h1 className='text-center mb-2'>Supplier List</h1>
+                <div className='row py-1 m-0' id="supplier-contents">
+                    <div className='row m-0'>
+                      <h1 className='text-center pb-2 module-title'>Supplier List</h1>
                       <hr></hr>
                     </div>
-                    <div className="row py-1">
+                    <div className="row py-1 m-0">
                       <div className="col">
                       <span>
                           <InformationCircle
@@ -488,8 +488,8 @@ function SupplierList() {
                     </div>
                     <div className="row py-1 data-specs" id="supplier-info">
                       <div className="col-12 py-3">
-                        <div className="row mb-4">
-                            <div className="col-6">
+                        <div className="row m-0 mb-4">
+                            <div className="col-6 px-1">
                               <span className="data-icon">
                                 <Person
                                   className="me-2 pull-down"
@@ -503,7 +503,7 @@ function SupplierList() {
                                 {supplierDoc.supplier_name}
                                 </span>
                             </div>
-                            <div className="col-6">
+                            <div className="col-6 px-1">
                               <span className="data-icon">
                               <Location
                                 className="me-2 pull-down"
@@ -518,8 +518,8 @@ function SupplierList() {
                               </span>
                             </div>
                         </div>
-                        <div className="row mb-4">
-                          <div className="col-3">
+                        <div className="row m-0 mb-4">
+                          <div className="col-3 px-1">
                             <span className="data-icon md">
                               <PhonePortrait
                                 className="me-2 pull-down"
@@ -533,7 +533,7 @@ function SupplierList() {
                               {supplierDoc.supplier_mobileNum}
                             </span>
                           </div>
-                          <div className="col-3">
+                          <div className="col-3 px-1">
                             <span className="data-icon md">
                             <Call
                               className="me-2 pull-down"
@@ -547,7 +547,7 @@ function SupplierList() {
                             {supplierDoc.supplier_telNum}
                             </span>
                           </div>
-                          <div className="col-6">
+                          <div className="col-6 px-1">
                             <span className="data-icon">
                               <Mail
                                 className="me-2 pull-down"

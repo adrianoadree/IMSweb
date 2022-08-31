@@ -205,105 +205,107 @@ function SalesRecords({ isAuth }) {
                     </Nav.Item>
                     
                   </Nav>
-                  <div className="row py-1">
-                    <div className="col">
-                    <span>
-                        <InformationCircle
-                          className="me-2 pull-down"
-                          color={'#0d6efd'} 
-                          title={'Category'}
-                          height="40px"
-                          width="40px"
-                        />
-                      </span>
-                      <h4 className="data-id">Document ID</h4>
-                    </div>
-                    <div className="col">
-                      <div className="float-end">
-                        <NewPurchaseModal
-                        show={modalShow}
-                        onHide={() => setModalShow(false)}
-                        />
-                        <Button
-                          className="add me-1"
-                          data-title="Add New Purchase Record"
-                          onClick={() => setModalShow(true)}
-                        >
-                          <FontAwesomeIcon icon={faPlus} />
-                        </Button>
-                        <Button
-                          className="delete me-1"
-                          data-title="Delete Purchase Record"
-                          onClick={() => { deleteSalesRecord(docId) }}
-                        >
-                          <FontAwesomeIcon icon={faTrashCan} />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row py-1 data-specs" id="record-info">
-                    <div className="mb-3">
-                      <div className="row mt-2">
-                        <div className="col-12">
-                          <span className="data-icon lg">
-                            <Calendar
+                  <div className="row m-0">
+                    <div className="row py-1 m-0">
+                      <div className="col">
+                      <span>
+                          <InformationCircle
                             className="me-2 pull-down"
-                            color={'#00000'} 
+                            color={'#0d6efd'} 
                             title={'Category'}
-                            height="25px"
-                            width="25px"
-                            />
-                          </span>
-                          <span className="data-label lg">
-                            Document Date
-                          </span>
-                        </div>
+                            height="40px"
+                            width="40px"
+                          />
+                        </span>
+                        <h4 className="data-id">Document ID</h4>
                       </div>
-                      <div className="row mt-2">
-                        <div className="col-12">
-                          <span className="data-icon lg">
-                            <Create
-                            className="me-2 pull-down"
-                            color={'#00000'} 
-                            title={'Category'}
-                            height="25px"
-                            width="25px"
-                            />
-                          </span>
-                          <span className="data-label lg">
-                            Document Note
-                          </span>
+                      <div className="col">
+                        <div className="float-end">
+                          <NewPurchaseModal
+                          show={modalShow}
+                          onHide={() => setModalShow(false)}
+                          />
+                          <Button
+                            className="add me-1"
+                            data-title="Add New Purchase Record"
+                            onClick={() => setModalShow(true)}
+                          >
+                            <FontAwesomeIcon icon={faPlus} />
+                          </Button>
+                          <Button
+                            className="delete me-1"
+                            data-title="Delete Purchase Record"
+                            onClick={() => { deleteSalesRecord(docId) }}
+                          >
+                            <FontAwesomeIcon icon={faTrashCan} />
+                          </Button>
                         </div>
                       </div>
                     </div>
-                    <Table striped bordered hover size="sm" className="records-table">
-                      <thead>
-                        <tr>
-                          <th className='ic pth px-3'>Item Code</th>
-                          <th className="qc pth text-center">Quantity</th>
-                          <th className='dc pth text-center'>Description</th>
-                          <th className='pp pth text-center'>Purchase Price</th>
-                          <th className='ext pth text-center'>Extension</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {list.map((prod, index) => (
-                          <tr key={index}>
-                            <td className='ic pt-entry px-3'>
-                            </td>
-                            <td className="qc pt-entry text-center">
-                            </td>
-                            <td className="dc pt-entry text-center">
-                            </td>
-                            <td className="pp pt-entry text-center">
-                            </td>
-                            <td className="ext pt-entry text-center" >
-                            </td>
+                    <div className="row p-1 data-specs m-0" id="record-info">
+                      <div className="mb-3">
+                        <div className="row m-0 mt-2">
+                          <div className="col-12">
+                            <span className="data-icon lg">
+                              <Calendar
+                              className="me-2 pull-down"
+                              color={'#00000'} 
+                              title={'Category'}
+                              height="25px"
+                              width="25px"
+                              />
+                            </span>
+                            <span className="data-label lg">
+                              Document Date
+                            </span>
+                          </div>
+                        </div>
+                        <div className="row m-0 mt-2">
+                          <div className="col-12">
+                            <span className="data-icon lg">
+                              <Create
+                              className="me-2 pull-down"
+                              color={'#00000'} 
+                              title={'Category'}
+                              height="25px"
+                              width="25px"
+                              />
+                            </span>
+                            <span className="data-label lg">
+                              Document Note
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <Table striped bordered hover size="sm" className="records-table">
+                        <thead>
+                          <tr>
+                            <th className='ic pth px-3'>Item Code</th>
+                            <th className="qc pth text-center">Quantity</th>
+                            <th className='dc pth text-center'>Description</th>
+                            <th className='pp pth text-center'>Purchase Price</th>
+                            <th className='ext pth text-center'>Extension</th>
                           </tr>
-                          ))
-                        }
-                      </tbody>
-                    </Table>
+                        </thead>
+                        <tbody>
+                          {list.map((prod, index) => (
+                            <tr key={index}>
+                              <td className='ic pt-entry px-3'>
+                              </td>
+                              <td className="qc pt-entry text-center">
+                              </td>
+                              <td className="dc pt-entry text-center">
+                              </td>
+                              <td className="pp pt-entry text-center">
+                              </td>
+                              <td className="ext pt-entry text-center" >
+                              </td>
+                            </tr>
+                            ))
+                          }
+                        </tbody>
+                      </Table>
+                    </div>
                   </div>
                 </div>
               </Tab.Pane>
@@ -318,114 +320,116 @@ function SalesRecords({ isAuth }) {
                     </Nav.Item>
                     
                   </Nav>
-                  <div className="row py-1">
-                    <div className="col">
-                      <span>
-                        <InformationCircle
-                          className="me-2 pull-down"
-                          color={'#0d6efd'} 
-                          title={'Category'}
-                          height="40px"
-                          width="40px"
-                        />
-                      </span>
-                      <h4 className="data-id">{purchaseRecord.document_number}</h4>
-                    </div>
-                    <div className="col">
-                      <div className="float-end">
-                        <NewPurchaseModal
-                          show={modalShow}
-                          onHide={() => setModalShow(false)}
-                        />
-                        <Button
-                          className="add me-1"
-                          data-title="Add New Purchase Record"
-                          onClick={() => setModalShow(true)}
-                        >
-                          <FontAwesomeIcon icon={faPlus} />
-                        </Button>
-                        <Button
-                          className="delete me-1"
-                          data-title="Delete Purchase Record"
-                          onClick={() => { deleteSalesRecord(docId) }}
-                        >
-                          <FontAwesomeIcon icon={faTrashCan} />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="row py-1 data-specs" id="record-info">
-                    <div className="mb-3">
-                    <div className="row mt-2">
-                      <div className="col-12">
-                        <span className="data-icon lg">
-                          <Calendar
+                  <div className="row m-0">
+                    <div className="row py-1 m-0">
+                      <div className="col">
+                        <span>
+                          <InformationCircle
                             className="me-2 pull-down"
-                            color={'#00000'} 
+                            color={'#0d6efd'} 
                             title={'Category'}
-                            height="25px"
-                            width="25px"
+                            height="40px"
+                            width="40px"
                           />
                         </span>
-                        <span className="data-label lg">
-                          {moment(purchaseRecord.document_date).format('LL')}
-                        </span>
+                        <h4 className="data-id">{purchaseRecord.document_number}</h4>
                       </div>
-                    </div>
-                    <div className="row mt-2">
-                      <div className="col-12">
-                        <span className="data-icon lg">
-                          <Create
-                            className="me-2 pull-down"
-                            color={'#00000'} 
-                            title={'Category'}
-                            height="25px"
-                            width="25px"
+                      <div className="col">
+                        <div className="float-end">
+                          <NewPurchaseModal
+                            show={modalShow}
+                            onHide={() => setModalShow(false)}
                           />
-                        </span>
-                        <span className="data-label lg">
-                            {purchaseRecord.document_note}
-                        </span>
+                          <Button
+                            className="add me-1"
+                            data-title="Add New Purchase Record"
+                            onClick={() => setModalShow(true)}
+                          >
+                            <FontAwesomeIcon icon={faPlus} />
+                          </Button>
+                          <Button
+                            className="delete me-1"
+                            data-title="Delete Purchase Record"
+                            onClick={() => { deleteSalesRecord(docId) }}
+                          >
+                            <FontAwesomeIcon icon={faTrashCan} />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                    </div>
-                    <Table striped bordered hover size="sm" className="records-table">
-                      <thead>
-                        <tr>
-                          <th className='ic pth px-3'>Item Code</th>
-                          <th className="qc pth text-center">Quantity</th>
-                          <th className='dc pth text-center'>Description</th>
-                          <th className='pp pth text-center'>Purchase Price</th>
-                          <th className='ext pth text-center'>Extension</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {list.map((prod, index) => (
-                          <tr key={index}>
-                            <td className='ic pt-entry px-3' key={prod.productId}>
-                              {prod.productId}
-                            </td>
-                            <td className="qc pt-entry text-center" key={prod.productQuantity}>
-                              {prod.productQuantity}
-                            </td>
-                            <td className="dc pt-entry text-center" key={stockcardData[prod.productId]?.description}>
-                              {stockcardData[index]?.description}
-                            </td>
-                            <td className="pp pt-entry text-center" >
-                              <FontAwesomeIcon icon={faPesoSign} />
-                              {stockcardData[index]?.p_price}
-                            </td>
-                            <td className="ext pt-entry text-center" >
-                              <FontAwesomeIcon icon={faPesoSign} />
-                                {
-                                  stockcardData[index]?.p_price * prod.productQuantity
-                                }
-                            </td>
+                    <div className="row p-1 m-0 data-specs" id="record-info">
+                      <div className="mb-3">
+                      <div className="row m-0 mt-2">
+                        <div className="col-12">
+                          <span className="data-icon lg">
+                            <Calendar
+                              className="me-2 pull-down"
+                              color={'#00000'} 
+                              title={'Category'}
+                              height="25px"
+                              width="25px"
+                            />
+                          </span>
+                          <span className="data-label lg">
+                            {moment(purchaseRecord.document_date).format('LL')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="row m-0 mt-2">
+                        <div className="col-12">
+                          <span className="data-icon lg">
+                            <Create
+                              className="me-2 pull-down"
+                              color={'#00000'} 
+                              title={'Category'}
+                              height="25px"
+                              width="25px"
+                            />
+                          </span>
+                          <span className="data-label lg">
+                              {purchaseRecord.document_note}
+                          </span>
+                        </div>
+                      </div>
+                      </div>
+                      <Table striped bordered hover size="sm" className="records-table">
+                        <thead>
+                          <tr>
+                            <th className='ic pth px-3'>Item Code</th>
+                            <th className="qc pth text-center">Quantity</th>
+                            <th className='dc pth text-center'>Description</th>
+                            <th className='pp pth text-center'>Purchase Price</th>
+                            <th className='ext pth text-center'>Extension</th>
                           </tr>
-                          ))
-                        }
-                      </tbody>
-                    </Table>
+                        </thead>
+                        <tbody>
+                          {list.map((prod, index) => (
+                            <tr key={index}>
+                              <td className='ic pt-entry px-3' key={prod.productId}>
+                                {prod.productId}
+                              </td>
+                              <td className="qc pt-entry text-center" key={prod.productQuantity}>
+                                {prod.productQuantity}
+                              </td>
+                              <td className="dc pt-entry text-center" key={stockcardData[prod.productId]?.description}>
+                                {stockcardData[index]?.description}
+                              </td>
+                              <td className="pp pt-entry text-center" >
+                                <FontAwesomeIcon icon={faPesoSign} />
+                                {stockcardData[index]?.p_price}
+                              </td>
+                              <td className="ext pt-entry text-center" >
+                                <FontAwesomeIcon icon={faPesoSign} />
+                                  {
+                                    stockcardData[index]?.p_price * prod.productQuantity
+                                  }
+                              </td>
+                            </tr>
+                            ))
+                          }
+                        </tbody>
+                      </Table>
+                    </div>
                   </div>
                 </div>
               </Tab.Pane>

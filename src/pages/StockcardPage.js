@@ -179,7 +179,7 @@ function StockcardPage({ isAuth }) {
         </Modal.Header>
         <Modal.Body>
           <div className="p-3">
-            <div className="row">
+            <div className="row ">
               <div className="col-6">
                 <label>Item Name</label>
                 <input type="text"
@@ -475,12 +475,12 @@ function StockcardPage({ isAuth }) {
             <div className='data-contents'>
               <Tab.Content>
                 <Tab.Pane eventKey={0}>
-                  <div className="row py-1" id="product-contents">
-                    <div className='row'>
-                      <h1 className='text-center mb-2'>Inventory</h1>
+                  <div className="row py-1 m-0" id="product-contents">
+                    <div className='row m-0'>
+                      <h1 className='text-center pb-2 module-title'>Inventory</h1>
                       <hr></hr>
                     </div>
-                    <div className="row py-1">
+                    <div className="row py-1 m-0">
                       <div className="col">
                       <span>
                           <InformationCircle
@@ -513,7 +513,7 @@ function StockcardPage({ isAuth }) {
                         </div>
                       </div>
                     </div>
-                    <div className="row py-1 data-specs" id="product-info">
+                    <div className="row py-1 data-specs m-0" id="product-info">
                       <div className="col-2">
                         <div className="data-img">
 
@@ -521,7 +521,7 @@ function StockcardPage({ isAuth }) {
                       </div>
                       <div className="col-10 py-3">
                         <div className="row mb-4">
-                            <div className="col-6">
+                            <div className="col-6 px-1">
                               <span className="data-icon">
                                 <Cube
                                   className="me-2 pull-down"
@@ -533,7 +533,7 @@ function StockcardPage({ isAuth }) {
                               </span>
                               <span className="data-label">Product Description</span>
                             </div>
-                            <div className="col-6">
+                            <div className="col-6 px-1">
                               <span className="data-icon">
                               <Grid
                                 className="me-2 pull-down"
@@ -549,7 +549,7 @@ function StockcardPage({ isAuth }) {
                             </div>
                         </div>
                         <div className="row mb-4">
-                          <div className="col-4">
+                          <div className="col-4 px-1">
                             <span className="data-icon sm">
                               <Pricetag
                                 className="me-2 pull-down"
@@ -561,7 +561,7 @@ function StockcardPage({ isAuth }) {
                             </span>
                             <span className="data-label sm">Selling Price</span>
                           </div>
-                          <div className="col-4">
+                          <div className="col-4 px-1">
                             <span className="data-icon sm">
                             <Cart
                               className="me-2 pull-down"
@@ -575,7 +575,7 @@ function StockcardPage({ isAuth }) {
                               Purchase Price
                             </span>
                           </div>
-                          <div className="col-4">
+                          <div className="col-4 px-1">
                             <span className="data-icon sm">
                               <Barc
                                 className="me-2 pull-down"
@@ -591,7 +591,7 @@ function StockcardPage({ isAuth }) {
                           </div>
                         </div>
                     </div>
-                    <div className="row data-specs-add">
+                    <div className="row data-specs-add m-0">
                         <div className="col-4">
                           Quantity:
                         </div>
@@ -607,12 +607,12 @@ function StockcardPage({ isAuth }) {
                 </Tab.Pane>
 
                 <Tab.Pane eventKey={docId}>
-                <div className='row py-1' id="product-contents">
-                    <div className='row'>
-                      <h1 className='text-center mb-2'>Inventory</h1>
+                <div className='row py-1 m-0' id="product-contents">
+                    <div className='row m-0'>
+                      <h1 className='text-center pb-2 module-title'>Inventory</h1>
                       <hr></hr>
                     </div>
-                    <div className="row py-1">
+                    <div className="row py-1 m-0">
                       <div className="col">
                       <span>
                           <InformationCircle
@@ -656,7 +656,7 @@ function StockcardPage({ isAuth }) {
                         </div>
                       </div>
                     </div>
-                    <div className="row py-1 data-specs" id="product-info">
+                    <div className="row py-1 data-specs m-0" id="product-info">
                       <div className="col-2">
                         <div className="data-img">
 
@@ -664,7 +664,7 @@ function StockcardPage({ isAuth }) {
                       </div>
                       <div className="col-10 py-3">
                         <div className="row mb-4">
-                            <div className="col-6">
+                            <div className="col-6 px-1">
                               <span className="data-icon">
                                 <Cube
                                   className="me-2 pull-down"
@@ -678,7 +678,7 @@ function StockcardPage({ isAuth }) {
                                 {stockcardDoc.description}
                                 </span>
                             </div>
-                            <div className="col-6">
+                            <div className="col-6 px-1">
                               <span className="data-icon">
                               <Grid
                                 className="me-2 pull-down"
@@ -694,7 +694,7 @@ function StockcardPage({ isAuth }) {
                             </div>
                         </div>
                         <div className="row mb-4">
-                          <div className="col-4">
+                          <div className="col-4 px-1">
                             <span className="data-icon sm">
                               <Pricetag
                                 className="me-2 pull-down"
@@ -708,7 +708,7 @@ function StockcardPage({ isAuth }) {
                               {stockcardDoc.s_price}
                             </span>
                           </div>
-                          <div className="col-4">
+                          <div className="col-4 px-1">
                             <span className="data-icon sm">
                             <Cart
                               className="me-2 pull-down"
@@ -722,7 +722,7 @@ function StockcardPage({ isAuth }) {
                             {stockcardDoc.p_price}
                             </span>
                           </div>
-                          <div className="col-4">
+                          <div className="col-4 px-1">
                             <span className="data-icon sm">
                             <Button
                             className="plain-button bc-button"

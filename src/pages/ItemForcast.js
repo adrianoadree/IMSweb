@@ -91,297 +91,191 @@ function Itemforecast() {
 
 
   return (
-/*
-    <div className="row bg-light">
+    <div className="row">
       <Navigation />
-
       <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-
-        <div className='col-3 p-5'>
-          <Card className="shadow">
-            <Card.Header className="bg-primary">
-              <div className="row">
-                <div className="col-9 pt-2 text-white">
-                  <h6>Inventory List</h6>
-                </div>
-              </div>
-            </Card.Header>
-            <Card.Body style={{ height: "500px" }} id='scrollbar'>
-              <ListGroup variant="flush">
-                {stockcard.map((stockcard) => {
-                  return (
-                    <ListGroup.Item
-                      action
-                      key={stockcard.id}
-                      eventKey={stockcard.id}
-                      onClick={() => { setDocId(stockcard.id) }}>
+        <div className="row contents">
+            <div className="row py-4 px-5">
+                <div className="sidebar">
+                  <Card className='sidebar-card'>
+                    <Card.Header>
                       <div className='row'>
-                        <small><strong>{stockcard.description}</strong></small>
-                        <small>{stockcard.id}</small>
-
-                      </div>
-                    </ListGroup.Item>
-                  )
-                })}
-
-              </ListGroup>
-            </Card.Body>
-          </Card>
-
-
-        </div>
-
-        <div className='col-9 p-5'>
-          <Tab.Content>
-            <Tab.Pane eventKey={0}>
-
-              <div className="row bg-white shadow">
-                <div className="row p-5" style={{ height: "500px" }}>
-                  <h3 className='text-center p1'>ReorderPoint Forecasting</h3>
-                  <hr />
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      width={500}
-                      height={300}
-                      data={data}
-                      margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="Product" stroke="black" activeDot={{ r: 8 }} />
-                      <Line type="monotone" dataKey="ReorderPoint" stroke="green" />
-                      <Line type="monotone" dataKey="SafetyStock" stroke="red" />
-
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="row pt-2 pb-5 px-5">
-                  <hr />
-                  <div className="col-4">
-                    <Card className="bg-dark">
-                      <Card.Header>
-                        <small className="text-center text-white">Product</small>
-                      </Card.Header>
-                      <Card.Body style={{ height: "10px" }}>
-                      </Card.Body>
-                    </Card>
-                  </div>
-                  <div className="col-4">
-                    <Card className="bg-success">
-                      <Card.Header>
-                        <small className="text-center text-white">ReorderPoint</small>
-                      </Card.Header>
-                      <Card.Body style={{ height: "10" }}>
-
-                      </Card.Body>
-                    </Card>
-                  </div>
-                  <div className="col-4">
-                    <Card className="bg-danger">
-                      <Card.Header>
-                        <small className="text-center text-white">SafetyStock</small>
-                      </Card.Header>
-                      <Card.Body style={{ height: "10px" }} >
-                      </Card.Body>
-                    </Card>
-                  </div>
-                </div>
-
-              </div></Tab.Pane>
-
-            <Tab.Pane eventKey={docId}>
-
-
-              <div className="row bg-white shadow">
-                <div className="row p-5" style={{ height: "500px" }}>
-                  <h3 className='text-center p1'>{docId} ReorderPoint Forecasting</h3>
-                  <hr />
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      width={500}
-                      height={300}
-                      data={data}
-                      margin={{
-                        top: 5,
-                        right: 30,
-                        left: 20,
-                        bottom: 5,
-                      }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="Product" stroke="black" activeDot={{ r: 8 }} />
-                      <Line type="monotone" dataKey="ReorderPoint" stroke="green" />
-                      <Line type="monotone" dataKey="SafetyStock" stroke="red" />
-
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className="row pt-2 pb-5 px-5">
-                  <hr />
-                  <div className="col-4">
-                    <Card className="bg-dark">
-                      <Card.Header>
-                        <small className="text-center text-white">
-                          Product ID: {docId}
-                        </small>
-                      </Card.Header>
-                      <Card.Body
-                        className="text-white"
-                        style={{ height: "160px" }}>
-                        <small>Product Description:</small><br />
-                        <small> - {stockcardDoc.description}</small><br />
-
-                      </Card.Body>
-                    </Card>
-                  </div>
-                  <div className="col-4">
-                    <Card className="bg-success">
-                      <Card.Header>
-                        <small className="text-center text-white">ReorderPoint</small>
-                      </Card.Header>
-                      <Card.Body style={{ height: "160px" }}>
-                        <small className="text-center text-white"> A reorder point (ROP) is the specific level at which your stock needs to be
-                          replenished. In other words, it tells you when to place an order so you don’t run out of an
-                          item.</small>
-                      </Card.Body>
-                    </Card>
-                  </div>
-                  <div className="col-4">
-                    <Card className="bg-danger">
-                      <Card.Header>
-                        <small className="text-center text-white">SafetyStock</small>
-                      </Card.Header>
-                      <Card.Body style={{ height: "160px" }} >
-                        <small className="text-center text-white">
-                          This is the extra quantity of a product that kept in storage to prevent stockouts. Safety stock serves as insurance against demand fluctuations.
-                        </small>
-                      </Card.Body>
-                    </Card>
-                  </div>
-                </div>
-
-              </div>
-
-
-
-
-            </Tab.Pane>
-          </Tab.Content>
-        </div>
-      </Tab.Container >
-
-
-
-
-    </div >
-*/
-  <div className="row">
-    <Navigation />
-    <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-      <div className="row contents">
-          <div className="row py-4 px-5">
-              <div className="sidebar">
-                <Card className='sidebar-card'>
-                  <Card.Header>
-                    <div className='row'>
-                      <div className="col-1 left-full-curve">
-                        <Button className="fc-search no-click me-0">
-                          <FontAwesomeIcon icon={faSearch} />
-                        </Button>
-                      </div>
-                      <div className="col-11">
-                        <FormControl
-                            placeholder="Search"
-                            aria-label="Search"
-                            aria-describedby="basic-addon2"
-                            className="fc-search right-full-curve mw-0"
-                          />
-                      </div>
-                    </div>
-                  </Card.Header>
-                  <Card.Body style={{ height: "500px" }}>
-                    <div className="row g-1 sidebar-header">
-                      <div className="col-4 left-curve">
-                        Item Code
-                      </div>
-                      <div className="col-8 right-curve">
-                        Description
-                      </div>
-                    </div>
-                    <div id='scrollbar'>
-                    <ListGroup variant="flush">
-                      {stockcard.map((stockcard) => {
-                        return (
-                          <ListGroup.Item
-                            action
-                            key={stockcard.id}
-                            eventKey={stockcard.id}
-                            onClick={() => { setDocId(stockcard.id) }}>
-                                <div className="row gx-0 sidebar-contents">
-                                <div className="col-4">
-                                  {stockcard.id}
-                                </div>
-                                <div className="col-8">
-                                  {stockcard.description}
-                                </div>
-                              </div>
-                          </ListGroup.Item>
-                        )
-                      })}
-
-                    </ListGroup>
-                    </div>
-                  </Card.Body>
-                </Card>
-              </div>
-              <div className="divider">
-
-              </div>
-              <div className="data-contents">
-              <Tab.Content>
-                <Tab.Pane eventKey={0}>
-                  <div className="row">
-                    <div className="row p-3 m-0" style={{ height: "500px" }}>
-                      <h1 className='text-center mb-2'>ReorderPoint Forecasting</h1>
-                      <hr />
-                      <div className="row m-0 mt-2 mb-4 px-5 py-2 yellow-strip">
-                        <div className="row p1 text-center">
-                          <div className="col-3">
-                            Item Code
-                          </div>
-                          <div className="col-7">
-                            Item Description
-                          </div>
-                          <div className="col-2">
-                            Quantity
-                          </div>
+                        <div className="col-1 left-full-curve">
+                          <Button className="fc-search no-click me-0">
+                            <FontAwesomeIcon icon={faSearch} />
+                          </Button>
                         </div>
-                        <hr className="yellow-strip-divider"></hr>
-                        <div className="row my-2">
-                          <div className="col-2">
-                            <h5><strong>ID</strong></h5>
-                          </div>
-                          <div className="col-8">
-                            <h5><strong>Desc</strong></h5>
-                          </div>
-                          <div className="col-2">
-                            <h5><strong>Quanti</strong></h5>
-                          </div>
+                        <div className="col-11">
+                          <FormControl
+                              placeholder="Search"
+                              aria-label="Search"
+                              aria-describedby="basic-addon2"
+                              className="fc-search right-full-curve mw-0"
+                            />
                         </div>
                       </div>
-                      <div>
+                    </Card.Header>
+                    <Card.Body>
+                      <div className="row g-1 sidebar-header">
+                        <div className="col-4 left-curve">
+                          Item Code
+                        </div>
+                        <div className="col-8 right-curve">
+                          Description
+                        </div>
+                      </div>
+                      <div className='scrollbar'>
+                      <ListGroup variant="flush">
+                        {stockcard.map((stockcard) => {
+                          return (
+                            <ListGroup.Item
+                              action
+                              key={stockcard.id}
+                              eventKey={stockcard.id}
+                              onClick={() => { setDocId(stockcard.id) }}>
+                                  <div className="row gx-0 sidebar-contents">
+                                  <div className="col-4">
+                                    {stockcard.id}
+                                  </div>
+                                  <div className="col-8">
+                                    {stockcard.description}
+                                  </div>
+                                </div>
+                            </ListGroup.Item>
+                          )
+                        })}
+
+                      </ListGroup>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </div>
+                <div className="divider">
+
+                </div>
+                <div className="data-contents">
+                <Tab.Content>
+                  <Tab.Pane eventKey={0}>
+                    <div className="row">
+                      <div className="row p-3 m-0" style={{ height: "500px" }}>
+                        <h1 className='text-center pb-2 module-title'>Reorder Point Forecasting</h1>
+                        <hr />
+                        <div className="row m-0 mt-2 mb-4 px-5 py-2 yellow-strip">
+                          <div className="row p1 text-center">
+                            <div className="col-3">
+                              Item Code
+                            </div>
+                            <div className="col-7">
+                              Item Description
+                            </div>
+                            <div className="col-2">
+                              Quantity
+                            </div>
+                          </div>
+                          <hr className="yellow-strip-divider"></hr>
+                          <div className="row my-2">
+                            <div className="col-2">
+                              <h5><strong>ID</strong></h5>
+                            </div>
+                            <div className="col-8">
+                              <h5><strong>Desc</strong></h5>
+                            </div>
+                            <div className="col-2">
+                              <h5><strong>Quanti</strong></h5>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                              width={500}
+                              height={300}
+                              data={data}
+                              margin={{
+                                top: 5,
+                                right: 30,
+                                left: 20,
+                                bottom: 5,
+                              }}
+                            >
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="date" />
+                              <YAxis />
+                              <Tooltip />
+                              <Legend />
+                              <Line type="monotone" dataKey="Product" stroke="black" activeDot={{ r: 8 }} />
+                              <Line type="monotone" dataKey="ReorderPoint" stroke="green" />
+                              <Line type="monotone" dataKey="SafetyStock" stroke="red" />
+
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                      <div className="row pt-2 pb-5 px-5">
+                        <hr />
+                        <div className="col-4">
+                          <Card className="bg-dark">
+                            <Card.Header>
+                              <small className="text-center text-white">Product</small>
+                            </Card.Header>
+                            <Card.Body style={{ height: "10px" }}>
+                            </Card.Body>
+                          </Card>
+                        </div>
+                        <div className="col-4">
+                          <Card className="bg-success">
+                            <Card.Header>
+                              <small className="text-center text-white">ReorderPoint</small>
+                            </Card.Header>
+                            <Card.Body style={{ height: "10" }}>
+
+                            </Card.Body>
+                          </Card>
+                        </div>
+                        <div className="col-4">
+                          <Card className="bg-danger">
+                            <Card.Header>
+                              <small className="text-center text-white">SafetyStock</small>
+                            </Card.Header>
+                            <Card.Body style={{ height: "10px" }} >
+                            </Card.Body>
+                          </Card>
+                        </div>
+                      </div>
+                    </div>
+                  </Tab.Pane>
+                  <Tab.Pane eventKey={docId}>
+                    <div className="row">
+                      <div className="row p-3 m-0" style={{ height: "500px" }}>
+                        <h1 className='text-center pb-2 module-title'>Reorder Point Forecasting
+                        </h1>
+                        <hr />
+                        <div className="row m-0 mt-2 mb-4 px-5 py-2 yellow-strip">
+                          <div className="row p1 text-center">
+                            <div className="col-3">
+                              Item Code
+                            </div>
+                            <div className="col-7">
+                              Item Description
+                            </div>
+                            <div className="col-2">
+                              Quantity
+                            </div>
+                          </div>
+                          <hr className="yellow-strip-divider"></hr>
+                          <div className="row my-2">
+                            <div className="col-2">
+                              <h5><strong>{docId}</strong></h5>
+                            </div>
+                            <div className="col-8">
+                              <h5><strong>Desc</strong></h5>
+                            </div>
+                            <div className="col-2">
+                              <h5><strong>Quanti</strong></h5>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart
                             width={500}
@@ -405,155 +299,65 @@ function Itemforecast() {
 
                           </LineChart>
                         </ResponsiveContainer>
-                      </div>
-                    </div>
-                    <div className="row pt-2 pb-5 px-5">
-                      <hr />
-                      <div className="col-4">
-                        <Card className="bg-dark">
-                          <Card.Header>
-                            <small className="text-center text-white">Product</small>
-                          </Card.Header>
-                          <Card.Body style={{ height: "10px" }}>
-                          </Card.Body>
-                        </Card>
-                      </div>
-                      <div className="col-4">
-                        <Card className="bg-success">
-                          <Card.Header>
-                            <small className="text-center text-white">ReorderPoint</small>
-                          </Card.Header>
-                          <Card.Body style={{ height: "10" }}>
 
-                          </Card.Body>
-                        </Card>
-                      </div>
-                      <div className="col-4">
-                        <Card className="bg-danger">
-                          <Card.Header>
-                            <small className="text-center text-white">SafetyStock</small>
-                          </Card.Header>
-                          <Card.Body style={{ height: "10px" }} >
-                          </Card.Body>
-                        </Card>
-                      </div>
-                    </div>
-                  </div>
-                </Tab.Pane>
-                <Tab.Pane eventKey={docId}>
-                  <div className="row">
-                    <div className="row p-3 m-0" style={{ height: "500px" }}>
-                      <h1 className='text-center mb-2'>Reorder Point Forecasting
-                      </h1>
-                      <hr />
-                      <div className="row m-0 mt-2 mb-4 px-5 py-2 yellow-strip">
-                        <div className="row p1 text-center">
-                          <div className="col-3">
-                            Item Code
-                          </div>
-                          <div className="col-7">
-                            Item Description
-                          </div>
-                          <div className="col-2">
-                            Quantity
-                          </div>
-                        </div>
-                        <hr className="yellow-strip-divider"></hr>
-                        <div className="row my-2">
-                          <div className="col-2">
-                            <h5><strong>{docId}</strong></h5>
-                          </div>
-                          <div className="col-8">
-                            <h5><strong>Desc</strong></h5>
-                          </div>
-                          <div className="col-2">
-                            <h5><strong>Quanti</strong></h5>
-                          </div>
                         </div>
                       </div>
-                      <div>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          width={500}
-                          height={300}
-                          data={data}
-                          margin={{
-                            top: 5,
-                            right: 30,
-                            left: 20,
-                            bottom: 5,
-                          }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
-                          <YAxis />
-                          <Tooltip />
-                          <Legend />
-                          <Line type="monotone" dataKey="Product" stroke="black" activeDot={{ r: 8 }} />
-                          <Line type="monotone" dataKey="ReorderPoint" stroke="green" />
-                          <Line type="monotone" dataKey="SafetyStock" stroke="red" />
+                      <div className="row pt-2 pb-5 px-5">
+                        <hr />
+                        <div className="col-4">
+                          <Card className="bg-dark">
+                            <Card.Header>
+                              <small className="text-center text-white">
+                                Product ID: {docId}
+                              </small>
+                            </Card.Header>
+                            <Card.Body
+                              className="text-white"
+                              style={{ height: "160px" }}>
+                              <small>Product Description:</small><br />
+                              <small> - {stockcardDoc.description}</small><br />
 
-                        </LineChart>
-                      </ResponsiveContainer>
+                            </Card.Body>
+                          </Card>
+                        </div>
+                        <div className="col-4">
+                          <Card className="bg-success">
+                            <Card.Header>
+                              <small className="text-center text-white">ReorderPoint</small>
+                            </Card.Header>
+                            <Card.Body style={{ height: "160px" }}>
+                              <small className="text-center text-white"> A reorder point (ROP) is the specific level at which your stock needs to be
+                                replenished. In other words, it tells you when to place an order so you don’t run out of an
+                                item.</small>
+                            </Card.Body>
+                          </Card>
+                        </div>
+                        <div className="col-4">
+                          <Card className="bg-danger">
+                            <Card.Header>
+                              <small className="text-center text-white">SafetyStock</small>
+                            </Card.Header>
+                            <Card.Body style={{ height: "160px" }} >
+                              <small className="text-center text-white">
+                                This is the extra quantity of a product that kept in storage to prevent stockouts. Safety stock serves as insurance against demand fluctuations.
+                              </small>
+                            </Card.Body>
+                          </Card>
+                        </div>
+                      </div>
 
-                      </div>
-                    </div>
-                    <div className="row pt-2 pb-5 px-5">
-                      <hr />
-                      <div className="col-4">
-                        <Card className="bg-dark">
-                          <Card.Header>
-                            <small className="text-center text-white">
-                              Product ID: {docId}
-                            </small>
-                          </Card.Header>
-                          <Card.Body
-                            className="text-white"
-                            style={{ height: "160px" }}>
-                            <small>Product Description:</small><br />
-                            <small> - {stockcardDoc.description}</small><br />
-
-                          </Card.Body>
-                        </Card>
-                      </div>
-                      <div className="col-4">
-                        <Card className="bg-success">
-                          <Card.Header>
-                            <small className="text-center text-white">ReorderPoint</small>
-                          </Card.Header>
-                          <Card.Body style={{ height: "160px" }}>
-                            <small className="text-center text-white"> A reorder point (ROP) is the specific level at which your stock needs to be
-                              replenished. In other words, it tells you when to place an order so you don’t run out of an
-                              item.</small>
-                          </Card.Body>
-                        </Card>
-                      </div>
-                      <div className="col-4">
-                        <Card className="bg-danger">
-                          <Card.Header>
-                            <small className="text-center text-white">SafetyStock</small>
-                          </Card.Header>
-                          <Card.Body style={{ height: "160px" }} >
-                            <small className="text-center text-white">
-                              This is the extra quantity of a product that kept in storage to prevent stockouts. Safety stock serves as insurance against demand fluctuations.
-                            </small>
-                          </Card.Body>
-                        </Card>
-                      </div>
                     </div>
 
-                  </div>
 
 
 
-
-                </Tab.Pane>
-              </Tab.Content>
+                  </Tab.Pane>
+                </Tab.Content>
+              </div>
             </div>
-          </div>
-      </div>
-    </Tab.Container>
-  </div>
+        </div>
+      </Tab.Container>
+    </div>
   );
 }
 
