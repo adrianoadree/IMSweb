@@ -1,48 +1,163 @@
 import React from 'react';
-import { Table, Form, Button } from 'react-bootstrap';
+import { Table, Form, Button, ListGroup } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { collection, onSnapshot, query, where, doc, updateDoc, setDoc } from 'firebase/firestore';
+import moment from 'moment';
 import "react-toastify/dist/ReactToastify.css";
 import { UserAuth } from '../context/AuthContext'
-import { ToastContainer, toast } from "react-toastify";
 
-
+import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 
 function TestPage() {
 
     //---------------------VARIABLES---------------------
 
-    const [varList, setVarlist] = useState([{ productId: "", productQuantity: 1 }]);
+
+    const { user } = UserAuth();//user credentials
+    const [userID, setUserID] = useState("");
+    const [newNote, setNewNote] = useState(""); // note form input
+
+    const [varRef, setVarRef] = useState([]); // variable collection
+    const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+    const [items, setItems] = useState([]); // array of objects containing product information
+    const [itemId, setItemId] = useState("IT999999"); //product id
+    const [itemName, setItemName] = useState(""); //product description
+    const [itemQuantity, setItemQuantity] = useState(1); //product quantity
+    const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
+    const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
+
 
 
 
     //---------------------FUNCTIONS---------------------
 
+    //fetch variable collection
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
+            setVarRef(doc.data());
+        });
+        return unsub;
+    }, [])
 
 
+    //Read stock card collection from database
+    useEffect(() => {
+        const collectionRef = collection(db, "stockcard");
+        const q = query(collectionRef);
 
-    //Dynamic Add Product Button ------------------------------------------------------------
-    const [productList, setProductList] = useState([{ productId: "", productQuantity: 1 }]);
+        const unsub = onSnapshot(q, (snapshot) =>
+            setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+        return unsub;
+    }, [])
 
-    const handleProductChange = (e, index) => {
-        const { name, value } = e.target
-        const list = [...productList];
-        list[index][name] = value
-        setProductList(list)
-    }
-    const handleItemAdd = () => {
-        setProductList([...productList, { productId: "", productQuantity: 1 }])
-    }
+
+    //Read and set data from stockcard document
+    useEffect(() => {
+        if (itemName != undefined) {
+            const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
+                setItemName(doc.data().description)
+                setItemCurrentQuantity(doc.data().qty)
+            });
+        }
+    }, [itemId])
+
+    //----------------------Start of Dynamic form functions----------------------
+    const addItem = event => {
+        event.preventDefault();
+        setItems([
+            ...items,
+            {
+                itemId: itemId,
+                itemName: itemName,
+                itemQuantity: Number(itemQuantity),
+                itemCurrentQuantity: Number(itemCurrentQuantity),
+                itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity)
+            }
+        ]);
+        setItemId("IT999999");
+        setItemQuantity(1);
+    };
 
     const handleItemRemove = (index) => {
-        const list = [...productList]
+        const list = [...items]
         list.splice(index, 1)
-        setProductList(list)
+        setItems(list)
     }
-    //End of Dynamic Button functions ---------------------------
+
+    //----------------------End of Dynamic form functions----------------------
+
+
+    //----------------------Start of addRecord functions----------------------
+
+    //add document to database
+    const addRecord = async (purchDocNum) => {
+        setDoc(doc(db, "testPurchaseRecord", "PR" + Number(purchDocNum)), {
+            user: userID,
+            transaction_number: "PR" + Number(purchDocNum),
+            transaction_note: newNote,
+            transaction_date: newDate,
+            product_list: items,
+        });
+
+        setItems([]);
+        setNewNote("");
+        updateQuantity()  //update stockcard.qty function
+        updatePurchDocNum(purchDocNum) //update variables.purchDocNum function
+    }
+
+    //update stockcard.qty function
+    function updateQuantity() {
+        items.map((items) => {
+
+            const stockcardRef = doc(db, "stockcard", items.itemId);
+
+            // Set the "capital" field of the city 'DC'
+            updateDoc(stockcardRef, {
+                qty: items.itemNewQuantity
+            });
+
+        })
+    }
+
+    //update variables.purchDocNum function
+    function updatePurchDocNum(purchDocNum) {
+        const varColRef = doc(db, "variables", "var")
+        const newData = { purchDocNum: Number(purchDocNum) + 1 }
+
+        updateDoc(varColRef, newData)
+    }
+
+    //----------------------End of addRecord functions----------------------
+
+
+    useEffect(() => {
+        if (user) {
+            setUserID(user.uid)
+        }
+    }, [{ user }])
+
+
+    //current date
+    useEffect(() => {
+        newDate.setDate(newDate.getDate());
+        setNewDate(newDate.toISOString().substring(0, 10))
+
+    }, [])
+
+
+    useEffect(() => {
+        console.log(items)
+    }, [items])
+
+    useEffect(() => {
+        console.log(itemName)
+    }, [itemName])
+
 
 
 
@@ -56,69 +171,125 @@ function TestPage() {
 
             <div className='row'>
                 <div className='col-6 p-5'>
-
-
-                    <div className="row mb-2">
-                        <div className="col-6">Product Name</div>
-                        <div className="col-3">Quantity</div>
-                    </div>
-                    {productList.map((product, index) => (
-                        <div key={index} className="row">
-                            <div className="col-6 mb-3">
-
-                                <Form.Select
-                                    multiple={true}
-                                    defaultValue={3}
-                                    value={product.productId}
-                                    name="productId"
-                                    onChange={(e) => handleProductChange(e, index)}
-                                >
-                                    <option >Open this select menu</option>
-                                    <option value={1}>One</option>
-                                    <option value={2}>Two</option>
-                                    <option value={3}>Three</option>
-                                </Form.Select>
-                                {productList.length - 1 === index && productList.length < 10 && (
-                                    <Button
-                                        className="mt-3"
-                                        variant="outline-primary"
-                                        size="md"
-                                        onClick={handleItemAdd}>
-                                        Add
-                                    </Button>
-                                )}
-                            </div>
-                            <div className="col-3">
-                                <Form.Control
-                                    size="md"
-                                    type="number"
-                                    name="productQuantity"
-                                    placeholder="Quantity"
-                                    min={1}
-                                    value={product.productQuantity}
-                                    onChange={(e) => handleProductChange(e, index)}
-                                    required
-                                />
-                            </div>
-                            <div className="col-3">
-                                {productList.length > 1 && (
-                                    <Button
-                                        variant="outline-danger"
-                                        size="md"
-                                        onClick={() => handleItemRemove(index)}>
-                                        Remove
-                                    </Button>
-                                )}
-                            </div>
-                        </div >
-                    ))}
-
-                    <div className="row">
+                    <div className='row'>
                         <div className='col-6'>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Transaction Number</Form.Label>
+                                <Form.Control
+                                    defaultValue={varRef.purchDocNum}
+                                    placeholder={moment(newDate).format('LL')}
+                                    disabled
+                                />
+                            </Form.Group>
+                        </div>
+                        <div className='col-6'>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Transaction Date</Form.Label>
+                                <Form.Control
+                                    type='date'
+                                    value={newDate}
+                                    onChange={e => setNewDate(e.target.value)}
+                                />
+                            </Form.Group>
+                        </div>
+                    </div>
 
+                    <div className='row'>
+
+                        <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+                            <Form.Label>Note: (Optional)</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={2}
+                                onChange={(event) => { setNewNote(event.target.value); }}
+                            />
+                        </Form.Group>
+                    </div>
+
+                    <div className='row'>
+                        <h5>Add Item to List</h5>
+                        <hr></hr>
+                        <div className='col-6 p-1'>
+                            <Form.Select
+                                value={itemId}
+                                onChange={e => setItemId(e.target.value)}
+                            >
+                                <option
+                                    value="IT999999">
+                                    Select Item
+                                </option>
+                                {stockcard.map((stockcard) => {
+                                    return (
+                                        <option
+                                            key={stockcard.id}
+                                            value={stockcard.id}
+                                        >{stockcard.description}</option>
+                                    )
+                                })}
+                            </Form.Select>
+                        </div>
+                        <div className='col-4 p-1'>
+                            <Form.Control
+                                placeholder='Quantity'
+                                type='number'
+                                value={itemQuantity}
+                                onChange={e => setItemQuantity(e.target.value)}
+                            />
+
+                        </div>
+                        <div className='col-2 p-1'>
                             <Button
-                                className="btn btn-success"
-                                style={{ width: "150px" }}
+                                onClick={addItem}
+                                disabled={itemId === "IT999999" ? true : false}
+                            >
+                                <FontAwesomeIcon icon={faPlus} />
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className='row mt-4'>
+                        <h5>Purchase List</h5>
+                        <hr></hr>
+
+                        <Table striped bordered hover size="sm">
+                            <thead>
+                                <tr className='text-center bg-white'>
+                                    <th>Item ID</th>
+                                    <th>Item Description</th>
+                                    <th>Quantity</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items.map((item, index) => (
+                                    <tr
+                                        className='text-center'
+                                        key={index}>
+                                        <td>{item.itemId}</td>
+                                        <td>{item.itemName}</td>
+                                        <td>{item.itemQuantity}</td>
+                                        <td>
+                                            <Button
+                                                size='sm'
+                                                variant="outline-danger"
+                                                onClick={() => handleItemRemove(index)}>
+                                                <FontAwesomeIcon icon={faMinus} />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+
+                    </div>
+
+                    <div className='row mt-4'>
+                        <div className='col-10'></div>
+                        <div className='col-2'>
+                            <Button
+                                variant="success"
+                                disabled={items.length === 0 ? true : false}
+                                onClick={() => { addRecord(varRef.purchDocNum) }}
                             >
                                 Save
                             </Button>
@@ -129,18 +300,18 @@ function TestPage() {
 
                 <div className='col-6 p-5'>
                     <h1>productList Values: </h1>
-                    <ul>
-                        {productList.map((val, index) => (
-                            <li key={index}><strong>Product ID: </strong> {val.productId}   /   <strong>Quantity: </strong> {val.productQuantity} </li>
+                    <div>
 
-                        ))}
-                    </ul>
+
+                    </div>
+
+
 
                 </div>
 
             </div>
 
-        </div>
+        </div >
     )
 
 }

@@ -30,7 +30,7 @@ function NewPurchaseModal(props) {
         if (user) {
             setUserID(user.uid)
         }
-        
+
     }, [{ user }])
 
 
@@ -44,7 +44,7 @@ function NewPurchaseModal(props) {
 
     //read collection from stockcard
     useEffect(() => {
-        if(userID === undefined){
+        if (userID === undefined) {
 
             const stockcardCollectionRef = collection(db, "stockcard")
             const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
@@ -54,7 +54,7 @@ function NewPurchaseModal(props) {
             );
             return unsub;
         }
-        else{
+        else {
             const stockcardCollectionRef = collection(db, "stockcard")
             const q = query(stockcardCollectionRef, where("user", "==", userID));
 
@@ -106,8 +106,8 @@ function NewPurchaseModal(props) {
 
     const [multipleUpdate, setMultipleUpdate] = useState([]);//stockcard spec doc access
 
-       //update stockcard.qty function
-       function updateQuantity(qty) {
+    //update stockcard.qty function
+    function updateQuantity(qty) {
         productList.map((val) => {
 
             const unsub = onSnapshot(doc(db, "stockcard", val.productId), (doc) => {
