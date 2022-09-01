@@ -47,7 +47,7 @@ function TestPage() {
     //Read stock card collection from database
     useEffect(() => {
         const collectionRef = collection(db, "stockcard");
-        const q = query(collectionRef);
+        const q = query(collectionRef, where("qty", ">=" ,1));
 
         const unsub = onSnapshot(q, (snapshot) =>
             setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -76,7 +76,7 @@ function TestPage() {
                 itemName: itemName,
                 itemQuantity: Number(itemQuantity),
                 itemCurrentQuantity: Number(itemCurrentQuantity),
-                itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity)
+                itemNewQuantity: Number(itemCurrentQuantity) - Number(itemQuantity)
             }
         ]);
         setItemId("IT999999");
@@ -95,10 +95,10 @@ function TestPage() {
     //----------------------Start of addRecord functions----------------------
 
     //add document to database
-    const addRecord = async (purchDocNum) => {
-        setDoc(doc(db, "testPurchaseRecord", "PR" + Number(purchDocNum)), {
+    const addRecord = async (salesDocNum) => {
+        setDoc(doc(db, "sales_record", "SR" + Number(salesDocNum)), {
             user: userID,
-            transaction_number: "PR" + Number(purchDocNum),
+            transaction_number: "SR" + Number(salesDocNum),
             transaction_note: newNote,
             transaction_date: newDate,
             product_list: items,
@@ -107,7 +107,7 @@ function TestPage() {
         setItems([]);
         setNewNote("");
         updateQuantity()  //update stockcard.qty function
-        updatePurchDocNum(purchDocNum) //update variables.purchDocNum function
+        updatePurchDocNum(salesDocNum) //update variables.salesDocNum function
     }
 
     //update stockcard.qty function
@@ -124,10 +124,10 @@ function TestPage() {
         })
     }
 
-    //update variables.purchDocNum function
-    function updatePurchDocNum(purchDocNum) {
+    //update variables.salesDocNum function
+    function updatePurchDocNum(salesDocNum) {
         const varColRef = doc(db, "variables", "var")
-        const newData = { purchDocNum: Number(purchDocNum) + 1 }
+        const newData = { salesDocNum: Number(salesDocNum) + 1 }
 
         updateDoc(varColRef, newData)
     }
@@ -176,8 +176,7 @@ function TestPage() {
                             <Form.Group className="mb-3">
                                 <Form.Label>Transaction Number</Form.Label>
                                 <Form.Control
-                                    defaultValue={varRef.purchDocNum}
-                                    placeholder={moment(newDate).format('LL')}
+                                    defaultValue={varRef.salesDocNum}
                                     disabled
                                 />
                             </Form.Group>
@@ -233,6 +232,8 @@ function TestPage() {
                                 placeholder='Quantity'
                                 type='number'
                                 value={itemQuantity}
+                                min={1}
+                                max={itemCurrentQuantity}
                                 onChange={e => setItemQuantity(e.target.value)}
                             />
 
@@ -240,7 +241,7 @@ function TestPage() {
                         <div className='col-2 p-1'>
                             <Button
                                 onClick={addItem}
-                                disabled={itemId === "IT999999" ? true : false}
+                                disabled={itemId === "IT999999" , itemQuantity>itemCurrentQuantity ? true : false}
                             >
                                 <FontAwesomeIcon icon={faPlus} />
                             </Button>
@@ -289,7 +290,7 @@ function TestPage() {
                             <Button
                                 variant="success"
                                 disabled={items.length === 0 ? true : false}
-                                onClick={() => { addRecord(varRef.purchDocNum) }}
+                                onClick={() => { addRecord(varRef.salesDocNum) }}
                             >
                                 Save
                             </Button>

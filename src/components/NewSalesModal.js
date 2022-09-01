@@ -1,26 +1,37 @@
 import React from "react";
-import { Button, Form, Modal } from "react-bootstrap";
+import { Button, Form, Modal, Table } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { db } from "../firebase-config";
 import { collection, updateDoc, onSnapshot, query, doc, setDoc, where } from "firebase/firestore";
 import moment from "moment";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { UserAuth } from '../context/AuthContext'
+
+import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 
 function NewSalesModal(props) {
 
     //---------------------VARIABLES---------------------
-    const [stockcard, setStockcard] = useState([]); //stockcard collection
-    const [varRef, setVarRef] = useState([]); // variable collection
+
+
+    const { user } = UserAuth();//user credentials
+    const [userID, setUserID] = useState("");
     const [newNote, setNewNote] = useState(""); // note form input
-    const [queryList, setQueryList] = useState(["IT00018"]); //compound query access
-    const [queryQuantity, setQqueryQuantity] = useState([0]); //compound query access
+
+    const [varRef, setVarRef] = useState([]); // variable collection
+    const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+    const [items, setItems] = useState([]); // array of objects containing product information
+    const [itemId, setItemId] = useState("IT999999"); //product id
+    const [itemName, setItemName] = useState(""); //product description
+    const [itemQuantity, setItemQuantity] = useState(1); //product quantity
+    const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
+    const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
 
 
-    var curr = new Date();
-    curr.setDate(curr.getDate());
-    var date = curr.toISOString().substr(0, 10);
+
 
     //---------------------FUNCTIONS---------------------
 
@@ -32,105 +43,91 @@ function NewSalesModal(props) {
         return unsub;
     }, [])
 
-    //read collection from stockcard where qty is not 0
+
+    //Read stock card collection from database
     useEffect(() => {
-        const stockcardCollectionRef = collection(db, "stockcard")
-        const q = query(stockcardCollectionRef, where("qty", ">", 0));
+        const collectionRef = collection(db, "stockcard");
+        const q = query(collectionRef, where("qty", ">=", 1));
 
         const unsub = onSnapshot(q, (snapshot) =>
             setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
         );
-
-
         return unsub;
     }, [])
 
 
-    //Dynamic Add Product Button ------------------------------------------------------------
-    const [productList, setProductList] = useState([{ productId: "", productQuantity: 1 }]);
+    //Read and set data from stockcard document
+    useEffect(() => {
+        if (itemName != undefined) {
+            const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
+                setItemName(doc.data().description)
+                setItemCurrentQuantity(doc.data().qty)
+            });
+        }
+    }, [itemId])
 
-    const handleProductChange = (e, index) => {
-        const { name, value } = e.target
-        const list = [...productList];
-        list[index][name] = value
-        setProductList(list)
-    }
-    const handleItemAdd = () => {
-        setProductList([...productList, { productId: "", productQuantity: 1 }])
-    }
+    //----------------------Start of Dynamic form functions----------------------
+    const addItem = event => {
+        event.preventDefault();
+        setItems([
+            ...items,
+            {
+                itemId: itemId,
+                itemName: itemName,
+                itemQuantity: Number(itemQuantity),
+                itemCurrentQuantity: Number(itemCurrentQuantity),
+                itemNewQuantity: Number(itemCurrentQuantity) - Number(itemQuantity)
+            }
+        ]);
+        setItemId("IT999999");
+        setItemQuantity(1);
+    };
 
     const handleItemRemove = (index) => {
-        const list = [...productList]
+        const list = [...items]
         list.splice(index, 1)
-        setProductList(list)
+        setItems(list)
     }
-    //End of Dynamic Button functions ---------------------------
+
+    //----------------------End of Dynamic form functions----------------------
 
 
-
-
-    //stores list.productId array to queryList
-    useEffect(() => {
-        const TempArr = [];
-        productList.map((name) => {
-            TempArr.push(name.productId)
-        })
-        setQueryList(TempArr)
-    }, [productList])//list listener, rerenders when list value changes
-
-    //stores list.productId array to queryList
-    useEffect(() => {
-        const TempArr = [];
-        productList.map((name) => {
-            TempArr.push(name.productQuantity)
-        })
-        setQqueryQuantity(TempArr)
-    }, [productList])//list listener, rerenders when list value changes
-
-
+    //----------------------Start of addRecord functions----------------------
 
     //add document to database
-    const addRecord = async (salesDocNum, qty) => {
+    const addRecord = async (salesDocNum) => {
         setDoc(doc(db, "sales_record", "SR" + Number(salesDocNum)), {
-            document_date: date,
-            document_note: newNote,
-            document_number: "SR" + Number(salesDocNum),
-            productList
+            user: userID,
+            transaction_number: "SR" + Number(salesDocNum),
+            transaction_note: newNote,
+            transaction_date: newDate,
+            product_list: items,
         });
 
-        props.onHide() //close Modal
+        setItems([]);
+        setNewNote("");
+        updateQuantity()  //update stockcard.qty function
+        updatePurchDocNum(salesDocNum) //update variables.salesDocNum function
         successToast() //display success toast
 
-
-        updateSalesDocNum(salesDocNum) //update variables.purchDocNum function
-        updateQuantity(qty)  //update stockcard.qty function
-        setProductList([{ productId: "", productQuantity: 1 }]) // set number of productList row to default
     }
 
-
-    const [quantityHolder, setQuantityHolder] = useState([]);//stockcard spec doc access
-
-    useEffect(() => {
-        const unsub = onSnapshot(doc(db, "stockcard", "IT00001"), (doc) => {
-            setQuantityHolder(doc.data());
-        });
-
-        return unsub;
-    }, [])
-
     //update stockcard.qty function
-    function updateQuantity(qty) {
-        productList.map((val) => {
+    function updateQuantity() {
+        items.map((items) => {
 
-            const varColRef = doc(db, "stockcard", val.productId)
-            const newData = { qty: qty - Number(val.productQuantity) }
+            const stockcardRef = doc(db, "stockcard", items.itemId);
 
-            updateDoc(varColRef, newData)
+            // Set the "capital" field of the city 'DC'
+            updateDoc(stockcardRef, {
+                qty: items.itemNewQuantity
+            });
+
         })
     }
 
-    //update variables.purchDocNum function
-    function updateSalesDocNum(salesDocNum) {
+    //update variables.salesDocNum function
+    function updatePurchDocNum(salesDocNum) {
         const varColRef = doc(db, "variables", "var")
         const newData = { salesDocNum: Number(salesDocNum) + 1 }
 
@@ -141,7 +138,7 @@ function NewSalesModal(props) {
     const successToast = () => {
         toast.success('Sales Transaction Successfully Recorded!', {
             position: "top-right",
-            autoClose: 4996,
+            autoClose: 1000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
@@ -149,6 +146,23 @@ function NewSalesModal(props) {
             progress: undefined,
         });
     }
+
+    //----------------------End of addRecord functions----------------------
+
+
+    useEffect(() => {
+        if (user) {
+            setUserID(user.uid)
+        }
+    }, [{ user }])
+
+
+    //current date
+    useEffect(() => {
+        newDate.setDate(newDate.getDate());
+        setNewDate(newDate.toISOString().substring(0, 10))
+
+    }, [])
 
 
 
@@ -159,10 +173,9 @@ function NewSalesModal(props) {
             aria-labelledby="contained-modal-title-vcenter"
             centered
         >
-
             <ToastContainer
                 position="top-right"
-                autoClose={3500}
+                autoClose={1000}
                 hideProgressBar={false}
                 newestOnTop={false}
                 closeOnClick
@@ -172,6 +185,7 @@ function NewSalesModal(props) {
                 pauseOnHover
             />
 
+
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter" className="px-3">
                     Add Sales Record
@@ -179,117 +193,133 @@ function NewSalesModal(props) {
             </Modal.Header>
             <Modal.Body className="p-5">
 
-                <div className="row mt-2">
-                    <div className="col-8">
-                        <label>Document Number</label>
-                        <input
-                            className="form-control"
-                            type="text"
-                            value={varRef.salesDocNum}
-                            disabled />
+                <div className='row'>
+                    <div className='row'>
+                        <div className='col-6'>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Transaction Number</Form.Label>
+                                <Form.Control
+                                    defaultValue={varRef.salesDocNum}
+                                    disabled
+                                />
+                            </Form.Group>
+                        </div>
+                        <div className='col-6'>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Transaction Date</Form.Label>
+                                <Form.Control
+                                    type='date'
+                                    value={newDate}
+                                    onChange={e => setNewDate(e.target.value)}
+                                />
+                            </Form.Group>
+                        </div>
                     </div>
-                    <div className="col-4">
-                        <label>Date</label>
-                        <input
-                            className="form-control"
-                            value={moment(date).format('LL')}
-                            disabled
-                        />
-                    </div>
-                </div>
-                <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-                    <Form.Label>Note: (Optional)</Form.Label>
-                    <Form.Control
-                        as="textarea"
-                        rows={3}
-                        onChange={(event) => { setNewNote(event.target.value); }}
-                    />
-                </Form.Group>
 
-                <h5>Sell Products</h5>
-                <hr></hr>
-                <div className="row mb-2">
-                    <div className="col-6">Product Name</div>
-                    <div className="col-3">Quantity</div>
-                </div>
-                {productList.map((product, index) => (
-                    <div key={index} className="row">
-                        <div className="col-6 mb-3">
+                    <div className='row'>
+
+                        <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
+                            <Form.Label>Note: (Optional)</Form.Label>
                             <Form.Control
-                                hidden
-                                size="md"
-                                type="text"
-                                name="productId"
-                                value={product.productId}
-                                onChange={(e) => handleProductChange(e, index)}
-                                required
+                                as="textarea"
+                                rows={2}
+                                onChange={(event) => { setNewNote(event.target.value); }}
                             />
+                        </Form.Group>
+                    </div>
+
+                    <div className='row'>
+                        <h5>Add Item to List</h5>
+                        <hr></hr>
+                        <div className='col-6 p-1'>
                             <Form.Select
-                                defaultValue={0}
-                                name="productId"
-                                value={product.productId}
-                                onChange={(e) => handleProductChange(e, index)}
-                                required
+                                value={itemId}
+                                onChange={e => setItemId(e.target.value)}
                             >
                                 <option
-                                    value={0}
-                                >
-                                    Select item
+                                    value="IT999999">
+                                    Select Item
                                 </option>
-                                {stockcard.map((prod) => {
+                                {stockcard.map((stockcard) => {
                                     return (
                                         <option
-                                            key={prod.id}
-                                            value={prod.id}
-                                        >
-                                            {prod.description}
-                                        </option>
+                                            key={stockcard.id}
+                                            value={stockcard.id}
+                                        >{stockcard.description}</option>
                                     )
                                 })}
                             </Form.Select>
-                            {productList.length - 1 === index && productList.length < 10 && (
-                                <Button
-                                    className="mt-3"
-                                    variant="outline-primary"
-                                    size="md"
-                                    onClick={handleItemAdd}>
-                                    Add
-                                </Button>
-                            )}
                         </div>
-                        <div className="col-3">
+                        <div className='col-4 p-1'>
                             <Form.Control
-                                size="md"
-                                type="number"
-                                name="productQuantity"
-                                placeholder="Quantity"
+                                placeholder='Quantity'
+                                type='number'
+                                value={itemQuantity}
                                 min={1}
-                                value={product.productQuantity}
-                                onChange={(e) => handleProductChange(e, index)}
-                                required
+                                max={itemCurrentQuantity}
+                                onChange={e => setItemQuantity(e.target.value)}
                             />
+
                         </div>
-                        <div className="col-3">
-                            {productList.length > 1 && (
-                                <Button
-                                    variant="outline-danger"
-                                    size="md"
-                                    onClick={() => handleItemRemove(index)}>
-                                    Remove
-                                </Button>
-                            )}
+                        <div className='col-2 p-1'>
+                            <Button
+                                onClick={addItem}
+                                disabled={itemId === "IT999999", itemQuantity > itemCurrentQuantity ? true : false}
+                            >
+                                <FontAwesomeIcon icon={faPlus} />
+                            </Button>
                         </div>
-                    </div >
-                ))}
+                    </div>
+
+                    <div className='row mt-4'>
+                        <h5>Purchase List</h5>
+                        <hr></hr>
+
+                        <Table striped bordered hover size="sm">
+                            <thead>
+                                <tr className='text-center bg-white'>
+                                    <th>Item ID</th>
+                                    <th>Item Description</th>
+                                    <th>Quantity</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {items.map((item, index) => (
+                                    <tr
+                                        className='text-center'
+                                        key={index}>
+                                        <td>{item.itemId}</td>
+                                        <td>{item.itemName}</td>
+                                        <td>{item.itemQuantity}</td>
+                                        <td>
+                                            <Button
+                                                size='sm'
+                                                variant="outline-danger"
+                                                onClick={() => handleItemRemove(index)}>
+                                                <FontAwesomeIcon icon={faMinus} />
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+
+                    </div>
 
 
+
+
+
+                </div>
 
             </Modal.Body>
             <Modal.Footer>
                 <Button
-                    className="btn btn-success"
+                    variant="success"
                     style={{ width: "150px" }}
-                    onClick={() => { addRecord(varRef.salesDocNum, quantityHolder.qty) }}>
+                    disabled={items.length === 0 ? true : false}
+                    onClick={() => { addRecord(varRef.salesDocNum) }}>
                     Save
                 </Button>
             </Modal.Footer>
