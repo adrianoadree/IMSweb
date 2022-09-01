@@ -22,17 +22,11 @@ function NewPurchaseModal(props) {
     const [userID, setUserID] = useState("");
     const [newNote, setNewNote] = useState(""); // note form input
 
-    const [supplier, setSupplier] = useState([]); //supplier Collection
-    const [prodSupplier, setProdSupplier] = useState(""); //supplier Collection
-
-
     const [varRef, setVarRef] = useState([]); // variable collection
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
     const [items, setItems] = useState([]); // array of objects containing product information
     const [itemId, setItemId] = useState("IT999999"); //product id
     const [itemName, setItemName] = useState(""); //product description
-    const [itemPurchasePrice, setItemPurchasePrice] = useState(0); //product p_price
-    const [itemSellingPrice, setItemSellingPrice] = useState(0); //product s_price
     const [itemQuantity, setItemQuantity] = useState(1); //product quantity
     const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
     const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
@@ -48,54 +42,17 @@ function NewPurchaseModal(props) {
         return unsub;
     }, [])
 
-    //Read supplier collection from database
-    useEffect(() => {
-
-        if (userID === undefined) {
-
-            const supplierCollectionRef = collection(db, "supplier")
-            const q = query(supplierCollectionRef, where("user", "==", "DONOTDELETE"));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setSupplier(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-        else {
-            const supplierCollectionRef = collection(db, "supplier")
-            const q = query(supplierCollectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setSupplier(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-
-    }, [userID])
-
 
     //Read stock card collection from database
     useEffect(() => {
-        if (userID === undefined) {
-    
-          const stockcardCollectionRef = collection(db, "stockcard")
-          const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
-    
-          const unsub = onSnapshot(q, (snapshot) =>
+        const collectionRef = collection(db, "stockcard");
+        const q = query(collectionRef);
+
+        const unsub = onSnapshot(q, (snapshot) =>
             setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-        }
-        else {
-          const stockcardCollectionRef = collection(db, "stockcard")
-          const q = query(stockcardCollectionRef, where("user", "==", userID));
-    
-          const unsub = onSnapshot(q, (snapshot) =>
-            setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-        }
-      }, [userID])
+        );
+        return unsub;
+    }, [])
 
 
     //Read and set data from stockcard document
@@ -104,8 +61,6 @@ function NewPurchaseModal(props) {
             const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
                 setItemName(doc.data().description)
                 setItemCurrentQuantity(doc.data().qty)
-                setItemSellingPrice(doc.data().s_price)
-                setItemPurchasePrice(doc.data().p_price)
             });
         }
     }, [itemId])
@@ -119,8 +74,6 @@ function NewPurchaseModal(props) {
                 itemId: itemId,
                 itemName: itemName,
                 itemQuantity: Number(itemQuantity),
-                itemSPrice: Number(itemSellingPrice),
-                itemPPrice: Number(itemPurchasePrice),
                 itemCurrentQuantity: Number(itemCurrentQuantity),
                 itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity)
             }
@@ -145,9 +98,8 @@ function NewPurchaseModal(props) {
         setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
             user: userID,
             transaction_number: "PR" + Number(purchDocNum),
-            transaction_date: newDate,
-            transaction_supplier: prodSupplier,
             transaction_note: newNote,
+            transaction_date: newDate,
             product_list: items,
         });
 
@@ -261,41 +213,6 @@ function NewPurchaseModal(props) {
                                 />
                             </Form.Group>
                         </div>
-                    </div>
-
-                    <div className='row'>
-                        <div className="col-8">
-                            <Form.Group className="mb-3">
-                                <Form.Label>Supplier</Form.Label>
-                                <Form.Select
-                                    value={prodSupplier}
-                                    onChange={e => setProdSupplier(e.target.value)}
-                                >
-                                    <option>
-                                        Select Supplier
-                                    </option>
-                                    {supplier.map((supplier) => {
-                                        return (
-                                            <option
-                                                key={supplier.id}
-                                                value={supplier.supplier_name}
-                                            >{supplier.supplier_name}</option>
-                                        )
-                                    })}
-                                </Form.Select>
-                            </Form.Group>
-                        </div>
-                        <div className="col-4">
-                            <Form.Group className="mb-3">
-                                <Form.Label className="text-muted">Supplier Not on List?</Form.Label>
-                                <Button
-                                    variant="outline-primary">
-                                    New Supplier
-                                </Button>
-                            </Form.Group>
-
-                        </div>
-
                     </div>
 
                     <div className='row'>
