@@ -16,6 +16,13 @@ function TestPage() {
 
     //---------------------VARIABLES---------------------
 
+    const [buttonBool, setButtonBool] = useState(true); // note form input
+
+
+
+
+
+
 
     const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
@@ -35,6 +42,30 @@ function TestPage() {
 
     //---------------------FUNCTIONS---------------------
 
+    //buttonBool
+    useEffect(() => {
+        if (itemQuantity <= itemCurrentQuantity && itemId != "IT999999" && itemQuantity != 0) {
+            setButtonBool(false)
+        }
+        else {
+            setButtonBool(true)
+        }
+    }, [itemQuantity])
+
+    //buttonBool
+    useEffect(() => {
+        if (itemQuantity <= itemCurrentQuantity && itemId != "IT999999" && itemQuantity != 0) {
+            setButtonBool(false)
+        }
+        else {
+            setButtonBool(true)
+        }
+    }, [itemId])
+
+    
+
+    
+
     //fetch variable collection
     useEffect(() => {
         const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
@@ -47,7 +78,7 @@ function TestPage() {
     //Read stock card collection from database
     useEffect(() => {
         const collectionRef = collection(db, "stockcard");
-        const q = query(collectionRef, where("qty", ">=" ,1));
+        const q = query(collectionRef, where("qty", ">=", 1));
 
         const unsub = onSnapshot(q, (snapshot) =>
             setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -241,7 +272,7 @@ function TestPage() {
                         <div className='col-2 p-1'>
                             <Button
                                 onClick={addItem}
-                                disabled={itemId === "IT999999" , itemQuantity>itemCurrentQuantity ? true : false}
+                                disabled={buttonBool ? true : false}
                             >
                                 <FontAwesomeIcon icon={faPlus} />
                             </Button>

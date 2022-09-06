@@ -46,16 +46,24 @@ function NewProductModal(props) {
   const addProduct = async (productId) => {
 
     setDoc(doc(db, "stockcard", "IT" + Number(varRef.productId)), {
+      user: user.uid,
       description: newProductName,
       p_price: Number(newPriceP),
       s_price: Number(newPriceS),
       qty: 0,
       category: newProdCategory,
       barcode: 0,
-      user: user.uid
+      img: "",
+      analytics_highestDailySales: 0,
+      analytics_averageDailySales: 0,
+      analytics_safetyStock: 0,
+      analytics_reorderpointLevel: 0,
+      analytics_leadtime: 0,
     });
-    updateNewProdId(productId)
 
+
+
+    updateNewProdId(productId)
     successToast();
   }
 

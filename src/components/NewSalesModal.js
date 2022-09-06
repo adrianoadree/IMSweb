@@ -17,6 +17,9 @@ function NewSalesModal(props) {
     //---------------------VARIABLES---------------------
 
 
+
+
+
     const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
     const [newNote, setNewNote] = useState(""); // note form input
@@ -26,14 +29,18 @@ function NewSalesModal(props) {
     const [items, setItems] = useState([]); // array of objects containing product information
     const [itemId, setItemId] = useState("IT999999"); //product id
     const [itemName, setItemName] = useState(""); //product description
+    const [itemPurchasePrice, setItemPurchasePrice] = useState(0); //product p_price
+    const [itemSellingPrice, setItemSellingPrice] = useState(0); //product s_price
     const [itemQuantity, setItemQuantity] = useState(1); //product quantity
     const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
     const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
+    const [buttonBool, setButtonBool] = useState(false); // button disabler
 
 
 
 
     //---------------------FUNCTIONS---------------------
+
 
     //fetch variable collection
     useEffect(() => {
@@ -44,16 +51,27 @@ function NewSalesModal(props) {
     }, [])
 
 
-    //Read stock card collection from database
     useEffect(() => {
-        const collectionRef = collection(db, "stockcard");
-        const q = query(collectionRef, where("qty", ">=", 1));
+        if (userID === undefined) {
 
-        const unsub = onSnapshot(q, (snapshot) =>
-            setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-    }, [])
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", userID), where("qty", ">=", 1));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
 
 
     //Read and set data from stockcard document
@@ -62,6 +80,8 @@ function NewSalesModal(props) {
             const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
                 setItemName(doc.data().description)
                 setItemCurrentQuantity(doc.data().qty)
+                setItemSellingPrice(doc.data().s_price)
+                setItemPurchasePrice(doc.data().p_price)
             });
         }
     }, [itemId])
@@ -75,6 +95,8 @@ function NewSalesModal(props) {
                 itemId: itemId,
                 itemName: itemName,
                 itemQuantity: Number(itemQuantity),
+                itemSPrice: Number(itemSellingPrice),
+                itemPPrice: Number(itemPurchasePrice),
                 itemCurrentQuantity: Number(itemCurrentQuantity),
                 itemNewQuantity: Number(itemCurrentQuantity) - Number(itemQuantity)
             }
@@ -88,6 +110,26 @@ function NewSalesModal(props) {
         list.splice(index, 1)
         setItems(list)
     }
+
+    //buttonBool
+    useEffect(() => {
+        if (itemQuantity <= itemCurrentQuantity && itemId != "IT999999" && itemQuantity != 0) {
+            setButtonBool(false)
+        }
+        else {
+            setButtonBool(true)
+        }
+    }, [itemQuantity])
+
+    //buttonBool
+    useEffect(() => {
+        if (itemQuantity <= itemCurrentQuantity && itemId != "IT999999" && itemQuantity != 0) {
+            setButtonBool(false)
+        }
+        else {
+            setButtonBool(true)
+        }
+    }, [itemId])
 
     //----------------------End of Dynamic form functions----------------------
 
@@ -264,7 +306,7 @@ function NewSalesModal(props) {
                         <div className='col-2 p-1'>
                             <Button
                                 onClick={addItem}
-                                disabled={itemId === "IT999999", itemQuantity > itemCurrentQuantity ? true : false}
+                                disabled={buttonBool ? true : false}
                             >
                                 <FontAwesomeIcon icon={faPlus} />
                             </Button>

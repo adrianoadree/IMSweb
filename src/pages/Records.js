@@ -17,19 +17,17 @@ function Records() {
 
   //---------------------VARIABLES---------------------
 
-  const [modalShow, setModalShow] = useState(false); //add new sales record modal
-  const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]); //purchase_record Collection
-  const [purchaseRecord, setPurchaseRecord] = useState([]); //purchase_record spec doc
+  const { user } = UserAuth();//user credentials
+  const [userID, setUserID] = useState("");
+  const [modalShow, setModalShow] = useState(false);
   const [docId, setDocId] = useState("PR10001") // doc id variable
+  const [purchRecord, setPurchRecord] = useState([]);
+  const [purchDoc, setPurchDoc] = useState([]);
+
   const [list, setList] = useState([
     { productId: "productName1", productQuantity: 1 },
     { productId: "productName2", productQuantity: 2 },
   ]); // array of purchase_record list of prodNames
-  const [queryList, setQueryList] = useState([]); //compound query access
-  const [stockcardData, setStockcardData] = useState([{}]);
-  const [total, setTotal] = useState(0); //total amount
-  const { user } = UserAuth();//user credentials
-  const [userID, setUserID] = useState("");
 
   //---------------------FUNCTIONS---------------------
 
@@ -43,45 +41,41 @@ function Records() {
 
   //read Functions
 
+  //read sales_record collection
   useEffect(() => {
-    //read purchase_record collection
+
     if (userID === undefined) {
 
       const purchaseRecordCollectionRef = collection(db, "purchase_record")
       const q = query(purchaseRecordCollectionRef, where("user", "==", "DONOTDELETE"));
 
       const unsub = onSnapshot(q, (snapshot) =>
-        setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        setPurchRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
       return unsub;
     }
     else {
-
       const purchaseRecordCollectionRef = collection(db, "purchase_record")
       const q = query(purchaseRecordCollectionRef, where("user", "==", userID));
 
       const unsub = onSnapshot(q, (snapshot) =>
-        setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        setPurchRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
       return unsub;
-
     }
-
 
   }, [userID])
 
-
+  //read sales_record collection
   useEffect(() => {
-    //fetch purchase_record spec Document
     async function readPurchDoc() {
       const purchRecord = doc(db, "purchase_record", docId)
       const docSnap = await getDoc(purchRecord)
       if (docSnap.exists()) {
-        setPurchaseRecord(docSnap.data());
+        setPurchDoc(docSnap.data());
       }
     }
     readPurchDoc();
-
   }, [docId])
 
 
@@ -136,7 +130,7 @@ function Records() {
     //read list of product names in product list
     async function fetchPurchDoc() {
       const unsub = await onSnapshot(doc(db, "purchase_record", docId), (doc) => {
-        setList(doc.data().productList);
+        setList(doc.data().product_list);
       });
       return unsub;
     }
