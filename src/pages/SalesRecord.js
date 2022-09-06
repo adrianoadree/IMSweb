@@ -3,20 +3,12 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
-<<<<<<< Updated upstream
 import { Tab, ListGroup, Card, Table, Button, Nav } from "react-bootstrap";
 import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import NewSalesModal from "../components/NewSalesModal";
-=======
-import { Tab, ListGroup, Card, Table, Button, Nav, FormControl } from "react-bootstrap";
-import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign, faSearch } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Create, Calendar, Document, InformationCircle } from 'react-ionicons'
-import NewSalesModal from "../components/NewSalesModal";
-import { UserAuth } from '../context/AuthContext'
->>>>>>> Stashed changes
 import moment from "moment";
+import { UserAuth } from '../context/AuthContext'
 
 
 function SalesRecord() {
@@ -33,11 +25,8 @@ function SalesRecord() {
     { productId: "productName1", productQuantity: 1 },
     { productId: "productName2", productQuantity: 2 },
   ]); // array of purchase_record list of prodNames
-<<<<<<< Updated upstream
   const [queryList, setQueryList] = useState([]); //compound query access
   const [stockcardData, setStockcardData] = useState([{}]);
-=======
->>>>>>> Stashed changes
 
 
   //---------------------FUNCTIONS---------------------
@@ -98,7 +87,6 @@ function SalesRecord() {
 
 
   useEffect(() => {
-<<<<<<< Updated upstream
     console.log("Updated query list: ", queryList)
   }, [queryList])  //queryList listener, rerenders when queryList changes
 
@@ -141,8 +129,6 @@ function SalesRecord() {
 
 
   useEffect(() => {
-=======
->>>>>>> Stashed changes
     //read list of product names in product list
     async function fetchSalesDoc() {
       const unsub = await onSnapshot(doc(db, "sales_record", docId), (doc) => {
@@ -163,16 +149,12 @@ function SalesRecord() {
   }
 
 
-<<<<<<< Updated upstream
 
 
-=======
->>>>>>> Stashed changes
   return (
     <div>
       <Navigation />
       <Tab.Container id="list-group-tabs-example" defaultActiveKey="main">
-<<<<<<< Updated upstream
         <div className="row bg-light">
           <div className="col-3 p-5">
             <Card className="shadow">
@@ -200,7 +182,7 @@ function SalesRecord() {
                 <ListGroup
                   variant="flush"
                 >
-                  {purchaseRecordCollection.map((purch) => {
+                  {salesRecordCollection.map((purch) => {
                     return (
                       <ListGroup.Item
                         action
@@ -284,9 +266,9 @@ function SalesRecord() {
                   <div className="row px-5 py-3 bg-white shadow">
                     <div className="row pt-4 px-2 bg-white">
                       <div className="col-9">
-                        <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong>{purchaseRecord.document_number}</strong></small><br />
-                        <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: <strong>{moment(purchaseRecord.document_date).format('LL')}</strong></small><br />
-                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: <strong>{purchaseRecord.document_note}</strong></small><br />
+                        <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong>{salesRecord.document_number}</strong></small><br />
+                        <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: <strong>{moment(salesRecord.document_date).format('LL')}</strong></small><br />
+                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: <strong>{salesRecord.document_note}</strong></small><br />
                       </div>
                       <div className="col-3">
                         <Button
@@ -296,180 +278,9 @@ function SalesRecord() {
                         >
                           Delete Record <FontAwesomeIcon icon={faTrashCan} />
                         </Button>
-=======
-        <div className="row contents">
-          <div className="row py-4 px-5">
-            <div className='sidebar'>
-              <Card className='sidebar-card'>
-                <Card.Header>
-                  <div className='row'>
-                    <div className="col-1">
-                      <Button className="fc-search left-full-curve no-click me-0"
-                        onClick={() => setModalShow(true)}>
-                        <FontAwesomeIcon icon={faSearch} />
-                      </Button>
-                    </div>
-                    <div className="col-11">
-                      <FormControl
-                        placeholder="Search"
-                        aria-label="Search"
-                        aria-describedby="basic-addon2"
-                        className="fc-search right-full-curve mw-0"
-                      />
-                    </div>
-                  </div>
-                </Card.Header>
-                <Card.Body style={{ height: "500px" }}>
-                  <div className="row g-1 sidebar-header">
-                    <div className="col-4 left-curve">
-                      Doc
-                    </div>
-                    <div className="col-8 right-curve">
-                      Date
-                    </div>
-                  </div>
-                  <div id='scrollbar'>
-                    <ListGroup variant="flush">
-                      {salesRecordCollection.map((sales) => {
-                        return (
-                          <ListGroup.Item
-                            action
-                            key={sales.id}
-                            eventKey={sales.id}
-                            onClick={() => { setDocId(sales.id) }}>
-                            <div className="row gx-0 sidebar-contents">
-                              <div className="col-4">
-                                <small>{sales.transaction_number}</small>
-                              </div>
-                              <div className="col-8">
-                                <small>{moment(sales.transaction_date).format('ll')}</small>
-                              </div>
-                            </div>
-                          </ListGroup.Item>
-                        )
-                      })}
-                    </ListGroup>
-                  </div>
-                </Card.Body>
-              </Card>
-            </div>
-            <div className="divider"></div>
-            <div className="data-contents">
-              <Tab.Content>
-                <Tab.Pane eventKey="main">
-                  <div className="">
-                    <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/salesrecord">
-                      <Nav.Item>
-                        <Nav.Link as={Link} to="/records">Purchase History</Nav.Link>
-                      </Nav.Item>
-                      <Nav.Item>
-                        <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
-                      </Nav.Item>
-
-                    </Nav>
-                    <div className="row m-0">
-                      <div className="row py-1 m-0">
-                        <div className="col">
-                          <span>
-                            <InformationCircle
-                              className="me-2 pull-down"
-                              color={'#0d6efd'}
-                              title={'Category'}
-                              height="40px"
-                              width="40px"
-                            />
-                          </span>
-                          <h4 className="data-id">Document ID</h4>
-                        </div>
-                        <div className="col">
-                          <div className="float-end">
-                            <NewSalesModal
-                              show={modalShow}
-                              onHide={() => setModalShow(false)}
-                            />
-                            <Button
-                              className="add me-1"
-                              data-title="Add New Purchase Record"
-                              onClick={() => setModalShow(true)}
-                            >
-                              <FontAwesomeIcon icon={faPlus} />
-                            </Button>
-                            <Button
-                              disabled
-                              className="delete me-1"
-                              data-title="Delete Purchase Record"
-                              onClick={() => { deleteSalesRecord(docId) }}
-                            >
-                              <FontAwesomeIcon icon={faTrashCan} />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="row p-1 data-specs m-0" id="record-info">
-                        <div className="mb-3">
-                          <div className="row m-0 mt-2">
-                            <div className="col-12">
-                              <span className="data-icon lg">
-                                <Calendar
-                                  className="me-2 pull-down"
-                                  color={'#00000'}
-                                  title={'Category'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </span>
-                              <span className="data-label lg">
-                                Document Date
-                              </span>
-                            </div>
-                          </div>
-                          <div className="row m-0 mt-2">
-                            <div className="col-12">
-                              <span className="data-icon lg">
-                                <Create
-                                  className="me-2 pull-down"
-                                  color={'#00000'}
-                                  title={'Category'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </span>
-                              <span className="data-label lg">
-                                Document Note
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <Table striped bordered hover size="sm" className="records-table">
-                          <thead>
-                            <tr>
-                              <th className='ic pth px-3'>Item Code</th>
-                              <th className="qc pth text-center">Quantity</th>
-                              <th className='dc pth text-center'>Description</th>
-                              <th className='pp pth text-center'>Selling Price</th>
-                              <th className='ext pth text-center'>Extension</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td className='ic pt-entry px-3'>
-                              </td>
-                              <td className="qc pt-entry text-center">
-                              </td>
-                              <td className="dc pt-entry text-center">
-                              </td>
-                              <td className="pp pt-entry text-center">
-                              </td>
-                              <td className="ext pt-entry text-center" >
-                              </td>
-                            </tr>
-                          </tbody>
-                        </Table>
->>>>>>> Stashed changes
                       </div>
 
                     </div>
-<<<<<<< Updated upstream
 
 
                     <span><br /></span>
@@ -515,146 +326,14 @@ function SalesRecord() {
 
 
                       </Table>
-=======
-                  </div>
-                </Tab.Pane>
-                <Tab.Pane eventKey={docId}>
-                  <div>
-                    <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
-                      <Nav.Item>
-                        <Nav.Link as={Link} to="/records">Purchase History</Nav.Link>
-                      </Nav.Item>
-                      <Nav.Item>
-                        <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
-                      </Nav.Item>
-
-                    </Nav>
-                    <div className="row m-0">
-                      <div className="row py-1 m-0">
-                        <div className="col">
-                          <span>
-                            <InformationCircle
-                              className="me-2 pull-down"
-                              color={'#0d6efd'}
-                              title={'Category'}
-                              height="40px"
-                              width="40px"
-                            />
-                          </span>
-                          <h4 className="data-id">{salesRecord.document_number}</h4>
-                        </div>
-                        <div className="col">
-                          <div className="float-end">
-                            <NewSalesModal
-                              show={modalShow}
-                              onHide={() => setModalShow(false)}
-                            />
-                            <Button
-                              className="add me-1"
-                              data-title="Add New Purchase Record"
-                              onClick={() => setModalShow(true)}
-                            >
-                              <FontAwesomeIcon icon={faPlus} />
-                            </Button>
-                            <Button
-                              className="delete me-1"
-                              data-title="Delete Purchase Record"
-                              onClick={() => { deleteSalesRecord(docId) }}
-                            >
-                              <FontAwesomeIcon icon={faTrashCan} />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="row p-1 m-0 data-specs" id="record-info">
-                        <div className="mb-3">
-                          <div className="row m-0 mt-2">
-                            <div className="col-12">
-                              <span className="data-icon lg">
-                                <Calendar
-                                  className="me-2 pull-down"
-                                  color={'#00000'}
-                                  title={'Category'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </span>
-                              <span className="data-label lg">
-                                {moment(salesRecord.document_date).format('LL')}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="row m-0 mt-2">
-                            <div className="col-12">
-                              <span className="data-icon lg">
-                                <Create
-                                  className="me-2 pull-down"
-                                  color={'#00000'}
-                                  title={'Category'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </span>
-                              <span className="data-label lg">
-                                {salesRecord.document_note}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <Table striped bordered hover size="sm" className="records-table">
-                          <thead>
-                            <tr>
-                              <th className='ic pth px-3'>Item Code</th>
-                              <th className="qc pth text-center">Quantity</th>
-                              <th className='dc pth text-center'>Description</th>
-                              <th className='pp pth text-center'>Selling Price</th>
-                              <th className='ext pth text-center'>Extension</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {list.map((sales, index) => (
-                              <tr key={index}>
-                                <td className='ic pt-entry px-3'>
-                                  {sales.itemId}
-                                </td>
-                                <td className="qc pt-entry text-center">
-                                  {sales.itemQuantity}
-
-                                </td>
-                                <td className="dc pt-entry text-center">
-                                  {sales.itemName}
-
-                                </td>
-                                <td className="pp pt-entry text-center" >
-                                  <FontAwesomeIcon icon={faPesoSign} />
-                                  {sales.itemSPrice}
-
-                                </td>
-                                <td className="ext pt-entry text-center" >
-                                  <FontAwesomeIcon icon={faPesoSign} />
-                                  {sales.itemSPrice * sales.itemQuantity}
-                                </td>
-                              </tr>
-                            ))
-                            }
-                          </tbody>
-                        </Table>
-                      </div>
->>>>>>> Stashed changes
                     </div>
 
                   </div>
-<<<<<<< Updated upstream
 
 
                 </div>
               </Tab.Pane>
             </Tab.Content>
-=======
-                </Tab.Pane>
-              </Tab.Content>
-            </div>
->>>>>>> Stashed changes
           </div>
 
 

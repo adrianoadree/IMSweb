@@ -79,51 +79,9 @@ function Records() {
   }, [docId])
 
 
-
-
   //-----------------------------------------------------------------------------
+  
 
-  useEffect(() => {
-    console.log("Updated query list: ", queryList)
-  }, [queryList])  //queryList listener, rerenders when queryList changes
-
-
-  useEffect(() => {
-    console.log("stockcardData values: ", stockcardData)
-  }, [stockcardData])  //queryList listener, rerenders when queryList changes
-
-  useEffect(() => {
-    console.log("list value: ", list)
-  }, [list])  //queryList listener, rerenders when queryList changes
-
-
-
-  useEffect(() => {
-    //query stockcard document that contains, [queryList] datas
-    async function queryStockcardData() {
-      const stockcardRef = collection(db, "stockcard")
-
-      if (queryList.length !== 0) {
-        const q = await query(stockcardRef, where("__name__", "in", [...queryList]));
-        const unsub = onSnapshot(q, (snapshot) =>
-          setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
-        );
-        return unsub;
-      }
-    }
-    queryStockcardData();
-  }, [queryList])  //queryList listener, rerenders when queryList changes
-
-
-
-  //stores list.productId array to queryList
-  useEffect(() => {
-    const TempArr = [];
-    list.map((name) => {
-      TempArr.push(name.productId)
-    })
-    setQueryList(TempArr)
-  }, [list])//list listener, rerenders when list value changes
 
 
   useEffect(() => {
@@ -268,9 +226,9 @@ function Records() {
                   <div className="row px-5 py-3 bg-white shadow">
                     <div className="row pt-4 px-2 bg-white">
                       <div className="col-9">
-                        <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong>{purchaseRecord.document_number}</strong></small><br />
-                        <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: <strong>{moment(purchaseRecord.document_date).format('LL')}</strong></small><br />
-                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: <strong>{purchaseRecord.document_note}</strong></small><br />
+                        <small> <FontAwesomeIcon icon={faFile} /> Document Number: <strong></strong></small><br />
+                        <small> <FontAwesomeIcon icon={faCalendarDay} /> Date: <strong></strong></small><br />
+                        <small> <FontAwesomeIcon icon={faNoteSticky} /> Note: <strong></strong></small><br />
                       </div>
                       <div className="col-3">
                         <Button
@@ -302,28 +260,23 @@ function Records() {
                           {list.map((prod, index) => (
 
                             <tr key={index}>
-                              <td className='px-3' key={prod.productId}>
+                              <td className='px-3'>
                                 {prod.productId}
                               </td>
 
-                              <td className="text-center" key={prod.productQuantity}>
-                                {prod.productQuantity}
+                              <td className="text-center">
                               </td>
 
-                              <td className="text-center" key={stockcardData[index]?.description}>
-                                {stockcardData[index]?.description}
+                              <td className="text-center">
                               </td>
 
                               <td className="text-center" >
                                 <FontAwesomeIcon icon={faPesoSign} />
-                                {stockcardData[index]?.p_price}
                               </td>
 
                               <td className="text-center" >
                                 <FontAwesomeIcon icon={faPesoSign} />
                                 {
-
-                                  stockcardData[index]?.p_price * prod.productQuantity
                                 }
                               </td>
                             </tr>
