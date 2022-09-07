@@ -20,20 +20,23 @@ function NewSalesModal(props) {
     const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
     const [newNote, setNewNote] = useState(""); // note form input
-
     const [varRef, setVarRef] = useState([]); // variable collection
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
     const [items, setItems] = useState([]); // array of objects containing product information
     const [itemId, setItemId] = useState("IT999999"); //product id
     const [itemName, setItemName] = useState(""); //product description
+    const [itemSPrice, setItemSPrice] = useState(0); //product Selling Price
+    const [itemPPrice, setItemPPrice] = useState(0); //product Purchase Price
     const [itemQuantity, setItemQuantity] = useState(1); //product quantity
     const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
     const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
+    const [buttonBool, setButtonBool] = useState(true); //button disabler
 
 
 
 
     //---------------------FUNCTIONS---------------------
+    
 
     //fetch variable collection
     useEffect(() => {
@@ -46,14 +49,27 @@ function NewSalesModal(props) {
 
     //Read stock card collection from database
     useEffect(() => {
-        const collectionRef = collection(db, "stockcard");
-        const q = query(collectionRef, where("qty", ">=", 1));
+        if (userID === undefined) {
 
-        const unsub = onSnapshot(q, (snapshot) =>
-            setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-    }, [])
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", userID), where("qty", ">=", 1));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
 
 
     //Read and set data from stockcard document
@@ -62,6 +78,8 @@ function NewSalesModal(props) {
             const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
                 setItemName(doc.data().description)
                 setItemCurrentQuantity(doc.data().qty)
+                setItemSPrice(doc.data().s_price)
+                setItemPPrice(doc.data().p_price)
             });
         }
     }, [itemId])
@@ -74,6 +92,8 @@ function NewSalesModal(props) {
             {
                 itemId: itemId,
                 itemName: itemName,
+                itemPPrice: Number(itemPPrice),
+                itemSPrice: Number(itemSPrice),
                 itemQuantity: Number(itemQuantity),
                 itemCurrentQuantity: Number(itemCurrentQuantity),
                 itemNewQuantity: Number(itemCurrentQuantity) - Number(itemQuantity)
@@ -88,6 +108,25 @@ function NewSalesModal(props) {
         list.splice(index, 1)
         setItems(list)
     }
+
+    //ButtonDisabler
+    useEffect(() => {
+        if(itemId != "IT999999" && itemQuantity <= itemCurrentQuantity && itemQuantity > 0){
+            setButtonBool(false)
+        }
+        else{
+            setButtonBool(true)
+        }
+    }, [itemQuantity])
+    //ButtonDisabler
+    useEffect(() => {
+        if(itemId != "IT999999" && itemQuantity <= itemCurrentQuantity && itemQuantity > 0){
+            setButtonBool(false)
+        }
+        else{
+            setButtonBool(true)
+        }
+    }, [itemId])
 
     //----------------------End of Dynamic form functions----------------------
 
@@ -264,7 +303,7 @@ function NewSalesModal(props) {
                         <div className='col-2 p-1'>
                             <Button
                                 onClick={addItem}
-                                disabled={itemId === "IT999999", itemQuantity > itemCurrentQuantity ? true : false}
+                                disabled={buttonBool ? true : false}
                             >
                                 <FontAwesomeIcon icon={faPlus} />
                             </Button>

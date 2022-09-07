@@ -30,7 +30,7 @@ const Navigation = () => {
       <Navbar collapseOnSelect expand="lg" className="custom-nav">
         <Container>
           <LinkContainer to="/">
-            <Navbar.Brand><img id="brand-img"/></Navbar.Brand>
+            <Navbar.Brand><img id="brand-img"/>IMS</Navbar.Brand>
           </LinkContainer>
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">

@@ -9,7 +9,7 @@ import { UserAuth } from '../context/AuthContext'
 
 import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-
+import NewSupplierModal from '../components/NewSupplierModal'
 
 
 function NewPurchaseModal(props) {
@@ -24,9 +24,15 @@ function NewPurchaseModal(props) {
 
     const [varRef, setVarRef] = useState([]); // variable collection
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+    const [supplierCol, setSupplierCol] = useState([]); // stockcardCollection variable
+    const [supplierModalShow, setSupplierModalShow] = useState(false); //add new sales record modal
+
     const [items, setItems] = useState([]); // array of objects containing product information
     const [itemId, setItemId] = useState("IT999999"); //product id
     const [itemName, setItemName] = useState(""); //product description
+    const [itemSupplier, setItemSupplier] = useState(""); //product description
+    const [itemSPrice, setItemSPrice] = useState(0); //product Selling Price
+    const [itemPPrice, setItemPPrice] = useState(0); //product Purchase Price
     const [itemQuantity, setItemQuantity] = useState(1); //product quantity
     const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
     const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
@@ -45,14 +51,63 @@ function NewPurchaseModal(props) {
 
     //Read stock card collection from database
     useEffect(() => {
-        const collectionRef = collection(db, "stockcard");
-        const q = query(collectionRef);
+        if (userID === undefined) {
 
-        const unsub = onSnapshot(q, (snapshot) =>
-            setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [userID])
+
+    //fetch variable collection
+    useEffect(() => {
+        const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
+            setVarRef(doc.data());
+        });
         return unsub;
     }, [])
+
+
+    //Read supplier collection from database
+    useEffect(() => {
+        if (userID === undefined) {
+
+            const collectionRef = collection(db, "supplier")
+            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setSupplierCol(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+
+            const collectionRef = collection(db, "supplier")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setSupplierCol(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [userID])
+
 
 
     //Read and set data from stockcard document
@@ -61,6 +116,8 @@ function NewPurchaseModal(props) {
             const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
                 setItemName(doc.data().description)
                 setItemCurrentQuantity(doc.data().qty)
+                setItemSPrice(doc.data().s_price)
+                setItemPPrice(doc.data().p_price)
             });
         }
     }, [itemId])
@@ -73,6 +130,8 @@ function NewPurchaseModal(props) {
             {
                 itemId: itemId,
                 itemName: itemName,
+                itemPPrice: Number(itemPPrice),
+                itemSPrice: Number(itemSPrice),
                 itemQuantity: Number(itemQuantity),
                 itemCurrentQuantity: Number(itemCurrentQuantity),
                 itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity)
@@ -100,6 +159,7 @@ function NewPurchaseModal(props) {
             transaction_number: "PR" + Number(purchDocNum),
             transaction_note: newNote,
             transaction_date: newDate,
+            transaction_supplier: itemSupplier,
             product_list: items,
         });
 
@@ -214,6 +274,52 @@ function NewPurchaseModal(props) {
                             </Form.Group>
                         </div>
                     </div>
+
+
+                    <div className='row'>
+                        <div className='col-6'>
+                            <Form.Group className="mb-3">
+                                <Form.Label>Supplier</Form.Label>
+                                <Form.Select
+                                    value={itemSupplier}
+                                    onChange={e => setItemSupplier(e.target.value)}
+                                >
+                                    <option
+                                        value="0">
+                                        Select Supplier
+                                    </option>
+                                    {supplierCol.map((supplier) => {
+                                        return (
+                                            <option
+                                                key={supplier.supplier_name}
+                                                value={supplier.supplier_name}
+                                            >
+                                                {supplier.supplier_name}
+                                            </option>
+                                        )
+                                    })}
+                                </Form.Select>
+                            </Form.Group>
+                        </div>
+                        <div className='col-6'>
+                            <Form.Group className="mb-3">
+                                <Form.Label className="text-muted">Supplier not on the list?</Form.Label><br />
+                                <NewSupplierModal
+                                    show={supplierModalShow}
+                                    onHide={() => setSupplierModalShow(false)}
+                                />
+                                <Button
+                                    variant="outline-primary"
+                                    onClick={() => setSupplierModalShow(true)}
+                                >
+                                    New Supplier
+                                </Button>
+                            </Form.Group>
+                        </div>
+                    </div>
+
+
+
 
                     <div className='row'>
 

@@ -103,7 +103,7 @@ function StockcardPage({ isAuth }) {
       return true;
   }
 
-    //delete row 
+  //delete row 
   const deleteStockcard = async (id) => {
     const stockcardDoc = doc(db, "stockcard", id)
     deleteToast();
@@ -428,11 +428,11 @@ function StockcardPage({ isAuth }) {
                     </div>
                     <div className="col-11">
                       <FormControl
-                          placeholder="Search"
-                          aria-label="Search"
-                          aria-describedby="basic-addon2"
-                          className="fc-search right-full-curve mw-0"
-                        />
+                        placeholder="Search"
+                        aria-label="Search"
+                        aria-describedby="basic-addon2"
+                        className="fc-search right-full-curve mw-0"
+                      />
                     </div>
                   </div>
                 </Card.Header>
@@ -446,15 +446,15 @@ function StockcardPage({ isAuth }) {
                     </div>
                   </div>
                   <div id='scrollbar'>
-                  <ListGroup variant="flush">
-                    {stockcard.map((stockcard) => {
-                      return (
-                        <ListGroup.Item
-                          action
-                          key={stockcard.id}
-                          eventKey={stockcard.id}
-                          onClick={() => { setDocId(stockcard.id) }}>
-                              <div className="row gx-0 sidebar-contents">
+                    <ListGroup variant="flush">
+                      {stockcard.map((stockcard) => {
+                        return (
+                          <ListGroup.Item
+                            action
+                            key={stockcard.id}
+                            eventKey={stockcard.id}
+                            onClick={() => { setDocId(stockcard.id) }}>
+                            <div className="row gx-0 sidebar-contents">
                               <div className="col-4">
                                 {stockcard.id}
                               </div>
@@ -462,11 +462,11 @@ function StockcardPage({ isAuth }) {
                                 {stockcard.description}
                               </div>
                             </div>
-                        </ListGroup.Item>
-                      )
-                    })}
+                          </ListGroup.Item>
+                        )
+                      })}
 
-                  </ListGroup>
+                    </ListGroup>
                   </div>
                 </Card.Body>
               </Card>
@@ -482,10 +482,10 @@ function StockcardPage({ isAuth }) {
                     </div>
                     <div className="row py-1 m-0">
                       <div className="col">
-                      <span>
+                        <span>
                           <InformationCircle
                             className="me-2 pull-down"
-                            color={'#0d6efd'} 
+                            color={'#0d6efd'}
                             title={'Category'}
                             height="40px"
                             width="40px"
@@ -495,21 +495,28 @@ function StockcardPage({ isAuth }) {
                       </div>
                       <div className="col">
                         <div className="float-end">
-                            <Button
+                          <NewProductModal
+                            show={modalShow}
+                            onHide={() => setModalShow(false)}
+                          />
+                          <Button
                             className="add me-1"
-                            data-title="Add New Product">
-                              <FontAwesomeIcon icon={faPlus} />
-                            </Button>
-                            <Button
+                            data-title="Add New Product"
+                            onClick={() => setModalShow(true)}>
+                            <FontAwesomeIcon icon={faPlus} />
+                          </Button>
+                          <Button
+                            disabled
                             className="edit me-1"
                             data-title="Edit Product">
-                              <FontAwesomeIcon icon={faEdit} />
-                            </Button>
-                            <Button
+                            <FontAwesomeIcon icon={faEdit} />
+                          </Button>
+                          <Button
+                            disabled
                             className="delete me-1"
                             data-title="Delete Product">
-                              <FontAwesomeIcon icon={faTrashCan} />
-                            </Button>
+                            <FontAwesomeIcon icon={faTrashCan} />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -521,32 +528,32 @@ function StockcardPage({ isAuth }) {
                       </div>
                       <div className="col-10 py-3">
                         <div className="row mb-4">
-                            <div className="col-6 px-1">
-                              <span className="data-icon">
-                                <Cube
-                                  className="me-2 pull-down"
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
-                                  title={'Description'}
-                                />
-                              </span>
-                              <span className="data-label">Product Description</span>
-                            </div>
-                            <div className="col-6 px-1">
-                              <span className="data-icon">
+                          <div className="col-6 px-1">
+                            <span className="data-icon">
+                              <Cube
+                                className="me-2 pull-down"
+                                color={'#000000'}
+                                height="25px"
+                                width="25px"
+                                title={'Description'}
+                              />
+                            </span>
+                            <span className="data-label">Product Description</span>
+                          </div>
+                          <div className="col-6 px-1">
+                            <span className="data-icon">
                               <Grid
                                 className="me-2 pull-down"
-                                color={'#00000'} 
+                                color={'#00000'}
                                 title={'Category'}
                                 height="25px"
                                 width="25px"
                               />
-                              </span>
-                              <span className="data-label">
-                                Product Category
-                              </span>
-                            </div>
+                            </span>
+                            <span className="data-label">
+                              Product Category
+                            </span>
+                          </div>
                         </div>
                         <div className="row mb-4">
                           <div className="col-4 px-1">
@@ -563,13 +570,13 @@ function StockcardPage({ isAuth }) {
                           </div>
                           <div className="col-4 px-1">
                             <span className="data-icon sm">
-                            <Cart
-                              className="me-2 pull-down"
-                              color={'#00000'} 
-                              title={'Purchase Price'}
-                              height="25px"
-                              width="25px"
-                            />
+                              <Cart
+                                className="me-2 pull-down"
+                                color={'#00000'}
+                                title={'Purchase Price'}
+                                height="25px"
+                                width="25px"
+                              />
                             </span>
                             <span className="data-label sm">
                               Purchase Price
@@ -579,19 +586,19 @@ function StockcardPage({ isAuth }) {
                             <span className="data-icon sm">
                               <Barc
                                 className="me-2 pull-down"
-                                color={'#00000'} 
+                                color={'#00000'}
                                 title={'Category'}
                                 height="25px"
                                 width="25px"
-                                />
+                              />
                             </span>
                             <span className="data-label sm">
                               Barcode
                             </span>
                           </div>
                         </div>
-                    </div>
-                    <div className="row data-specs-add m-0">
+                      </div>
+                      <div className="row data-specs-add m-0">
                         <div className="col-4">
                           Quantity:
                         </div>
@@ -602,22 +609,22 @@ function StockcardPage({ isAuth }) {
                           Total Quantity Out:
                         </div>
                       </div>
+                    </div>
                   </div>
-                </div>
                 </Tab.Pane>
 
                 <Tab.Pane eventKey={docId}>
-                <div className='row py-1 m-0' id="product-contents">
+                  <div className='row py-1 m-0' id="product-contents">
                     <div className='row m-0'>
                       <h1 className='text-center pb-2 module-title'>Inventory</h1>
                       <hr></hr>
                     </div>
                     <div className="row py-1 m-0">
                       <div className="col">
-                      <span>
+                        <span>
                           <InformationCircle
                             className="me-2 pull-down"
-                            color={'#0d6efd'} 
+                            color={'#0d6efd'}
                             title={'Category'}
                             height="40px"
                             width="40px"
@@ -627,32 +634,32 @@ function StockcardPage({ isAuth }) {
                       </div>
                       <div className="col">
                         <div className="float-end">
-                            <NewProductModal
-                              show={modalShow}
-                              onHide={() => setModalShow(false)}
-                            />
-                            <Button
+                          <NewProductModal
+                            show={modalShow}
+                            onHide={() => setModalShow(false)}
+                          />
+                          <Button
                             className="add me-1"
                             data-title="Add New Product"
                             onClick={() => setModalShow(true)}>
-                              <FontAwesomeIcon icon={faPlus} />
-                            </Button>
-                            <EditProductModal
-                              show={editShow}
-                              onHide={() => setEditShow(false)}
-                            />
-                            <Button
+                            <FontAwesomeIcon icon={faPlus} />
+                          </Button>
+                          <EditProductModal
+                            show={editShow}
+                            onHide={() => setEditShow(false)}
+                          />
+                          <Button
                             className="edit me-1"
                             data-title="Edit Product"
                             onClick={() => setEditShow(true)}>
-                              <FontAwesomeIcon icon={faEdit} />
-                            </Button>
-                            <Button
+                            <FontAwesomeIcon icon={faEdit} />
+                          </Button>
+                          <Button
                             className="delete me-1"
                             data-title="Delete Product"
                             onClick={() => { deleteStockcard(docId) }}>
-                              <FontAwesomeIcon icon={faTrashCan} />
-                            </Button>
+                            <FontAwesomeIcon icon={faTrashCan} />
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -664,34 +671,34 @@ function StockcardPage({ isAuth }) {
                       </div>
                       <div className="col-10 py-3">
                         <div className="row mb-4">
-                            <div className="col-6 px-1">
-                              <span className="data-icon">
-                                <Cube
-                                  className="me-2 pull-down"
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
-                                  data-title={'Product Description'}
-                                />
-                              </span>
-                              <span className="data-label">
-                                {stockcardDoc.description}
-                                </span>
-                            </div>
-                            <div className="col-6 px-1">
-                              <span className="data-icon">
+                          <div className="col-6 px-1">
+                            <span className="data-icon">
+                              <Cube
+                                className="me-2 pull-down"
+                                color={'#000000'}
+                                height="25px"
+                                width="25px"
+                                data-title={'Product Description'}
+                              />
+                            </span>
+                            <span className="data-label">
+                              {stockcardDoc.description}
+                            </span>
+                          </div>
+                          <div className="col-6 px-1">
+                            <span className="data-icon">
                               <Grid
                                 className="me-2 pull-down"
-                                color={'#00000'} 
+                                color={'#00000'}
                                 data-title={'Product Category'}
                                 height="25px"
                                 width="25px"
                               />
-                              </span>
-                              <span className="data-label">
+                            </span>
+                            <span className="data-label">
                               {stockcardDoc.category}
-                              </span>
-                            </div>
+                            </span>
+                          </div>
                         </div>
                         <div className="row mb-4">
                           <div className="col-4 px-1">
@@ -710,45 +717,45 @@ function StockcardPage({ isAuth }) {
                           </div>
                           <div className="col-4 px-1">
                             <span className="data-icon sm">
-                            <Cart
-                              className="me-2 pull-down"
-                              color={'#00000'} 
-                              data-title={'Purchase Price'}
-                              height="25px"
-                              width="25px"
-                            />
+                              <Cart
+                                className="me-2 pull-down"
+                                color={'#00000'}
+                                data-title={'Purchase Price'}
+                                height="25px"
+                                width="25px"
+                              />
                             </span>
                             <span className="data-label sm">
-                            {stockcardDoc.p_price}
+                              {stockcardDoc.p_price}
                             </span>
                           </div>
                           <div className="col-4 px-1">
                             <span className="data-icon sm">
-                            <Button
-                            className="plain-button bc-button"
-                            data-hover="Edit Barcode"
-                            >
-                              <Barc
-                                className="me-2 pull-down"
-                                color={'#00000'} 
-                                data-title="Barcode"
-                                height="25px"
-                                width="25px"
-                              />
-                            </Button>
+                              <Button
+                                className="plain-button bc-button"
+                                data-hover="Edit Barcode"
+                              >
+                                <Barc
+                                  className="me-2 pull-down"
+                                  color={'#00000'}
+                                  data-title="Barcode"
+                                  height="25px"
+                                  width="25px"
+                                />
+                              </Button>
                             </span>
                             <span className="data-label sm">
-                            {
-                            checkBarcode(stockcard.barcode)?
-                              <span>Barcode not initialized</span>
-                              :
-                              <span>{stockcard.barcode}</span>
-                            }
+                              {
+                                checkBarcode(stockcard.barcode) ?
+                                  <span>Barcode not initialized</span>
+                                  :
+                                  <span>{stockcard.barcode}</span>
+                              }
                             </span>
                           </div>
                         </div>
-                    </div>
-                    <div className="row data-specs-add">
+                      </div>
+                      <div className="row data-specs-add">
                         <div className="col-4">
                           Quantity: {stockcardDoc.qty}
                         </div>
@@ -759,9 +766,9 @@ function StockcardPage({ isAuth }) {
                           Total Quantity Out:
                         </div>
                       </div>
-                    
+
+                    </div>
                   </div>
-                </div>
                 </Tab.Pane>
               </Tab.Content>
             </div>
