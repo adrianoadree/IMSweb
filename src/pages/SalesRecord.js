@@ -199,10 +199,6 @@ function SalesRecords({ isAuth }) {
                         </div>
                         <div className="col">
                           <div className="float-end">
-                            <NewSalesModal
-                              show={modalShow}
-                              onHide={() => setModalShow(false)}
-                            />
                             <Button
                               className="add me-1"
                               data-title="Add New Purchase Record"
