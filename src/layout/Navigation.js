@@ -38,6 +38,7 @@ const Navigation = () => {
                 <LinkContainer to="/records">
                   <NavDropdown.Item>Transaction History</NavDropdown.Item>
                 </LinkContainer>
+                <NavDropdown.Divider />
                 <LinkContainer to="/supplier">
                   <NavDropdown.Item>Supplier List</NavDropdown.Item>
                 </LinkContainer>
@@ -46,9 +47,11 @@ const Navigation = () => {
                 <LinkContainer to="/inventory">
                   <NavDropdown.Item>Inventory </NavDropdown.Item>
                 </LinkContainer>
+                <NavDropdown.Divider />
                 <LinkContainer to="/stockcard">
                   <NavDropdown.Item>Stockcard </NavDropdown.Item>
                 </LinkContainer>
+                <NavDropdown.Divider />
                 <LinkContainer to="/warehouse">
                   <NavDropdown.Item>Warehouse</NavDropdown.Item>
                 </LinkContainer>
@@ -72,8 +75,8 @@ const Navigation = () => {
               <NavDropdown
                 id="nav-dropdown-dark-example"
                 title={user?.displayName}
-                menuVariant="dark"
               >
+                <NavDropdown.Item href="/login">Account</NavDropdown.Item>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={logout} href="/login">Logout</NavDropdown.Item>
               </NavDropdown>

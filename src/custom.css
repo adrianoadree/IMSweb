@@ -16,7 +16,7 @@ body {
 }
 
 .custom-nav a {
-	color: #000000 !important;
+	color: #36261f !important;
 	font-weight: 600;
 }
 
@@ -36,6 +36,42 @@ body {
 .custom-nav .nav-link.active:hover {
 	color: #000000 !important;
 	background-color: #e2eeff !important;
+}
+
+.custom-nav .dropdown-menu {
+	margin-top: -1px;
+	border-top: 0;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+	background-color: #0d6efd;
+	box-shadow: 0 4px 5px 1px rgba(0, 0, 0, 0.152);
+}
+
+.custom-nav .dropdown-menu .dropdown-item {
+	color: #fff !important;
+}
+
+.custom-nav .dropdown-menu .dropdown-item:hover {
+	background-color: #0d6efd !important;
+}
+
+.custom-nav .dropdown-menu:hover,
+.custom-nav .dropdown-menu:focus {
+	background-color: #ffffff;
+}
+
+.custom-nav .dropdown-menu:hover .dropdown-item,
+.custom-nav .dropdown-menu:focus.dropdown-item {
+	color: #000000 !important;
+}
+
+.custom-nav .dropdown-menu:hover .dropdown-item:hover,
+.custom-nav .dropdown-menu:focus.dropdown-item:hover {
+	color: #ffffff !important;
+}
+
+.custom-nav .dropdown-divider {
+	margin: 0;
 }
 
 .guide{
@@ -278,6 +314,7 @@ li:hover{
 .sidebar-card .card-body .list-group-flush .list-group-item .sidebar-contents .col-6,
 .sidebar-card .card-body .list-group-flush .list-group-item .sidebar-contents .col-5 {
 	background-color: #f6f6f6;
+	word-wrap: normal;
 }
 
 .sidebar-card .card-body .list-group-flush .list-group-item.active .sidebar-contents .col-4,
@@ -846,8 +883,20 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .account-management-form label {
-	margin-bottom: 5px;
-	font-weight:600;
+	font-weight: 600;
+	background-color: #fff;
+	margin-left: 10px;
+	padding: 0 4px;
+}
+
+.account-management-form input {
+	padding-top: 20px;
+	border-radius: 15px;
+}
+
+.account-management-form select {
+	padding: 10px;
+	border-radius: 15px;
 }
 
 .account-management-form .col-6,
@@ -855,4 +904,25 @@ h1, h2, h3, h4, h5, h6 {
 .account-management-form .col-8,
 .account-management-form .col-12 {
 	padding: 10px;
+}
+
+.account-management-form .form-control:focus {
+	box-shadow: none;
+	border-width: 2px;
+}
+
+input:focus ~ .floating-label,
+input:not(:focus):valid ~ .floating-label{
+  font-size: 11px;
+  margin-top:-50px;
+  opacity: 1;
+  color: #0d6efd;
+}
+
+.floating-label {
+  position: absolute;
+  pointer-events: none;
+  transition: 0.2s ease all;
+  margin-top: -40px;
+  margin-left: 15px;
 }

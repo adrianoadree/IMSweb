@@ -497,7 +497,8 @@ function StockcardPage({ isAuth }) {
                         <div className="float-end">
                             <Button
                             className="add me-1"
-                            data-title="Add New Product">
+                            data-title="Add New Product"
+                            onClick={() => setModalShow(true)}>
                               <FontAwesomeIcon icon={faPlus} />
                             </Button>
                             <Button

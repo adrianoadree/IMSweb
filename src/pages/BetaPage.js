@@ -288,42 +288,38 @@ function BetaPage() {
                     </div>
                     <div className="row m-0 account-management-form-section-contents">
                       <div className="col-6">
-                        <label>Name</label>
                         <input type="text"
                           className="form-control"
-                          placeholder="Name"
                           required
                           autoFocus
                           onChange={(event) => {  }}
                         />
+                        <span className="floating-label">Name</span>
                       </div>
                       <div className="col-6">
-                        <label>Email Address</label>
                         <input type="text"
                           className="form-control"
-                          placeholder="Email Address"
                           required
                           onChange={(event) => {  }}
                         />
+                        <span className="floating-label">Email Address</span>
                       </div>
                       <div className="col-4">
-                        <label>Phone Number</label>
                         <input type="text"
                           className="form-control"
-                          placeholder="Phone Number"
                           required
                           autoFocus
                           onChange={(event) => {  }}
                         />
+                        <span className="floating-label">Phone Number</span>
                       </div>
                       <div className="col-8">
-                        <label>Address</label>
                         <input type="text"
                           className="form-control"
-                          placeholder="Address"
                           required
                           onChange={(event) => {  }}
                         />
+                        <span className="floating-label">Address</span>
                       </div>
                     </div>
                   </div>
@@ -333,63 +329,57 @@ function BetaPage() {
                     </div>
                     <div className="row m-0 account-management-form-section-contents">
                       <div className="col-12">
-                        <label>Business Name</label>
                         <input type="text"
                           className="form-control"
-                          placeholder="Business Name"
                           required
                           autoFocus
                           onChange={(event) => {  }}
                         />
+                        <span className="floating-label">Business Name</span>
                       </div>
                       <div className="col-12">
-                        <label>Business Address</label>
                         <input type="text"
                           className="form-control"
-                          placeholder="Business Address"
                           required
                           onChange={(event) => {  }}
                         />
+                        <span className="floating-label">Business Address</span>
                       </div>
                       <div className="col-6">
-                        <label>Nature of Business</label>
                         <input type="text"
                           className="form-control"
-                          placeholder="Nature of Business"
                           required
                           onChange={(event) => {  }}
                         />
+                        <span className="floating-label">Nature of Business</span>
                       </div>
                       <div className="col-6">
-                        <label>Operation Type</label>
                         <select type="text"
                           className="form-control"
-                          placeholder="Email Address"
                           required
                           onChange={(event) => {  }}>
+                            <option>Operation Type</option>
                             <option value="online">Online</option>
                             <option value="physical">Physical</option>
                             <option value="both">Both online and physical</option>
                         </select>
                       </div>
                       <div className="col-4">
-                        <label>Phone Number</label>
                         <input type="text"
                           className="form-control"
-                          placeholder="Phone Number"
                           required
                           autoFocus
                           onChange={(event) => {  }}
                         />
+                        <span className="floating-label">Phone Number</span>
                       </div>
                       <div className="col-8">
-                        <label>Email Address</label>
                         <input type="text"
                           className="form-control"
-                          placeholder="Address"
                           required
                           onChange={(event) => {  }}
                         />
+                        <span className="floating-label">Email Address</span>
                       </div>
                       <div className="col-12">
                         <label>Business Requirements</label>

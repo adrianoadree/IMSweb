@@ -123,8 +123,8 @@ function LandingPage() {
                                                 </div>
                                             </div>
                                         <NewSupplierModal
-                                            show={productModalShow}
-                                            onHide={() => setProductModalShow(false)} />
+                                            show={supplierModalShow}
+                                            onHide={() => setSupplierModalShow(false)} />
                                         </div>
                                     </div>
                                     <hr />
@@ -149,8 +149,8 @@ function LandingPage() {
                                                 </div>
                                             </div>
                                             <NewSalesModal
-                                                show={productModalShow}
-                                                onHide={() => setProductModalShow(false)} />
+                                                show={salesModalShow}
+                                                onHide={() => setSalesModalShow(false)} />
                                             </div>
                                             <NewPurchaseModal
                                                 show={purchaseModalShow}
