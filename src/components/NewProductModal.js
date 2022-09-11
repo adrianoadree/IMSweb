@@ -54,6 +54,7 @@ function NewProductModal(props) {
       category: newProdCategory,
       barcode: 0,
       img: "",
+      analytics_boolean: false, 
       analytics_highestDailySales: 0,
       analytics_averageDailySales: 0,
       analytics_safetyStock: 0,

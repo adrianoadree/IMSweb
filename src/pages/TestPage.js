@@ -1,14 +1,13 @@
 import React from 'react';
-import { Table, Form, Button, ListGroup } from 'react-bootstrap';
+import { Table, Form, Button, ListGroup, Card, Tab, FormControl } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
-import { collection, onSnapshot, query, where, doc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, onSnapshot, query, where, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import moment from 'moment';
 import "react-toastify/dist/ReactToastify.css";
 import { UserAuth } from '../context/AuthContext'
-
-import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons'
+import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 
@@ -19,121 +18,51 @@ function TestPage() {
 
     const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
-    const [newNote, setNewNote] = useState(""); // note form input
+    const [docId, setDocId] = useState("xx"); //document Id
 
-    const [varRef, setVarRef] = useState([]); // variable collection
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
-    const [items, setItems] = useState([]); // array of objects containing product information
-    const [itemId, setItemId] = useState("IT999999"); //product id
-    const [itemName, setItemName] = useState(""); //product description
-    const [itemQuantity, setItemQuantity] = useState(1); //product quantity
-    const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
-    const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
+    const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
+
+    const [purchRecCollection, setPurchRecCOllection] = useState([]); // stockcardCollection variable
 
 
+    //needed for analytics
+
+    //formula to calculate ROP = (average daily sales * leadtime in days) + safetystock
+    //formula to calculate SafetyStock = (highest daily sales * leadtime in days) - (average daily sales * leadtime)
+    //formula to calculate Number of Days Before reaching ROP = ( Current Quantity of Product - Reorder Point ) / average daily usage
+
+    //ask user for : leadtime
+    //compute for : average daily sales, highest daily sales, 
+
+
+    const [highestDailySales, setHighestDailySales] = useState(0);
+    const [averageDailySales, setAverageDailySales] = useState(0);
 
 
     //---------------------FUNCTIONS---------------------
 
-    //fetch variable collection
     useEffect(() => {
-        const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
-            setVarRef(doc.data());
-        });
-        return unsub;
-    }, [])
 
-
-    //Read stock card collection from database
-    useEffect(() => {
-        const collectionRef = collection(db, "stockcard");
-        const q = query(collectionRef, where("qty", ">=" ,1));
+        const collectionRef = collection(db, "purchase_record")
+        const q = query(collectionRef);
 
         const unsub = onSnapshot(q, (snapshot) =>
-            setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            setPurchRecCOllection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
         );
         return unsub;
+
     }, [])
 
 
-    //Read and set data from stockcard document
+
     useEffect(() => {
-        if (itemName != undefined) {
-            const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
-                setItemName(doc.data().description)
-                setItemCurrentQuantity(doc.data().qty)
-            });
-        }
-    }, [itemId])
 
-    //----------------------Start of Dynamic form functions----------------------
-    const addItem = event => {
-        event.preventDefault();
-        setItems([
-            ...items,
-            {
-                itemId: itemId,
-                itemName: itemName,
-                itemQuantity: Number(itemQuantity),
-                itemCurrentQuantity: Number(itemCurrentQuantity),
-                itemNewQuantity: Number(itemCurrentQuantity) - Number(itemQuantity)
-            }
-        ]);
-        setItemId("IT999999");
-        setItemQuantity(1);
-    };
+      console.log(purchRecCollection)
 
-    const handleItemRemove = (index) => {
-        const list = [...items]
-        list.splice(index, 1)
-        setItems(list)
-    }
+    }, [purchRecCollection])
 
-    //----------------------End of Dynamic form functions----------------------
-
-
-    //----------------------Start of addRecord functions----------------------
-
-    //add document to database
-    const addRecord = async (salesDocNum) => {
-        setDoc(doc(db, "sales_record", "SR" + Number(salesDocNum)), {
-            user: userID,
-            transaction_number: "SR" + Number(salesDocNum),
-            transaction_note: newNote,
-            transaction_date: newDate,
-            product_list: items,
-        });
-
-        setItems([]);
-        setNewNote("");
-        updateQuantity()  //update stockcard.qty function
-        updatePurchDocNum(salesDocNum) //update variables.salesDocNum function
-    }
-
-    //update stockcard.qty function
-    function updateQuantity() {
-        items.map((items) => {
-
-            const stockcardRef = doc(db, "stockcard", items.itemId);
-
-            // Set the "capital" field of the city 'DC'
-            updateDoc(stockcardRef, {
-                qty: items.itemNewQuantity
-            });
-
-        })
-    }
-
-    //update variables.salesDocNum function
-    function updatePurchDocNum(salesDocNum) {
-        const varColRef = doc(db, "variables", "var")
-        const newData = { salesDocNum: Number(salesDocNum) + 1 }
-
-        updateDoc(varColRef, newData)
-    }
-
-    //----------------------End of addRecord functions----------------------
-
+    //----------------------------------------------------------
 
     useEffect(() => {
         if (user) {
@@ -142,26 +71,43 @@ function TestPage() {
     }, [{ user }])
 
 
-    //current date
     useEffect(() => {
-        newDate.setDate(newDate.getDate());
-        setNewDate(newDate.toISOString().substring(0, 10))
+        //read stockcard collection
+        if (userID === undefined) {
 
-    }, [])
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
 
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
 
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+
+        }
+
+    }, [userID])
+
+    //access stockcard document
     useEffect(() => {
-        console.log(items)
-    }, [items])
-
-    useEffect(() => {
-        console.log(itemName)
-    }, [itemName])
-
-
-
-
-
+        async function readStockcardDoc() {
+            const stockcardRef = doc(db, "stockcard", docId)
+            const docSnap = await getDoc(stockcardRef)
+            if (docSnap.exists()) {
+                setStockcardDoc(docSnap.data());
+            }
+        }
+        readStockcardDoc()
+    }, [docId])
 
 
     return (
@@ -169,149 +115,196 @@ function TestPage() {
         <div className="row bg-light">
             <Navigation />
 
-            <div className='row'>
-                <div className='col-6 p-5'>
-                    <div className='row'>
-                        <div className='col-6'>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Transaction Number</Form.Label>
-                                <Form.Control
-                                    defaultValue={varRef.salesDocNum}
-                                    disabled
-                                />
-                            </Form.Group>
-                        </div>
-                        <div className='col-6'>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Transaction Date</Form.Label>
-                                <Form.Control
-                                    type='date'
-                                    value={newDate}
-                                    onChange={e => setNewDate(e.target.value)}
-                                />
-                            </Form.Group>
-                        </div>
-                    </div>
-
-                    <div className='row'>
-
-                        <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-                            <Form.Label>Note: (Optional)</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={2}
-                                onChange={(event) => { setNewNote(event.target.value); }}
-                            />
-                        </Form.Group>
-                    </div>
-
-                    <div className='row'>
-                        <h5>Add Item to List</h5>
-                        <hr></hr>
-                        <div className='col-6 p-1'>
-                            <Form.Select
-                                value={itemId}
-                                onChange={e => setItemId(e.target.value)}
-                            >
-                                <option
-                                    value="IT999999">
-                                    Select Item
-                                </option>
-                                {stockcard.map((stockcard) => {
-                                    return (
-                                        <option
-                                            key={stockcard.id}
-                                            value={stockcard.id}
-                                        >{stockcard.description}</option>
-                                    )
-                                })}
-                            </Form.Select>
-                        </div>
-                        <div className='col-4 p-1'>
-                            <Form.Control
-                                placeholder='Quantity'
-                                type='number'
-                                value={itemQuantity}
-                                min={1}
-                                max={itemCurrentQuantity}
-                                onChange={e => setItemQuantity(e.target.value)}
-                            />
-
-                        </div>
-                        <div className='col-2 p-1'>
-                            <Button
-                                onClick={addItem}
-                                disabled={itemId === "IT999999" , itemQuantity>itemCurrentQuantity ? true : false}
-                            >
-                                <FontAwesomeIcon icon={faPlus} />
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div className='row mt-4'>
-                        <h5>Purchase List</h5>
-                        <hr></hr>
-
-                        <Table striped bordered hover size="sm">
-                            <thead>
-                                <tr className='text-center bg-white'>
-                                    <th>Item ID</th>
-                                    <th>Item Description</th>
-                                    <th>Quantity</th>
-                                    <th>Remove</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {items.map((item, index) => (
-                                    <tr
-                                        className='text-center'
-                                        key={index}>
-                                        <td>{item.itemId}</td>
-                                        <td>{item.itemName}</td>
-                                        <td>{item.itemQuantity}</td>
-                                        <td>
-                                            <Button
-                                                size='sm'
-                                                variant="outline-danger"
-                                                onClick={() => handleItemRemove(index)}>
-                                                <FontAwesomeIcon icon={faMinus} />
+            <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+                <div className="row contents">
+                    <div className="row py-4 px-5">
+                        <div className="sidebar">
+                            <Card className='sidebar-card'>
+                                <Card.Header>
+                                    <div className='row'>
+                                        <div className="col-1 left-full-curve">
+                                            <Button className="fc-search no-click me-0">
+                                                <FontAwesomeIcon icon={faSearch} />
                                             </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
+                                        </div>
+                                        <div className="col-11">
+                                            <FormControl
+                                                placeholder="Search"
+                                                aria-label="Search"
+                                                aria-describedby="basic-addon2"
+                                                className="fc-search right-full-curve mw-0"
+                                            />
+                                        </div>
+                                    </div>
+                                </Card.Header>
+                                <Card.Body>
+                                    <div className="row g-1 sidebar-header">
+                                        <div className="col-4 left-curve">
+                                            Item Code
+                                        </div>
+                                        <div className="col-8 right-curve">
+                                            Description
+                                        </div>
+                                    </div>
+                                    <div className='scrollbar'>
+                                        <ListGroup variant="flush">
+                                            {stockcard.map((stockcard) => {
+                                                return (
+                                                    <ListGroup.Item
+                                                        action
+                                                        key={stockcard.id}
+                                                        eventKey={stockcard.id}
+                                                        onClick={() => { setDocId(stockcard.id) }}>
+                                                        <div className="row gx-0 sidebar-contents">
+                                                            <div className="col-4">
+                                                                {stockcard.id}
+                                                            </div>
+                                                            <div className="col-8">
+                                                                {stockcard.description}
+                                                            </div>
+                                                        </div>
+                                                    </ListGroup.Item>
+                                                )
+                                            })}
 
-                    </div>
+                                        </ListGroup>
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </div>
+                        <div className="divider">
 
-                    <div className='row mt-4'>
-                        <div className='col-10'></div>
-                        <div className='col-2'>
-                            <Button
-                                variant="success"
-                                disabled={items.length === 0 ? true : false}
-                                onClick={() => { addRecord(varRef.salesDocNum) }}
-                            >
-                                Save
-                            </Button>
+                        </div>
+                        <div className="data-contents">
+                            <Tab.Content>
+                                <Tab.Pane eventKey={0}>
+                                    <div className="row">
+                                        <div className="row p-3 m-0" style={{ height: "500px" }}>
+                                            <h1 className='text-center pb-2 module-title'>Reorder Point Forecasting</h1>
+                                            <hr />
+
+                                        </div>
+                                        <div className="row pt-2 pb-5 px-5">
+                                            <hr />
+                                            <div className="col-4">
+                                                <Card className="bg-dark">
+                                                    <Card.Header>
+                                                        <small className="text-center text-white">Product</small>
+                                                    </Card.Header>
+                                                    <Card.Body style={{ height: "10px" }}>
+                                                    </Card.Body>
+                                                </Card>
+                                            </div>
+                                            <div className="col-4">
+                                                <Card className="bg-success">
+                                                    <Card.Header>
+                                                        <small className="text-center text-white">ReorderPoint</small>
+                                                    </Card.Header>
+                                                    <Card.Body style={{ height: "10" }}>
+
+                                                    </Card.Body>
+                                                </Card>
+                                            </div>
+                                            <div className="col-4">
+                                                <Card className="bg-danger">
+                                                    <Card.Header>
+                                                        <small className="text-center text-white">SafetyStock</small>
+                                                    </Card.Header>
+                                                    <Card.Body style={{ height: "10px" }} >
+                                                    </Card.Body>
+                                                </Card>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Tab.Pane>
+                                <Tab.Pane eventKey={docId}>
+                                    <div className="row">
+                                        <div className="row p-3 m-0" style={{ height: "500px" }}>
+                                            <h1 className='text-center pb-2 module-title'>Reorder Point Forecasting
+                                            </h1>
+                                            <hr />
+                                            <div className="row m-0 mt-2 mb-4 px-5 py-2 yellow-strip">
+                                                <div className="row p1 text-center">
+                                                    <div className="col-3">
+                                                        Item Code
+                                                    </div>
+                                                    <div className="col-7">
+                                                        Item Description
+                                                    </div>
+                                                    <div className="col-2">
+                                                        Quantity
+                                                    </div>
+                                                </div>
+                                                <hr className="yellow-strip-divider"></hr>
+                                                <div className="row my-2">
+                                                    <div className="col-2">
+                                                        <h5><strong>{docId}</strong></h5>
+                                                    </div>
+                                                    <div className="col-8">
+                                                        <h5><strong>Desc</strong></h5>
+                                                    </div>
+                                                    <div className="col-2">
+                                                        <h5><strong>Quanti</strong></h5>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                        <div className="row pt-2 pb-5 px-5">
+                                            <hr />
+                                            <div className="col-4">
+                                                <Card className="bg-dark">
+                                                    <Card.Header>
+                                                        <small className="text-center text-white">
+                                                            Product ID: {docId}
+                                                        </small>
+                                                    </Card.Header>
+                                                    <Card.Body
+                                                        className="text-white"
+                                                        style={{ height: "160px" }}>
+                                                        <small>Product Description:</small><br />
+                                                        <small> - {stockcardDoc.description}</small><br />
+
+                                                    </Card.Body>
+                                                </Card>
+                                            </div>
+                                            <div className="col-4">
+                                                <Card className="bg-success">
+                                                    <Card.Header>
+                                                        <small className="text-center text-white">ReorderPoint</small>
+                                                    </Card.Header>
+                                                    <Card.Body style={{ height: "160px" }}>
+                                                        <small className="text-center text-white"> A reorder point (ROP) is the specific level at which your stock needs to be
+                                                            replenished. In other words, it tells you when to place an order so you don’t run out of an
+                                                            item.</small>
+                                                    </Card.Body>
+                                                </Card>
+                                            </div>
+                                            <div className="col-4">
+                                                <Card className="bg-danger">
+                                                    <Card.Header>
+                                                        <small className="text-center text-white">SafetyStock</small>
+                                                    </Card.Header>
+                                                    <Card.Body style={{ height: "160px" }} >
+                                                        <small className="text-center text-white">
+                                                            This is the extra quantity of a product that kept in storage to prevent stockouts. Safety stock serves as insurance against demand fluctuations.
+                                                        </small>
+                                                    </Card.Body>
+                                                </Card>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+
+
+
+                                </Tab.Pane>
+                            </Tab.Content>
                         </div>
                     </div>
-
                 </div>
-
-                <div className='col-6 p-5'>
-                    <h1>productList Values: </h1>
-                    <div>
-
-
-                    </div>
-
-
-
-                </div>
-
-            </div>
-
+            </Tab.Container>
         </div >
     )
 
