@@ -21,6 +21,7 @@ function NewPurchaseModal(props) {
     const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
     const [newNote, setNewNote] = useState(""); // note form input
+    const [productIds, setProductIds] = useState([]); // array of prod id
 
     const [varRef, setVarRef] = useState([]); // variable collection
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
@@ -39,6 +40,15 @@ function NewPurchaseModal(props) {
 
 
     //---------------------FUNCTIONS---------------------
+
+    //fetch variable collection
+    useEffect(() => {
+        items.map((item) => {
+            setProductIds([...productIds, item.itemId])
+        })
+    }, [items])
+
+
 
     //fetch variable collection
     useEffect(() => {
@@ -161,8 +171,11 @@ function NewPurchaseModal(props) {
             transaction_date: newDate,
             transaction_supplier: itemSupplier,
             product_list: items,
+            product_ids: productIds
         });
 
+
+        setProductIds([])
         setItems([]);
         setNewNote("");
         updateQuantity()  //update stockcard.qty function

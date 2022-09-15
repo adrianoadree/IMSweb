@@ -24,7 +24,7 @@ function TestPage() {
     const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
 
     const [purchRecCollection, setPurchRecCOllection] = useState([]); // stockcardCollection variable
-
+    const [filteredResults, setFilteredResults] = useState([])
 
     //needed for analytics
 
@@ -43,24 +43,43 @@ function TestPage() {
     //---------------------FUNCTIONS---------------------
 
     useEffect(() => {
+        console.log("filteredResults: ", filteredResults)
+    }, [filteredResults])
+
+
+    useEffect(() => {
+
+        console.log(purchRecCollection)
+
+    }, [purchRecCollection])
+
+
+
+    //query documents from purchase_record that contains docId
+    useEffect(() => {
+        setFilteredResults(purchRecCollection.map((element) => {
+            return {
+                ...element, product_list: element.product_list.filter((product_list) => product_list.itemId === docId)
+            }
+        }))
+
+    }, [docId])
+
+
+    //query documents from purchase_record that contains docId
+    useEffect(() => {
 
         const collectionRef = collection(db, "purchase_record")
-        const q = query(collectionRef);
+        const q = query(collectionRef, where("product_ids", "array-contains", docId));
 
         const unsub = onSnapshot(q, (snapshot) =>
             setPurchRecCOllection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
         );
         return unsub;
 
-    }, [])
+    }, [docId])
 
 
-
-    useEffect(() => {
-
-      console.log(purchRecCollection)
-
-    }, [purchRecCollection])
 
     //----------------------------------------------------------
 
