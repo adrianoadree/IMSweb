@@ -41,7 +41,7 @@ function NewPurchaseModal(props) {
 
     //---------------------FUNCTIONS---------------------
 
-    //fetch variable collection
+    //set Product ids
     useEffect(() => {
         items.map((item) => {
             setProductIds([...productIds, item.itemId])
@@ -174,7 +174,7 @@ function NewPurchaseModal(props) {
             product_ids: productIds
         });
 
-
+        setItemSupplier("0")
         setProductIds([])
         setItems([]);
         setNewNote("");

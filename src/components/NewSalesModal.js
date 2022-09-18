@@ -19,6 +19,8 @@ function NewSalesModal(props) {
 
     const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
+    const [productIds, setProductIds] = useState([]); // array of prod id
+
     const [newNote, setNewNote] = useState(""); // note form input
     const [varRef, setVarRef] = useState([]); // variable collection
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
@@ -36,7 +38,13 @@ function NewSalesModal(props) {
 
 
     //---------------------FUNCTIONS---------------------
-    
+
+    //set Product ids
+    useEffect(() => {
+        items.map((item) => {
+            setProductIds([...productIds, item.itemId])
+        })
+    }, [items])
 
     //fetch variable collection
     useEffect(() => {
@@ -111,19 +119,19 @@ function NewSalesModal(props) {
 
     //ButtonDisabler
     useEffect(() => {
-        if(itemId != "IT999999" && itemQuantity <= itemCurrentQuantity && itemQuantity > 0){
+        if (itemId != "IT999999" && itemQuantity <= itemCurrentQuantity && itemQuantity > 0) {
             setButtonBool(false)
         }
-        else{
+        else {
             setButtonBool(true)
         }
     }, [itemQuantity])
     //ButtonDisabler
     useEffect(() => {
-        if(itemId != "IT999999" && itemQuantity <= itemCurrentQuantity && itemQuantity > 0){
+        if (itemId != "IT999999" && itemQuantity <= itemCurrentQuantity && itemQuantity > 0) {
             setButtonBool(false)
         }
-        else{
+        else {
             setButtonBool(true)
         }
     }, [itemId])
@@ -141,8 +149,11 @@ function NewSalesModal(props) {
             transaction_note: newNote,
             transaction_date: newDate,
             product_list: items,
+            product_ids: productIds
+            
         });
 
+        setProductIds([])
         setItems([]);
         setNewNote("");
         updateQuantity()  //update stockcard.qty function

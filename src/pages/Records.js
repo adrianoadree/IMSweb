@@ -145,7 +145,7 @@ function Records() {
                       Date
                     </div>
                   </div>
-                  <div id='scrollbar'>
+                  <div className='scrollbar'>
                     <ListGroup variant="flush">
                       {purchaseRecordCollection.map((purch) => {
                         return (
