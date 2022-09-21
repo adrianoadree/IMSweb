@@ -395,8 +395,87 @@ function StockcardPage({ isAuth }) {
 
   }
 
+  //----------------------------------SALES TOTAL RECORD FUNCTION----------------------------------
 
+  const [salesRecordCollection, setSalesRecordCollection] = useState([]); // sales_record collection
+  const [filteredResults, setFilteredResults] = useState([])
+  const [totalSales, setTotalSales] = useState(0); // total sales
 
+  //query documents from sales_record that contains docId
+  useEffect(() => {
+
+    const collectionRef = collection(db, "sales_record")
+    const q = query(collectionRef, where("product_ids", "array-contains", docId));
+
+    const unsub = onSnapshot(q, (snapshot) =>
+      setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+    );
+    return unsub;
+
+  }, [docId])
+  //query documents from sales_record that contains docId
+  useEffect(() => {
+
+    setFilteredResults(salesRecordCollection.map((element) => {
+      return {
+        ...element, product_list: element.product_list.filter((product_list) => product_list.itemId === docId)
+      }
+    }))
+
+  }, [salesRecordCollection])
+
+  //compute for total sales
+  useEffect(() => {
+    var temp = 0;
+    filteredResults.map((value) => {
+      value.product_list.map((prod) => {
+        temp += prod.itemQuantity
+      })
+    })
+    setTotalSales(temp)
+  }, [filteredResults])
+  //-----------------------------------------------------------------------------------------------
+
+  //--------------------------------PURCHASE TOTAL RECORD FUNCTION---------------------------------
+  const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]); // sales_record collection
+  const [purchaseFilteredResults, setPurchaseFilteredResults] = useState([])
+  const [totalPurchase, setTotalPurchase] = useState(0); // total sales
+
+  //query documents from sales_record that contains docId
+  useEffect(() => {
+
+    const collectionRef = collection(db, "purchase_record")
+    const q = query(collectionRef, where("product_ids", "array-contains", docId));
+
+    const unsub = onSnapshot(q, (snapshot) =>
+      setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+    );
+    return unsub;
+
+  }, [docId])
+  //query documents from sales_record that contains docId
+  useEffect(() => {
+
+    setPurchaseFilteredResults(purchaseRecordCollection.map((element) => {
+      return {
+        ...element, product_list: element.product_list.filter((product_list) => product_list.itemId === docId)
+      }
+    }))
+
+  }, [purchaseRecordCollection])
+
+  //compute for total sales
+  useEffect(() => {
+    var tempPurch = 0;
+    purchaseFilteredResults.map((purch) => {
+      purch.product_list.map((purch) => {
+        tempPurch += purch.itemQuantity
+      })
+    })
+    setTotalPurchase(tempPurch)
+  }, [purchaseFilteredResults])
+
+  //-----------------------------------------------------------------------------------------------
 
   return (
     <div>
@@ -760,10 +839,10 @@ function StockcardPage({ isAuth }) {
                           Quantity: {stockcardDoc.qty}
                         </div>
                         <div className="col-4">
-                          Total Quantity In:
+                          Total Quantity In: {totalPurchase}
                         </div>
                         <div className="col-4">
-                          Total Quantity Out:
+                          Total Quantity Out: {totalSales}
                         </div>
                       </div>
 
