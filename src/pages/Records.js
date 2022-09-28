@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
-import { Tab, ListGroup, Card, Table, Button, Nav, FormControl } from "react-bootstrap";
+import { Tab, ListGroup, Card, Table, Button, Nav, FormControl, Alert } from "react-bootstrap";
 import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign, faSearch } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Create, Calendar, Document, InformationCircle } from 'react-ionicons'
@@ -17,10 +17,12 @@ import { UserAuth } from '../context/AuthContext'
 function Records() {
 
   //---------------------VARIABLES---------------------
-  
+
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
-  
+  const [key, setKey] = useState('main');//Tab controller
+
+
   const [modalShow, setModalShow] = useState(false); //add new sales record modal
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]); //purchase_record Collection
   const [purchaseRecord, setPurchaseRecord] = useState([]); //purchase_record spec doc
@@ -104,13 +106,18 @@ function Records() {
     const purchaseListRecDoc = doc(db, "purchase_products", id)
     await deleteDoc(purchaseListRecDoc);
     await deleteDoc(purchaseRecDoc);
+    setKey('main')
   }
 
 
   return (
     <div>
       <Navigation />
-      <Tab.Container id="list-group-tabs-example" defaultActiveKey="main">
+      <Tab.Container
+        id="controlled-tab-example"
+        activeKey={key}
+        onSelect={(k) => setKey(k)}
+        >
         <div className="row contents">
           <div className="row py-4 px-5">
             <div className='sidebar'>
@@ -145,30 +152,44 @@ function Records() {
                       Date
                     </div>
                   </div>
-                  <div className='scrollbar'>
-                    <ListGroup variant="flush">
-                      {purchaseRecordCollection.map((purch) => {
-                        return (
-                          <ListGroup.Item
-                            action
-                            key={purch.id}
-                            eventKey={purch.id}
-                            onClick={() => { setDocId(purch.id) }}>
-                            <div className="row gx-0 sidebar-contents">
-                              <div className="col-3">
-                                <small>{purch.transaction_number}</small>
+                  <div className='scrollbar' style={{ height: '400px' }}>
+                    {purchaseRecordCollection.length === 0 ?
+
+                      <div className='py-4 px-2'>
+                        <Alert variant="secondary" className='text-center'>
+                          <p>
+                            <strong>No Recorded Purchase Transaction</strong>
+                          </p>
+                        </Alert>
+                      </div>
+                      :
+                      <ListGroup variant="flush">
+                        {purchaseRecordCollection.map((purch) => {
+                          return (
+                            <ListGroup.Item
+                              action
+                              key={purch.id}
+                              eventKey={purch.id}
+                              onClick={() => { setDocId(purch.id) }}>
+                              <div className="row gx-0 sidebar-contents">
+                                <div className="col-3">
+                                  <small>{purch.transaction_number}</small>
+                                </div>
+                                <div className="col-5">
+                                  <small>{purch.transaction_supplier}</small>
+                                </div>
+                                <div className="col-4">
+                                  <small>{moment(purch.transaction_date).format('ll')}</small>
+                                </div>
                               </div>
-                              <div className="col-5">
-                                <small>{purch.transaction_supplier}</small>
-                              </div>
-                              <div className="col-4">
-                                <small>{moment(purch.transaction_date).format('ll')}</small>
-                              </div>
-                            </div>
-                          </ListGroup.Item>
-                        )
-                      })}
-                    </ListGroup>
+                            </ListGroup.Item>
+                          )
+                        })}
+                      </ListGroup>
+                    }
+
+
+
                   </div>
                 </Card.Body>
               </Card>

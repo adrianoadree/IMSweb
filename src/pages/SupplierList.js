@@ -27,6 +27,8 @@ function SupplierList() {
 
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
+  const [key, setKey] = useState('main');//Tab controller
+
   const [editShow, setEditShow] = useState(false); //display/ hide edit modal
   const [modalShow, setModalShow] = useState(false);//display/hide modal
   const [supplier, setSupplier] = useState([]); //supplier Collection
@@ -101,6 +103,7 @@ function SupplierList() {
     const supplierDoc = doc(db, "supplier", id)
     deleteToast();
     await deleteDoc(supplierDoc);
+    setKey('main')
   }
 
 
@@ -284,7 +287,10 @@ function SupplierList() {
         pauseOnHover
       />
 
-      <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+      <Tab.Container
+        id="controlled-tab-example"
+        activeKey={key}
+        onSelect={(k) => setKey(k)}>
         <div className="row contents">
           <div className="row  py-4 px-5">
             <div className='sidebar'>
@@ -317,7 +323,17 @@ function SupplierList() {
                     </div>
                   </div>
                   <div id='scrollbar'>
-                    <ListGroup variant="flush">
+                    {supplier.length === 0 ?
+
+                      <div className='py-4 px-2'>
+                        <Alert variant="secondary" className='text-center'>
+                          <p>
+                            <strong>No Recorded Supplier</strong>
+                          </p>
+                        </Alert>
+                      </div>
+                      :
+                      <ListGroup variant="flush">
                       {supplier.map((supplier) => {
                         return (
                           <ListGroup.Item
@@ -338,6 +354,9 @@ function SupplierList() {
                       })}
 
                     </ListGroup>
+                    }
+
+                  
                   </div>
                 </Card.Body>
               </Card>
@@ -346,7 +365,7 @@ function SupplierList() {
             <div className="divider"></div>
             <div className='data-contents'>
               <Tab.Content>
-                <Tab.Pane eventKey={0}>
+                <Tab.Pane eventKey='main'>
                   <div className="module-contents row py-1 m-0">
                     <div className='row m-0'>
                       <h1 className='text-center pb-2 module-title'>Supplier List</h1>

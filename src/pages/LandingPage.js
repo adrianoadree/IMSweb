@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Nav, Table, Button, ButtonGroup, Tab } from "react-bootstrap";
+import { Card, Nav, Table, Button, ButtonGroup, Tab, Carousel } from "react-bootstrap";
 import NewSupplierModal from "../components/NewSupplierModal";
 import Navigation from "../layout/Navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -36,12 +36,12 @@ function LandingPage() {
     //---------------------FUNCTIONS---------------------
 
 
-   /* useEffect(() => {
-        if (user == null) {
-            navigate('/login');
-        }
-    }, [user]);
-*/
+    /* useEffect(() => {
+         if (user == null) {
+             navigate('/login');
+         }
+     }, [user]);
+ */
 
     //read sales_record collection
     useEffect(() => {
@@ -65,13 +65,13 @@ function LandingPage() {
         return unsub;
     }, [])
 
-    function formatDate(string){
+    function formatDate(string) {
         var options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(string).toLocaleDateString([],options);
+        return new Date(string).toLocaleDateString([], options);
     }
 
     return (
-       <div>
+        <div>
             <Navigation />
             <div className="row contents">
                 <div className="row py-4 px-5">
@@ -84,7 +84,7 @@ function LandingPage() {
                                 <div className="p-1">
                                     <div className="row py-1">
                                         <div className="col-3  d-flex justify-content-center">
-                                            <FontAwesomeIcon icon={faCartFlatbed} size="4x" className="darkblue-icon"/>
+                                            <FontAwesomeIcon icon={faCartFlatbed} size="4x" className="darkblue-icon" />
                                         </div>
                                         <div className="col-9">
                                             <div className="row mb-3">
@@ -99,15 +99,15 @@ function LandingPage() {
                                                     </Button>
                                                 </div>
                                             </div>
-                                        <NewProductModal
-                                            show={productModalShow}
-                                            onHide={() => setProductModalShow(false)} />
+                                            <NewProductModal
+                                                show={productModalShow}
+                                                onHide={() => setProductModalShow(false)} />
                                         </div>
                                     </div>
                                     <hr />
                                     <div className="row py-1">
                                         <div className="col-3 d-flex justify-content-center">
-                                            <FontAwesomeIcon icon={faUserPlus} size="4x" className="darkblue-icon"/>
+                                            <FontAwesomeIcon icon={faUserPlus} size="4x" className="darkblue-icon" />
                                         </div>
                                         <div className="col-9">
                                             <div className="row mb-3">
@@ -122,15 +122,15 @@ function LandingPage() {
                                                     </Button>
                                                 </div>
                                             </div>
-                                        <NewSupplierModal
-                                            show={supplierModalShow}
-                                            onHide={() => setSupplierModalShow(false)} />
+                                            <NewSupplierModal
+                                                show={supplierModalShow}
+                                                onHide={() => setSupplierModalShow(false)} />
                                         </div>
                                     </div>
                                     <hr />
                                     <div className="row py-1">
                                         <div className="col-3 d-flex justify-content-center">
-                                            <FontAwesomeIcon icon={faFileInvoice} size="4x" className="darkblue-icon"/>
+                                            <FontAwesomeIcon icon={faFileInvoice} size="4x" className="darkblue-icon" />
                                         </div>
                                         <div className="col-9">
                                             <div className="row mb-3">
@@ -151,10 +151,10 @@ function LandingPage() {
                                             <NewSalesModal
                                                 show={salesModalShow}
                                                 onHide={() => setSalesModalShow(false)} />
-                                            </div>
-                                            <NewPurchaseModal
-                                                show={purchaseModalShow}
-                                                onHide={() => setPurchaseModalShow(false)} />
+                                        </div>
+                                        <NewPurchaseModal
+                                            show={purchaseModalShow}
+                                            onHide={() => setPurchaseModalShow(false)} />
                                     </div>
                                 </div>
                             </Card.Body>
@@ -171,72 +171,101 @@ function LandingPage() {
                                     <h5 className="header-subtitle">{moment(date).format('dddd')}, {moment(date).format('MMMM D, YYYY')}</h5>
                                 </span>
                             </Card.Header>
-                            <Card.Body  className="folder-style">
-                        <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-                            <Nav variant="pills" defaultActiveKey={1}>
-                                <Nav.Item>
-                                    <Nav.Link eventKey={0}>
-                                        Sales
-                                    </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item>
-                                    <Nav.Link eventKey={1}>
-                                        Purchase
-                                    </Nav.Link>
-                                </Nav.Item>
-                            </Nav>
-                            <Tab.Content>
-                                <Tab.Pane eventKey={0}>
-                                    <Table striped bordered hover size="sm" className="records-table light">
-                                        <thead className="bg-primary">
-                                            <tr>
-                                                <th className="pth text-center">Document Number</th>
-                                                <th className="pth text-center">Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {salesRecord.map((salesRecord) => (
-                                                <tr>
-                                                    <td className="pt-entry text-center">{salesRecord.document_number}</td>
-                                                    <td className="pt-entry text-center">{salesRecord.document_date}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-                                </Tab.Pane>
-                                <Tab.Pane eventKey={1}>
-                                    <Table striped bordered hover size="sm" className="records-table light">
-                                        <thead className="bg-primary">
-                                            <tr>
-                                                <th className="pth text-center">Document Number</th>
-                                                <th className="pth text-center">Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {purchRecord.map((purchRecord) => {
-                                                return (
+                            <Card.Body className="folder-style">
+                                <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+                                    <Nav variant="pills" defaultActiveKey={1}>
+                                        <Nav.Item>
+                                            <Nav.Link eventKey={0}>
+                                                Sales
+                                            </Nav.Link>
+                                        </Nav.Item>
+                                        <Nav.Item>
+                                            <Nav.Link eventKey={1}>
+                                                Purchase
+                                            </Nav.Link>
+                                        </Nav.Item>
+                                    </Nav>
+                                    <Tab.Content>
+                                        <Tab.Pane eventKey={0}>
+                                            <Table striped bordered hover size="sm" className="records-table light">
+                                                <thead className="bg-primary">
                                                     <tr>
-                                                        <td className="pt-entry text-center">{purchRecord.document_number}</td>
-                                                        <td className="pt-entry text-center">{date}</td>
+                                                        <th className="pth text-center">Document Number</th>
+                                                        <th className="pth text-center">Date</th>
                                                     </tr>
-                                                )
-                                            })}
-                                        </tbody>
-                                    </Table>
-                                </Tab.Pane>
+                                                </thead>
+                                                <tbody>
+                                                    {salesRecord.map((salesRecord) => (
+                                                        <tr>
+                                                            <td className="pt-entry text-center">{salesRecord.document_number}</td>
+                                                            <td className="pt-entry text-center">{salesRecord.document_date}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </Tab.Pane>
+                                        <Tab.Pane eventKey={1}>
+                                            <Table striped bordered hover size="sm" className="records-table light">
+                                                <thead className="bg-primary">
+                                                    <tr>
+                                                        <th className="pth text-center">Document Number</th>
+                                                        <th className="pth text-center">Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {purchRecord.map((purchRecord) => {
+                                                        return (
+                                                            <tr>
+                                                                <td className="pt-entry text-center">{purchRecord.document_number}</td>
+                                                                <td className="pt-entry text-center">{date}</td>
+                                                            </tr>
+                                                        )
+                                                    })}
+                                                </tbody>
+                                            </Table>
+                                        </Tab.Pane>
 
 
-                            </Tab.Content>
+                                    </Tab.Content>
 
 
-                        </Tab.Container>
+                                </Tab.Container>
 
-                    </Card.Body>
+                            </Card.Body>
                         </Card>
                     </div>
                 </div>
+                <div className="row row py-4 px-5 guide" style={{ height: "100%" }}>
+                    <div className="bg-white">
+                        <Carousel>
+                            <Carousel.Item>
+                                <img
+                                    className="d-block w-100"
+                                    src="https://static1.cbrimages.com/wordpress/wp-content/uploads/2022/05/Naruto-using-sage-mode.jpg?q=50&fit=contain&w=750&h=&dpr=1.5"
+                                    alt="First slide"
+                                />
+                                <Carousel.Caption>
+                                    <h3>First slide label</h3>
+                                    <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
+                                </Carousel.Caption>
+                            </Carousel.Item>
+                            <Carousel.Item>
+                                <img
+                                    className="d-block w-100"
+                                    src="https://static1.cbrimages.com/wordpress/wp-content/uploads/2022/09/Naruto-MHA.jpg?q=50&fit=contain&w=750&h=&dpr=1.5"
+                                    alt="Second slide"
+                                />
+
+                                <Carousel.Caption>
+                                    <h3>Second slide label</h3>
+                                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+                                </Carousel.Caption>
+                            </Carousel.Item>
+                        </Carousel>
+                    </div>
+                </div>
             </div>
-       </div>
+        </div>
     )
 }
 export default LandingPage;

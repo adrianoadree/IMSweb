@@ -4,8 +4,8 @@ import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faTriangleExclamation, faSearch } from '@fortawesome/free-solid-svg-icons'
-import { Cube, Grid, Pricetag, Layers, Barcode as Barc, Cart, InformationCircle } from 'react-ionicons'
+import { faPlus, faTrashCan, faTriangleExclamation, faSearch, faTruck } from '@fortawesome/free-solid-svg-icons'
+import { Cube, Grid, Pricetag, Layers, Barcode as Barc, Cart, InformationCircle, Delive } from 'react-ionicons'
 import NewProductModal from '../components/NewProductModal';
 import { useNavigate } from 'react-router-dom';
 import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc, where } from 'firebase/firestore';
@@ -21,10 +21,11 @@ import { UserAuth } from '../context/AuthContext'
 
 
 
-function StockcardPage({ isAuth }) {
+function StockcardPage() {
 
 
   //---------------------VARIABLES---------------------
+  const [key, setKey] = useState('main');//Tab controller
   const [barcodeModalShow, setBarcodeModalShow] = useState(false); //show/hide edit barcode modal
   const [editShow, setEditShow] = useState(false); //show/hide edit modal
   const [modalShow, setModalShow] = useState(false); //show/hide new product modal
@@ -34,9 +35,11 @@ function StockcardPage({ isAuth }) {
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
 
+
   //---------------------FUNCTIONS---------------------
 
   JsBarcode(".barcode").init();//initialize barcode
+
 
 
   //access stockcard document
@@ -108,6 +111,7 @@ function StockcardPage({ isAuth }) {
     const stockcardDoc = doc(db, "stockcard", id)
     deleteToast();
     await deleteDoc(stockcardDoc);
+    setKey('main')
   }
 
   const handleClose = () => setEditShow(false);
@@ -259,7 +263,7 @@ function StockcardPage({ isAuth }) {
       handleEditBarcodeClose()
     }
 
-    //delete Toast
+    //update Toast
     const setupBarcodeValue = () => {
       toast.info('Barcode Value Updated from the Database', {
         position: "top-right",
@@ -475,6 +479,118 @@ function StockcardPage({ isAuth }) {
     setTotalPurchase(tempPurch)
   }, [purchaseFilteredResults])
 
+
+  const [leadtimeModalShow, setLeadtimeModalShow] = useState(false);
+
+  function EditLeadtimeModal(props) {
+    const [newMinLeadtime, setNewMinLeadtime] = useState(0);
+    const [newMaxLeadtime, setNewMaxLeadtime] = useState(0);
+
+    const handleEditLeadtimeClose = () => setLeadtimeModalShow(false);
+
+    //SetValues
+    useEffect(() => {
+      setNewMaxLeadtime(stockcardDoc.analytics_maxLeadtime)
+      setNewMinLeadtime(stockcardDoc.analytics_minLeadtime)
+    }, [docId])
+
+    //update Toast
+    const updateLeadtimeToast = () => {
+      toast.info('Leadtime Value Updated from the Database', {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+
+
+    function updateLeadtime() {
+      updateDoc(doc(db, "stockcard", docId), {
+        analytics_maxLeadtime: Number(newMaxLeadtime),
+        analytics_minLeadtime: Number(newMinLeadtime)
+      });
+      updateLeadtimeToast()
+      handleEditLeadtimeClose()
+    }
+
+
+    return (
+      <Modal
+        {...props}
+        size="md"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+      >
+        <ToastContainer
+          position="top-right"
+          autoClose={1000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        <Modal.Header closeButton>
+          <Modal.Title id="contained-modal-title-vcenter">
+            Set Product Leadtime
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className='row p-3'>
+
+            <div className='row text-center'>
+              <h6><label>Enter Minimum and Maximum days of Product Leadtime</label></h6>
+              <br />
+              <hr />
+              <br />
+
+              <div className='col-6'>
+                <label>Minimum Leadtime</label>
+                <Form.Control
+                  type="number"
+                  placeholder="Minumum Leadtime"
+                  min={0}
+                  value={newMinLeadtime}
+                  onChange={(event) => { setNewMinLeadtime(event.target.value); }}
+                  required
+                />
+              </div>
+              <div className='col-6'>
+                <label>Maximum Leadtime</label>
+                <Form.Control
+                  type="number"
+                  placeholder="Maximum Leadtime"
+                  value={newMaxLeadtime}
+                  onChange={(event) => { setNewMaxLeadtime(event.target.value); }}
+                  min={0}
+                  required
+                />
+              </div>
+
+
+            </div>
+          </div>
+
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            disabled={newMaxLeadtime === 0 ? true : false}
+            onClick={() => { updateLeadtime(docId) }}
+          >
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
+
+
   //-----------------------------------------------------------------------------------------------
 
   return (
@@ -493,7 +609,11 @@ function StockcardPage({ isAuth }) {
         pauseOnHover
       />
 
-      <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+      <Tab.Container
+        id="controlled-tab-example"
+        activeKey={key}
+        onSelect={(k) => setKey(k)}
+      >
         <div className="row contents">
           <div className="row py-4 px-5">
             <div className='sidebar'>
@@ -525,27 +645,37 @@ function StockcardPage({ isAuth }) {
                     </div>
                   </div>
                   <div id='scrollbar'>
-                    <ListGroup variant="flush">
-                      {stockcard.map((stockcard) => {
-                        return (
-                          <ListGroup.Item
-                            action
-                            key={stockcard.id}
-                            eventKey={stockcard.id}
-                            onClick={() => { setDocId(stockcard.id) }}>
-                            <div className="row gx-0 sidebar-contents">
-                              <div className="col-4">
-                                {stockcard.id}
+                    {stockcard.length === 0 ?
+                      <div className='py-4 px-2'>
+                        <Alert variant="secondary" className='text-center'>
+                          <p>
+                            <strong>No Recorded Product Registered</strong>
+                          </p>
+                        </Alert>
+                      </div>
+                      :
+                      <ListGroup variant="flush">
+                        {stockcard.map((stockcard) => {
+                          return (
+                            <ListGroup.Item
+                              action
+                              key={stockcard.id}
+                              eventKey={stockcard.id}
+                              onClick={() => { setDocId(stockcard.id) }}>
+                              <div className="row gx-0 sidebar-contents">
+                                <div className="col-4">
+                                  {stockcard.id}
+                                </div>
+                                <div className="col-8">
+                                  {stockcard.description}
+                                </div>
                               </div>
-                              <div className="col-8">
-                                {stockcard.description}
-                              </div>
-                            </div>
-                          </ListGroup.Item>
-                        )
-                      })}
+                            </ListGroup.Item>
+                          )
+                        })}
 
-                    </ListGroup>
+                      </ListGroup>
+                    }
                   </div>
                 </Card.Body>
               </Card>
@@ -553,7 +683,7 @@ function StockcardPage({ isAuth }) {
             <div className="divider"></div>
             <div className='data-contents'>
               <Tab.Content>
-                <Tab.Pane eventKey={0}>
+                <Tab.Pane eventKey='main'>
                   <div className="row py-1 m-0" id="product-contents">
                     <div className='row m-0'>
                       <h1 className='text-center pb-2 module-title'>Inventory</h1>
@@ -677,19 +807,76 @@ function StockcardPage({ isAuth }) {
                           </div>
                         </div>
                       </div>
-                      <div className="row data-specs-add m-0">
-                        <div className="col-4">
-                          Quantity:
-                        </div>
-                        <div className="col-4">
-                          Total Quantity In:
-                        </div>
-                        <div className="col-4">
-                          Total Quantity Out:
+                      <hr />
+
+
+                    </div>
+                  </div>
+                  <>
+                    <div className="row py-1 m-0">
+                      <div className="col">
+                        <span>
+                          <InformationCircle
+                            className="me-2 pull-down"
+                            color={'#0d6efd'}
+                            title={'Category'}
+                            height="40px"
+                            width="40px"
+                          />
+                        </span>
+                        <h4 className="data-id">ITEM LEADTIME</h4>
+                      </div>
+                      <div className="col">
+                        <div className="float-end">
+
+                          <Button
+                            disabled
+                            className="edit me-1"
+                            data-title="Edit Leadtime"
+                          >
+                            <FontAwesomeIcon icon={faEdit} />
+                          </Button>
                         </div>
                       </div>
                     </div>
-                  </div>
+                    <div className='row text-center mt-2'>
+                      <div className="col-4">
+                        <span style={{ display: 'inline-block' }}>
+                          <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                        </span>
+                        <span className="data-label sm">
+                          <small>Minimum Leadtime</small>
+                        </span>
+                      </div>
+                      <div className="col-4">
+                        <span style={{ display: 'inline-block' }}>
+                          <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                        </span>
+                        <span className="data-label sm">
+                          <small>Maximum Leadtime</small>
+                        </span>
+                      </div>
+                      <div className="col-4">
+                        <span style={{ display: 'inline-block' }}>
+                          <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                        </span>
+                        <span className="data-label sm">
+                          <small>Average Leadtime</small>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="row data-specs-add mt-4">
+                      <div className="col-4">
+                        Quantity:<br />
+                      </div>
+                      <div className="col-4">
+                        Total Quantity In: <br />
+                      </div>
+                      <div className="col-4">
+                        Total Quantity Out: <br />
+                      </div>
+                    </div>
+                  </>
                 </Tab.Pane>
 
                 <Tab.Pane eventKey={docId}>
@@ -810,9 +997,11 @@ function StockcardPage({ isAuth }) {
                           </div>
                           <div className="col-4 px-1">
                             <span className="data-icon sm">
+
                               <Button
                                 className="plain-button bc-button"
                                 data-hover="Edit Barcode"
+                                onClick={DisplayBarcodeInfo()}
                               >
                                 <Barc
                                   className="me-2 pull-down"
@@ -823,6 +1012,9 @@ function StockcardPage({ isAuth }) {
                                 />
                               </Button>
                             </span>
+
+
+
                             <span className="data-label sm">
                               {
                                 checkBarcode(stockcard.barcode) ?
@@ -834,19 +1026,77 @@ function StockcardPage({ isAuth }) {
                           </div>
                         </div>
                       </div>
-                      <div className="row data-specs-add">
-                        <div className="col-4">
-                          Quantity: {stockcardDoc.qty}
+                      <hr />
+                    </div>
+                    <>
+                      <div className="row py-1 m-0">
+                        <div className="col">
+                          <span>
+                            <InformationCircle
+                              className="me-2 pull-down"
+                              color={'#0d6efd'}
+                              title={'Category'}
+                              height="40px"
+                              width="40px"
+                            />
+                          </span>
+                          <h4 className="data-id">Item Leadtime</h4>
                         </div>
-                        <div className="col-4">
-                          Total Quantity In: {totalPurchase}
-                        </div>
-                        <div className="col-4">
-                          Total Quantity Out: {totalSales}
+                        <div className="col">
+                          <div className="float-end">
+                            <EditLeadtimeModal
+                              show={leadtimeModalShow}
+                              onHide={() => setLeadtimeModalShow(false)}
+                            />
+                            <Button
+                              className="edit me-1"
+                              data-title="Edit Leadtime"
+                              onClick={() => setLeadtimeModalShow(true)}>
+                              <FontAwesomeIcon icon={faEdit} />
+                            </Button>
+                          </div>
                         </div>
                       </div>
+                      <div className='row text-center mt-2'>
+                        <div className="col-4">
+                          <span style={{ display: 'inline-block' }}>
+                            <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                          </span>
+                          <span className="data-label sm">
+                            <small>{stockcardDoc.analytics_minLeadtime} day(s)</small>
+                          </span>
+                        </div>
+                        <div className="col-4">
+                          <span style={{ display: 'inline-block' }}>
+                            <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                          </span>
+                          <span className="data-label sm">
+                            <small>{stockcardDoc.analytics_maxLeadtime} day(s)</small>
+                          </span>
+                        </div>
+                        <div className="col-4">
+                          <span style={{ display: 'inline-block' }}>
+                            <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                          </span>
+                          <span className="data-label sm">
+                            <small>{(stockcardDoc.analytics_maxLeadtime + stockcardDoc.analytics_minLeadtime) / 2} day(s)</small>
+                          </span>
+                        </div>
+                      </div>
+                      <div className="row data-specs-add mt-4">
+                        <div className="col-4">
+                          Quantity:<br /> {stockcardDoc.qty}
+                        </div>
+                        <div className="col-4">
+                          Total Quantity In: <br /> {totalPurchase}
+                        </div>
+                        <div className="col-4">
+                          Total Quantity Out: <br />{totalSales}
+                        </div>
+                      </div>
+                    </>
 
-                    </div>
+
                   </div>
                 </Tab.Pane>
               </Tab.Content>

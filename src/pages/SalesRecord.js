@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
-import { Tab, ListGroup, Card, Table, Button, Nav, FormControl } from "react-bootstrap";
+import { Tab, ListGroup, Card, Table, Button, Nav, FormControl, Alert } from "react-bootstrap";
 import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign, faSearch } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Create, Calendar, Document, InformationCircle } from 'react-ionicons'
@@ -20,6 +20,7 @@ function SalesRecords({ isAuth }) {
 
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
+  const [key, setKey] = useState('main');//Tab controller
 
   const [modalShow, setModalShow] = useState(false); //add new sales record modal
   const [salesRecordCollection, setSalesRecordCollection] = useState([]); //sales_record Collection
@@ -102,6 +103,7 @@ function SalesRecords({ isAuth }) {
     const purchaseListRecDoc = doc(db, "sales_products", id)
     await deleteDoc(purchaseListRecDoc);
     await deleteDoc(purchaseRecDoc);
+    setKey('main')
   }
 
 
@@ -112,7 +114,11 @@ function SalesRecords({ isAuth }) {
   return (
     <div>
       <Navigation />
-      <Tab.Container id="list-group-tabs-example" defaultActiveKey="main">
+      <Tab.Container
+        id="controlled-tab-example"
+        activeKey={key}
+        onSelect={(k) => setKey(k)}
+      >
         <div className="row contents">
           <div className="row py-4 px-5">
             <div className='sidebar'>
@@ -144,27 +150,37 @@ function SalesRecords({ isAuth }) {
                       Date
                     </div>
                   </div>
-                  <div id='scrollbar'>
-                    <ListGroup variant="flush">
-                      {salesRecordCollection.map((sales) => {
-                        return (
-                          <ListGroup.Item
-                            action
-                            key={sales.id}
-                            eventKey={sales.id}
-                            onClick={() => { setDocId(sales.id) }}>
-                            <div className="row gx-0 sidebar-contents">
-                              <div className="col-4">
-                                <small>{sales.transaction_number}</small>
+                  <div className='scrollbar' style={{ height: '400px' }}>
+                    {salesRecordCollection.length === 0 ?
+                      <div className='py-4 px-2'>
+                        <Alert variant="secondary" className='text-center'>
+                          <p>
+                            <strong>No Recorded Sales Transaction</strong>
+                          </p>
+                        </Alert>
+                      </div>
+                      :
+                      <ListGroup variant="flush">
+                        {salesRecordCollection.map((sales) => {
+                          return (
+                            <ListGroup.Item
+                              action
+                              key={sales.id}
+                              eventKey={sales.id}
+                              onClick={() => { setDocId(sales.id) }}>
+                              <div className="row gx-0 sidebar-contents">
+                                <div className="col-4">
+                                  <small>{sales.transaction_number}</small>
+                                </div>
+                                <div className="col-8">
+                                  <small>{moment(sales.transaction_date).format('ll')}</small>
+                                </div>
                               </div>
-                              <div className="col-8">
-                                <small>{moment(sales.transaction_date).format('ll')}</small>
-                              </div>
-                            </div>
-                          </ListGroup.Item>
-                        )
-                      })}
-                    </ListGroup>
+                            </ListGroup.Item>
+                          )
+                        })}
+                      </ListGroup>
+                    }
                   </div>
                 </Card.Body>
               </Card>

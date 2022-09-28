@@ -55,7 +55,8 @@ function NewProductModal(props) {
       barcode: 0,
       img: "",
       analytics_boolean: false,
-      analytics_leadtime: 0,
+      analytics_minLeadtime: 0,
+      analytics_maxLeadtime: 0
     });
 
 
