@@ -1,10 +1,10 @@
 import React from 'react';
-import { Tab, Button, Card, ListGroup, Modal, Form, Alert } from 'react-bootstrap';
+import { Tab, Button, Card, ListGroup, Modal, Form, Alert, Table, Tooltip, OverlayTrigger, Accordion } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faTriangleExclamation, faSearch, faTruck } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrashCan, faTriangleExclamation, faSearch, faTruck, faInbox, faArrowRightFromBracket, faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
 import { Cube, Grid, Pricetag, Layers, Barcode as Barc, Cart, InformationCircle, Delive } from 'react-ionicons'
 import NewProductModal from '../components/NewProductModal';
 import { useNavigate } from 'react-router-dom';
@@ -12,13 +12,13 @@ import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDo
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { faEdit } from '@fortawesome/free-regular-svg-icons';
-import Barcode from 'react-barcode';
-import JsBarcode from "jsbarcode";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
 import { UserAuth } from '../context/AuthContext'
-
-
+import Barcode from 'react-jsbarcode'
+import DatePicker from 'react-datepicker'
+import "react-datepicker/dist/react-datepicker.css";
+import moment from 'moment';
 
 
 function StockcardPage() {
@@ -37,8 +37,6 @@ function StockcardPage() {
 
 
   //---------------------FUNCTIONS---------------------
-
-  JsBarcode(".barcode").init();//initialize barcode
 
 
 
@@ -257,7 +255,7 @@ function StockcardPage() {
 
     function updateBarcode() {
       updateDoc(doc(db, "stockcard", docId), {
-        barcode: newBarcodeValue
+        barcode: Number(newBarcodeValue)
       });
       setupBarcodeValue()
       handleEditBarcodeClose()
@@ -334,12 +332,8 @@ function StockcardPage() {
 
     if (stockcardDoc.barcode !== 0)
       return (
-        <Card className='shadow'>
-          <Card.Header className='bg-primary text-white'>
-            Barcode
-          </Card.Header>
-          <Card.Body>
-
+        <div className="row py-1 m-0">
+          <div className="col-9">
 
             <Barcode
               format="EAN13"
@@ -347,52 +341,50 @@ function StockcardPage() {
               height="50"
               width="3"
             />
-          </Card.Body>
-          <Card.Footer className='bg-white'>
-            <Button
-              size='sm'
-              variant="outline-dark"
-              onClick={() => setBarcodeModalShow(true)}
-            >
-              Edit Barcode Value
-            </Button>
-            <EditBarcodeModal
-              show={barcodeModalShow}
-              onHide={() => setBarcodeModalShow(false)}
-            />
-
-          </Card.Footer>
-        </Card>
+          </div>
+          <div className="col-3">
+            <div className="float-end">
+              <EditBarcodeModal
+                show={barcodeModalShow}
+                onHide={() => setBarcodeModalShow(false)}
+              />
+              <Button
+                className="edit me-1"
+                data-title="Edit Barcode value"
+                onClick={() => setBarcodeModalShow(true)}>
+                <FontAwesomeIcon icon={faEdit} />
+              </Button>
+            </div>
+          </div>
+        </div>
       )
 
     else {
       return (
-        <Card className='shadow'>
-          <Card.Header className='bg-primary text-white'>
-            Barcode
-          </Card.Header>
-          <Card.Body className="pt-4" style={{ height: "125px" }}>
+
+        <div className="row py-1 m-0">
+          <div className="col-9">
 
             <Alert className="text-center" variant="warning">
               <FontAwesomeIcon icon={faTriangleExclamation} /> Empty Barcode value
             </Alert>
 
-          </Card.Body>
-          <Card.Footer className='bg-white'>
-            <Button
-              size='sm'
-              variant="outline-dark"
-              onClick={() => setBarcodeModalShow(true)}
-            >
-              Setup Barcode
-            </Button>
-            <EditBarcodeModal
-              show={barcodeModalShow}
-              onHide={() => setBarcodeModalShow(false)}
-            />
-
-          </Card.Footer>
-        </Card>
+          </div>
+          <div className="col-3">
+            <div className="float-end">
+              <EditBarcodeModal
+                show={barcodeModalShow}
+                onHide={() => setBarcodeModalShow(false)}
+              />
+              <Button
+                className="edit me-1"
+                data-title="Edit Barcode value"
+                onClick={() => setBarcodeModalShow(true)}>
+                <FontAwesomeIcon icon={faEdit} />
+              </Button>
+            </div>
+          </div>
+        </div>
       )
     }
 
@@ -591,7 +583,331 @@ function StockcardPage() {
   }
 
 
+  const leadTimeTooltip = (props) => (
+    <Tooltip id="LeadTime" className="tooltipBG" {...props}>
+      Lead time is the amount of days it takes for your supplier to fulfill
+      your order
+    </Tooltip>
+  );
+
+  const salesQuantityReport = (props) => (
+    <Tooltip id="salesQuantityReport" className="tooltipBG" {...props}>
+      Displays a Report containing: Transaction Number, Date of Transaction, Quantity of a certain transaction
+    </Tooltip>
+  );
+
   //-----------------------------------------------------------------------------------------------
+
+  const [dateRange, setDateRange] = useState([null, null]);
+  const [startDate, endDate] = dateRange;
+  const [start, setStart] = useState(new Date());
+  const [end, setEnd] = useState(new Date());
+
+
+
+
+
+
+  const [salesReport, setSalesReport] = useState()
+  const [reportSalesQuantity, setReportSalesQuantity] = useState([])
+  const [reportSalesDate, setReportSalesDate] = useState([])
+  const [reportSalesId, setReportSalesId] = useState([])
+  const [reportTotalSales, setReportTotalSales] = useState(0)
+
+
+  useEffect(() => {
+
+    if (start && end !== null) {
+
+
+      start.setDate(start.getDate() + 1)
+      end.setDate(end.getDate() + 2)
+      let tempTotal = 0
+      let tempDate
+      let tempIDArr = []
+      let tempQuantityArr = []
+      let tempDateArr = []
+
+      let tempArrReport = [{}]
+
+      while (start < end) {
+        tempDate = start.toISOString().substring(0, 10)
+        salesRecordCollection.map((sale) => {
+          if (sale.transaction_date === tempDate && userID === sale.user) {
+            sale.product_list.map((prod) => {
+              if (prod.itemId === docId) {
+                tempTotal += prod.itemQuantity
+                tempIDArr.push(sale.transaction_number)
+                tempDateArr.push(sale.transaction_date)
+                tempQuantityArr.push(prod.itemQuantity)
+                tempArrReport.push({ ID: sale.transaction_number, Date: sale.transaction_date, Quantity: prod.itemQuantity })
+              }
+            })
+          }
+        })
+        start.setDate(start.getDate() + 1)
+      }
+      setSalesReport(tempArrReport)
+      setReportSalesQuantity(tempQuantityArr)
+      setReportSalesId(tempIDArr)
+      setReportSalesDate(tempDateArr)
+      setReportTotalSales(tempTotal)
+    }
+
+  }, [end])
+
+  useEffect(() => {
+    setSalesReport()
+    setReportSalesQuantity([])
+    setReportSalesId([])
+    setReportSalesDate([])
+    setReportTotalSales(0)
+    setDateRange(([null, null]))
+  }, [docId])
+
+
+
+  const [filteredReport, setFilteredReport] = useState()
+
+  useEffect(() => {
+    if (salesReport !== undefined) {
+      const results = salesReport.filter(element => {
+        if (Object.keys(element).length !== 0) {
+          return true;
+        }
+        return false;
+      });
+
+      setFilteredReport(results)
+    }
+  }, [salesReport])
+
+
+  const [strStartDate, setStrStartDate] = useState("")
+  const [startDateHolder, setStartDateHolder] = useState()
+  const [endDateHolder, setEndDateHolder] = useState()
+
+
+  useEffect(() => {
+    console.log(startDate)
+  }, [startDate])
+
+  useEffect(() => {
+    if (startDate !== null) {
+      let x = new Date(startDate)
+      let tempDate = new Date()
+
+      if (x !== null) {
+        tempDate = x
+        setStartDateHolder(tempDate)
+      }
+    }
+  }, [startDate])
+
+
+  useEffect(() => {
+    if (endDate !== null) {
+      let x = new Date(endDate)
+      let tempDate = new Date()
+
+      if (x !== null) {
+        tempDate = x
+        setEndDateHolder(tempDate)
+      }
+    }
+  }, [endDate])
+
+  useEffect(() => {
+    console.log(filteredReport)
+  }, [filteredReport])
+
+
+  const [tableHeaderBoolean, setTableHeaderBoolean] = useState(true)
+
+  useEffect(() => {
+    if (filteredReport !== undefined) {
+      if (filteredReport.length === 0) {
+        setTableHeaderBoolean(true)
+      }
+      else {
+        setTableHeaderBoolean(false)
+      }
+    }
+  }, [filteredReport])
+
+  useEffect(() => {
+    if (filteredReport !== undefined) {
+      if (filteredReport.length === 0) {
+        setDateRange([null], [null])
+      }
+    }
+  }, [filteredReport])
+
+
+  useEffect(() => {
+    reportTableHeader()
+    reportTable()
+  }, [filteredReport])
+
+  function reportTableHeader() {
+    if (filteredReport !== undefined) {
+      return (
+        <>
+          {filteredReport.length !== 0 ?
+            reportTableHeaderTrue()
+            :
+            reportTableHeaderFalse()
+          }
+        </>
+      )
+    }
+  }
+
+
+  function reportTableHeaderTrue() {
+    return (
+      <>
+        <div className='row'>
+          <div className='row text-center'>
+            <div className='row p-3'>
+              <h4 className='text-primary'>Sold Quantity Report for date(s)</h4>
+            </div>
+            <div className='row'>
+              <span>
+                <strong>{moment(startDateHolder).format('ll')}</strong> to <strong>{moment(endDateHolder).format('ll')}</strong>
+                <Button
+                  className='ml-2'
+                  size='sm'
+                  variant="outline-primary"
+                  onClick={() => { setStart(new Date()); setEnd(new Date()); }}
+                >
+                  reset
+                </Button>
+              </span>
+
+            </div>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  function reportTableHeaderFalse() {
+    return (
+      <div>
+
+        <div className="row py-1 m-0 mb-2">
+            <span>
+              <InformationCircle
+                className="me-2 pull-down"
+                color={'#0d6efd'}
+                title={'Category'}
+                height="40px"
+                width="40px"
+              />
+            <OverlayTrigger
+              placement="right"
+              delay={{ show: 250, hide: 400 }}
+              overlay={salesQuantityReport}
+            >
+              <h4 className="data-id">SALES QUANTITY REPORT</h4>
+            </OverlayTrigger>
+            </span>
+
+        </div>
+        <div className='row text-center mb-2'>
+          <label>Date-Range to Report</label>
+          <DatePicker
+            placeholderText='Enter Date-Range'
+            selectsRange={true}
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(update) => {
+              setDateRange(update);
+            }}
+            withPortal
+          />
+        </div>
+      </div>
+
+    )
+  }
+
+  useEffect(() => {
+    setStart(startDate)
+    setEnd(endDate)
+  }, [dateRange])
+
+  function reportTable() {
+    if (filteredReport !== undefined) {
+      return (
+        <>
+          {filteredReport.length !== 0 ?
+            reportTableTrue()
+            :
+            reportTableFalse()
+          }
+        </>
+      )
+    }
+  }
+
+  function reportTableFalse() {
+    return (
+      <>
+        <Alert variant='warning' className='text-center'>
+          <strong>No Transaction to Report</strong><br/>
+          <span>Enter different Date-Range</span>
+        </Alert>
+      </>
+    )
+  }
+
+  function reportTableTrue() {
+    if (filteredReport !== undefined) {
+      return (
+        <div>
+          <Table striped bordered hover>
+            <thead>
+              <tr className='text-center'>
+                <th>Date</th>
+                <th>Transaction Number</th>
+                <th>Quantity</th>
+              </tr>
+            </thead>
+            <tbody className='text-center'>
+              {filteredReport.length === 0 ?
+                <tr>
+                  <td colSpan={3}>
+                    <Alert variant='warning'>
+                      <strong>No Transaction to Report</strong>
+                    </Alert>
+                  </td>
+                </tr>
+                :
+                <>{
+                  filteredReport.map((sale, index) => {
+                    return (
+                      <tr key={index}>
+                        <td>{moment(sale.Date).format('ll')}</td>
+                        <td>{sale.ID}</td>
+                        <td>{sale.Quantity}</td>
+                      </tr>
+                    )
+                  })}
+                </>
+
+              }
+              <tr>
+                <td colSpan={2}><strong>Total</strong></td>
+                <td><strong>{reportTotalSales} units</strong></td>
+              </tr>
+            </tbody>
+          </Table >
+        </div>
+      )
+    }
+  }
 
   return (
     <div>
@@ -791,20 +1107,7 @@ function StockcardPage() {
                               Purchase Price
                             </span>
                           </div>
-                          <div className="col-4 px-1">
-                            <span className="data-icon sm">
-                              <Barc
-                                className="me-2 pull-down"
-                                color={'#00000'}
-                                title={'Category'}
-                                height="25px"
-                                width="25px"
-                              />
-                            </span>
-                            <span className="data-label sm">
-                              Barcode
-                            </span>
-                          </div>
+
                         </div>
                       </div>
                       <hr />
@@ -813,69 +1116,39 @@ function StockcardPage() {
                     </div>
                   </div>
                   <>
-                    <div className="row py-1 m-0">
-                      <div className="col">
-                        <span>
-                          <InformationCircle
-                            className="me-2 pull-down"
-                            color={'#0d6efd'}
-                            title={'Category'}
-                            height="40px"
-                            width="40px"
-                          />
-                        </span>
-                        <h4 className="data-id">ITEM LEADTIME</h4>
-                      </div>
-                      <div className="col">
-                        <div className="float-end">
 
-                          <Button
-                            disabled
-                            className="edit me-1"
-                            data-title="Edit Leadtime"
-                          >
-                            <FontAwesomeIcon icon={faEdit} />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className='row text-center mt-2'>
-                      <div className="col-4">
-                        <span style={{ display: 'inline-block' }}>
-                          <h5><FontAwesomeIcon icon={faTruck} /></h5>
-                        </span>
-                        <span className="data-label sm">
-                          <small>Minimum Leadtime</small>
-                        </span>
-                      </div>
-                      <div className="col-4">
-                        <span style={{ display: 'inline-block' }}>
-                          <h5><FontAwesomeIcon icon={faTruck} /></h5>
-                        </span>
-                        <span className="data-label sm">
-                          <small>Maximum Leadtime</small>
-                        </span>
-                      </div>
-                      <div className="col-4">
-                        <span style={{ display: 'inline-block' }}>
-                          <h5><FontAwesomeIcon icon={faTruck} /></h5>
-                        </span>
-                        <span className="data-label sm">
-                          <small>Average Leadtime</small>
-                        </span>
-                      </div>
-                    </div>
-                    <div className="row data-specs-add mt-4">
-                      <div className="col-4">
-                        Quantity:<br />
-                      </div>
-                      <div className="col-4">
-                        Total Quantity In: <br />
-                      </div>
-                      <div className="col-4">
-                        Total Quantity Out: <br />
-                      </div>
-                    </div>
+                    <Accordion defaultActiveKey="0">
+                      <Accordion.Item eventKey="1">
+                        <Accordion.Header><h6>BARCODE</h6></Accordion.Header>
+                        <Accordion.Body>
+                          <Alert variant='primary' className='mt-2 text-center'>
+                            <strong> Select a Product to display Barcode</strong>
+                          </Alert>
+                        </Accordion.Body>
+                      </Accordion.Item>
+                    </Accordion>
+                    <Accordion defaultActiveKey="0">
+                      <Accordion.Item eventKey="1">
+                        <Accordion.Header><h6>LEADTIME</h6></Accordion.Header>
+                        <Accordion.Body>
+                          <Alert variant='primary' className='mt-2 text-center'>
+                            <strong> Select a Product to display Leadtime</strong>
+                          </Alert>
+                        </Accordion.Body>
+                      </Accordion.Item>
+                    </Accordion>
+
+                    <Accordion defaultActiveKey="0">
+                      <Accordion.Item eventKey="1">
+                        <Accordion.Header><h6>PRODUCT REPORT</h6></Accordion.Header>
+                        <Accordion.Body>
+                          <Alert variant='primary' className='mt-2 text-center'>
+                            <strong> Select a Product to display Report</strong>
+                          </Alert>
+                        </Accordion.Body>
+                      </Accordion.Item>
+                    </Accordion>
+
                   </>
                 </Tab.Pane>
 
@@ -967,7 +1240,7 @@ function StockcardPage() {
                           </div>
                         </div>
                         <div className="row mb-4">
-                          <div className="col-4 px-1">
+                          <div className="col-6 px-1">
                             <span className="data-icon sm">
                               <Pricetag
                                 className="me-2 pull-down"
@@ -981,7 +1254,7 @@ function StockcardPage() {
                               {stockcardDoc.s_price}
                             </span>
                           </div>
-                          <div className="col-4 px-1">
+                          <div className="col-6 px-1">
                             <span className="data-icon sm">
                               <Cart
                                 className="me-2 pull-down"
@@ -995,105 +1268,151 @@ function StockcardPage() {
                               {stockcardDoc.p_price}
                             </span>
                           </div>
+
+                        </div>
+                        <div className="row mb-4">
                           <div className="col-4 px-1">
                             <span className="data-icon sm">
-
-                              <Button
-                                className="plain-button bc-button"
-                                data-hover="Edit Barcode"
-                                onClick={DisplayBarcodeInfo()}
-                              >
-                                <Barc
-                                  className="me-2 pull-down"
-                                  color={'#00000'}
-                                  data-title="Barcode"
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </Button>
+                              <FontAwesomeIcon icon={faInbox} />
                             </span>
-
-
-
                             <span className="data-label sm">
-                              {
-                                checkBarcode(stockcard.barcode) ?
-                                  <span>Barcode not initialized</span>
-                                  :
-                                  <span>{stockcard.barcode}</span>
-                              }
+                              {stockcardDoc.qty}
                             </span>
                           </div>
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                              <FontAwesomeIcon icon={faArrowRightFromBracket} />
+                            </span>
+                            <span className="data-label sm">
+                              {totalSales}
+                            </span>
+                          </div>
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                              <FontAwesomeIcon icon={faArrowRightToBracket} />
+                            </span>
+                            <span className="data-label sm">
+                              {totalPurchase}
+                            </span>
+                          </div>
+
                         </div>
                       </div>
                       <hr />
                     </div>
                     <>
-                      <div className="row py-1 m-0">
-                        <div className="col">
-                          <span>
-                            <InformationCircle
-                              className="me-2 pull-down"
-                              color={'#0d6efd'}
-                              title={'Category'}
-                              height="40px"
-                              width="40px"
-                            />
-                          </span>
-                          <h4 className="data-id">Item Leadtime</h4>
-                        </div>
-                        <div className="col">
-                          <div className="float-end">
-                            <EditLeadtimeModal
-                              show={leadtimeModalShow}
-                              onHide={() => setLeadtimeModalShow(false)}
-                            />
-                            <Button
-                              className="edit me-1"
-                              data-title="Edit Leadtime"
-                              onClick={() => setLeadtimeModalShow(true)}>
-                              <FontAwesomeIcon icon={faEdit} />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className='row text-center mt-2'>
-                        <div className="col-4">
-                          <span style={{ display: 'inline-block' }}>
-                            <h5><FontAwesomeIcon icon={faTruck} /></h5>
-                          </span>
-                          <span className="data-label sm">
-                            <small>{stockcardDoc.analytics_minLeadtime} day(s)</small>
-                          </span>
-                        </div>
-                        <div className="col-4">
-                          <span style={{ display: 'inline-block' }}>
-                            <h5><FontAwesomeIcon icon={faTruck} /></h5>
-                          </span>
-                          <span className="data-label sm">
-                            <small>{stockcardDoc.analytics_maxLeadtime} day(s)</small>
-                          </span>
-                        </div>
-                        <div className="col-4">
-                          <span style={{ display: 'inline-block' }}>
-                            <h5><FontAwesomeIcon icon={faTruck} /></h5>
-                          </span>
-                          <span className="data-label sm">
-                            <small>{(stockcardDoc.analytics_maxLeadtime + stockcardDoc.analytics_minLeadtime) / 2} day(s)</small>
-                          </span>
-                        </div>
-                      </div>
-                      <div className="row data-specs-add mt-4">
-                        <div className="col-4">
-                          Quantity:<br /> {stockcardDoc.qty}
-                        </div>
-                        <div className="col-4">
-                          Total Quantity In: <br /> {totalPurchase}
-                        </div>
-                        <div className="col-4">
-                          Total Quantity Out: <br />{totalSales}
-                        </div>
-                      </div>
+                      <Accordion defaultActiveKey="0">
+                        <Accordion.Item eventKey="1">
+                          <Accordion.Header><h6>BARCODE</h6></Accordion.Header>
+                          <Accordion.Body>
+                            {DisplayBarcodeInfo()}
+                          </Accordion.Body>
+                        </Accordion.Item>
+                      </Accordion>
+                      <Accordion defaultActiveKey="0">
+                        <Accordion.Item eventKey="1">
+                          <Accordion.Header><h6>LEADTIME</h6></Accordion.Header>
+                          <Accordion.Body>
+                            <div className="row py-1 m-0">
+                              <div className="col">
+                                <span>
+                                  <InformationCircle
+                                    className="me-2 pull-down"
+                                    color={'#0d6efd'}
+                                    title={'Category'}
+                                    height="40px"
+                                    width="40px"
+                                  />
+                                </span>
+                                <OverlayTrigger
+                                  placement="right"
+                                  delay={{ show: 250, hide: 400 }}
+                                  overlay={leadTimeTooltip}
+                                >
+                                  <h4 className="data-id">ITEM LEADTIME</h4>
+                                </OverlayTrigger>
+                              </div>
+                              <div className="col">
+                                <div className="float-end">
+                                  <EditLeadtimeModal
+                                    show={leadtimeModalShow}
+                                    onHide={() => setLeadtimeModalShow(false)}
+                                  />
+                                  <Button
+                                    className="edit me-1"
+                                    data-title="Edit Leadtime"
+                                    onClick={() => setLeadtimeModalShow(true)}>
+                                    <FontAwesomeIcon icon={faEdit} />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                            <div className='row'>
+                              <div className='col-4 text-center'>
+                                <small>Minimum Leadtime</small>
+                              </div>
+                              <div className='col-4 text-center'>
+                                <small>Maximum Leadtime</small>
+                              </div>
+                              <div className='col-4 text-center'>
+                                <small>Average Leadtime</small>
+                              </div>
+                            </div>
+                            <div className='row text-center mt-2'>
+
+                              <div className="col-4">
+                                <span style={{ display: 'inline-block' }}>
+                                  <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                                </span>
+                                <span className="data-label sm">
+                                  <small>{stockcardDoc.analytics_minLeadtime} day(s)</small>
+                                </span>
+                              </div>
+                              <div className="col-4">
+                                <span style={{ display: 'inline-block' }}>
+                                  <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                                </span>
+                                <span className="data-label sm">
+                                  <small>{stockcardDoc.analytics_maxLeadtime} day(s)</small>
+                                </span>
+                              </div>
+                              <div className="col-4">
+                                <span style={{ display: 'inline-block' }}>
+                                  <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                                </span>
+                                <span className="data-label sm">
+                                  <small>{(stockcardDoc.analytics_maxLeadtime + stockcardDoc.analytics_minLeadtime) / 2} day(s)</small>
+                                </span>
+                              </div>
+                              <hr className='mt-2' />
+
+                            </div>
+                          </Accordion.Body>
+                        </Accordion.Item>
+                      </Accordion>
+                      <Accordion defaultActiveKey="0">
+                        <Accordion.Item eventKey="1">
+                          <Accordion.Header><h6>PRODUCT REPORT</h6></Accordion.Header>
+                          <Accordion.Body>
+                            <div className="row data-specs-add mt-4">
+                              <div className='row'>
+                                <Card>
+                                  <Card.Header className="bg-white">
+                                    {tableHeaderBoolean === true ?
+                                      reportTableHeaderFalse()
+                                      :
+                                      reportTableHeaderTrue()
+                                    }
+                                  </Card.Header>
+                                  <Card.Body>
+                                    {reportTable()}
+                                  </Card.Body>
+                                </Card>
+                              </div>
+                            </div>
+                          </Accordion.Body>
+                        </Accordion.Item>
+                      </Accordion>
                     </>
 
 
@@ -1103,14 +1422,14 @@ function StockcardPage() {
             </div>
           </div>
         </div>
-      </Tab.Container>
+      </Tab.Container >
 
 
 
 
 
 
-    </div>
+    </div >
   );
 
 

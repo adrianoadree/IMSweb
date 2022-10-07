@@ -235,35 +235,6 @@ function LandingPage() {
                         </Card>
                     </div>
                 </div>
-                <div className="row row py-4 px-5 guide" style={{ height: "100%" }}>
-                    <div className="bg-white">
-                        <Carousel>
-                            <Carousel.Item>
-                                <img
-                                    className="d-block w-100"
-                                    src="https://static1.cbrimages.com/wordpress/wp-content/uploads/2022/05/Naruto-using-sage-mode.jpg?q=50&fit=contain&w=750&h=&dpr=1.5"
-                                    alt="First slide"
-                                />
-                                <Carousel.Caption>
-                                    <h3>First slide label</h3>
-                                    <p>Nulla vitae elit libero, a pharetra augue mollis interdum.</p>
-                                </Carousel.Caption>
-                            </Carousel.Item>
-                            <Carousel.Item>
-                                <img
-                                    className="d-block w-100"
-                                    src="https://static1.cbrimages.com/wordpress/wp-content/uploads/2022/09/Naruto-MHA.jpg?q=50&fit=contain&w=750&h=&dpr=1.5"
-                                    alt="Second slide"
-                                />
-
-                                <Carousel.Caption>
-                                    <h3>Second slide label</h3>
-                                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-                                </Carousel.Caption>
-                            </Carousel.Item>
-                        </Carousel>
-                    </div>
-                </div>
             </div>
         </div>
     )
