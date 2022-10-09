@@ -4,7 +4,7 @@ import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faTriangleExclamation, faSearch, faTruck, faInbox, faArrowRightFromBracket, faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrashCan, faTriangleExclamation, faSearch, faTruck, faBarcode, faFileLines, faInbox, faArrowRightFromBracket, faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
 import { Cube, Grid, Pricetag, Layers, Barcode as Barc, Cart, InformationCircle, Delive } from 'react-ionicons'
 import NewProductModal from '../components/NewProductModal';
 import { useNavigate } from 'react-router-dom';
@@ -797,14 +797,14 @@ function StockcardPage() {
       <div>
 
         <div className="row py-1 m-0 mb-2">
-            <span>
-              <InformationCircle
-                className="me-2 pull-down"
-                color={'#0d6efd'}
-                title={'Category'}
-                height="40px"
-                width="40px"
-              />
+          <span>
+            <InformationCircle
+              className="me-2 pull-down"
+              color={'#0d6efd'}
+              title={'Category'}
+              height="40px"
+              width="40px"
+            />
             <OverlayTrigger
               placement="right"
               delay={{ show: 250, hide: 400 }}
@@ -812,7 +812,7 @@ function StockcardPage() {
             >
               <h4 className="data-id">SALES QUANTITY REPORT</h4>
             </OverlayTrigger>
-            </span>
+          </span>
 
         </div>
         <div className='row text-center mb-2'>
@@ -856,7 +856,7 @@ function StockcardPage() {
     return (
       <>
         <Alert variant='warning' className='text-center'>
-          <strong>No Transaction to Report</strong><br/>
+          <strong>No Transaction to Report</strong><br />
           <span>Enter different Date-Range</span>
         </Alert>
       </>
@@ -1081,7 +1081,7 @@ function StockcardPage() {
                           </div>
                         </div>
                         <div className="row mb-4">
-                          <div className="col-4 px-1">
+                          <div className="col-6 px-1">
                             <span className="data-icon sm">
                               <Pricetag
                                 className="me-2 pull-down"
@@ -1093,7 +1093,7 @@ function StockcardPage() {
                             </span>
                             <span className="data-label sm">Selling Price</span>
                           </div>
-                          <div className="col-4 px-1">
+                          <div className="col-6 px-1">
                             <span className="data-icon sm">
                               <Cart
                                 className="me-2 pull-down"
@@ -1109,6 +1109,33 @@ function StockcardPage() {
                           </div>
 
                         </div>
+
+                        <div className="row mb-4">
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                              <FontAwesomeIcon icon={faInbox} />
+                            </span>
+                            <span className="data-label sm">
+                              Stock Level
+                            </span>
+                          </div>
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                              <FontAwesomeIcon icon={faArrowRightFromBracket} />
+                            </span>
+                            <span className="data-label sm">
+                              Total Sales
+                            </span>
+                          </div>
+                          <div className="col-4 px-1">
+                            <span className="data-icon sm">
+                              <FontAwesomeIcon icon={faArrowRightToBracket} />
+                            </span>
+                            <span className="data-label sm">
+                              Total Purchase
+                            </span>
+                          </div>
+                        </div>
                       </div>
                       <hr />
 
@@ -1119,7 +1146,9 @@ function StockcardPage() {
 
                     <Accordion defaultActiveKey="0">
                       <Accordion.Item eventKey="1">
-                        <Accordion.Header><h6>BARCODE</h6></Accordion.Header>
+                        <Accordion.Header>
+                          <h6><FontAwesomeIcon icon={faBarcode} /> BARCODE</h6>
+                        </Accordion.Header>
                         <Accordion.Body>
                           <Alert variant='primary' className='mt-2 text-center'>
                             <strong> Select a Product to display Barcode</strong>
@@ -1129,7 +1158,9 @@ function StockcardPage() {
                     </Accordion>
                     <Accordion defaultActiveKey="0">
                       <Accordion.Item eventKey="1">
-                        <Accordion.Header><h6>LEADTIME</h6></Accordion.Header>
+                        <Accordion.Header>
+                          <h6><FontAwesomeIcon icon={faTruck} /> LEADTIME</h6>
+                        </Accordion.Header>
                         <Accordion.Body>
                           <Alert variant='primary' className='mt-2 text-center'>
                             <strong> Select a Product to display Leadtime</strong>
@@ -1140,7 +1171,9 @@ function StockcardPage() {
 
                     <Accordion defaultActiveKey="0">
                       <Accordion.Item eventKey="1">
-                        <Accordion.Header><h6>PRODUCT REPORT</h6></Accordion.Header>
+                        <Accordion.Header>
+                          <h6><FontAwesomeIcon icon={faFileLines} /> PRODUCT REPORT</h6>
+                        </Accordion.Header>
                         <Accordion.Body>
                           <Alert variant='primary' className='mt-2 text-center'>
                             <strong> Select a Product to display Report</strong>
@@ -1303,7 +1336,9 @@ function StockcardPage() {
                     <>
                       <Accordion defaultActiveKey="0">
                         <Accordion.Item eventKey="1">
-                          <Accordion.Header><h6>BARCODE</h6></Accordion.Header>
+                          <Accordion.Header>
+                            <h6><FontAwesomeIcon icon={faBarcode} /> BARCODE</h6>
+                          </Accordion.Header>
                           <Accordion.Body>
                             {DisplayBarcodeInfo()}
                           </Accordion.Body>
@@ -1311,7 +1346,9 @@ function StockcardPage() {
                       </Accordion>
                       <Accordion defaultActiveKey="0">
                         <Accordion.Item eventKey="1">
-                          <Accordion.Header><h6>LEADTIME</h6></Accordion.Header>
+                          <Accordion.Header>
+                            <h6><FontAwesomeIcon icon={faTruck} /> LEADTIME</h6>
+                          </Accordion.Header>
                           <Accordion.Body>
                             <div className="row py-1 m-0">
                               <div className="col">
@@ -1392,7 +1429,9 @@ function StockcardPage() {
                       </Accordion>
                       <Accordion defaultActiveKey="0">
                         <Accordion.Item eventKey="1">
-                          <Accordion.Header><h6>PRODUCT REPORT</h6></Accordion.Header>
+                          <Accordion.Header>
+                            <h6><FontAwesomeIcon icon={faFileLines} /> PRODUCT REPORT</h6>
+                          </Accordion.Header>
                           <Accordion.Body>
                             <div className="row data-specs-add mt-4">
                               <div className='row'>
