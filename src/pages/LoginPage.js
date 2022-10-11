@@ -1,53 +1,53 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GoogleButton } from 'react-google-button';
-import { UserAuth, isNew } from '../context/AuthContext';
+import { UserAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom'
 import { Button } from 'react-bootstrap';
-
-
+import { db } from "../firebase-config";
+import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
 
 const LoginPage = () => {
 
-    const { googleSignIn, user } = UserAuth();
+    const { googleSignIn, user, isNew } = UserAuth();
     const navigate = useNavigate();
+    const [userID, setUserID] = useState("");
 
     const handleGoogleSignIn = async () => {
         try {
             await googleSignIn();
+            
         } catch (error) {
             console.log(error);
         }
     };
 
-    useEffect(() => {
+    useEffect(() => { 
         if (user != null) {
             navigate('/');
         }
     }, [user]);
 
 
-    
     return (
         <div>
-            <div className='bg-light row p-5' style={{ height: "600px" }}>
-
-                <div className='col-4'></div>
-                <div className='col-4 bg-white shadow' >
-
-
-                    <div className='row mt-4 p-5'>
-                        <h1 className='text-center text-3xl font-bold py-8'>IMS</h1>
-                        <small className='text-center text-muted p1'>Inventory Management System</small>
-
-                    </div>
-                    <div className='row p-5'>
-                        <hr />
-                        <GoogleButton
-                            type="light" onClick={handleGoogleSignIn} style={{ width: "500px" }} />
+            <div id="login-page">
+                <div className="contents">
+                    <div id="add-border">           
+                        <div id="brand-image-container">
+                            <img id="brand-image" src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52">
+                            </img>
+                        </div>
+                        <div className="module-container">
+                            <div id="brand" className="mb-5">
+                                <h1>IMS</h1>
+                                <small>Inventory Management System</small>
+                            </div>
+                            <div id="google-button-container">
+                                <GoogleButton type="light" onClick={handleGoogleSignIn} className="google-button"/>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className='col-4'></div>
-
             </div>
         </div>
     );

@@ -16,15 +16,19 @@ import SalesRecord from './pages/SalesRecord';
 import LoginPage from './pages/LoginPage';
 import Warehouse from './pages/Warehouse';
 import TestPage from './pages/TestPage';
-import BetaPage from './pages/BetaPage';
+import ProfileManagement from './pages/ProfileManagement';
+import AccountManagement from './pages/AccountManagement';
+import UserRouter from './pages/UserRouter';
+import VerificationMessage from './pages/VerificationMessage';
+
+import ModRouter from './pages/ModRouter';
+import ManageUsers from './pages/ManageUsers';
 
 
 import { useState } from 'react';
 import Protected from './layout/Protected';
 
 function App() {
-
-
 
   return (
 
@@ -33,8 +37,10 @@ function App() {
  
       <AuthContextProvider>
         <Routes>
+          <Route path='/' element={<Protected><UserRouter /></Protected>} />
           <Route path='/login' element={<LoginPage />} />
-          <Route path='/' element={<Protected><LandingPage /></Protected>} />
+          <Route path='/verify' element={<Protected><VerificationMessage /></Protected>} />
+          <Route path='/home' element={<Protected><LandingPage /></Protected>} />
           <Route path='/supplier' element={<Protected><SupplierList /></Protected>} />
           <Route path='/inventory' element={<Protected><Inventory /></Protected>} />
           <Route path='/records' element={<Protected><Records /></Protected>} />
@@ -44,9 +50,11 @@ function App() {
           <Route path='/community' element={<Protected><Community /></Protected>} />
           <Route path='/warehouse' element={<Protected><Warehouse /></Protected>} />
           <Route path='/testpage' element={<Protected><TestPage /></Protected>} />
-          <Route path='/betapage' element={<Protected><BetaPage /></Protected>} />
+          <Route path='/profilemanagement' element={<Protected><ProfileManagement /></Protected>} />
+          <Route path='/accountmanagement' element={<Protected><AccountManagement /></Protected>} />
 
-
+          <Route path='/mod' element={<Protected><ModRouter /></Protected>} />
+          <Route path='/manageusers' element={<Protected><ManageUsers /></Protected>} />
           <Route path='/analytics' element={<Analytics />} />
         </Routes>
       </AuthContextProvider>

@@ -12,7 +12,6 @@ import { collection, where, query, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase-config";
 import { UserAuth } from '../context/AuthContext';
 import moment from "moment";
-import  UserRouter  from '../pages/UserRouter'
 
 
 function LandingPage() {
@@ -73,9 +72,6 @@ function LandingPage() {
 
     return (
        <div>
-        <UserRouter
-      route='/home'
-      />
             <Navigation />
             <div className="row contents">
                 <div className="row py-4 px-5">

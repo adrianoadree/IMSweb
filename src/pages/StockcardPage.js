@@ -17,6 +17,7 @@ import JsBarcode from "jsbarcode";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
 import { UserAuth } from '../context/AuthContext'
+import  UserRouter  from '../pages/UserRouter'
 
 
 
@@ -400,6 +401,9 @@ function StockcardPage({ isAuth }) {
 
   return (
     <div>
+      <UserRouter
+      route='/stockcard'
+      />
       <Navigation />
 
       <ToastContainer

@@ -16,6 +16,7 @@ import Barcode from 'react-barcode';
 import JsBarcode from "jsbarcode";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
+import  UserRouter  from '../pages/UserRouter'
 
 
 
@@ -132,6 +133,7 @@ function SupplierList() {
 
 
     return (
+      
         <Modal
             {...props}
             size="lg"
@@ -244,6 +246,9 @@ function SupplierList() {
 
   return (
     <div>
+      <UserRouter
+      route='/supplier'
+      />
       <Navigation />
 
       <ToastContainer

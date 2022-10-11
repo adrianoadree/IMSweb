@@ -89,10 +89,10 @@ function NewPurchaseModal(props) {
 
     //add document to database
     const addRecord = async (purchDocNum, qty) => {
-        setDoc(doc(db, "purchase_record", "PR" + Number(purchDocNum)), {
+        setDoc(doc(db, "purchase_record", "PR00001"), {
             document_date: date,
             document_note: newNote,
-            document_number: "PR" + Number(purchDocNum),
+            document_number: "PR00001",
             productList,
             user: user.uid
         });

@@ -44,7 +44,6 @@ function NewProductModal(props) {
 
   //Create product to database
   const addProduct = async (productId) => {
-
     setDoc(doc(db, "stockcard", "IT" + Number(varRef.productId)), {
       description: newProductName,
       p_price: Number(newPriceP),

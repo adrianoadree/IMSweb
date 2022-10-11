@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 import { getStorage, ref, storage, getDownloadURL } from "firebase/storage";
 
 
-const Navigation = () => {
+const RestrictedNavigation = () => {
 
   const [user, setUser] = useState({});
 
@@ -35,41 +35,6 @@ const Navigation = () => {
             </Navbar.Brand>
           </LinkContainer>
           <Navbar.Collapse id="responsive-navbar-nav">
-            <Nav className="me-auto">
-              <NavDropdown title="Records" id="collasible-nav-dropdown">
-                <LinkContainer to="/records">
-                  <NavDropdown.Item>Transaction History</NavDropdown.Item>
-                </LinkContainer>
-                <NavDropdown.Divider />
-                <LinkContainer to="/supplier">
-                  <NavDropdown.Item>Supplier List</NavDropdown.Item>
-                </LinkContainer>
-              </NavDropdown>
-              <NavDropdown title="Inventory" id="collasible-nav-dropdown">
-                <LinkContainer to="/inventory">
-                  <NavDropdown.Item>Inventory </NavDropdown.Item>
-                </LinkContainer>
-                <NavDropdown.Divider />
-                <LinkContainer to="/stockcard">
-                  <NavDropdown.Item>Stockcard </NavDropdown.Item>
-                </LinkContainer>
-                <NavDropdown.Divider />
-                <LinkContainer to="/warehouse">
-                  <NavDropdown.Item>Warehouse</NavDropdown.Item>
-                </LinkContainer>
-              </NavDropdown>
-              <LinkContainer to="/itemforecasting">
-                <Nav.Link>Analytics</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/community">
-                <Nav.Link>Community</Nav.Link>
-              </LinkContainer>
-              <LinkContainer to="/testpage">
-                <Nav.Link>Test</Nav.Link>
-              </LinkContainer>
-              
-            </Nav>
-
             <Nav>
               <NavDropdown
                 id="nav-dropdown-dark-example"
@@ -94,4 +59,4 @@ const Navigation = () => {
 
 
 }
-export default Navigation;
+export default RestrictedNavigation;

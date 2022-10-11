@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Create, Calendar, Document, InformationCircle } from 'react-ionicons'
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import moment from "moment";
+import  UserRouter  from '../pages/UserRouter'
 
 
 
@@ -133,6 +134,9 @@ function SalesRecords({ isAuth }) {
 
   return (
     <div>
+      <UserRouter
+      route='/salesrecord'
+      />
       <Navigation />
       <Tab.Container id="list-group-tabs-example" defaultActiveKey="main">
         <div className="row contents">

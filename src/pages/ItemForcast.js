@@ -8,6 +8,7 @@ import { collection, query, onSnapshot,doc,getDoc } from "firebase/firestore";
 import { Card, Nav, ListGroup, Tab, Button, FormControl } from 'react-bootstrap';
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import  UserRouter  from '../pages/UserRouter'
 
 
 function Itemforecast() {
@@ -92,6 +93,9 @@ function Itemforecast() {
 
   return (
     <div className="row">
+      <UserRouter
+      route='/itemforecasting'
+      />
       <Navigation />
       <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
         <div className="row contents">

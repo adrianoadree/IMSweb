@@ -10,14 +10,13 @@ import { Create, Calendar, Document, InformationCircle } from 'react-ionicons'
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import moment from "moment";
 import { UserAuth } from '../context/AuthContext'
-
+import  UserRouter  from '../pages/UserRouter'
 
 
 
 function Records() {
 
   //---------------------VARIABLES---------------------
-
   const [modalShow, setModalShow] = useState(false); //add new sales record modal
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]); //purchase_record Collection
   const [purchaseRecord, setPurchaseRecord] = useState([]); //purchase_record spec doc
@@ -41,6 +40,7 @@ function Records() {
     }
   }, [{ user }])
 
+  console.log(user);
 
   //read Functions
 
@@ -149,6 +149,9 @@ function Records() {
 
   return (
     <div>
+      <UserRouter
+      route='/records'
+      />
       <Navigation />
       <Tab.Container id="list-group-tabs-example" defaultActiveKey="main">
         <div className="row contents">

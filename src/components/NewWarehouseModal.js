@@ -1,54 +1,73 @@
-import { addDoc, setDoc, doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { addDoc, setDoc, doc, onSnapshot, updateDoc, query, where } from 'firebase/firestore';
 import { padStart } from "lodash";
 import { Modal, Button } from 'react-bootstrap';
 import React from "react";
 import { collection } from 'firebase/firestore';
 import { db, get, then } from '../firebase-config';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import { UserAuth } from '../context/AuthContext'
 import "react-toastify/dist/ReactToastify.css";
 
 
 function NewWarehouseModal(props) {
 
-  const warehouseCollectionRef = collection(db, "warehouse")
-      const masterdataDocRef = doc(db, "masterdata", "warehouse")
-      const [cntr, setCntr] = useState(0);
+  const { user } = UserAuth();//user credentials
+  const [userID, setUserID] = useState("");
+  const [userCollection, setUserCollection] = useState([]); 
+  const [userProfileID, setUserProfileID] = useState("");
+  const userCollectionRef = collection(db, "user")
+  const [warehouseCounter, setWarehouseCounter] = useState(0);
 
-  const closeModal=()=>{
-      document.querySelector("#warehouse-modal").style.display = 'none';
-      document.querySelector(".modal-backdrop").style.display = 'none';
-  } 
-  
-var format = "";
+  const [newWHName, setnewWHName] = useState("");
+  const [newWHNotes, setnewWHNotes] = useState("");
+  const [newAddress, setnewAddress] = useState("");
 
-  onSnapshot(masterdataDocRef, (doc) => {
-setCntr(doc.data().idCntr)
-  }, [])
+  useEffect(() => {
+    if (user) {
+      setUserID(user.uid)
+    }  
+  }, [{ user }])
+
+  useEffect(() => {
+    if (userID === undefined) {
+          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+    
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+        }
+        else {
+          const q = query(userCollectionRef, where("user", "==", userID));
+    
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+          
+        }
+  }, [userID])
+
+  useEffect(() => {
+    userCollection.map((metadata) => {
+        setWarehouseCounter(metadata.warehouseId)
+        setUserProfileID(metadata.id)
+    });
+  }, [userCollection])
  
-const createFormat = () => {
-  format = cntr + "";
-  while(format.length < 3) {format = "0" + format};
-  format = "WH" + format;
+  const closeModal=()=>{
+    document.querySelector("#warehouse-modal").style.display = 'none';
+    document.querySelector(".modal-backdrop").style.display = 'none';
+}
+
+  const createFormat = () => {
+    var format = warehouseCounter + "";
+    while(format.length < 2) {format = "0" + format};
+    format = "WH" + format + '@' + userID;
+    return format;
  }
   
-  /*const addWarehouse = async () => {
-    db.collection("warehouse").get().then(snap => {
-	setColSize(snap.size);
-    });
-    setIdFormat("WH" + collectionSize.padStart(3, "0"));
-    await setDoc(doc(db, "warehouse", idFormat),
-      {
-        wh_name: newWHName
-        , wh_notes: newWHNotes
-        , address: newAddress
-        , col: 0
-        , row: 0
-        , isInit: false
-      });
-    alert('Successfuly Added to the Database')
-
-  }*/
   const successToast = () => {
     toast.success(' Warehouse Creation Successful ', {
       position: "top-right",
@@ -62,8 +81,9 @@ const createFormat = () => {
   }
 
   const addWarehouse = async () => {
-  	createFormat();
-    await setDoc(doc(db, "warehouse", format),
+    const userProfileRef = doc(db, "user", userProfileID)
+    console.log(userProfileRef)
+    await setDoc(doc(db, "warehouse", createFormat()),
       {
         wh_name: newWHName
         , wh_notes: newWHNotes
@@ -72,29 +92,23 @@ const createFormat = () => {
         , row: 0
         , isInit: false
         , cells: []
+        , user: user.uid
       });
-    await updateDoc(masterdataDocRef,{
-	idCntr : Number(cntr) + 1
+      
+    await updateDoc(userProfileRef,
+      {
+	      warehouseId : Number(warehouseCounter) + 1
       });
-      format="";
       
    closeModal();
    successToast();
 
   }
 
-  //data variables
-  const [newWHName, setnewWHName] = useState("");
-  const [newWHNotes, setnewWHNotes] = useState("");
-  const [newAddress, setnewAddress] = useState("");
-  const [collectionSize, setColSize] = useState("");  
-  const [idFormat, setIdFormat] = useState("");  
-
-
   return (
     <Modal id="warehouse-modal"
       {...props}
-      size="lg"
+      size="md"
       aria-labelledby="contained-modal-title-vcenter"
       centered
     >
@@ -120,8 +134,8 @@ const createFormat = () => {
       <Modal.Body>
         <div className="p-3">
           <div className="row my-2">
-            <label>{format}</label>
             <div className="col-8">
+              <label>Warehouse Name</label>
               <input type="text"
                 className="form-control"
                 placeholder="Warehouse"
