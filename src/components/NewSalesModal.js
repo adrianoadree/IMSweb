@@ -20,6 +20,11 @@ function NewSalesModal(props) {
     const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
     const [productIds, setProductIds] = useState([]); // array of prod id
+    
+    const [userCollection, setUserCollection] = useState([]);// userCollection variable
+    const [userProfileID, setUserProfileID] = useState(""); // user profile id
+    const userCollectionRef = collection(db, "user")// user collection
+    const [salesCounter, setSalesCounter] = useState(0); // purchase counter
 
     const [newNote, setNewNote] = useState(""); // note form input
     const [varRef, setVarRef] = useState([]); // variable collection
@@ -46,14 +51,34 @@ function NewSalesModal(props) {
         })
     }, [items])
 
-    //fetch variable collection
+    //fetch user collection from database
     useEffect(() => {
-        const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
-            setVarRef(doc.data());
+        if (userID === undefined) {
+              const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+        
+              const unsub = onSnapshot(q, (snapshot) =>
+                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+              );
+              return unsub;
+            }
+            else {
+              const q = query(userCollectionRef, where("user", "==", userID));
+        
+              const unsub = onSnapshot(q, (snapshot) =>
+                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+              );
+              return unsub;
+              
+            }
+      }, [userID])
+    
+    //assign profile and purchase counter
+      useEffect(() => {
+        userCollection.map((metadata) => {
+            setSalesCounter(metadata.salesId)
+            setUserProfileID(metadata.id)
         });
-        return unsub;
-    }, [])
-
+      }, [userCollection])
 
     //Read stock card collection from database
     useEffect(() => {
@@ -83,11 +108,15 @@ function NewSalesModal(props) {
     //Read and set data from stockcard document
     useEffect(() => {
         if (itemName != undefined) {
+            
             const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
-                setItemName(doc.data().description)
-                setItemCurrentQuantity(doc.data().qty)
-                setItemSPrice(doc.data().s_price)
-                setItemPPrice(doc.data().p_price)
+                if(doc.data() != undefined) {
+                    setItemName(doc.data().description)
+                    setItemCurrentQuantity(doc.data().qty)
+                    setItemSPrice(doc.data().s_price)
+                    setItemPPrice(doc.data().p_price)
+                }
+            }, (error) => {
             });
         }
     }, [itemId])
@@ -141,11 +170,18 @@ function NewSalesModal(props) {
 
     //----------------------Start of addRecord functions----------------------
 
+    const createFormat = () => {
+        var format = salesCounter + "";
+        while(format.length < 5) {format = "0" + format};
+        format = "SR" + format + '@' + userID;
+        return format;
+     }
+
     //add document to database
-    const addRecord = async (salesDocNum) => {
-        setDoc(doc(db, "sales_record", "SR" + Number(salesDocNum)), {
+    const addRecord = async () => {
+        setDoc(doc(db, "sales_record", createFormat()), {
             user: userID,
-            transaction_number: "SR" + Number(salesDocNum),
+            transaction_number: createFormat().substring(0,7),
             transaction_note: newNote,
             transaction_date: newDate,
             product_list: items,
@@ -157,9 +193,9 @@ function NewSalesModal(props) {
         setItems([]);
         setNewNote("");
         updateQuantity()  //update stockcard.qty function
-        updatePurchDocNum(salesDocNum) //update variables.salesDocNum function
+        updatePurchDocNum() //update variables.salesDocNum function
         successToast() //display success toast
-
+        props.onHide()
     }
 
     //update stockcard.qty function
@@ -178,10 +214,10 @@ function NewSalesModal(props) {
 
     //update variables.salesDocNum function
     function updatePurchDocNum(salesDocNum) {
-        const varColRef = doc(db, "variables", "var")
-        const newData = { salesDocNum: Number(salesDocNum) + 1 }
+        const userDocRef = doc(db, "user", userProfileID)
+        const newData = { purchaseId: Number(salesCounter) + 1 }
 
-        updateDoc(varColRef, newData)
+        updateDoc(userDocRef, newData)
     }
 
     //success toastify
@@ -222,6 +258,7 @@ function NewSalesModal(props) {
             size="lg"
             aria-labelledby="contained-modal-title-vcenter"
             centered
+            className="IMS-modal"
         >
             <ToastContainer
                 position="top-right"
@@ -235,141 +272,140 @@ function NewSalesModal(props) {
                 pauseOnHover
             />
 
-
-            <Modal.Header closeButton>
-                <Modal.Title id="contained-modal-title-vcenter" className="px-3">
-                    Add Sales Record
-                </Modal.Title>
-            </Modal.Header>
-            <Modal.Body className="p-5">
-
-                <div className='row'>
-                    <div className='row'>
-                        <div className='col-6'>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Transaction Number</Form.Label>
-                                <Form.Control
-                                    defaultValue={varRef.salesDocNum}
-                                    disabled
-                                />
-                            </Form.Group>
+            <Modal.Body >
+                <div className="px-3 py-2">
+                    <div className="module-header mb-4">
+                        <h3 className="text-center">Generate a Purchase Record</h3>
+                    </div>
+                    <div className="row my-2 mb-3">
+                        <div className='col-3 ps-4'>
+                            <label>Transaction Number</label>
+                            <input type="text"
+                                readOnly
+                                className="form-control shadow-none no-click"
+                                placeholder=""
+                                defaultValue={createFormat().substring(0,7)}
+                            />
                         </div>
-                        <div className='col-6'>
-                            <Form.Group className="mb-3">
-                                <Form.Label>Transaction Date</Form.Label>
-                                <Form.Control
-                                    type='date'
-                                    value={newDate}
-                                    onChange={e => setNewDate(e.target.value)}
-                                />
-                            </Form.Group>
+                        <div className='col-4 ps-4'>
+                            <label>Transaction Date</label>
+                            <input
+                                type='date'
+                                className="form-control shadow-none"
+                                value={newDate}
+                                onChange={e => setNewDate(e.target.value)}
+                            />
                         </div>
                     </div>
-
-                    <div className='row'>
-
-                        <Form.Group className="mb-3" controlId="exampleForm.ControlTextarea1">
-                            <Form.Label>Note: (Optional)</Form.Label>
-                            <Form.Control
+                    <div className="row my-2 mb-3">
+                        <div className='col-12 ps-4'>
+                            <label>Notes: (Optional)</label>
+                            <textarea
+                                className="form-control shadow-none"
                                 as="textarea"
-                                rows={2}
+                                rows={1}
                                 onChange={(event) => { setNewNote(event.target.value); }}
                             />
-                        </Form.Group>
-                    </div>
-
-                    <div className='row'>
-                        <h5>Add Item to List</h5>
-                        <hr></hr>
-                        <div className='col-6 p-1'>
-                            <Form.Select
-                                value={itemId}
-                                onChange={e => setItemId(e.target.value)}
-                            >
-                                <option
-                                    value="IT999999">
-                                    Select Item
-                                </option>
-                                {stockcard.map((stockcard) => {
-                                    return (
-                                        <option
-                                            key={stockcard.id}
-                                            value={stockcard.id}
-                                        >{stockcard.description}</option>
-                                    )
-                                })}
-                            </Form.Select>
-                        </div>
-                        <div className='col-4 p-1'>
-                            <Form.Control
-                                placeholder='Quantity'
-                                type='number'
-                                value={itemQuantity}
-                                min={1}
-                                max={itemCurrentQuantity}
-                                onChange={e => setItemQuantity(e.target.value)}
-                            />
-
-                        </div>
-                        <div className='col-2 p-1'>
-                            <Button
-                                onClick={addItem}
-                                disabled={buttonBool ? true : false}
-                            >
-                                <FontAwesomeIcon icon={faPlus} />
-                            </Button>
                         </div>
                     </div>
-
-                    <div className='row mt-4'>
-                        <h5>Purchase List</h5>
-                        <hr></hr>
-
-                        <Table striped bordered hover size="sm">
-                            <thead>
-                                <tr className='text-center bg-white'>
-                                    <th>Item ID</th>
-                                    <th>Item Description</th>
-                                    <th>Quantity</th>
-                                    <th>Remove</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {items.map((item, index) => (
-                                    <tr
-                                        className='text-center'
-                                        key={index}>
-                                        <td>{item.itemId}</td>
-                                        <td>{item.itemName}</td>
-                                        <td>{item.itemQuantity}</td>
-                                        <td>
+                    <div className="row my-2 mb-3 p-3 item-adding-container">
+                        <div className="row m-0 p-0">
+                            <div className='col-12 text-center mb-2'>
+                                <h5><strong>Sales List</strong></h5>
+                                    <div className="row p-0 m-0 py-1">
+                                        <div className='col-6 p-1'>
+                                            <select
+                                                className="form-select shadow-none"
+                                                value={itemId}
+                                                onChange={e => setItemId(e.target.value)}
+                                            >
+                                                <option
+                                                    value="IT999999">
+                                                    Select Item
+                                                </option>
+                                                {stockcard.map((stockcard) => {
+                                                    return (
+                                                        <option
+                                                            key={stockcard.id}
+                                                            value={stockcard.id}
+                                                        >{stockcard.description}</option>
+                                                    )
+                                                })}
+                                            </select>
+                                        </div>
+                                        <div className='col-4 p-1'>
+                                            <input
+                                                className="form-control shadow-none"
+                                                placeholder='Quantity'
+                                                type='number'
+                                                value={itemQuantity}
+                                                min={1}
+                                                max={itemCurrentQuantity}
+                                                onChange={e => setItemQuantity(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className='col-2 p-1'>
                                             <Button
-                                                size='sm'
-                                                variant="outline-danger"
-                                                onClick={() => handleItemRemove(index)}>
-                                                <FontAwesomeIcon icon={faMinus} />
+                                                onClick={addItem}
+                                                disabled={buttonBool ? true : false}
+                                            >
+                                                <FontAwesomeIcon icon={faPlus} />
                                             </Button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-
+                                        </div>
+                                    </div>
+                            </div>
+                            <div className="row p-0 m-0 py-1">
+                                <div className="col-12">
+                                    <Table striped bordered hover size="sm">
+                                        <thead>
+                                            <tr className='text-center bg-white'>
+                                                <th>Item ID</th>
+                                                <th>Item Description</th>
+                                                <th>Quantity</th>
+                                                <th>Remove</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {items.map((item, index) => (
+                                                <tr
+                                                    className='text-center'
+                                                    key={index}>
+                                                    <td>{item.itemId}</td>
+                                                    <td>{item.itemName}</td>
+                                                    <td>{item.itemQuantity}</td>
+                                                    <td>
+                                                        <Button
+                                                            size='sm'
+                                                            variant="outline-danger"
+                                                            onClick={() => handleItemRemove(index)}>
+                                                            <FontAwesomeIcon icon={faMinus} />
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-
-
-
-
-
                 </div>
-
-            </Modal.Body>
-            <Modal.Footer>
+            </Modal.Body>            
+            <Modal.Footer
+                className="d-flex justify-content-center"
+            >
                 <Button
-                    variant="success"
-                    style={{ width: "150px" }}
+                    className="btn btn-danger"
+                    style={{ width: "6rem" }}
+                    onClick={() => props.onHide()}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    className="btn btn-light float-start"
+                    style={{ width: "6rem" }}
                     disabled={items.length === 0 ? true : false}
-                    onClick={() => { addRecord(varRef.salesDocNum) }}>
+                    onClick={() => { addRecord() }}>
                     Save
                 </Button>
             </Modal.Footer>

@@ -17,6 +17,7 @@ import JsBarcode from "jsbarcode";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
 import { UserAuth } from '../context/AuthContext'
+import { Spinner } from 'loading-animations-react';
 
 
 
@@ -24,14 +25,14 @@ import { UserAuth } from '../context/AuthContext'
 function SupplierList() {
 
   //---------------------VARIABLES---------------------
-
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
   const [key, setKey] = useState('main');//Tab controller
+  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
 
   const [editShow, setEditShow] = useState(false); //display/ hide edit modal
   const [modalShow, setModalShow] = useState(false);//display/hide modal
-  const [supplier, setSupplier] = useState([]); //supplier Collection
+  const [supplier, setSupplier] = useState(); //supplier Collection
   const [supplierDoc, setSupplierDoc] = useState([]); //supplier Doc
   const [docId, setDocId] = useState("xx"); //document id variable
 
@@ -44,7 +45,19 @@ function SupplierList() {
     }
   }, [{ user }])
 
+  useEffect(() => {
+    console.log(isFetched)
+  }, )
 
+  useEffect(()=>{
+    if(supplier === undefined) {
+      setIsFetched(false)
+    }
+    else
+    {
+      setIsFetched(true)
+    }
+  }, [supplier])
 
   useEffect(() => {
     //read sales_record collection
@@ -59,7 +72,6 @@ function SupplierList() {
       return unsub;
     }
     else {
-
       const supplierCollectionRef = collection(db, "supplier")
       const q = query(supplierCollectionRef, where("user", "==", userID));
 
@@ -105,9 +117,6 @@ function SupplierList() {
     await deleteDoc(supplierDoc);
     setKey('main')
   }
-
-
-
 
   const handleClose = () => setEditShow(false);
 
@@ -322,16 +331,25 @@ function SupplierList() {
                       Supplier Name
                     </div>
                   </div>
-                  <div id='scrollbar'>
+                  <div id='scrollbar' style={{ height: '400px' }}>
+                    {isFetched?
+                    <>
                     {supplier.length === 0 ?
-
-                      <div className='py-4 px-2'>
-                        <Alert variant="secondary" className='text-center'>
-                          <p>
-                            <strong>No Recorded Supplier</strong>
-                          </p>
-                        </Alert>
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                        <h5 className="mb-3"><strong>No <span style={{color: '#0d6efd'}}>supplier</span> to show.</strong></h5>
+                        <p className="d-flex align-items-center justify-content-center">
+                          <span>Click the</span>
+                          <Button
+                            className="add ms-1 me-1 static-button no-click"
+                          >
+                            <FontAwesomeIcon icon={faPlus} />
+                          </Button>
+                          <span>
+                            button to add one.
+                          </span>
+                        </p>
                       </div>
+                      
                       :
                       <ListGroup variant="flush">
                       {supplier.map((supplier) => {
@@ -343,7 +361,7 @@ function SupplierList() {
                             onClick={() => { setDocId(supplier.id) }}>
                             <div className="row gx-0 sidebar-contents">
                               <div className="col-4">
-                                <small>{supplier.id}</small>
+                                <small>{supplier.id.substring(0,5)}</small>
                               </div>
                               <div className="col-8">
                                 <small>{supplier.supplier_name}</small>
@@ -354,6 +372,17 @@ function SupplierList() {
                       })}
 
                     </ListGroup>
+                    }
+                    </>
+                    :
+                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                      <Spinner 
+                      color1="#b0e4ff"
+                      color2="#fff"
+                      textColor="rgba(0,0,0, 0.5)"
+                      className="w-50 h-50"
+                      />
+                    </div>
                     }
 
                   
@@ -505,7 +534,7 @@ function SupplierList() {
                             width="40px"
                           />
                         </span>
-                        <h4 className="data-id">{docId}</h4>
+                        <h4 className="data-id">{docId.substring(0,5)}</h4>
                       </div>
                       <div className="col">
                         <div className="float-end">

@@ -1,11 +1,11 @@
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, CloseButton } from 'react-bootstrap';
 import React from "react";
 import { collection } from 'firebase/firestore';
 import { db } from '../firebase-config';
 import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { addDoc, onSnapshot, doc, updateDoc, setDoc } from 'firebase/firestore';
+import { addDoc, onSnapshot, doc, updateDoc, setDoc, query, where } from 'firebase/firestore';
 import { UserAuth } from '../context/AuthContext'
 
 
@@ -15,6 +15,11 @@ function NewSupplierModal(props) {
 
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
+
+  const [userCollection, setUserCollection] = useState([]);// userCollection variable
+  const [userProfileID, setUserProfileID] = useState(""); // user profile id
+  const userCollectionRef = collection(db, "user")// user collection
+  const [supplierCounter, setSupplierCounter] = useState(0); // purchase counter
 
   const [newSupplierName, setnewSupplierName] = useState("");
   const [newSupplierAddress, setnewSupplierAddress] = useState("");
@@ -33,6 +38,35 @@ function NewSupplierModal(props) {
       setUserID(user.uid)
     }
   }, [{ user }])
+
+    //fetch user collection from database
+    useEffect(() => {
+      if (userID === undefined) {
+            const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+      
+            const unsub = onSnapshot(q, (snapshot) =>
+              setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+          }
+          else {
+            const q = query(userCollectionRef, where("user", "==", userID));
+      
+            const unsub = onSnapshot(q, (snapshot) =>
+              setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+            
+          }
+    }, [userID])
+  
+  //assign profile and purchase counter
+    useEffect(() => {
+      userCollection.map((metadata) => {
+          setSupplierCounter(metadata.supplierId)
+          setUserProfileID(metadata.id)
+      });
+    }, [userCollection])
 
   //fetch variable collection
   useEffect(() => {
@@ -57,8 +91,15 @@ function NewSupplierModal(props) {
   }
 
   //add supplier to collection
-  const addSupplier = async (supplierId) => {
-    setDoc(doc(db, "supplier", "SU" + Number(varRef.supplierId)), {
+  const createFormat = () => {
+    var format = supplierCounter + "";
+    while(format.length < 3) {format = "0" + format};
+    format = "SU" + format + '@' + userID;
+    return format;
+  }
+
+  const addSupplier = async () => {
+    setDoc(doc(db, "supplier", createFormat()), {
       user: userID
       , supplier_name: newSupplierName
       , supplier_emailaddress: newSupplierEmailAddress
@@ -68,9 +109,10 @@ function NewSupplierModal(props) {
     });
 
     //update docNum variable
-    const varColRef = doc(db, "variables", "var")
-    const newData = { supplierId: Number(supplierId) + 1 }
-    await updateDoc(varColRef, newData)
+    const userDocRef = doc(db, "user", userProfileID)
+    const newData = { supplierId: Number(supplierCounter) + 1 }
+    
+    await updateDoc(userDocRef, newData)
 
     props.onHide()
     successToast();
@@ -82,9 +124,10 @@ function NewSupplierModal(props) {
   return (
     <Modal
       {...props}
-      size="lg"
+      size="md"
       aria-labelledby="contained-modal-title-vcenter"
       centered
+      className="IMS-modal"
     >
 
       <ToastContainer
@@ -99,96 +142,87 @@ function NewSupplierModal(props) {
         pauseOnHover
       />
 
-      <Modal.Header closeButton>
-        <Modal.Title id="contained-modal-title-vcenter" className="px-3">
-          Register New Supplier
-        </Modal.Title>
-      </Modal.Header>
+      
       <Modal.Body>
-        <div className="p-3">
-          <div className="row my-2">
-            <div className='row'>
-              <div className='col-8'>
-                <label>Supplier Name</label>
-
-                <input type="text"
-                  className="form-control"
-                  placeholder="Supplier Name"
-                  autoFocus
-                  onChange={(event) => { setnewSupplierName(event.target.value); }}
-                /></div>
-
-              <div className='col-4'>
-                <label>Supplier Id</label>
+        <div className="px-3 py-2">
+          <div className="module-header mb-4">
+            <h3 className="text-center">Add New Supplier</h3>
+          </div>
+          <div className="row my-2 mb-3">
+            <div className='col-3 ps-4'>
+                <label>Supplier ID</label>
 
                 <input type="text"
                   readOnly
-                  className="form-control"
-                  placeholder="Supplier Name"
-                  value={varRef.supplierId}
+                  className="form-control shadow-none no-click"
+                  placeholder=""
+                  value={createFormat().substring(0,5)}
                 />
-              </div>
-
             </div>
-
+            <div className='col-9 ps-4'>
+              <label>Supplier Name</label>
+                <input type="text"
+                  className="form-control shadow-none"
+                  placeholder="ABC Inc.,"
+                  autoFocus
+                  onChange={(event) => { setnewSupplierName(event.target.value); }}
+                />
+            </div>
           </div>
-
-          <div className="row my-2">
-            <div className="col-12">
+          <div className="row my-2 mb-3">
+            <div className="col-12 ps-4">
               <label>Address</label>
               <input type="text"
-                className="form-control"
-                placeholder="Address"
-                rows={3}
+                className="form-control shadow-none"
+                placeholder="Magsaysay Ave., Naga City"
                 onChange={(event) => { setnewSupplierAddress(event.target.value); }}
               />
             </div>
           </div>
-
-
-          <h5>Contact Information</h5>
           <hr></hr>
-
-          <div className="row my-2">
-            <div className="col-7">
+          <div className="row my-2 mb-3">
+            <div className="col-6 ps-4">
+              <label>Mobile Number</label>
+              <input type="number"
+                className="form-control shadow-none"
+                placeholder="09---------"
+                onChange={(event) => { setnewSupplierMobileNumber(event.target.value); }}
+              />
+            </div>
+            <div className="col-6 ps-4">
+              <label>Telephone Number</label>
+              <input type="number"
+                className="form-control shadow-none"
+                placeholder="(---) --- ---"
+                onChange={(event) => { setnewSupplierTelephoneNumber(event.target.value); }}
+              />
+            </div>
+          </div>
+          <div className="row my-2 mb-3">
+            <div className="col-12 ps-4">
               <label>Email Address</label>
               <input type="email"
-                className="form-control"
+                className="form-control shadow-none"
                 placeholder="*****@email.com"
                 onChange={(event) => { setnewSupplierEmailAddress(event.target.value); }}
               />
             </div>
           </div>
-
-          <div className="row my-2">
-            <div className="col-6">
-              <label>Mobile Number</label>
-              <input type="number"
-                className="form-control"
-                placeholder="09---------"
-                onChange={(event) => { setnewSupplierMobileNumber(event.target.value); }}
-              />
-            </div>
-          </div>
-
-          <div className="row my-2">
-            <div className="col-6">
-              <label>Telephone Number</label>
-              <input type="number"
-                className="form-control"
-                placeholder="Contact Number"
-                onChange={(event) => { setnewSupplierTelephoneNumber(event.target.value); }}
-              />
-            </div>
-          </div>
-
-
         </div>
       </Modal.Body>
-      <Modal.Footer>
+      <Modal.Footer
+        className="d-flex justify-content-center"
+      >
+         <Button
+         className="btn btn-danger"
+         style={{ width: "6rem" }}
+         onClick={() => props.onHide()}
+         >
+          Cancel
+        </Button>
         <Button
-          className="btn btn-success"
-          style={{ width: "150px" }}
+          className="btn btn-light float-start"
+          style={{ width: "6rem" }}
           onClick={() => { addSupplier(varRef.supplierId) }}>
           Save
         </Button>

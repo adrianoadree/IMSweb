@@ -10,7 +10,8 @@ import { Create, Calendar, Document, InformationCircle } from 'react-ionicons'
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import moment from "moment";
 import { UserAuth } from '../context/AuthContext'
-
+import  UserRouter  from '../pages/UserRouter'
+import { Spinner } from 'loading-animations-react';
 
 
 
@@ -21,10 +22,11 @@ function Records() {
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
   const [key, setKey] = useState('main');//Tab controller
+  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
 
 
   const [modalShow, setModalShow] = useState(false); //add new sales record modal
-  const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]); //purchase_record Collection
+  const [purchaseRecordCollection, setPurchaseRecordCollection] = useState(); //purchase_record Collection
   const [purchaseRecord, setPurchaseRecord] = useState([]); //purchase_record spec doc
   const [docId, setDocId] = useState("PR10001") // doc id variable
   const [list, setList] = useState([
@@ -35,6 +37,7 @@ function Records() {
   const [stockcardData, setStockcardData] = useState([{}]);
 
 
+
   //---------------------FUNCTIONS---------------------
 
   useEffect(() => {
@@ -43,6 +46,15 @@ function Records() {
     }
   }, [{ user }])
 
+  useEffect(()=>{
+    if(purchaseRecordCollection === undefined) {
+      setIsFetched(false)
+    }
+    else
+    {
+      setIsFetched(true)
+    }
+  }, [purchaseRecordCollection])
 
   //read Functions
 
@@ -87,12 +99,54 @@ function Records() {
 
   }, [docId])
 
+  //-----------------------------------------------------------------------------
+
+  useEffect(() => {
+    console.log("Updated query list: ", queryList)
+  }, [queryList])  //queryList listener, rerenders when queryList changes
+
+
+  useEffect(() => {
+    console.log("stockcardData values: ", stockcardData)
+  }, [stockcardData])  //queryList listener, rerenders when queryList changes
+
+  useEffect(() => {
+    console.log("list value: ", list)
+  }, [list])  //queryList listener, rerenders when queryList changes
+
+  useEffect(() => {
+    //query stockcard document that contains, [queryList] datas
+    async function queryStockcardData() {
+      const stockcardRef = collection(db, "stockcard")
+
+      if (queryList.length !== 0) {
+        const q = await query(stockcardRef, where("__name__", "in", [...queryList]));
+        const unsub = onSnapshot(q, (snapshot) =>
+          setStockcardData(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }))),
+        );
+        return unsub;
+      }
+    }
+    queryStockcardData();
+  }, [queryList])  //queryList listener, rerenders when queryList changes
+
+  //stores list.productId array to queryList
+  useEffect(() => {
+    const TempArr = [];
+    list.map((name) => {
+      TempArr.push(name.productId)
+    })
+    setQueryList(TempArr)
+  }, [list])//list listener, rerenders when list value changes
+
 
   useEffect(() => {
     //read list of product names in product list
     async function fetchPurchDoc() {
       const unsub = await onSnapshot(doc(db, "purchase_record", docId), (doc) => {
-        setList(doc.data().product_list);
+        if(doc.data() != undefined) {
+          setList(doc.data().product_list);
+        }
       });
       return unsub;
     }
@@ -112,6 +166,9 @@ function Records() {
 
   return (
     <div>
+      <UserRouter
+      route='/records'
+      />
       <Navigation />
       <Tab.Container
         id="controlled-tab-example"
@@ -153,14 +210,23 @@ function Records() {
                     </div>
                   </div>
                   <div className='scrollbar' style={{ height: '400px' }}>
+                    
+                  {isFetched?
+                  <>
                     {purchaseRecordCollection.length === 0 ?
-
-                      <div className='py-4 px-2'>
-                        <Alert variant="secondary" className='text-center'>
-                          <p>
-                            <strong>No Recorded Purchase Transaction</strong>
-                          </p>
-                        </Alert>
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                        <h5 className="mb-3"><strong>No <span style={{color: '#0d6efd'}}>purchase</span> records to show.</strong></h5>
+                        <p className="d-flex align-items-center justify-content-center">
+                          <span>Click the</span>
+                          <Button
+                            className="add ms-1 me-1 static-button no-click"
+                          >
+                            <FontAwesomeIcon icon={faPlus} />
+                          </Button>
+                          <span>
+                            button to add one.
+                          </span>
+                        </p>
                       </div>
                       :
                       <ListGroup variant="flush">
@@ -187,9 +253,18 @@ function Records() {
                         })}
                       </ListGroup>
                     }
+                  </>
 
-
-
+                  :
+                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                      <Spinner 
+                      color1="#b0e4ff"
+                      color2="#fff"
+                      textColor="rgba(0,0,0, 0.5)"
+                      className="w-50 h-50"
+                      />
+                    </div>
+                  }
                   </div>
                 </Card.Body>
               </Card>

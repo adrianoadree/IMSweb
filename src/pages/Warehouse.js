@@ -9,43 +9,157 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashCan, faPenToSquare, faPlus, faXmark, faMap } from '@fortawesome/free-solid-svg-icons'
 import { faMap as faMapO } from '@fortawesome/free-regular-svg-icons'
 import { Create, Calendar, Document, InformationCircle, Compass } from 'react-ionicons'
+import { Checkbox, CaretDown, CaretUp } from 'react-ionicons'
 import NewWarehouseModal from '../components/NewWarehouseModal';
+import NewMapModal from '../components/NewMapModal';
 import FillMapModal from '../components/FillMapModal';
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Map from '../components/Map'
 import QRCode from "react-qr-code";
+import { UserAuth } from '../context/AuthContext'
+import  UserRouter  from '../pages/UserRouter'
 
 
 function Warehouse({isAuth}) {
 
-  function refreshPage() {
-      window.location.reload(false);
-    }
-  var showSidebar = true;
+  const [shown, setShown] = useState(true);
   const [modalShowWH, setModalShowWH] = useState(false);
   const [modalShowMap, setModalShowMap] = useState(false);
-  const [init, setInit] = useState(true);
+  const [isInit, setIsInit] = useState(false);
 
   const [warehouseDoc, setWarehouseDoc] = useState([]);
   const [warehouse, setWarehouse] = useState([]);
   const storageRef = ref(st,'/stockcard');
   const masterdataDocRef = doc(db, "masterdata", "warehouse");
-  const [cells, setCells] = useState([]);
   const [whId, setWHId] = useState("xx");
-  const [cellId, setCellId] = useState("");
-  const [cellIndex, setCellIndex] = useState(0);
-  
-  const [newCol, setNewCol] = useState("");
-  const [newRow, setNewRow] = useState("");
-  const [newCellsArray, setNewCellsArray] = useState([{ id: "", products: [] }]);
+  const { user } = UserAuth();//user credentials
+  const [userID, setUserID] = useState("");
+  const [col, setCol] = useState("");
+  const [row, setRow] = useState("");
   const [cntr, setCntr] = useState(0);
-  const [cellNamesArray, setCellNamesArray] = useState([]);
+  const [dimensions, setDimensions] = useState();
+  const [fontSize, setFontSize] = useState();
+  const [editing, setEditing] = useState(true);
+  const [qrVisible, setQRVisible] = useState(false);
+  const [cellIdVisible, setCellIdVisible] = useState(false);
+  const [warehouseCell, setWarehouseCell] = 
+  useState(
+    [
+      {
+        "A00": {
+          "products": []
+        },
+        "A01": {
+          "products": []
+        }
+      },
+      {
+        "B01": {
+          "products": []
+        },
+        "B02": {
+          "products": []
+        }
+      },
+    
+    ]
+  );
 
   const dragItem = useRef();
   const dragOverItem = useRef();
-  const [list, setList] = useState(['CL401','CL402','CL403','CL04','CL405','CL406','CL407','CL408','CL409']);
+  const [list, setList] = useState([]);
 
+  useEffect(() => {
+    console.log(col)
+    setDimensions(1200/col)
+    setFontSize(60/col)
+    console.log(editing)
+    var allBoxes = document.querySelectorAll(".box");
+    var allGridlines = document.querySelectorAll(".box-col");
+    if (editing) {
+      for(var i = 0; i < allGridlines.length; i++) {
+        allGridlines[i].classList.remove('border-0');
+      }
+
+      for(var i = 0; i < allBoxes.length; i++) {
+        allBoxes[i].classList.remove('disable-hovering');
+      }
+    }
+    else
+    {
+      for(var i = 0; i < allGridlines.length; i++) {
+        allGridlines[i].classList.add('border-0');
+      }
+
+      for(var i = 0; i < allBoxes.length; i++) {
+        allBoxes[i].classList.add('disable-hovering');
+      }
+    }
+
+    var allQR = document.querySelectorAll(".qr-code");
+    if (qrVisible) {
+      for(var i = 0; i < allQR.length; i++) {
+        allQR[i].classList.remove('d-none');
+      }
+    }
+    else
+    {
+      for(var i = 0; i < allQR.length; i++) {
+        allQR[i].classList.add('d-none');
+      }
+    }
+
+    var allID = document.querySelectorAll(".cell-id");
+    if (cellIdVisible) {
+      for(var i = 0; i < allID.length; i++) {
+        allID[i].classList.remove('d-none');
+      }
+    }
+    else
+    {
+      for(var i = 0; i < allID.length; i++) {
+        allID[i].classList.add('d-none');
+      }
+    }
+  }, )
+
+  useEffect(() => {
+    if(warehouseDoc == undefined) {
+      setIsInit(false)
+    }
+    else
+    {
+      setIsInit(true)
+      setCol(warehouseDoc.col)
+      setRow(warehouseDoc.row)
+      setWarehouseCell(warehouseDoc.cells)
+    }
+  }, [warehouseDoc])
+
+
+  useEffect(() => {
+    if(warehouseCell == undefined) {
+
+    }
+    else
+    {
+      
+      /*refernce for mapping errors
+      warehouseCell.map((content,index) => {
+        console.log(content) //index-basedrow
+        Object.keys(content).map((k) => {
+          console.log(content[k])//obj-based col
+          console.log(content[k].products)// products
+          content[k].products.map((val, k) => {
+            console.log(val)
+          })
+        })
+      })
+      */
+    }
+  }, [warehouseCell])
+  
 const dragStart = (e, position) => {
   dragItem.current = position;
   console.log(e.target.innerHTML);
@@ -66,65 +180,75 @@ const drop = (e) => {
   setList(copyListItems);
 };
 
-var idContainer = [];
-
-  
-   /*useEffect(() => {
-        const unsub =   onSnapshot(warehouseDocRef, (doc) => {
-    setWHName(doc.data().wh_name)
-    setWHAdd(doc.data().address)
-    setWHNotes(doc.data().wh_notes)
-    setWHInit(doc.data().isInit)
-    setWHCol(doc.data().col)
-    setWHRow(doc.data().row)
-	 });
-        return unsub;
-    }, [])*/
-    
     useEffect(() => {
+      if (user) {
+        setUserID(user.uid)
+      }
+    }, [{ user }])
+  
+  
+    //read Functions
+  
+    useEffect(() => {
+      //read purchase_record collection
+      if (userID === undefined) {
+  
+        const collectionRef = collection(db, "warehouse")
+        const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
+  
+        const unsub = onSnapshot(q, (snapshot) =>
+          setWarehouse(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+        return unsub;
+      }
+      else {
+        const collectionRef = collection(db, "warehouse");
+        const q = query(collectionRef, where("user", "==", userID));
+    
+        const unsub = onSnapshot(q, (snapshot) =>
+          setWarehouse(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+    
+        return unsub;
+      }
+  
+  
+    }, [userID])  
+
+  useEffect(() => {
     async function readWarehouseDoc() {
       const warehouseRef = doc(db, "warehouse", whId)
       const docSnap = await getDoc(warehouseRef)
       if (docSnap.exists()) {
         setWarehouseDoc(docSnap.data());
-        setCells(docSnap.data().cell);
-        setInit(docSnap.data().isInit);
       }
     }
     readWarehouseDoc()
   }, [whId])
   
-    useEffect(() => {
-    const collectionRef = collection(db, "warehouse");
-    const q = query(collectionRef);
-
-    const unsub = onSnapshot(q, (snapshot) =>
-      setWarehouse(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-    );
-
-    return unsub;
-
-  }, [])
+  
 var format = "";
 var tempArray = [];
 var tempProdArray = [];
 
-const pushCellsArray = () => {
-	var N = newCol*newRow;
-	const arr = Array.from(Array(N+1).keys()).slice(1);
-	for (var i=1; i < N+1; i++) {
-		var tempObj = {};
-		var format = i + "";
-		while(format.length < 2) {format = "0" + format;}
-		format = "CL" + (cntr-1) + format;
-		tempObj["id"] = format;
-		tempObj["products"] = tempProdArray;
-		tempArray.push(tempObj);
-    }
-    console.log(tempArray);
-}
+const toggle=() =>{
+  var whl = document.getElementById("warehouse-list-bar");
+  var tgl = document.getElementById("warehouse-list-visibility-toggle");
+  var whlf = document.getElementById("warehouse-list-bar-footer");
+  var whIn = document.getElementById("warehouse-info");
+  if (whl.style.display === "none") {
+    whl.style.display = "block";
+    tgl.setAttribute("data-title","Hide");
+    setShown(true);
+    whlf.classList.remove("warehouse-list-bar-hidden");
+  } else {
+    whl.style.display = "none";
+    tgl.setAttribute("data-title","Show");
+    setShown(false);
 
-
+    whlf.classList.add("warehouse-list-bar-hidden");
+  }
+} 
 
    useEffect(() => {
         const unsub =   onSnapshot(masterdataDocRef, (doc) => {
@@ -150,311 +274,102 @@ const pushCellsArray = () => {
     await deleteDoc(warehouseDoc);
     deleteToast();
   }
+
   
-    const addMap = async () => {
-    pushCellsArray();
-    setInit(true);
-    refreshPage();
-   const getMap = doc(db, 'warehouse', whId);
+  function isChecked (status) {
+    if (status)
+    {
+      return "checked";
+    }
+    else
+    {
+      return "";
+    }
+  }
+
+  function getWarehouseID(id) {
+    return id.substring(0,4)
+
+  }
+
+  function isLoaded(array) {
+    if (array === undefined || array.length == 0) {
+      return false;
+    }
+    else
+    {
+      return true;
+    }
+
+  }
+
+  const changeColor = async (cells, rIndex, cIndex, color) => {
+    var tempCells = cells;//get accounts list and place in temp array
+    tempCells[rIndex][cIndex].color = color;
+    const getMap = doc(db, 'warehouse', whId);
     await updateDoc(getMap,{
-        col: Number(newCol)
-        , row: Number(newRow)
-        , isInit: true
-        , cell: tempArray
+        cells: tempCells
+      }); 
+      console.log(tempCells)
+  }
+
+  const toStorage = async (cells, rowIndex, colIndex, option) => {
+    var tempCells = cells;
+    tempCells[rowIndex][colIndex].isStorage = true;
+    tempCells[rowIndex][colIndex].type = option;
+    tempCells[rowIndex][colIndex].orientation = "flip-top";
+    const getMap = doc(db, 'warehouse', whId);
+    await updateDoc(getMap,{
+        cells: tempCells
       });
-      
-  }
-  
-  function getCLID (props) {
-  	setCellIndex(props);
-  	setModalShowMap(true);
-  }
-
-  function fillList (props) {
-    var tempContainer = [];
-    props.map((contents, index) =>
-      tempContainer.push(contents.id)
-    );
-    tempContainer.map((codes, index) =>
-      idContainer.push(codes)
-    );
     
-    console.log(idContainer);
-    /*setList([...list, idContainer])*/
-    
-
+      console.log(tempCells)
   }
-  
-  /*return (
 
-    <div className="row bg-light">
-      <Navigation />
-        
-        <ToastContainer
-        position="top-right"
-        autoClose={1500}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
+  const changeStorage = async (cells, rowIndex, colIndex, type) => {
+    var tempCells = cells;
+    tempCells[rowIndex][colIndex].type = type;
+    const getMap = doc(db, 'warehouse', whId);
+    await updateDoc(getMap,{
+        cells: tempCells
+      });
+    
+      console.log(tempCells)
+  }
 
-      <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-        <div className="row bg-light">
+  const flipStorage = async (cells, rowIndex, colIndex, orientation) => {
+    var tempCells = cells;
+    tempCells[rowIndex][colIndex].orientation = orientation;
+    const getMap = doc(db, 'warehouse', whId);
+    await updateDoc(getMap,{
+        cells: tempCells
+      });
+    
+      console.log(tempCells)
+  }
 
-          <div className='col-3 p-5'>
+  const deStorage = async (cells, rowIndex, colIndex) => {
+    var tempCells = cells;
+    tempCells[rowIndex][colIndex].isStorage = false;
+    const getMap = doc(db, 'warehouse', whId);
+    await updateDoc(getMap,{
+        cells: tempCells
+      });
+    
+      console.log(tempCells)
+  }
 
-            <Card className='shadow'>
-              <Card.Header className='bg-primary'>
-                <div className='row'>
-                  <div className='col-9 pt-2 text-white'>
-                    <h6>Your Warehouses:</h6>
-                  </div>
-                  <div className='col-3'>
-                    <Button variant="primary"
-                      onClick={() => setModalShowWH(true)}>
-                      <FontAwesomeIcon icon={faPlus} />
-                    </Button>
-                  </div>
-                </div>
-              </Card.Header>
-              <Card.Body style={{ height: "500px" }}>
-                <ListGroup variant="flush">
-           
-                  <NewWarehouseModal
-                    show={modalShowWH}
-                    onHide={() => setModalShowWH(false)} 
-                    />
-
-                  {warehouse.map((warehouse) => {
-                    return (
-                      <ListGroup.Item 
-                      action 
-                      key={warehouse.id}
-                      eventKey={warehouse.id}
-                      onClick={() => { setWHId(warehouse.id) }}
-                     >
-                        <div className='row'>
-                          <div className="col-9 pt-1">
-                          <div className='row'>
-                          <small><strong>{warehouse.wh_name}</strong></small>
-                          <small>{warehouse.id}</small>
-                          </div>
-                          </div>
-                          <div className='col-3'>
-                            <Button
-                              variant="outline-danger"
-                              size="sm"
-                              onClick={() => { deleteWarehouse(warehouse.id) }}
-                            >
-                              <FontAwesomeIcon icon={faTrashCan} />
-                            </Button>
-                          </div>
-                        </div>
-
-                      </ListGroup.Item>
-                    )
-                  })}
-
-                </ListGroup>
-              </Card.Body>
-            </Card>
-          </div>
-
-          <div className='col-9 p-5'>
-            <Tab.Content>
-        	    <Tab.Pane eventKey={0}>
-                <div className='row px-5'>
-                  <div className='row'>
-                    <h1 className='text-center py-3 p1'>Warehouse Management</h1>
-                  </div>
-
-                  <div className='row'>
-                    <div className='col-12 mt-4'>
-                      <Card className='shadow'>
-                        <Card.Header className='bg-primary text-white'>
-                        	<div className="container-fluid">
-                        		<div className="row">
-				        	<div className="col-6">
-				          		<h3>Warehouse Name:</h3>
-				        	</div>
-				        	<div className="col-6 text-right">
-				        	</div>
-
-		                	</div>
-                        	</div>
-                        </Card.Header>
-                        <Card.Body>
-                          <small>Address:</small><br />
-                          <small>Notes:</small><br />
-                        </Card.Body>
-
-                      </Card>
-
-                    </div>
-                  </div>
-
-                </div>
-              </Tab.Pane>
-
-        
-              <Tab.Pane eventKey={whId}>
-                
-                <div className='row px-5'>
-                  <div className='row'>
-                    <h1 className='text-center py-3 p1'>Warehouse Management</h1>
-                  </div>
-                  <div className='row'>
-                    <div className='col-12 mt-4'>
-                      <Card className='shadow'>
-                        <Card.Header className='bg-primary text-white'>
-                        	<div className="container-fluid">
-                        		<div className="row">
-				        	<div className="col-6">
-				          		<h3>Warehouse Name: {warehouseDoc.wh_name}</h3>
-				        	</div>
-				        	
-		                	</div>
-                        	</div>
-                        </Card.Header>
-                        <Card.Body>
-                          <small>Address: {warehouseDoc.address} </small><br />
-                          <small>Notes: {warehouseDoc.wh_notes} </small><br />
-                        </Card.Body>
-
-                        <Card.Body>
-                           {init?
-				<div className="row g-0">
-				{
-					cells.map((cells, index) => (
-						<div className={'col-' + Number(12/warehouseDoc.col)}>
-						<div className="wh_cell">
-							<div className="whc_header">
-								<div className="whch_left">
-						  <QRCode value={cells.id} size={50}/>
-						  							       <Button
-							       	variant ="outline-dark"
-									    className="rounded-circle ms-3 mt-1"
-									    style={{ width: "40px"}}
-									    onClick={() => { getCLID(index) }}>
-									    <FontAwesomeIcon icon={faPlus} />
-									</Button>
-								</div>
-								<div className="whch_right">
-									<h4 key={cells.id}>{cells.id}</h4>
-								</div>
-							</div>
-						      <div className="whc_body">
-						                              <FillMapModal
-                    show={modalShowMap}
-                    onHide={() => setModalShowMap(false)}
-                    whid = {whId}
-                    cellindex = {cellIndex}
-                    />	
-							<ListGroup variant="flush">
-							  {cells.products.map((info,i)=>(
-							      <ListGroup.Item
-								action
-								key={info}
-								eventKey={info}
-								>
-								<span key={info}> {info}</span>
-								
-									
-
-							      </ListGroup.Item>
-							      
-							      ))}
-							       </ListGroup>
-
-							</div>
-						</div>
-						</div>
-				))}
-			    </div>
-
-                        :
-                        <div>
-                        <div className="text-center">
-                        Warehouse Map Not Initialized
-                        </div>
-                                <div className="p-3">
-          <div className="row">
-            <div className="col-6">
-                        <label>No. of Columns</label>
-              <input type="number"
-                className="form-control"
-                placeholder="Column"
-                onChange={(event) => { setNewCol(event.target.value); }}
-              />
-            </div>
-            <div className="col-6">
-              <label>No. of Rows</label>
-              <input type="number"
-                className="form-control"
-                placeholder="Row"
-                onChange={(event) => { setNewRow(event.target.value); }}
-              />
-            </div>
-          </div>
-        </div>
-            <Button
-          className="btn btn-success"
-          style={{ width: "150px" }}
-          onClick={addMap}>
-          Save
-        </Button>
-        </div>
-        			}
-                        </Card.Body>
-	
-                      </Card>
-                    </div>
-                  </div>
-
-                </div>
-              </Tab.Pane>
-            </Tab.Content>
-          </div>
-        </div>
-      </Tab.Container>
-
-
-
-
-
-
-    </div>
-  );
-
-*/
 
 return (
-  /*
-  <>
-  {
-  list&&
-  list.map((item, index) => (
-    <div style={{backgroundColor:'lightblue', margin:'20px 25%', textAlign:'center', fontSize:'40px'}}
-      onDragStart={(e) => dragStart(e, index)}
-      onDragEnter={(e) => dragEnter(e, index)}
-      onDragEnd={drop}
-      key={index}
-      draggable>
-        {item}
-    </div>
-    ))}
-  </>
-  */
  <div>
+  <UserRouter
+      route='/warehouse'
+      />
     <Navigation />
     <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
       <div className="row contents">
           <div className="row py-4 px-5">
-              <div className='sidebar horizontal'>
+              <div className='sidebar horizontal' id="warehouse-list-bar">
                 <div className="hsidebar-segment left">
                   <h1 className="pb-2 module-title">Warehouse Management</h1>
                   <hr></hr>
@@ -464,16 +379,18 @@ return (
                 </div>
                 <div className="hsidebar-segment right">
                   <div className="warehouse-title">
-                    <h5>Warehouse List</h5>
+                    <h5>Warehouse List [{warehouse.length}]</h5>
                   </div>
                   <div className="warehouse-list">
                     <div className="row">
                       <div className="col-11">
-                        <ListGroup horizontal>
-                          <NewWarehouseModal
+                      <NewWarehouseModal
                             show={modalShowWH}
                             onHide={() => setModalShowWH(false)} 
                           />
+                        {isLoaded(warehouse)?
+                          <ListGroup horizontal>
+                          
                             {warehouse.map((warehouse) => {
                               return (
                                 <ListGroup.Item 
@@ -485,7 +402,7 @@ return (
                                   <div className='row'>
                                     <div className='warehouse-item-header'>
                                       <div className="code">
-                                        {warehouse.id}
+                                        {getWarehouseID(warehouse.id)}
                                       </div>
                                         {warehouse.isInit?
                                           <div className="status">
@@ -506,6 +423,13 @@ return (
                               )
                             })}
                         </ListGroup>
+                      :  
+                      <div className="w-100 d-flex justify-content-center align-items-center" style={{height: '76.4px'}}>
+
+                        Nothing to show
+                      </div>
+                      }
+                        
                       </div>
                       <div className="col-1 d-flex align-items-center">
                         <Button
@@ -519,6 +443,33 @@ return (
                     </div>
                   </div>
                 </div>
+
+              </div>
+              <div id="warehouse-list-bar-footer" style={{height: '30px'}}>
+                <button
+                  id="warehouse-list-visibility-toggle"
+                  className="hide float-end"
+                  data-title="Hide"
+                  onClick={() => toggle()}
+                >
+                  {shown?
+                    <CaretUp
+                      className="caret pull-down"
+                      color={'#000000'} 
+                      title={'Category'}
+                      height="15px"
+                      width="15px"
+                    />
+                    :
+                    <CaretDown
+                    className="caret pull-down"
+                    color={'#000000'} 
+                    title={'Category'}
+                    height="15px"
+                    width="15px"
+                    />
+                  }
+                </button>
               </div>
               <div className="divider horizontal">
 
@@ -529,21 +480,28 @@ return (
                     <div className="map-container">
                       <div className="warehouse-info mb-4">
                         <div className="row">
-                          <div className="col-5">
+                          <div className="col-7">
                             <h3><strong>{warehouseDoc.wh_name}</strong></h3>
                             {warehouseDoc.address}
                           </div>
-                          <div className="col-6">
-                            <div className="data-label">
-                            <Create
+                          <div className="col-4">
+                            <div className="warehouse-notes">
+                              <div className="d-inline-block me-2">
+
+                              <Create
                               className="me-2 pull-down"
                               color={'#000'} 
                               title={'Category'}
                               height="25px"
                               width="25px"
                             />
-                            Notes
+                            Notes:
+                            <br />
+                              </div>
+                              <div className="d-inline-block">
                               {warehouseDoc.wh_notes}
+                              </div>
+                              
                             </div>
                           </div>
                           <div className="col-1 d-flex align-items-center">
@@ -557,102 +515,297 @@ return (
                           </div>
                         </div>
                       </div>
-                      <div className="warehouse-map">
-                                    {warehouseDoc.isInit?
-                                    /*
-                                      <div className="row g-0">
-                                      {
-                                        warehouseDoc.cell.map((cells, index) => (
-                                          <div className={'col-' + Number(12/warehouseDoc.col)}>
-                                            <div className="wh_cell">
-                                              <div className="whc_header">
-                                                <div className="whch_left">
-                                                  <QRCode value={cells.id} size={50}/>
-                                                  <Button
-                                                    variant ="outline-dark"
-                                                    className="rounded-circle ms-3 mt-1"
-                                                    style={{ width: "40px"}}
-                                                    onClick={() => { getCLID(index) }}>
-                                                    <FontAwesomeIcon icon={faPlus} />
-                                                  </Button>
-                                                </div>
-                                                <div className="whch_right">
-                                                  <h4 key={cells.id}>{cells.id}</h4>
-                                                </div>
-                                              </div>
-                                              <div className="whc_body">
-                                                <FillMapModal
+                      <div className="warehouse-info-map-divider">
+                        
+                      </div>
+                      <div className="warehouse-map-options">
+                        <div className="row">
+                          <div className="col text-center">
+                      Editing?
+                          </div>
+                          <div className="col text-center">
+                            QR?
+                          </div>
+                          <div className="col text-center">
+                            Space ID's?
+                          </div>
+                        </div>
+                        <div className="row">
+                          <div className="col d-flex justify-content-center">
+                            
+                          <label className="vertical-switch">
+                          <input 
+                          type="checkbox"
+                          defaultChecked={editing}
+                          onClick={()=>{if(editing){setEditing(false)}else{setEditing(true)}}}
+                          />
+                          <span className="vertical-slider round"></span>
+                  </label>
+                          
+                          </div>
+                          
+                          <div className="col d-flex justify-content-center">
+                          
+                            <label className="vertical-switch">
+                                  <input 
+                                  type="checkbox"
+                                  defaultChecked={qrVisible}
+                                  onClick={()=>{if(qrVisible){setQRVisible(false)}else{setQRVisible(true)}}}
+                                  />
+                                  <span className="vertical-slider round"></span>
+                          </label>                     
+                          </div>
+                          
+                          <div className="col d-flex justify-content-center">
+                          <label className="vertical-switch">
+                                  <input 
+                                  type="checkbox"
+                                  defaultChecked={cellIdVisible}
+                                  onClick={()=>{if(cellIdVisible){setCellIdVisible(false)}else{setCellIdVisible(true)}}}
+                                  />
+                                  <span className="vertical-slider round"></span>
+                          </label>
+                          </div>
+                        </div>
+                      </div>
+                      <NewMapModal
                                                   show={modalShowMap}
                                                   onHide={() => setModalShowMap(false)}
-                                                  whid = {whId}
-                                                  cellindex = {cellIndex}
-                                                  />	
-                                                <ListGroup variant="flush">
-                                                  {cells.products.map((info,i)=>(
-                                                    <ListGroup.Item
-                                                      action
-                                                      key={info}
-                                                      eventKey={info}>
-                                                      <span key={info}> {info}</span>
-                                                    </ListGroup.Item>
-                                                  ))}
-                                                </ListGroup>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                      */
-                                      
+                                                  id={whId}
+                                                  />
+                      <div className="warehouse-map">
+                                    {warehouseDoc.isInit?
                                         <>
-                                        {fillList(warehouseDoc.cell)}
-                                        <div className="row">
-                                          {list.map((item, index) => (
-                                            <div className="col-4"
-                                              onDragStart={(e) => dragStart(e, index)}
-                                              onDragEnter={(e) => dragEnter(e, index)}
-                                              onDragEnd={drop}
-                                              key={index}
-                                              draggable>
-                                              <div className="wh_cell">
+{warehouseDoc.cells.map((content,index) => {
+      return(
+        <div className="box-row d-flex align-items-center">    
+        {Object.keys(content).map((k) => {
+          return (
+            <>
+                              
+              <a className="box d-flex align-items-center justify-content-center">
+                <div className="box-call-to-action">
+                    <div className="box-ca-container">
+                    <div className="color-changer d-flex justify-content-center align-items-center mb-2">
+                      <div className="color-swatch d-flex justify-content-center">
+                        <button className="color"
+                          style={{backgroundColor: '#ffffff'}}
+                          onClick={()=>{changeColor(warehouseDoc.cells, index, k, 
+                            "#ffffff")
+                           }}
+                        >
+                          </button>
+                        <button className="color"
+                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fsmooth_conrete.jpg?alt=media&token=0773acac-c048-4f33-8f39-47fd644330d6")'}}
+                          onClick={()=>{changeColor(warehouseDoc.cells, index, k, 
+                            "https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fsmooth_conrete.jpg?alt=media&token=0773acac-c048-4f33-8f39-47fd644330d6")
+                           }}
+                        >
+                        </button>
+                        <button className="color"
+                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Frough_concrete.jpg?alt=media&token=3cce02b1-a2fd-49cc-8011-507f6ea3c352")'}}
+                          onClick={()=>{changeColor(warehouseDoc.cells, index, k, 
+                            "https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Frough_concrete.jpg?alt=media&token=3cce02b1-a2fd-49cc-8011-507f6ea3c352")
+                           }}
+                        ></button>
+                        <button className="color"
+                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fdark_wood.jpg?alt=media&token=d3385145-b7ac-4845-a06c-e51012d56226")'}}
+                          onClick={()=>{changeColor(warehouseDoc.cells, index, k, 
+                            "https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fdark_wood.jpg?alt=media&token=d3385145-b7ac-4845-a06c-e51012d56226")
+                           }}
+                        ></button>
+                        <button className="color"
+                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Flight_wood.jpg?alt=media&token=307a303c-1698-4c92-ad96-def38752042e")'}}
+                          onClick={()=>{changeColor(warehouseDoc.cells, index, k, 
+                            "https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Flight_wood.jpg?alt=media&token=307a303c-1698-4c92-ad96-def38752042e")
+                           }}
+                        ></button>
+                        <button className="color"
+                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fwhite_tile.jpg?alt=media&token=09c77e80-ba5c-44c8-a056-e169a449100d")'}}
+                          onClick={()=>{changeColor(warehouseDoc.cells, index, k, 
+                            "https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fwhite_tile.jpg?alt=media&token=09c77e80-ba5c-44c8-a056-e169a449100d")
+                           }}
+                        ></button>
+                        <button className="color"
+                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fbrick.jpg?alt=media&token=403814c0-b98b-4c8f-89f9-f23720905649")'}}
+                          onClick={()=>{changeColor(warehouseDoc.cells, index, k, 
+                            "https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fbrick.jpg?alt=media&token=403814c0-b98b-4c8f-89f9-f23720905649")
+                           }}
+                        ></button>
+                        </div>
+                        </div>
+                        
+                        
+                        {content[k].isStorage?
+                        <>
+                        <div className="d-flex flex-row mb-2">
+                          
+                          <button className="box-call-to-action-button me-5"
+                          >Add Products</button>
+                          <div className="storage-options">
+                          <button
+                      className="box-call-to-action-button "
+                      value="delete"
+                      onClick={(show)=>deStorage(warehouseDoc.cells, index, k)}>Clear</button>
+                            </div>
+  
+                          </div>
+                        <div className="storage-options d-flex flex-row mb-2">
+                          <button
+                    className="box-call-to-action-button no-click"
+                    value="context-sm">Edit:</button>
+                    <button
+                    className="box-call-to-action-button with-icon"
+                    data-title="Palet"
+                    onClick={()=>changeStorage(warehouseDoc.cells, index, k, 'palet')}>
+                      <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-palet.png?alt=media&token=8c2de023-30de-4f00-8d2b-453a25ae823f")'}}>
+                        </div>
+                      </button>
+                      <button
+                    className="box-call-to-action-button with-icon"
+                    data-title="Shelf"
+                    onClick={()=>changeStorage(warehouseDoc.cells, index, k, 'shelf')}>
+                      <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-shelf.png?alt=media&token=167f685a-d810-4fe4-a90e-a5cd2168647c")'}}></div>
+                      </button>
+                      <button
+                    className="box-call-to-action-button with-icon"
+                    onClick={()=>changeStorage(warehouseDoc.cells, index, k, 'freezer')}>
+                      <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-freezer.png?alt=media&token=83f133ae-7159-4c4c-8d14-bd61f35ef8ed")'}}>
+                      </div>
+                      </button>
+                      
+                    
 
-                                              {item}
-                                              </div>
-                                            </div>
-                                            ))}
-                                        </div>
+                          </div>
+                          <div className="storage-options d-flex flex-row mb-2">
+                          <button
+                    className="box-call-to-action-button no-click"
+                    value="context-sm">Flip:</button>
+                    <button
+                    className="box-call-to-action-button with-icon"
+                    onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-top')}>
+                      <div 
+                      className="flip-top"
+                      style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}></div>
+                      </button>
+                      <button
+                    className="box-call-to-action-button with-icon"
+                    onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-left')}>
+                      <div 
+                      className="flip-left"
+                      style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}></div>
+                      
+                      </button>
+                      <button
+                    className="box-call-to-action-button with-icon"
+                    onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-right')}>
+                      <div 
+                      className="flip-right"
+                      style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}></div>
+                      
+                      </button>
+                      <button
+                    className="box-call-to-action-button with-icon"
+                    onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-bottom')}>
+                      <div 
+                      className="flip-bottom"
+                      style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}></div>
+                      
+                      </button>
+
+                          </div>
+                        
+                        
+                        </>
+                        :
+                          <>
+                          <div className="storage-options d-flex flex-row">
+                          <button
+                    className="box-call-to-action-button no-click"
+                    value="context">Place a:</button>
+                    <button
+                    className="box-call-to-action-button"
+                    onClick={()=>toStorage(warehouseDoc.cells, index, k, "palet")}>Palet</button>
+                    <button
+                    className="box-call-to-action-button"
+                    onClick={()=>toStorage(warehouseDoc.cells, index, k, "shelf")}>Shelf</button>
+                    <button
+                    className="box-call-to-action-button"
+                    onClick={()=>toStorage(warehouseDoc.cells, index, k, "freezer")}>Freezer</button>
+                          </div>
+                          </>
+                        }
+                      
+                      </div>
+              
+                    
+
+                  
+                </div>
+              <div className="box-col" style ={{width: dimensions + 'px', height: dimensions + 'px', backgroundImage: 'url("' + content[k].color + '")', backgroundColor: content[k].color}}>
+              {content[k].isStorage?
+                  <div className={'storage ' + content[k].type + ' ' + content[k].orientation}>
+                  <div className="cell-info" style={{fontSize: fontSize + 'pt'}}>
+                    <span className="cell-id d-none">{content[k].id}</span>
+                    <div className="qr-code d-flex justify-content-center d-none">
+                        <QRCode
+                          value={content[k].id}
+                          size={50}
+                        />
+                        </div>
+                </div>      
+                  {content[k].products.map((val, k) => {
+                    return(
+                      <div>
+                        {val}
+                      </div>
+                    )
+                  })}
+                  </div>
+
+:
+
+        
+        <>
+        <div className="cell-info" style={{fontSize: fontSize + 'pt'}}>
+                  <span className="cell-id d-none">{content[k].id}</span>
+              </div>      
+                {content[k].products.map((val, k) => {
+                  return(
+                    <div>
+                      {val}
+                    </div>
+                  )
+                })}
+        </>
+        }
+              </div>
+              </a>
+              
+              
+          
+          
+          </>   
+          ); 
+        })}
+      </div>  
+      );
+    })}
+                                          
                                         </>
                                       :
                                       <div>
                                         <div className="text-center">
-                                          Warehouse Map Not Initialized
-                                        </div>
-                                        <div className="p-3">
-                                          <div className="row">
-                                            <div className="col-6">
-                                              <label>No. of Columns</label>
-                                              <input type="number"
-                                                className="form-control"
-                                                placeholder="Column"
-                                                onChange={(event) => { setNewCol(event.target.value); }}
-                                                />
-                                              </div>
-                                            <div className="col-6">
-                                              <label>No. of Rows</label>
-                                              <input type="number"
-                                                className="form-control"
-                                                placeholder="Row"
-                                                onChange={(event) => { setNewRow(event.target.value); }}
-                                              />
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <Button
-                                          className="btn btn-success"
+                                          <h4>Warehouse Map Not Initialized</h4>
+                                            <br />
+                                            
+                                            <Button
+                                          className="btn btn-primary"
                                           style={{ width: "150px" }}
-                                          onClick={addMap}>
-                                          Save
+                                          onClick={()=>setModalShowMap(true)}>
+                                          Set Up Now
                                         </Button>
+                                        </div>
                                       </div>
                                     }
                       </div>
