@@ -20,9 +20,9 @@ import ProfileManagement from './pages/ProfileManagement';
 import AccountManagement from './pages/AccountManagement';
 import UserRouter from './pages/UserRouter';
 import VerificationMessage from './pages/VerificationMessage';
-
 import ModRouter from './pages/ModRouter';
 import ManageUsers from './pages/ManageUsers';
+
 
 
 import { useState } from 'react';
@@ -52,7 +52,6 @@ function App() {
           <Route path='/testpage' element={<Protected><TestPage /></Protected>} />
           <Route path='/profilemanagement' element={<Protected><ProfileManagement /></Protected>} />
           <Route path='/accountmanagement' element={<Protected><AccountManagement /></Protected>} />
-
           <Route path='/mod' element={<Protected><ModRouter /></Protected>} />
           <Route path='/manageusers' element={<Protected><ManageUsers /></Protected>} />
           <Route path='/analytics' element={<Analytics />} />

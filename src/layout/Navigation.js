@@ -67,6 +67,9 @@ const Navigation = () => {
               <LinkContainer to="/testpage">
                 <Nav.Link>Test</Nav.Link>
               </LinkContainer>
+              <LinkContainer to="/betapage">
+                <Nav.Link>Beta</Nav.Link>
+              </LinkContainer>
               
             </Nav>
 

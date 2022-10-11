@@ -6,11 +6,15 @@ import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { addDoc, onSnapshot, doc, updateDoc, setDoc } from 'firebase/firestore';
+import { UserAuth } from '../context/AuthContext'
 
 
 function NewSupplierModal(props) {
 
   //---------------------VARIABLES---------------------
+
+  const { user } = UserAuth();//user credentials
+  const [userID, setUserID] = useState("");
 
   const [newSupplierName, setnewSupplierName] = useState("");
   const [newSupplierAddress, setnewSupplierAddress] = useState("");
@@ -23,6 +27,12 @@ function NewSupplierModal(props) {
 
 
   //---------------------FUNCTIONS---------------------
+
+  useEffect(() => {
+    if (user) {
+      setUserID(user.uid)
+    }
+  }, [{ user }])
 
   //fetch variable collection
   useEffect(() => {
@@ -49,7 +59,8 @@ function NewSupplierModal(props) {
   //add supplier to collection
   const addSupplier = async (supplierId) => {
     setDoc(doc(db, "supplier", "SU" + Number(varRef.supplierId)), {
-        supplier_name: newSupplierName
+      user: userID
+      , supplier_name: newSupplierName
       , supplier_emailaddress: newSupplierEmailAddress
       , supplier_address: newSupplierAddress
       , supplier_mobileNum: Number(newSupplierMobileNumber)

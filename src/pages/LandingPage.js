@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Nav, Table, Button, ButtonGroup, Tab } from "react-bootstrap";
+import { Card, Nav, Table, Button, ButtonGroup, Tab, Carousel } from "react-bootstrap";
 import NewSupplierModal from "../components/NewSupplierModal";
 import Navigation from "../layout/Navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -37,12 +37,12 @@ function LandingPage() {
     //---------------------FUNCTIONS---------------------
 
 
-   /* useEffect(() => {
-        if (user == null) {
-            navigate('/login');
-        }
-    }, [user]);
-*/
+    /* useEffect(() => {
+         if (user == null) {
+             navigate('/login');
+         }
+     }, [user]);
+ */
 
     //read sales_record collection
     useEffect(() => {
@@ -208,29 +208,29 @@ function LandingPage() {
                                         </tbody>
                                     </Table>
                                 </Tab.Pane>
-                                <Tab.Pane eventKey={1}>
-                                    <Table striped bordered hover size="sm" className="records-table light">
-                                        <thead className="bg-primary">
-                                            <tr>
-                                                <th className="pth text-center">Document Number</th>
-                                                <th className="pth text-center">Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {purchRecord.map((purchRecord) => {
-                                                return (
+                                        <Tab.Pane eventKey={1}>
+                                            <Table striped bordered hover size="sm" className="records-table light">
+                                                <thead className="bg-primary">
                                                     <tr>
-                                                        <td className="pt-entry text-center">{purchRecord.document_number}</td>
-                                                        <td className="pt-entry text-center">{date}</td>
+                                                        <th className="pth text-center">Document Number</th>
+                                                        <th className="pth text-center">Date</th>
                                                     </tr>
-                                                )
-                                            })}
-                                        </tbody>
-                                    </Table>
-                                </Tab.Pane>
+                                                </thead>
+                                                <tbody>
+                                                    {purchRecord.map((purchRecord) => {
+                                                        return (
+                                                            <tr>
+                                                                <td className="pt-entry text-center">{purchRecord.document_number}</td>
+                                                                <td className="pt-entry text-center">{date}</td>
+                                                            </tr>
+                                                        )
+                                                    })}
+                                                </tbody>
+                                            </Table>
+                                        </Tab.Pane>
 
 
-                            </Tab.Content>
+                                    </Tab.Content>
 
 
                         </Tab.Container>
