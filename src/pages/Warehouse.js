@@ -533,40 +533,37 @@ return (
                         <div className="row">
                           <div className="col d-flex justify-content-center">
                             
-                          <label class="vertical-switch">
+                          <label className="vertical-switch">
                           <input 
                           type="checkbox"
-                          checked={isChecked(editing)}
-                          defaultValue="true"
+                          defaultChecked={editing}
                           onClick={()=>{if(editing){setEditing(false)}else{setEditing(true)}}}
                           />
-                          <span class="vertical-slider round"></span>
+                          <span className="vertical-slider round"></span>
                   </label>
                           
                           </div>
                           
                           <div className="col d-flex justify-content-center">
                           
-                            <label class="vertical-switch">
+                            <label className="vertical-switch">
                                   <input 
                                   type="checkbox"
-                                  checked={isChecked(qrVisible)}
-                                  defaultValue="true"
+                                  defaultChecked={qrVisible}
                                   onClick={()=>{if(qrVisible){setQRVisible(false)}else{setQRVisible(true)}}}
                                   />
-                                  <span class="vertical-slider round"></span>
+                                  <span className="vertical-slider round"></span>
                           </label>                     
                           </div>
                           
                           <div className="col d-flex justify-content-center">
-                          <label class="vertical-switch">
+                          <label className="vertical-switch">
                                   <input 
                                   type="checkbox"
-                                  checked={isChecked(cellIdVisible)}
-                                  defaultValue="false"
+                                  defaultChecked={cellIdVisible}
                                   onClick={()=>{if(cellIdVisible){setCellIdVisible(false)}else{setCellIdVisible(true)}}}
                                   />
-                                  <span class="vertical-slider round"></span>
+                                  <span className="vertical-slider round"></span>
                           </label>
                           </div>
                         </div>

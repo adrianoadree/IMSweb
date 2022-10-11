@@ -9,6 +9,7 @@ import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import { UserAuth } from '../context/AuthContext'
 import { Warning } from 'react-ionicons'
 import "react-toastify/dist/ReactToastify.css";
+import { Spinner } from 'loading-animations-react';
 
 
 function NewMapModal(props) {
@@ -62,19 +63,19 @@ function NewMapModal(props) {
       allTabs[i].classList.remove('tablinks-init-style');
     }
   
-    // Get all elements with class="tabcontent" and hide them
+    // Get all elements with className="tabcontent" and hide them
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) {
       tabcontent[i].style.display = "none";
     }
   
-    // Get all elements with class="tablinks" and remove the class "active"
+    // Get all elements with className="tablinks" and remove the className "active"
     tablinks = document.getElementsByClassName("tablinks");
     for (i = 0; i < tablinks.length; i++) {
       tablinks[i].className = tablinks[i].className.replace(" active", "");
     }
   
-    // Show the current tab, and add an "active" class to the button that opened the tab
+    // Show the current tab, and add an "active" className to the button that opened the tab
     document.getElementById(cityName).style.display = "block";
     evt.currentTarget.className += " active";
 
@@ -97,21 +98,7 @@ function NewMapModal(props) {
     format = "WH" + format;
  }
 
- const updatePreview = () => {
-  var offsetWidth = document.getElementById('map-preview').offsetWidth;
-  setPrevWidth(offsetWidth - 20)
-  var tempArray = [];
-  var tempCol = [];
 
-  for(var i = 0; i < col; i++){
-    tempCol.push("");
-  }
-  for(var j = 0; j < row; j++){
-    tempArray.push(tempCol);
-  }
-
-  setPrevCell(tempArray)
- }
 
   const successToast = () => {
     toast.success(' Warehouse Creation Successful ', {
@@ -132,10 +119,6 @@ function NewMapModal(props) {
   }
 
   const pushCellsArray = () => {
-
-  }
-
-  const addMap = async () => {
     var tempArray = []
     for( var i = 0; i < row ; i++ ) {
       var tempCol = {};
@@ -151,18 +134,39 @@ function NewMapModal(props) {
       tempArray.push(tempCol);
     }
     setCell(tempArray);
+  }
+
+  const updatePreview = () => {
+    var offsetWidth = document.getElementById('map-preview').offsetWidth;
+    setPrevWidth(offsetWidth - 20)
+    var tempArray = [];
+    var tempCol = [];
+  
+    for(var i = 0; i < col; i++){
+      tempCol.push("");
+    }
+    for(var j = 0; j < row; j++){
+      tempArray.push(tempCol);
+    }
+  
+    setPrevCell(tempArray)
+    pushCellsArray()
+   }
+
+  const addMap = async () => {
+
     if( cell === undefined || cell.length == 0) {
       alert(cell);
     }
     else
-    {     const getMap = doc(db, 'warehouse', warehouseID);
-    await updateDoc(getMap,{
-        col: Number(col)
-        , row: Number(row)
-        , isInit: true
-        , cells: cell
-      }); 
-      
+    {
+      const getMap = doc(db, 'warehouse', warehouseID);
+      await updateDoc(getMap,{
+          col: Number(col)
+          , row: Number(row)
+          , isInit: true
+          , cells: cell
+        });
     }
   }
 
@@ -199,8 +203,8 @@ function NewMapModal(props) {
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        <div class="tab">
-          <button class="tablinks no-click me-5">
+        <div className="tab">
+          <button className="tablinks no-click me-5">
           <Warning
                                 className="me-2 pull-down"
                                 color={'#000'} 
@@ -210,10 +214,10 @@ function NewMapModal(props) {
                               /><strong>Select a method to initialize your map: </strong>
           </button>
         
-          <button class="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, 'grid')}>By Grid</button>
-          <button class="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, 'scale')}>By Scale</button>
+          <button className="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, 'grid')}>By Grid</button>
+          <button className="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, 'scale')}>By Scale</button>
         </div>
-      <div id="grid" class="tabcontent">
+      <div id="grid" className="tabcontent">
         <div className="blue-strip p-2 mb-4 left-full-curve right-full-curve  d-flex align-items-center justify-content-center" style={{fontSize: '11pt'}}>
           <span>With <strong>by grid</strong>, the number of workable spaces is dependent on the number of rows and columns (row * col).</span>
         </div>
@@ -224,7 +228,8 @@ function NewMapModal(props) {
               {prevCell.map((row) =>
               <div className="prev-box-row">
                 {row.map((col) =>
-                  <div className="prev-box-col" style={{width: prevDimension + 'px', height: prevDimension + 'px', backgroundColor: prevBackground, backgroundImage: 'url("'+prevBackground+'")'}}>
+                  <div className="prev-box-col"
+                  style={{width: prevDimension + 'px', height: prevDimension + 'px', backgroundColor: prevBackground, backgroundImage: 'url("'+prevBackground+'")'}}>
                   </div>
                 )}
                 </div>
@@ -329,17 +334,36 @@ function NewMapModal(props) {
           
 
         </div>
-      <div id="scale" class="tabcontent">
+      <div id="scale" className="tabcontent">
         <h3>Paris</h3>
         <p>Paris is the capital of France.</p>
       </div>
     </Modal.Body>
       <Modal.Footer>
+      {cell === undefined || cell.length == 0?
         <Button
-          className="btn btn-success"
-          style={{ width: "150px" }}
-          onClick={()=>addMap()}
-          >Save</Button>
+        className="btn btn-success"
+        disabled
+        style={{ width: "150px" }}
+        onClick={()=>addMap()}
+        >
+          <Spinner 
+                      color1="#b0e4ff"
+                      color2="#fff"
+                      textColor="rgba(0,0,0, 0.5)"
+                      className="w-50 h-50"
+                      />
+        </Button>
+      :
+      <Button
+        className="btn btn-success"
+        
+        style={{ width: "150px" }}
+        onClick={()=>addMap()}
+        >Save
+      </Button>
+      }
+        
       </Modal.Footer>
     </Modal>
   );

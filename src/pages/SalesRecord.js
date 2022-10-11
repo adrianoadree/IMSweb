@@ -11,6 +11,7 @@ import moment from "moment";
 import NewSalesModal from "../components/NewSalesModal";
 import { UserAuth } from '../context/AuthContext'
 import  UserRouter  from '../pages/UserRouter'
+import { Spinner } from 'loading-animations-react';
 
 
 
@@ -22,9 +23,10 @@ function SalesRecords({ isAuth }) {
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
   const [key, setKey] = useState('main');//Tab controller
+  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
 
   const [modalShow, setModalShow] = useState(false); //add new sales record modal
-  const [salesRecordCollection, setSalesRecordCollection] = useState([]); //sales_record Collection
+  const [salesRecordCollection, setSalesRecordCollection] = useState(); //sales_record Collection
   const [salesRecordDoc, setSalesRecordDoc] = useState([]); //sales_record Collection
   const [docId, setDocId] = useState("PR10001") // doc id variable
   const [list, setList] = useState([
@@ -45,6 +47,19 @@ function SalesRecords({ isAuth }) {
     }
   }, [{ user }])
 
+  useEffect(() => {
+    console.log(isFetched)
+  }, )
+
+  useEffect(()=>{
+    if(salesRecordCollection === undefined) {
+      setIsFetched(false)
+    }
+    else
+    {
+      setIsFetched(true)
+    }
+  }, [salesRecordCollection])
 
   useEffect(() => {
     //read sales_record collection
@@ -90,15 +105,14 @@ function SalesRecords({ isAuth }) {
     //read list of product names in product list
     async function fetchPurchDoc() {
       const unsub = await onSnapshot(doc(db, "sales_record", docId), (doc) => {
-        setList(doc.data().product_list);
+        if(doc.data() != undefined) {
+          setList(doc.data().product_list);
+        }
       });
       return unsub;
     }
     fetchPurchDoc()
   }, [docId])
-
-
-
 
 
   //delete
@@ -158,13 +172,22 @@ function SalesRecords({ isAuth }) {
                     </div>
                   </div>
                   <div className='scrollbar' style={{ height: '400px' }}>
+                  {isFetched?
+                    <>
                     {salesRecordCollection.length === 0 ?
-                      <div className='py-4 px-2'>
-                        <Alert variant="secondary" className='text-center'>
-                          <p>
-                            <strong>No Recorded Sales Transaction</strong>
-                          </p>
-                        </Alert>
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                        <h5 className="mb-3"><strong>No <span style={{color: '#0d6efd'}}>sales</span> records to show.</strong></h5>
+                        <p className="d-flex align-items-center justify-content-center">
+                          <span>Click the</span>
+                          <Button
+                            className="add ms-1 me-1 static-button no-click"
+                          >
+                            <FontAwesomeIcon icon={faPlus} />
+                          </Button>
+                          <span>
+                            button to add one.
+                          </span>
+                        </p>
                       </div>
                       :
                       <ListGroup variant="flush">
@@ -188,6 +211,18 @@ function SalesRecords({ isAuth }) {
                         })}
                       </ListGroup>
                     }
+                    </>
+                  
+                  :
+                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                      <Spinner 
+                      color1="#b0e4ff"
+                      color2="#fff"
+                      textColor="rgba(0,0,0, 0.5)"
+                      className="w-50 h-50"
+                      />
+                    </div>
+                  }
                   </div>
                 </Card.Body>
               </Card>

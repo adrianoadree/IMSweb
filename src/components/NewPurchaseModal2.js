@@ -13,7 +13,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import NewSupplierModal from '../components/NewSupplierModal'
 
 
-function NewPurchaseModal(props) {
+function NewPurchaseModal2(props) {
 
 
     //---------------------VARIABLES---------------------
@@ -141,12 +141,10 @@ function NewPurchaseModal(props) {
     useEffect(() => {
         if (itemName != undefined) {
             const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
-                if(doc.data() != undefined) {
-                    setItemName(doc.data().description)
-                    setItemCurrentQuantity(doc.data().qty)
-                    setItemSPrice(doc.data().s_price)
-                    setItemPPrice(doc.data().p_price)
-                }
+                setItemName(doc.data().description)
+                setItemCurrentQuantity(doc.data().qty)
+                setItemSPrice(doc.data().s_price)
+                setItemPPrice(doc.data().p_price)
             });
         }
     }, [itemId])
@@ -220,7 +218,6 @@ function NewPurchaseModal(props) {
         updatePurchDocNum() //update variables.purchDocNum function
         successToast() //display success toast
 
-        props.onHide()
     }
 
     //update stockcard.qty function
@@ -306,56 +303,57 @@ function NewPurchaseModal(props) {
                         <div className='col-3 ps-4'>
                             <label>Transaction Number</label>
                             <input type="text"
-                                readOnly
-                                className="form-control shadow-none no-click"
-                                placeholder=""
-                                defaultValue={createFormat().substring(0,7)}
+                            readOnly
+                            className="form-control shadow-none no-click"
+                            placeholder=""
+                            defaultValue={createFormat().substring(0,7)}
                             />
                         </div>
                         <div className='col-4 ps-4'>
                             <label>Transaction Date</label>
+
                             <input
-                                type='date'
-                                className="form-control shadow-none"
-                                value={newDate}
-                                onChange={e => setNewDate(e.target.value)}
+                            type='date'
+                            className="form-control shadow-none"
+                            value={newDate}
+                            onChange={e => setNewDate(e.target.value)}
                             />
                         </div>
                         <div className='col-5 ps-4'>
                             <NewSupplierModal
                                 show={supplierModalShow}
                                 onHide={() => setSupplierModalShow(false)}
-                            />
+                                />
                             <label>Supplier Name</label>
                             <div className="d-flex justify-content-center">
-                                <select 
-                                    className="form-select shadow-none"
+                                <select className="form-select shadow-none"
                                     value={itemSupplier}
-                                    onChange={e => handleSupplierSelect(e.target.value)}
-                                    >
+                                    onChange={e => handleSupplierSelect(e.target.value)}>
                                     <option
                                         value="0">
                                         Select Supplier
                                     </option>
                                     <option
                                         value="add-supplier"
-                                        className style={{fontStyle: 'italic'}}
-                                    >
+                                        className style={{fontStyle: 'italic'}}>
                                         Not on the list? Add a supplier
                                     </option>
-                                        {supplierCol.map((supplier) => {
-                                            return (
-                                                <option
-                                                    key={supplier.supplier_name}
-                                                    value={supplier.supplier_name}
-                                                >
-                                                    {supplier.supplier_name}
-                                                </option>
-                                            )
-                                        })}
+                                    {supplierCol.map((supplier) => {
+                                        return (
+                                            <option
+                                                key={supplier.supplier_name}
+                                                value={supplier.supplier_name}
+                                            >
+                                                {supplier.supplier_name}
+                                            </option>
+                                                )
+                                    })}
                                 </select>
                             </div>
                         </div>
+
+
+                        
                     </div>
                     <div className="row my-2 mb-3">
                         <div className='col-12 ps-4'>
@@ -368,91 +366,92 @@ function NewPurchaseModal(props) {
                             />
                         </div>
                     </div>
-                    <div className="row my-2 mb-3 p-3 item-adding-container">
-                        <div className="row m-0 p-0">
-                            <div className='col-12 text-center mb-2'>
-                                <h5><strong>Purchase List</strong></h5>
-                                    <div className="row p-0 m-0 py-1">
-                                        <div className='col-6 p-1'>
-                                            <select
-                                                className="form-select shadow-none"
-                                                value={itemId}
-                                                onChange={e => setItemId(e.target.value)}
-                                            >
-                                                <option
-                                                    value="IT999999">
-                                                    Select Item
-                                                </option>
-                                                {stockcard.map((stockcard) => {
-                                                    return (
-                                                        <option
-                                                            key={stockcard.id}
-                                                            value={stockcard.id}
-                                                        >{stockcard.description}</option>
-                                                    )
-                                                })}
-                                            </select>
-                                        </div>
-                                        <div className='col-4 p-1'>
-                                            <input
-                                                className="form-control shadow-none"
-                                                placeholder='Quantity'
-                                                type='number'
-                                                value={itemQuantity}
-                                                onChange={e => setItemQuantity(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className='col-2 p-1'>
-                                            <Button
-                                                onClick={addItem}
-                                                disabled={itemId === "IT999999" ? true : false}
-                                            >
-                                                <FontAwesomeIcon icon={faPlus} />
-                                            </Button>
-                                        </div>
-                                    </div>
+                    <div className="row my-2 mb-3">
+                    <div className='row'>
+                        <h5>Add Item to List</h5>
+                            <hr></hr>
+                            <div className='col-6 p-1'>
+                                <Form.Select
+                                    value={itemId}
+                                    onChange={e => setItemId(e.target.value)}
+                                >
+                                    <option
+                                        value="IT999999">
+                                        Select Item
+                                    </option>
+                                    {stockcard.map((stockcard) => {
+                                        return (
+                                            <option
+                                                key={stockcard.id}
+                                                value={stockcard.id}
+                                            >{stockcard.description}</option>
+                                        )
+                                    })}
+                                </Form.Select>
                             </div>
-                            <div className="row p-0 m-0 py-1">
-                                <div className="col-12">
-                                    <Table striped bordered hover size="sm">
-                                        <thead>
-                                            <tr className='text-center bg-white'>
-                                                <th>Item ID</th>
-                                                <th>Item Description</th>
-                                                <th>Quantity</th>
-                                                <th>Remove</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {items.map((item, index) => (
-                                                <tr
-                                                    className='text-center'
-                                                    key={index}>
-                                                    <td>{item.itemId}</td>
-                                                    <td>{item.itemName}</td>
-                                                    <td>{item.itemQuantity}</td>
-                                                    <td>
-                                                        <Button
-                                                            size='sm'
-                                                            variant="outline-danger"
-                                                            onClick={() => handleItemRemove(index)}>
-                                                            <FontAwesomeIcon icon={faMinus} />
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-                                </div>
+                            <div className='col-4 p-1'>
+                                <Form.Control
+                                    placeholder='Quantity'
+                                    type='number'
+                                    value={itemQuantity}
+                                    onChange={e => setItemQuantity(e.target.value)}
+                                />
+
+                            </div>
+                            <div className='col-2 p-1'>
+                                <Button
+                                    onClick={addItem}
+                                    disabled={itemId === "IT999999" ? true : false}
+                                >
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </Button>
                             </div>
                         </div>
+
+                        <div className='row mt-4'>
+                            <h5>Purchase List</h5>
+                            <hr></hr>
+
+                            <Table striped bordered hover size="sm">
+                                <thead>
+                                    <tr className='text-center bg-white'>
+                                        <th>Item ID</th>
+                                        <th>Item Description</th>
+                                        <th>Quantity</th>
+                                        <th>Remove</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {items.map((item, index) => (
+                                        <tr
+                                            className='text-center'
+                                            key={index}>
+                                            <td>{item.itemId}</td>
+                                            <td>{item.itemName}</td>
+                                            <td>{item.itemQuantity}</td>
+                                            <td>
+                                                <Button
+                                                    size='sm'
+                                                    variant="outline-danger"
+                                                    onClick={() => handleItemRemove(index)}>
+                                                    <FontAwesomeIcon icon={faMinus} />
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+
+                        </div>
+
+
                     </div>
                 </div>
             </Modal.Body>
             <Modal.Footer
                 className="d-flex justify-content-center"
             >
-                <Button
+                 <Button
                     className="btn btn-danger"
                     style={{ width: "6rem" }}
                     onClick={() => props.onHide()}
@@ -474,4 +473,4 @@ function NewPurchaseModal(props) {
 
 }
 
-export default NewPurchaseModal;
+export default NewPurchaseModal2;

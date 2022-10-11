@@ -1593,6 +1593,7 @@ input:not(:focus):valid ~ .floating-label{
 	display: none;
 	position: absolute;
 	z-index: 999;
+	margin-left: -150px;
 }
 
 .box-call-to-action-button{
@@ -1724,9 +1725,7 @@ input:not(:focus):valid ~ .floating-label{
 	line-height: 0 !important;
 }
 
-.modal-backdrop.show {
-	opacity: .2 !important;
-  }
+
 
   .color {
 	width: 40px;
@@ -1833,6 +1832,108 @@ input:not(:focus):valid ~ .floating-label{
 	margin-right: 6px;
 }
 
+.static-button {
+	padding: .1rem .4rem;
+	border-color: #000 !important;
+	color: #000 !important;
+}
+
+.modal-backdrop.show {
+	opacity: .5 !important;
+	background-color: rgb(211, 211, 211);
+  }
+
+.IMS-modal .modal-content{
+	border-radius: 25px !important;
+	border: none;
+	box-shadow: 0 0px 5px 5px rgba(0, 0, 0, 0.026)
+}
+
+.IMS-modal .modal-footer {
+	background-color: #aabbdb;
+	border-bottom-left-radius: 25px !important;
+	border-bottom-right-radius: 25px !important;
+	padding: .5rem;
+}
+
+.IMS-modal h3 {
+	color: #0d6efd;
+	font-weight: bolder;
+}
+
+.IMS-modal .foreground {
+	display: inline-block;
+	position: relative;
+	width: 100%;
+	height: 50%;
+	background-color: #fff;
+	background-image: url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fforeground.jpg?alt=media&token=62e2f072-4844-4150-a395-07fa32897819");
+	z-index: 999;
+}
+.IMS-modal .btn-danger:hover {
+	background-color: #6d000b;
+	border: 1px solid #6d000b;
+}
+
+.IMS-modal .btn-light {
+	background-color: #ecf3ff;
+	border: 1px solid #ecf3ff;
+}
+
+.IMS-modal .btn-light:hover {
+	background-color: #6686bd;
+	border: 1px solid #8daadb;
+	color: white;
+}
+
+.IMS-modal label {
+	margin-bottom: 0.4rem !important;
+	margin-left: -0.5rem !important;
+}
+
+.IMS-modal hr {
+	margin-top: 0.75rem !important;
+	margin-bottom: 0.75rem !important;
+}
+
+
+.IMS-modal input:focus {
+	outline: 2px solid #0d6efd;
+}
+
+.IMS-modal select:focus {
+	outline: 2px solid #0d6efd;
+}
+
+.left-curve-none {
+	border-top-left-radius: 0 !important;
+}
+
+.right-curve-none {
+	border-top-right-radius: 0 !important;
+}
+
+.left-full-curve-none {
+	border-top-left-radius: 0 !important;
+	border-bottom-left-radius: 0 !important;
+}
+
+.right-full-curve-none {
+	border-top-right-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+}
+
+.tooltip-icon {
+	cursor: pointer;
+}
+
+.item-adding-container {
+	background-color: #f3f5f8;
+	border-radius: 10px;
+	border: 1px solid #e0e0e0;
+}
+
+.modal-open {transition:all 150ms ease-in-out};
   /*style={{backgroundImage: 'url(" + Background + ")'}}
 https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fdark_wood.jpg?alt=media&token=d3385145-b7ac-4845-a06c-e51012d56226
   <button className="color-swatch"
