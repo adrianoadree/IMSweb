@@ -19,6 +19,7 @@ import Map from '../components/Map'
 import QRCode from "react-qr-code";
 import { UserAuth } from '../context/AuthContext'
 import  UserRouter  from '../pages/UserRouter'
+import NewUserBanner from '../components/NewUserBanner';  
 
 
 function Warehouse({isAuth}) {
@@ -27,6 +28,16 @@ function Warehouse({isAuth}) {
   const [modalShowWH, setModalShowWH] = useState(false);
   const [modalShowMap, setModalShowMap] = useState(false);
   const [isInit, setIsInit] = useState(false);
+  const [userStatus, setUserStatus] = useState(true);
+  
+  const userCollectionRef = collection(db, "user")
+
+  
+
+  const [userCollection, setUserCollection] = useState([]); 
+  const [userProfileID, setUserProfileID] = useState("");
+  
+  const [userName, setUserName] = useState("");
 
   const [warehouseDoc, setWarehouseDoc] = useState([]);
   const [warehouse, setWarehouse] = useState([]);
@@ -123,6 +134,33 @@ function Warehouse({isAuth}) {
       }
     }
   }, )
+
+  useEffect(() => {
+    if (userID === undefined) {
+          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+    
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+        }
+        else {
+          const q = query(userCollectionRef, where("user", "==", userID));
+    
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+          
+        }
+  }, [userID])
+  useEffect(() => {
+    userCollection.map((metadata) => {
+        setUserStatus(metadata.isNew);
+        setUserName(metadata.name);
+        console.log(userStatus)
+    });
+  }, [userCollection])
 
   useEffect(() => {
     if(warehouseDoc == undefined) {
@@ -275,23 +313,6 @@ const toggle=() =>{
     deleteToast();
   }
 
-  
-  function isChecked (status) {
-    if (status)
-    {
-      return "checked";
-    }
-    else
-    {
-      return "";
-    }
-  }
-
-  function getWarehouseID(id) {
-    return id.substring(0,4)
-
-  }
-
   function isLoaded(array) {
     if (array === undefined || array.length == 0) {
       return false;
@@ -366,6 +387,13 @@ return (
       route='/warehouse'
       />
     <Navigation />
+    {userStatus?
+<NewUserBanner
+name={userName}
+page='warehouse'/>
+    :
+<></>
+    }
     <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
       <div className="row contents">
           <div className="row py-4 px-5">
@@ -402,7 +430,7 @@ return (
                                   <div className='row'>
                                     <div className='warehouse-item-header'>
                                       <div className="code">
-                                        {getWarehouseID(warehouse.id)}
+                                        {warehouse.id.substring(0,4)}
                                       </div>
                                         {warehouse.isInit?
                                           <div className="status">

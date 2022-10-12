@@ -28,64 +28,127 @@ function NewUserBanner(props) {
 
   var name = props.name;
   var fname = name.split(" ")[0];
-
-  return (
-    <div id="banner-container">
-      <div id="banner">
-        <div id="banner-left">
-        <h1><span className="f-cursive">Welcome</span> <span></span>{fname}!</h1>
+  if(props.page=='warehouse') {
+    return(
+<div id="banner-container">
+        <div id="banner">
+          <div id="banner-left">
+          <h1><span className="f-cursive">Hey</span> <span></span>{fname}!</h1>
+          </div>
+            
+          <div id="banner-right">
+          <Checkbox
+            className="me-2 pull-down"
+            color={'#80b200'} 
+            title={'Category'}
+            height="25px"
+            width="25px"
+          />
+         Now that you account's been verified, you can make use of IMS.
+          <br />
+          <Checkbox
+            className="me-2 pull-down"
+            color={'#80b200'} 
+            title={'Category'}
+            height="25px"
+            width="25px"
+          />
+         Start you experience by creating a warehouse of your business by using the module below.
+          </div>
+  
         </div>
-          
-        <div id="banner-right">
-        <Checkbox
-          className="me-2 pull-down"
-          color={'#80b200'} 
-          title={'Category'}
-          height="25px"
-          width="25px"
-        />
-        To start off, fill out the form below. This is for verification if your business is registered. All we need are some personal information and general information about your business.
-        <br />
-        <Checkbox
-          className="me-2 pull-down"
-          color={'#80b200'} 
-          title={'Category'}
-          height="25px"
-          width="25px"
-        />
-        Once done, click "Submit" and wait for the verification. If the verification process is successful, you can now use the application.
-        </div>
-
-      </div>
-      <div id="banner-footer">
-        <button
-          id="banner-visibility-toggle"
-          className="hide float-end"
-          data-title="Hide"
-          onClick={() => toggle()}
-        >
-          {shown?
-            <CaretUp
+        <div id="banner-footer">
+          <button
+            id="banner-visibility-toggle"
+            className="hide float-end"
+            data-title="Hide"
+            onClick={() => toggle()}
+          >
+            {shown?
+              <CaretUp
+                className="caret pull-down"
+                color={'#000000'} 
+                title={'Category'}
+                height="15px"
+                width="15px"
+              />
+              :
+              <CaretDown
               className="caret pull-down"
               color={'#000000'} 
               title={'Category'}
               height="15px"
               width="15px"
-            />
-            :
-            <CaretDown
-            className="caret pull-down"
-            color={'#000000'} 
-            title={'Category'}
-            height="15px"
-            width="15px"
-            />
-          }
-      </button>
+              />
+            }
+        </button>
+        </div>
+  
       </div>
+    );
+  }
+  else if(props.page=='profileManagement') {
 
-    </div>
-  );
+    return (
+      <div id="banner-container">
+        <div id="banner">
+          <div id="banner-left">
+          <h1><span className="f-cursive">Welcome</span> <span></span>{fname}!</h1>
+          </div>
+            
+          <div id="banner-right">
+            
+          <Checkbox
+            className="me-2 pull-down"
+            color={'#80b200'} 
+            title={'Category'}
+            height="25px"
+            width="25px"
+          />
+          To start off, fill out the form below. This is for verification if your business is registered. All we need are some personal information and general information about your business.
+          <br />
+          <Checkbox
+            className="me-2 pull-down"
+            color={'#80b200'} 
+            title={'Category'}
+            height="25px"
+            width="25px"
+          />
+          Once done, click "Submit" and wait for the verification. If the verification process is successful, you can now use the application.
+          </div>
+  
+        </div>
+        <div id="banner-footer">
+          <button
+            id="banner-visibility-toggle"
+            className="hide float-end"
+            data-title="Hide"
+            onClick={() => toggle()}
+          >
+            {shown?
+              <CaretUp
+                className="caret pull-down"
+                color={'#000000'} 
+                title={'Category'}
+                height="15px"
+                width="15px"
+              />
+              :
+              <CaretDown
+              className="caret pull-down"
+              color={'#000000'} 
+              title={'Category'}
+              height="15px"
+              width="15px"
+              />
+            }
+        </button>
+        </div>
+  
+      </div>
+    );
+    
+  }
 }
 
 export default NewUserBanner;

@@ -18,10 +18,20 @@ function NewWarehouseModal(props) {
   const [userProfileID, setUserProfileID] = useState("");
   const userCollectionRef = collection(db, "user")
   const [warehouseCounter, setWarehouseCounter] = useState(0);
+  const [userStatus, setUserStatus] = useState(true);
 
   const [newWHName, setnewWHName] = useState("");
   const [newWHNotes, setnewWHNotes] = useState("");
   const [newAddress, setnewAddress] = useState("");
+
+  useEffect((()=> {
+    if(warehouseCounter > 1) {
+      updateDoc(doc(db, "user", userProfileID),
+      {
+        isNew : false
+      });
+    }
+  }))
 
   useEffect(() => {
     if (user) {
@@ -53,6 +63,7 @@ function NewWarehouseModal(props) {
     userCollection.map((metadata) => {
         setWarehouseCounter(metadata.warehouseId)
         setUserProfileID(metadata.id)
+        setUserStatus(metadata.id);
     });
   }, [userCollection])
  

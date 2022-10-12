@@ -43,6 +43,9 @@ function LandingPage() {
          }
      }, [user]);
  */
+     useEffect(() => {
+        console.log(user)
+    }, [user]);
 
     //read sales_record collection
     useEffect(() => {

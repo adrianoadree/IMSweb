@@ -12,6 +12,7 @@ import RestrictedNavigation from '../layout/RestrictedNavigation';
 import Navigation from '../layout/Navigation';
 import NewUserBanner from '../components/NewUserBanner';
 import  UserRouter  from '../pages/UserRouter'
+import { useNavigate } from 'react-router-dom'
 
 
 function ProfileManagement() {
@@ -128,7 +129,7 @@ function ProfileManagement() {
       bphone: newBPhone,
       bemail: newBEmail,
       btype: newBType,
-      inVerification: true,
+      status: 'inVerification',
       accounts: []
     });
   }
@@ -186,7 +187,8 @@ function ProfileManagement() {
             }
             {metadata.isNew ?
               <NewUserBanner
-              name={metadata.name} />
+              name={metadata.name} 
+              page='profileManagement'/>
             :
               <div></div>
             }

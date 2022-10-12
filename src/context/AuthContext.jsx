@@ -82,8 +82,7 @@ export const AuthContextProvider = ({ children }) => {
             name: currentUser.displayName,
             email: currentUser.email,
             isNew: true,
-            isVerified: false,
-            inVerification: false,
+            status: 'new',
             user: currentUser.uid,
             stockcardId: 1,
             salesId: 1,
@@ -114,4 +113,3 @@ export const AuthContextProvider = ({ children }) => {
 export const UserAuth = () => {
   return useContext(AuthContext);
 };
-

@@ -24,7 +24,7 @@ function NewSalesModal(props) {
     const [userCollection, setUserCollection] = useState([]);// userCollection variable
     const [userProfileID, setUserProfileID] = useState(""); // user profile id
     const userCollectionRef = collection(db, "user")// user collection
-    const [salesCounter, setSalesCounter] = useState(0); // purchase counter
+    const [salesCounter, setSalesCounter] = useState(0); // sales counter
 
     const [newNote, setNewNote] = useState(""); // note form input
     const [varRef, setVarRef] = useState([]); // variable collection
@@ -43,6 +43,9 @@ function NewSalesModal(props) {
 
 
     //---------------------FUNCTIONS---------------------
+    useEffect(() => {
+        console.log(salesCounter)
+    }, )
 
     //set Product ids
     useEffect(() => {
@@ -193,8 +196,9 @@ function NewSalesModal(props) {
         setItems([]);
         setNewNote("");
         updateQuantity()  //update stockcard.qty function
-        updatePurchDocNum() //update variables.salesDocNum function
+        updateSalesDocNum() //update variables.salesDocNum function
         successToast() //display success toast
+
         props.onHide()
     }
 
@@ -213,9 +217,9 @@ function NewSalesModal(props) {
     }
 
     //update variables.salesDocNum function
-    function updatePurchDocNum(salesDocNum) {
+    function updateSalesDocNum() {
         const userDocRef = doc(db, "user", userProfileID)
-        const newData = { purchaseId: Number(salesCounter) + 1 }
+        const newData = { salesId: Number(salesCounter) + 1 }
 
         updateDoc(userDocRef, newData)
     }

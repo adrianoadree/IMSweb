@@ -55,37 +55,52 @@ function UserRouter(props) {
       }
     }, [userCollection])
 
-    if ( first == undefined ) {
-
-    }
-    else
-    {
-      if (first.isNew) {
-        if ( first.inVerification ) {
-          if ( props.route == '/verify' ) {
-            //do nothing to prevent looping
+    useEffect(() => {
+      if ( first === undefined ) {
+  
+      }
+      else
+      {
+        if (first.isNew) {
+          if ( first.status == 'inVerification' ) {
+            if ( props.route == '/verify' ) {
+              //do nothing to prevent looping
+            }
+            else
+            {
+              navigate('/verify');
+            }
+          }
+          else if ( first.status == 'verified' )
+          {
+            if ( props.route == '/warehouse' ) {
+              //do nothing to prevent looping
+            }
+            else
+            {
+              navigate('/warehouse');
+            }
+          }
+          else if( first.status == 'new' ){
+            if ( props.route == '/profileManagement' ) {
+              //do nothing to prevent looping
+            }
+            else
+            {
+              navigate('/profileManagement');
+            }
           }
           else
           {
-            navigate('/verify');
+            
           }
         }
-        else
-        {
-          if ( props.route == '/profileManagement' ) {
-            //do nothing to prevent looping
-          }
-          else
-          {
-            navigate('/profileManagement');
-          }
+        else if ( props.route == undefined ) {
+          navigate('/home');
         }
       }
-      else if ( props.route == undefined ) {
-        navigate('/home');
-        }
-    }
-    
+    }, [first])
+  
     return (
         <div></div>
     );
