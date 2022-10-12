@@ -28,7 +28,7 @@ const Navigation = () => {
     <div>
       <Navbar collapseOnSelect expand="lg" className="custom-nav">
         <Container>
-          <LinkContainer to="/">
+          <LinkContainer to="/home">
             <Navbar.Brand>
               <img id="brand-img" src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52">
             </img>
