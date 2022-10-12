@@ -574,6 +574,7 @@ function Itemforecast() {
                                                             Total Sales <FontAwesomeIcon icon={faCircleInfo} />
                                                         </small>
                                                     </Card.Header>
+
                                                     <Card.Body
                                                         className="text-white text-center"
                                                         style={{ height: "50px" }}>
@@ -1322,8 +1323,8 @@ function Itemforecast() {
                 </div>
             </Tab.Container>
         </div >
-    )
+         )
 
-}
-
-export default Itemforecast;
+        }
+        
+        export default Itemforecast;

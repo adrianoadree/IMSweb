@@ -26,11 +26,13 @@ const Navigation = () => {
 
   return (
     <div>
-      
       <Navbar collapseOnSelect expand="lg" className="custom-nav">
         <Container>
           <LinkContainer to="/">
-            <Navbar.Brand><img id="brand-img"/>IMS</Navbar.Brand>
+            <Navbar.Brand>
+              <img id="brand-img" src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52">
+            </img>
+            </Navbar.Brand>
           </LinkContainer>
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="me-auto">
@@ -38,6 +40,7 @@ const Navigation = () => {
                 <LinkContainer to="/records">
                   <NavDropdown.Item>Transaction History</NavDropdown.Item>
                 </LinkContainer>
+                <NavDropdown.Divider />
                 <LinkContainer to="/supplier">
                   <NavDropdown.Item>Supplier List</NavDropdown.Item>
                 </LinkContainer>
@@ -46,9 +49,11 @@ const Navigation = () => {
                 <LinkContainer to="/inventory">
                   <NavDropdown.Item>Inventory </NavDropdown.Item>
                 </LinkContainer>
+                <NavDropdown.Divider />
                 <LinkContainer to="/stockcard">
                   <NavDropdown.Item>Stockcard </NavDropdown.Item>
                 </LinkContainer>
+                <NavDropdown.Divider />
                 <LinkContainer to="/warehouse">
                   <NavDropdown.Item>Warehouse</NavDropdown.Item>
                 </LinkContainer>
@@ -72,8 +77,10 @@ const Navigation = () => {
               <NavDropdown
                 id="nav-dropdown-dark-example"
                 title={user?.displayName}
-                menuVariant="dark"
               >
+                <LinkContainer to="/profilemanagement">
+                  <NavDropdown.Item>Account</NavDropdown.Item>
+                </LinkContainer>
                 <NavDropdown.Divider />
                 <NavDropdown.Item onClick={logout} href="/login">Logout</NavDropdown.Item>
               </NavDropdown>

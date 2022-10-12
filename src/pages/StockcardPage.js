@@ -19,9 +19,10 @@ import Barcode from 'react-jsbarcode'
 import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';
+import  UserRouter  from '../pages/UserRouter'
 
 
-function StockcardPage() {
+function StockcardPage({ isAuth }) {
 
 
   //---------------------VARIABLES---------------------
@@ -909,8 +910,13 @@ function StockcardPage() {
     }
   }
 
+
+
   return (
     <div>
+      <UserRouter
+      route='/stockcard'
+      />
       <Navigation />
 
       <ToastContainer
