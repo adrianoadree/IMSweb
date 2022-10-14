@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Form, Button, ListGroup, Card, Tab, FormControl, Accordion, Alert,InputGroup } from 'react-bootstrap';
+import { Table, Form, Button, ListGroup, Card, Tab, FormControl, Accordion, Alert, InputGroup } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
@@ -1191,17 +1191,9 @@ function Itemforecast() {
                                             (
                                                 stockcard.length === 0 ?
                                                     <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                                                        <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to show.</strong></h5>
+                                                        <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to  <span style={{ color: '#0d6efd' }}>Forecast ReorderPoint</span>.</strong></h5>
                                                         <p className="d-flex align-items-center justify-content-center">
-                                                            <span>Click the</span>
-                                                            <Button
-                                                                className="add ms-1 me-1 static-button no-click"
-                                                            >
-                                                                <FontAwesomeIcon icon={faPlus} />
-                                                            </Button>
-                                                            <span>
-                                                                button to add one.
-                                                            </span>
+                                                            <span>Go to  <Alert.Link as={Link} to="/stockcard">Stockcard Page</Alert.Link> to register a product</span>
                                                         </p>
                                                     </div>
                                                     :
