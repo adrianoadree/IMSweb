@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
-import { Tab, ListGroup, Card, Table, Button, Nav, FormControl, Alert } from "react-bootstrap";
+import { Tab, ListGroup, Card, Table, Button, Nav, FormControl, Alert, InputGroup } from "react-bootstrap";
 import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign, faSearch } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Create, Calendar, Document, InformationCircle } from 'react-ionicons'
 import moment from "moment";
 import NewSalesModal from "../components/NewSalesModal";
 import { UserAuth } from '../context/AuthContext'
-import  UserRouter  from '../pages/UserRouter'
+import UserRouter from '../pages/UserRouter'
 import { Spinner } from 'loading-animations-react';
 
 
@@ -49,14 +49,13 @@ function SalesRecords({ isAuth }) {
 
   useEffect(() => {
     console.log(isFetched)
-  }, )
+  },)
 
-  useEffect(()=>{
-    if(salesRecordCollection === undefined) {
+  useEffect(() => {
+    if (salesRecordCollection === undefined) {
       setIsFetched(false)
     }
-    else
-    {
+    else {
       setIsFetched(true)
     }
   }, [salesRecordCollection])
@@ -105,7 +104,7 @@ function SalesRecords({ isAuth }) {
     //read list of product names in product list
     async function fetchPurchDoc() {
       const unsub = await onSnapshot(doc(db, "sales_record", docId), (doc) => {
-        if(doc.data() != undefined) {
+        if (doc.data() != undefined) {
           setList(doc.data().product_list);
         }
       });
@@ -125,6 +124,38 @@ function SalesRecords({ isAuth }) {
   }
 
 
+  // ===================================== START OF SEARCH FUNCTION =====================================
+
+
+  const [searchValue, setSearchValue] = useState('');    // the value of the search field 
+  const [searchResult, setSearchResult] = useState();    // the search result
+
+
+  useEffect(() => {
+    setSearchResult(salesRecordCollection)
+  }, [salesRecordCollection])
+
+
+
+  const filter = (e) => {
+    const keyword = e.target.value;
+
+    if (keyword !== '') {
+      const results = salesRecordCollection.filter((salesRecordCollection) => {
+        return salesRecordCollection.id.toLowerCase().startsWith(keyword.toLowerCase())
+        // Use the toLowerCase() method to make it case-insensitive
+      });
+      setSearchResult(results);
+    } else {
+      setSearchResult(salesRecordCollection);
+      // If the text field is empty, show all users
+    }
+
+    setSearchValue(keyword);
+  };
+
+  // ====================================== END OF SEARCH FUNCTION ======================================
+
 
 
 
@@ -132,7 +163,7 @@ function SalesRecords({ isAuth }) {
   return (
     <div>
       <UserRouter
-      route='/salesrecord'
+        route='/salesrecord'
       />
       <Navigation />
       <Tab.Container
@@ -146,20 +177,18 @@ function SalesRecords({ isAuth }) {
               <Card className='sidebar-card'>
                 <Card.Header>
                   <div className='row'>
-                    <div className="col-1">
-                      <Button className="fc-search left-full-curve no-click me-0"
-                        onClick={() => setModalShow(true)}>
+                    <InputGroup className="mb-3">
+                      <InputGroup.Text id="basic-addon1">
                         <FontAwesomeIcon icon={faSearch} />
-                      </Button>
-                    </div>
-                    <div className="col-11">
+                      </InputGroup.Text>
                       <FormControl
+                        type="search"
+                        value={searchValue}
+                        onChange={filter}
+                        className="input"
                         placeholder="Search"
-                        aria-label="Search"
-                        aria-describedby="basic-addon2"
-                        className="fc-search right-full-curve mw-0"
                       />
-                    </div>
+                    </InputGroup>
                   </div>
                 </Card.Header>
                 <Card.Body style={{ height: "500px" }}>
@@ -171,58 +200,64 @@ function SalesRecords({ isAuth }) {
                       Date
                     </div>
                   </div>
-                  <div className='scrollbar' style={{ height: '400px' }}>
-                  {isFetched?
-                    <>
-                    {salesRecordCollection.length === 0 ?
-                      <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                        <h5 className="mb-3"><strong>No <span style={{color: '#0d6efd'}}>sales</span> records to show.</strong></h5>
-                        <p className="d-flex align-items-center justify-content-center">
-                          <span>Click the</span>
-                          <Button
-                            className="add ms-1 me-1 static-button no-click"
-                          >
-                            <FontAwesomeIcon icon={faPlus} />
-                          </Button>
-                          <span>
-                            button to add one.
-                          </span>
-                        </p>
-                      </div>
-                      :
-                      <ListGroup variant="flush">
-                        {salesRecordCollection.map((sales) => {
-                          return (
-                            <ListGroup.Item
-                              action
-                              key={sales.id}
-                              eventKey={sales.id}
-                              onClick={() => { setDocId(sales.id) }}>
-                              <div className="row gx-0 sidebar-contents">
-                                <div className="col-4">
-                                  <small>{sales.transaction_number}</small>
-                                </div>
-                                <div className="col-8">
-                                  <small>{moment(sales.transaction_date).format('ll')}</small>
-                                </div>
+                  <div id='scrollbar' style={{ height: '400px' }}>
+                    {isFetched ?
+                      (
+                        salesRecordCollection.length === 0 ?
+                          <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Record</span> to show.</strong></h5>
+                            <p className="d-flex align-items-center justify-content-center">
+                              <span>Click the</span>
+                              <Button
+                                className="add ms-1 me-1 static-button no-click"
+                              >
+                                <FontAwesomeIcon icon={faPlus} />
+                              </Button>
+                              <span>
+                                button to add one.
+                              </span>
+                            </p>
+                          </div>
+                          :
+                          <ListGroup variant="flush">
+                            {searchResult && searchResult.length > 0 ? (
+                              searchResult.map((sales) => (
+                                <ListGroup.Item
+                                  action
+                                  key={sales.id}
+                                  eventKey={sales.id}
+                                  onClick={() => { setDocId(sales.id) }}>
+                                  <div className="row gx-0 sidebar-contents">
+                                    <div className="col-4">
+                                      <small>{sales.transaction_number}</small>
+                                    </div>
+                                    <div className="col-8">
+                                      <small>{moment(sales.transaction_date).format('ll')}</small>
+                                    </div>
+                                  </div>
+                                </ListGroup.Item>
+                              ))
+                            ) : (
+                              <div className='mt-5 text-center'>
+                                <Alert variant='danger'>
+                                  No Search Result for
+                                  <br /><strong>{searchValue}</strong>
+                                </Alert>
                               </div>
-                            </ListGroup.Item>
-                          )
-                        })}
-                      </ListGroup>
+                            )}
+
+                          </ListGroup>
+                      )
+                      :
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                        <Spinner
+                          color1="#b0e4ff"
+                          color2="#fff"
+                          textColor="rgba(0,0,0, 0.5)"
+                          className="w-50 h-50"
+                        />
+                      </div>
                     }
-                    </>
-                  
-                  :
-                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                      <Spinner 
-                      color1="#b0e4ff"
-                      color2="#fff"
-                      textColor="rgba(0,0,0, 0.5)"
-                      className="w-50 h-50"
-                      />
-                    </div>
-                  }
                   </div>
                 </Card.Body>
               </Card>

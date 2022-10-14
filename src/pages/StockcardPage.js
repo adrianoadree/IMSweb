@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tab, Button, Card, ListGroup, Modal, Form, Alert, Table, Tooltip, OverlayTrigger, Accordion, ButtonGroup, ToggleButton, ToggleButtonGroup } from 'react-bootstrap';
+import { Tab, Button, Card, ListGroup, Modal, Form, Alert, Table, Tooltip, OverlayTrigger, Accordion, ButtonGroup, ToggleButton, ToggleButtonGroup, ListGroupItem } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
@@ -19,6 +19,8 @@ import Barcode from 'react-jsbarcode'
 import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';
+import { Spinner } from 'loading-animations-react';
+
 
 
 function StockcardPage() {
@@ -29,7 +31,7 @@ function StockcardPage() {
   const [barcodeModalShow, setBarcodeModalShow] = useState(false); //show/hide edit barcode modal
   const [editShow, setEditShow] = useState(false); //show/hide edit modal
   const [modalShow, setModalShow] = useState(false); //show/hide new product modal
-  const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+  const [stockcard, setStockcard] = useState(); // stockcardCollection variable
   const [docId, setDocId] = useState("xx"); //document Id
   const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
   const { user } = UserAuth();//user credentials
@@ -1175,7 +1177,62 @@ function StockcardPage() {
 
   // ===================================== END OF REPORT GENERATION =====================================
 
+  // ****************************************************************************************************
 
+  // ===================================== START OF SEARCH FUNCTION =====================================
+  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
+
+
+  const [searchValue, setSearchValue] = useState('');    // the value of the search field 
+  const [searchResult, setSearchResult] = useState();    // the search result
+
+  useEffect(() => {
+    console.log("searchValue: ", searchValue)
+  }, [searchValue])
+
+
+  useEffect(() => {
+    console.log("searchResult: ", searchResult)
+  }, [searchResult])
+
+  useEffect(() => {
+    console.log("stockcard: ", stockcard)
+  }, [stockcard])
+
+
+  useEffect(() => {
+    if (stockcard === undefined) {
+      setIsFetched(false)
+    }
+    else {
+      setIsFetched(true)
+    }
+  }, [stockcard])
+
+  useEffect(() => {
+    setSearchResult(stockcard)
+  }, [stockcard])
+
+
+  const filter = (e) => {
+    const keyword = e.target.value;
+
+    if (keyword !== '') {
+      const results = stockcard.filter((user) => {
+        return user.description.toLowerCase().startsWith(keyword.toLowerCase()) ||
+          user.id.toLowerCase().startsWith(keyword.toLowerCase());
+        // Use the toLowerCase() method to make it case-insensitive
+      });
+      setSearchResult(results);
+    } else {
+      setSearchResult(stockcard);
+      // If the text field is empty, show all users
+    }
+
+    setSearchValue(keyword);
+  };
+
+  // ====================================== END OF SEARCH FUNCTION ======================================
 
 
 
@@ -1209,19 +1266,18 @@ function StockcardPage() {
               <Card className='sidebar-card'>
                 <Card.Header>
                   <div className='row'>
-                    <div className="col-1 left-full-curve">
-                      <Button className="fc-search no-click me-0">
+                    <InputGroup className="mb-3">
+                      <InputGroup.Text id="basic-addon1">
                         <FontAwesomeIcon icon={faSearch} />
-                      </Button>
-                    </div>
-                    <div className="col-11">
+                      </InputGroup.Text>
                       <FormControl
+                        type="search"
+                        value={searchValue}
+                        onChange={filter}
+                        className="input"
                         placeholder="Search"
-                        aria-label="Search"
-                        aria-describedby="basic-addon2"
-                        className="fc-search right-full-curve mw-0"
                       />
-                    </div>
+                    </InputGroup>
                   </div>
                 </Card.Header>
                 <Card.Body style={{ height: "500px" }}>
@@ -1233,37 +1289,64 @@ function StockcardPage() {
                       Description
                     </div>
                   </div>
-                  <div id='scrollbar'>
-                    {stockcard.length === 0 ?
-                      <div className='py-4 px-2'>
-                        <Alert variant="secondary" className='text-center'>
-                          <p>
-                            <strong>No Recorded Product Registered</strong>
-                          </p>
-                        </Alert>
-                      </div>
-                      :
-                      <ListGroup variant="flush">
-                        {stockcard.map((stockcard) => {
-                          return (
-                            <ListGroup.Item
-                              action
-                              key={stockcard.id}
-                              eventKey={stockcard.id}
-                              onClick={() => { setDocId(stockcard.id) }}>
-                              <div className="row gx-0 sidebar-contents">
-                                <div className="col-4">
-                                  {stockcard.id}
-                                </div>
-                                <div className="col-8">
-                                  {stockcard.description}
-                                </div>
+                  <div id='scrollbar' style={{ height: '400px' }}>
+                    {isFetched ?
+                      (
+                        stockcard.length === 0 ?
+                          <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to show.</strong></h5>
+                            <p className="d-flex align-items-center justify-content-center">
+                              <span>Click the</span>
+                              <Button
+                                className="add ms-1 me-1 static-button no-click"
+                              >
+                                <FontAwesomeIcon icon={faPlus} />
+                              </Button>
+                              <span>
+                                button to add one.
+                              </span>
+                            </p>
+                          </div>
+                          :
+                          <ListGroup variant="flush">
+                            {searchResult && searchResult.length > 0 ? (
+                              searchResult.map((stockcard) => (
+                                <ListGroup.Item
+                                  action
+                                  key={stockcard.id}
+                                  eventKey={stockcard.id}
+                                  onClick={() => { setDocId(stockcard.id) }}
+                                >
+                                  <div className="row gx-0 sidebar-contents">
+                                    <div className="col-4">
+                                      {stockcard.id}
+                                    </div>
+                                    <div className="col-8">
+                                      {stockcard.description}
+                                    </div>
+                                  </div>
+                                </ListGroup.Item>
+                              ))
+                            ) : (
+                              <div className='mt-5 text-center'>
+                                <Alert variant='danger'>
+                                  No Search Result for
+                                  <br /><strong>{searchValue}</strong>
+                                </Alert>
                               </div>
-                            </ListGroup.Item>
-                          )
-                        })}
+                            )}
 
-                      </ListGroup>
+                          </ListGroup>
+                      )
+                      :
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                        <Spinner
+                          color1="#b0e4ff"
+                          color2="#fff"
+                          textColor="rgba(0,0,0, 0.5)"
+                          className="w-50 h-50"
+                        />
+                      </div>
                     }
                   </div>
                 </Card.Body>
