@@ -3,7 +3,7 @@ import { Card, Nav, Table, Button, ButtonGroup, Tab, Carousel } from "react-boot
 import NewSupplierModal from "../components/NewSupplierModal";
 import Navigation from "../layout/Navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCartFlatbed, faFileInvoice, faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import { faCartFlatbed, faFileInvoice, faUserPlus,faArrowRightToBracket,faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import NewProductModal from "../components/NewProductModal";
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import NewSalesModal from "../components/NewSalesModal";
@@ -12,7 +12,7 @@ import { collection, where, query, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase-config";
 import { UserAuth } from '../context/AuthContext';
 import moment from "moment";
-import  UserRouter  from '../pages/UserRouter'
+import UserRouter from '../pages/UserRouter'
 
 
 function LandingPage() {
@@ -66,16 +66,16 @@ function LandingPage() {
         return unsub;
     }, [])
 
-    function formatDate(string){
+    function formatDate(string) {
         var options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(string).toLocaleDateString([],options);
+        return new Date(string).toLocaleDateString([], options);
     }
 
     return (
-       <div>
-        <UserRouter
-      route='/home'
-      />
+        <div>
+            <UserRouter
+                route='/home'
+            />
             <Navigation />
             <div className="row contents">
                 <div className="row py-4 px-5">
@@ -88,7 +88,7 @@ function LandingPage() {
                                 <div className="p-1">
                                     <div className="row py-1">
                                         <div className="col-3  d-flex justify-content-center">
-                                            <FontAwesomeIcon icon={faCartFlatbed} size="4x" className="darkblue-icon"/>
+                                            <FontAwesomeIcon icon={faCartFlatbed} size="4x" className="darkblue-icon" />
                                         </div>
                                         <div className="col-9">
                                             <div className="row mb-3">
@@ -103,15 +103,15 @@ function LandingPage() {
                                                     </Button>
                                                 </div>
                                             </div>
-                                        <NewProductModal
-                                            show={productModalShow}
-                                            onHide={() => setProductModalShow(false)} />
+                                            <NewProductModal
+                                                show={productModalShow}
+                                                onHide={() => setProductModalShow(false)} />
                                         </div>
                                     </div>
                                     <hr />
                                     <div className="row py-1">
                                         <div className="col-3 d-flex justify-content-center">
-                                            <FontAwesomeIcon icon={faUserPlus} size="4x" className="darkblue-icon"/>
+                                            <FontAwesomeIcon icon={faUserPlus} size="4x" className="darkblue-icon" />
                                         </div>
                                         <div className="col-9">
                                             <div className="row mb-3">
@@ -126,15 +126,15 @@ function LandingPage() {
                                                     </Button>
                                                 </div>
                                             </div>
-                                        <NewSupplierModal
-                                            show={supplierModalShow}
-                                            onHide={() => setSupplierModalShow(false)} />
+                                            <NewSupplierModal
+                                                show={supplierModalShow}
+                                                onHide={() => setSupplierModalShow(false)} />
                                         </div>
                                     </div>
                                     <hr />
                                     <div className="row py-1">
                                         <div className="col-3 d-flex justify-content-center">
-                                            <FontAwesomeIcon icon={faFileInvoice} size="4x" className="darkblue-icon"/>
+                                            <FontAwesomeIcon icon={faFileInvoice} size="4x" className="darkblue-icon" />
                                         </div>
                                         <div className="col-9">
                                             <div className="row mb-3">
@@ -155,10 +155,10 @@ function LandingPage() {
                                             <NewSalesModal
                                                 show={salesModalShow}
                                                 onHide={() => setSalesModalShow(false)} />
-                                            </div>
-                                            <NewPurchaseModal
-                                                show={purchaseModalShow}
-                                                onHide={() => setPurchaseModalShow(false)} />
+                                        </div>
+                                        <NewPurchaseModal
+                                            show={purchaseModalShow}
+                                            onHide={() => setPurchaseModalShow(false)} />
                                     </div>
                                 </div>
                             </Card.Body>
@@ -175,39 +175,41 @@ function LandingPage() {
                                     <h5 className="header-subtitle">{moment(date).format('dddd')}, {moment(date).format('MMMM D, YYYY')}</h5>
                                 </span>
                             </Card.Header>
-                            <Card.Body  className="folder-style">
-                        <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-                            <Nav variant="pills" defaultActiveKey={1}>
-                                <Nav.Item>
-                                    <Nav.Link eventKey={0}>
-                                        Sales
-                                    </Nav.Link>
-                                </Nav.Item>
-                                <Nav.Item>
-                                    <Nav.Link eventKey={1}>
-                                        Purchase
-                                    </Nav.Link>
-                                </Nav.Item>
-                            </Nav>
-                            <Tab.Content>
-                                <Tab.Pane eventKey={0}>
-                                    <Table striped bordered hover size="sm" className="records-table light">
-                                        <thead className="bg-primary">
-                                            <tr>
-                                                <th className="pth text-center">Document Number</th>
-                                                <th className="pth text-center">Date</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {salesRecord.map((salesRecord) => (
-                                                <tr>
-                                                    <td className="pt-entry text-center">{salesRecord.document_number}</td>
-                                                    <td className="pt-entry text-center">{salesRecord.document_date}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
-                                </Tab.Pane>
+                            <Card.Body className="folder-style">
+                                <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+                                    <Nav variant="pills" defaultActiveKey={1}>
+                                        <Nav.Item>
+                                            <Nav.Link eventKey={0}>
+                                                <FontAwesomeIcon icon={faArrowRightFromBracket} />
+                                                Sales
+                                            </Nav.Link>
+                                        </Nav.Item>
+                                        <Nav.Item>
+                                            <Nav.Link eventKey={1}>
+                                                <FontAwesomeIcon icon={faArrowRightToBracket} />
+                                                Purchase
+                                            </Nav.Link>
+                                        </Nav.Item>
+                                    </Nav>
+                                    <Tab.Content>
+                                        <Tab.Pane eventKey={0}>
+                                            <Table striped bordered hover size="sm" className="records-table light">
+                                                <thead className="bg-primary">
+                                                    <tr>
+                                                        <th className="pth text-center">Document Number</th>
+                                                        <th className="pth text-center">Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {salesRecord.map((salesRecord) => (
+                                                        <tr>
+                                                            <td className="pt-entry text-center">{salesRecord.document_number}</td>
+                                                            <td className="pt-entry text-center">{salesRecord.document_date}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </Tab.Pane>
                                         <Tab.Pane eventKey={1}>
                                             <Table striped bordered hover size="sm" className="records-table light">
                                                 <thead className="bg-primary">
@@ -233,14 +235,14 @@ function LandingPage() {
                                     </Tab.Content>
 
 
-                        </Tab.Container>
+                                </Tab.Container>
 
-                    </Card.Body>
+                            </Card.Body>
                         </Card>
                     </div>
                 </div>
             </div>
-       </div>
+        </div>
     )
 }
 export default LandingPage;
