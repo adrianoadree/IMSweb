@@ -428,7 +428,15 @@ function NewPurchaseModal(props) {
                                                 <tr
                                                     className='text-center'
                                                     key={index}>
-                                                    <td>{item.itemId}</td>
+                                                    <td>
+                                                        {item.itemId === undefined?
+                                                        <></>
+                                                        :
+                                                        <>
+                                                        {item.itemId.substring(0,9)}
+                                                        </>
+                                                        }
+                                                    </td>
                                                     <td>{item.itemName}</td>
                                                     <td>{item.itemQuantity}</td>
                                                     <td>

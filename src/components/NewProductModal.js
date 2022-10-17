@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
-import { onSnapshot, setDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, updateDoc, onSnapshot, query, doc, setDoc, where } from "firebase/firestore";
 import { db } from "../firebase-config";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,23 +11,34 @@ function NewProductModal(props) {
 
 
   //---------------------VARIABLES---------------------
+  const {user} = UserAuth();
+  const [userID, setUserID] = useState("");
+  
+  const [userCollection, setUserCollection] = useState([]);// userCollection variable
+  const [userProfileID, setUserProfileID] = useState(""); // user profile id
+  const userCollectionRef = collection(db, "user")// user collection
+  const [productCounter, setProductCounter] = useState(0); // product counter
+  const [categorySuggestions, setCategorySuggestions] = useState([])
+
   const [newProductName, setNewProductName] = useState("");
   const [newPriceP, setNewPriceP] = useState(0);
   const [newPriceS, setNewPriceS] = useState(0);
   const [newProdCategory, setNewProdCategory] = useState("");
-  const [varRef, setVarRef] = useState([]); // variable collection
-  const {user} = UserAuth();
 
-
+  
   //---------------------FUNCTIONS---------------------
-
-  //access "variables" collection
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "variables", "var"), (doc) => {
-      setVarRef(doc.data());
-    });
-    return unsub;
-  }, [])
+    if (user) {
+      setUserID(user.uid)
+    }
+  }, [{ user }])
+
+  useEffect(() => {
+    console.log(productCounter)
+    console.log(userCollection)
+    console.log(categorySuggestions)
+}, )
+
 
   //Toastify
   const successToast = () => {
@@ -42,9 +53,56 @@ function NewProductModal(props) {
     });
   }
 
+  //fetch user collection from database
+  useEffect(() => {
+    if (userID === undefined) {
+          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+    
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+        }
+        else {
+          const q = query(userCollectionRef, where("user", "==", userID));
+    
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+          
+        }
+  }, [userID])
+
+  //assign profile and purchase counter
+  useEffect(() => {
+    userCollection.map((metadata) => {
+        setProductCounter(metadata.stockcardId)
+        setUserProfileID(metadata.id)
+        setCategorySuggestions(metadata.categories)
+    });
+  }, [userCollection])
+
+
+  const createFormat = () => {
+    var format = productCounter + "";
+    while(format.length < 7) {format = "0" + format};
+    format = "IT" + format + '@' + userID;
+    return format;
+  }
+
+  const newCatergories = () => {
+    var newcategories = categorySuggestions;
+    if(categorySuggestions.indexOf(newProdCategory) == -1)
+    {
+      newcategories.push(newProdCategory)
+    }
+    return newcategories;
+  }
+
   //Create product to database
-  const addProduct = async (productId) => {
-    setDoc(doc(db, "stockcard", "IT" + Number(varRef.productId)), {
+  const addProduct = async () => {
+    setDoc(doc(db, "stockcard", createFormat()), {
       user: user.uid,
       description: newProductName,
       p_price: Number(newPriceP),
@@ -57,31 +115,36 @@ function NewProductModal(props) {
       analytics_minLeadtime: 0,
       analytics_maxLeadtime: 0
     });
-
-
-
-    updateNewProdId(productId)
+    await updateDoc(doc(db, 'user', userProfileID), {
+      categories: newCatergories(),
+    });
+    updateProductDocNum()
     successToast();
+
+    props.onHide();
   }
 
   //update variables.purchDocNum function
-  function updateNewProdId(productId) {
-    const varColRef = doc(db, "variables", "var")
-    const newData = { productId: Number(productId) + 1 }
+  function updateProductDocNum() {
+    const userDocRef = doc(db, "user", userProfileID)
+    const newData = { stockcardId: Number(productCounter) + 1 }
 
-    updateDoc(varColRef, newData)
+    updateDoc(userDocRef, newData)
+}
+
+  const handleClickSuggestion = (suggestion) => {
+    console.log(suggestion.index)
+    setNewProdCategory(suggestion.index)
   }
 
 
-
   return (
-
-
     <Modal
       {...props}
-      size="lg"
+      size="md"
       aria-labelledby="contained-modal-title-vcenter"
       centered
+      className="IMS-modal"
     >
       <ToastContainer
         position="top-right"
@@ -94,73 +157,100 @@ function NewProductModal(props) {
         draggable
         pauseOnHover
       />
-
-
-
-      <Modal.Header closeButton>
-        <Modal.Title id="contained-modal-title-vcenter" className="px-3">
-          Register New Product
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <div className="p-3">
-          <div className="row">
-            <div className="col-6">
+      <Modal.Body >
+        <div className="px-3 py-2">
+          <div className="module-header mb-4">
+            <h3 className="text-center">Register a New Product</h3>
+          </div>
+          <div className="row my-2 mb-3">
+            <div className='col-6 ps-4'>
+              <label>Item Code</label>
+              <input type="text"
+                readOnly
+                className="form-control shadow-none shadow-none no-click"
+                placeholder=""
+                defaultValue={createFormat().substring(0, 9)}
+                />
+            </div>
+            <div id="product-category" className='col-6 ps-4 d-flex align-item-center flex-column'>
+              <label>Category</label>
+              <input type="text"
+                id="product-category-input"
+                className="form-control shadow-none"
+                placeholder="Category"
+                defaultValue=""
+                required
+                onChange={(event) => { setNewProdCategory(event.target.value); }}
+                value={newProdCategory}
+              />
+              <div id="product-category-suggestions">
+                <div>
+                  {categorySuggestions.map((index, k)=>{
+                    return(
+                      <button
+                        onClick={()=>handleClickSuggestion({index})}
+                      >
+                        {index}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="row my-2 mb-3">
+            <div className='col-12 ps-4'>
               <label>Item Name</label>
               <input type="text"
-                className="form-control"
+                className="form-control shadow-none"
                 placeholder="Item name"
                 required
                 autoFocus
                 onChange={(event) => { setNewProductName(event.target.value); }}
               />
             </div>
-            <div className="col-6">
-              <label>Category</label>
-              <input type="text"
-                className="form-control"
-                placeholder="Category"
-                required
-                onChange={(event) => { setNewProdCategory(event.target.value); }}
-              />
-            </div>
           </div>
-          <div className="row mt-2">
-            <div className='col-4'>
+          <div className="row my-2 mb-3">
+            <div className='col-6 ps-4'>
               <label>Purchase Price</label>
               <input
                 type="number"
                 min={0}
-                className="form-control"
+                className="form-control shadow-none"
                 placeholder="Purchase Price"
-                onChange={(event) => { setNewPriceP(event.target.value); }} />
+                onChange={(event) => { setNewPriceP(event.target.value); }} 
+              />
             </div>
-            <div className="col-4">
+            <div className='col-6 ps-4'>
               <label>Selling Price</label>
               <input
                 type="number"
                 min={0}
-                className="form-control"
+                className="form-control shadow-none"
                 placeholder="Selling Price"
-                onChange={(event) => { setNewPriceS(event.target.value); }} />
+                onChange={(event) => { setNewPriceS(event.target.value); }}
+              />
             </div>
-
           </div>
-
-
-
-
         </div>
-      </Modal.Body>
-      <Modal.Footer>
-        <div className="row px-3">
-          <Button
-            className="btn btn-success"
-            style={{ width: "150px" }}
-            onClick={() => { addProduct(varRef.productId) }}>
-            Save
-          </Button>
-        </div>
+      </Modal.Body> 
+      <Modal.Footer
+        className="d-flex justify-content-center"
+      >
+        <Button
+          className="btn btn-danger"
+          style={{ width: "6rem" }}
+          onClick={() => props.onHide()}
+        >
+          Cancel
+        </Button>
+        <Button
+          className="btn btn-light float-start"
+          style={{ width: "6rem" }}
+          onClick={() => { addProduct() }}
+        >
+          Save
+        </Button>
       </Modal.Footer>
     </Modal>
 

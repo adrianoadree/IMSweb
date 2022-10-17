@@ -26,6 +26,7 @@ function NewMapModal(props) {
   const [prevWidth, setPrevWidth] = useState(0);
   const [prevBackground, setPrevBackground] = useState(0);
   const [cell, setCell] = useState({});
+  const [prevClicked, setPrevClicked] = useState(false);
 
 
 
@@ -168,6 +169,7 @@ function NewMapModal(props) {
           , cells: cell
         });
     }
+    props.onHide()
   }
 
   //data variables
@@ -225,11 +227,16 @@ function NewMapModal(props) {
           <div className="col-6">
             <h6 className="mb-2">Preview:</h6>
             <div id="map-preview">
-              {prevCell.map((row) =>
-              <div className="prev-box-row">
-                {row.map((col) =>
+              {prevCell.map((row, index) =>
+              <div className="prev-box-row"
+                key={index}
+              >
+                {row.map((col, i) =>
                   <div className="prev-box-col"
-                  style={{width: prevDimension + 'px', height: prevDimension + 'px', backgroundColor: prevBackground, backgroundImage: 'url("'+prevBackground+'")'}}>
+                    key={i}
+                    style={{width: prevDimension + 'px', height: prevDimension + 'px', backgroundColor: prevBackground, backgroundImage: 'url("'+prevBackground+'")'}}
+                    
+                  >
                   </div>
                 )}
                 </div>
@@ -248,6 +255,7 @@ function NewMapModal(props) {
                       min={2}
                       defaultValue={col}
                       onChange={(e) => { 
+                        setPrevClicked(false);
                           setCol(e.target.value)
                       }}
                     />
@@ -263,6 +271,7 @@ function NewMapModal(props) {
                     min={2}
                     defaultValue={row}
                     onChange={(e) => {
+                      setPrevClicked(false);
                         setRow(e.target.value)
                     }}
                   />
@@ -316,7 +325,7 @@ function NewMapModal(props) {
                   <Button
                   className="float-end"
                   variant="outline-primary"
-                  onClick={(e)=>updatePreview()}>
+                  onClick={(e)=>{setPrevClicked(true);updatePreview()}}>
                     Preview
                   </Button>
                 </div>
@@ -359,7 +368,8 @@ function NewMapModal(props) {
         className="btn btn-success"
         
         style={{ width: "150px" }}
-        onClick={()=>addMap()}
+        disabled={!prevClicked}
+        onClick={()=>{setPrevClicked(true); addMap()}}
         >Save
       </Button>
       }

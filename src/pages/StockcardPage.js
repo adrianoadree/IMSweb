@@ -20,6 +20,7 @@ import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';
 import  UserRouter  from '../pages/UserRouter'
+import { Spinner } from 'loading-animations-react';
 
 
 function StockcardPage({ isAuth }) {
@@ -30,16 +31,44 @@ function StockcardPage({ isAuth }) {
   const [barcodeModalShow, setBarcodeModalShow] = useState(false); //show/hide edit barcode modal
   const [editShow, setEditShow] = useState(false); //show/hide edit modal
   const [modalShow, setModalShow] = useState(false); //show/hide new product modal
-  const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+  const [stockcard, setStockcard] = useState(); // stockcardCollection variable
   const [docId, setDocId] = useState("xx"); //document Id
   const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
+  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
+  const [selectedProducts, setSelectedProducts] = useState([]);
 
 
   //---------------------FUNCTIONS---------------------
 
-
+  useEffect(()=>{
+    console.log(selectedProducts)
+  })
+  const handleProductSelect = (product) => {
+      let productIndex = selectedProducts.indexOf(product)
+      var currentSelectedProduct = document.getElementById(product);
+      
+      if(currentSelectedProduct.classList.contains("product-selected")) 
+      {
+        currentSelectedProduct.classList.remove("product-selected")
+      }
+      else
+      {
+        currentSelectedProduct.classList.add("product-selected")
+      }
+      console.log(currentSelectedProduct)
+      if(productIndex >= 0) {
+        setSelectedProducts([
+          ...selectedProducts.slice(0, productIndex),
+          ...selectedProducts.slice(productIndex + 1, selectedProducts.length)
+        ]);
+      }
+      else
+      {
+        setSelectedProducts([... selectedProducts, product])
+    }
+  }
 
   //access stockcard document
   useEffect(() => {
@@ -52,6 +81,16 @@ function StockcardPage({ isAuth }) {
     }
     readStockcardDoc()
   }, [docId])
+
+  useEffect(()=>{
+    if(stockcard === undefined) {
+      setIsFetched(false)
+    }
+    else
+    {
+      setIsFetched(true)
+    }
+  }, [stockcard])
 
   useEffect(() => {
     if (user) {
@@ -917,7 +956,8 @@ function StockcardPage({ isAuth }) {
       <UserRouter
       route='/stockcard'
       />
-      <Navigation />
+      <Navigation 
+        page="/stockcard"/>
 
       <ToastContainer
         position="top-right"
@@ -966,38 +1006,58 @@ function StockcardPage({ isAuth }) {
                       Description
                     </div>
                   </div>
-                  <div id='scrollbar'>
-                    {stockcard.length === 0 ?
-                      <div className='py-4 px-2'>
-                        <Alert variant="secondary" className='text-center'>
-                          <p>
-                            <strong>No Recorded Product Registered</strong>
-                          </p>
-                        </Alert>
+                  <div id='scrollbar' style={{ height: '400px' }}>
+                    {isFetched?
+                      <>
+                        {stockcard.length === 0 ?
+                          <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                            <h5 className="mb-3"><strong>No <span style={{color: '#0d6efd'}}>products</span> to show.</strong></h5>
+                            <p className="d-flex align-items-center justify-content-center">
+                              <span>Click the</span>
+                              <Button
+                                className="add ms-1 me-1 static-button no-click"
+                              >
+                                <FontAwesomeIcon icon={faPlus} />
+                              </Button>
+                              <span>
+                                button to add one.
+                              </span>
+                            </p>
+                          </div>
+                          :
+                          <ListGroup variant="flush">
+                            {stockcard.map((stockcard) => {
+                              return (
+                                <ListGroup.Item
+                                  action
+                                  key={stockcard.id}
+                                  eventKey={stockcard.id}
+                                  onClick={() => { setDocId(stockcard.id) }}>
+                                  <div className="row gx-0 sidebar-contents">
+                                    <div className="col-4">
+                                      {stockcard.id.substring(0, 9)}
+                                    </div>
+                                    <div className="col-8">
+                                      {stockcard.description}
+                                    </div>
+                                  </div>
+                                </ListGroup.Item>
+                              )
+                            })}
+                          </ListGroup>
+                        }
+                      </>
+                    :
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                        <Spinner 
+                          color1="#b0e4ff"
+                          color2="#fff"
+                          textColor="rgba(0,0,0, 0.5)"
+                          className="w-50 h-50"
+                          />
                       </div>
-                      :
-                      <ListGroup variant="flush">
-                        {stockcard.map((stockcard) => {
-                          return (
-                            <ListGroup.Item
-                              action
-                              key={stockcard.id}
-                              eventKey={stockcard.id}
-                              onClick={() => { setDocId(stockcard.id) }}>
-                              <div className="row gx-0 sidebar-contents">
-                                <div className="col-4">
-                                  {stockcard.id}
-                                </div>
-                                <div className="col-8">
-                                  {stockcard.description}
-                                </div>
-                              </div>
-                            </ListGroup.Item>
-                          )
-                        })}
-
-                      </ListGroup>
                     }
+                    
                   </div>
                 </Card.Body>
               </Card>
@@ -1208,7 +1268,7 @@ function StockcardPage({ isAuth }) {
                             width="40px"
                           />
                         </span>
-                        <h4 className="data-id">{docId}</h4>
+                        <h4 className="data-id">{docId.substring(0,9)}</h4>
                       </div>
                       <div className="col">
                         <div className="float-end">

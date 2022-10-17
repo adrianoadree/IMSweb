@@ -1,28 +1,91 @@
 import { Nav, Navbar, Container, NavDropdown } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
-import { auth, st } from '../firebase-config';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth, db, st } from '../firebase-config';
+import { ref } from 'firebase/storage';
+import { collection, doc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
 import { useState, useEffect } from 'react';
-import { getStorage, ref, storage, getDownloadURL } from "firebase/storage";
+import { HelpCircleOutline, HelpCircle } from 'react-ionicons'
+import Tips from '../components/Tips';
+import { UserAuth } from '../context/AuthContext'
 
 
-const Navigation = () => {
+const Navigation = (props) => {
+  const { user } = UserAuth();//user credentials
 
-  const [user, setUser] = useState({});
+  const [showTips, setShowTips] = useState(false);
+  const [userCollection, setUserCollection] = useState([]);
+  const userCollectionRef = collection(db, "user");
+  const [userID, setUserID] = useState("");
+  const [userProfileID, setUserProfileID] = useState("");
+  const [userName, setUserName] = useState("");
+  const [isNew, setIsNew] = useState(true);
+  const [tipsVisibilityTogglerIcon, setTipsVisibilityTogglerIcon] = useState(true)
+  
+
+  useEffect(() => {
+    if (user) {
+      setUserID(user.uid)
+    }
+  }, [{ user }])
+
+  //read Functions
 
 
-  onAuthStateChanged(auth, (currentUser) => {
-    setUser(currentUser);
-  });
+  const handleTipsVisibility = () => {
+    if(showTips) {
+      updateDoc(doc(db, "user", userProfileID),
+      {
+        showTips: false
+      });
+    }
+    else
+    {
+      updateDoc(doc(db, "user", userProfileID),
+      {
+        showTips: true
+      });
+    }
+  }
 
 
   const logout = async () => {
     await signOut(auth)
   }
 
+
   useEffect(() => {
-    const storage = getStorage();
-  }, [])
+    if (userID === undefined) {
+          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+    
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+        }
+        else {
+          const userCollectionRef = collection(db, "user");
+          const q = query(userCollectionRef, where("user", "==", userID));
+    
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+          
+        }
+  }, [userID])
+
+
+
+  useEffect(() => {
+    userCollection.map((metadata) => {
+        setShowTips(metadata.showTips);
+        setUserProfileID(metadata.id);
+        setUserName(metadata.name);
+        setIsNew(metadata.isNew)
+        console.log(showTips)
+    });
+  }, [userCollection])
 
   return (
     <div>
@@ -67,13 +130,63 @@ const Navigation = () => {
               <LinkContainer to="/testpage">
                 <Nav.Link>Test</Nav.Link>
               </LinkContainer>
-              <LinkContainer to="/betapage">
-                <Nav.Link>Beta</Nav.Link>
-              </LinkContainer>
               
             </Nav>
 
             <Nav>
+              {showTips === undefined?
+                <>
+                </>
+              :
+                <div id="IMS-tips-outer-container" className="d-flex justify-content-center align-items-center">
+                  <div id="IMS-tips-inner-visibility-toggler" className="me-1">
+                    <button className="d-flex align-items-center"
+                      data-title="Show/Hide Tips"
+                      onMouseEnter={()=> setTipsVisibilityTogglerIcon(false)}
+                      onMouseLeave={()=> setTipsVisibilityTogglerIcon(true)}
+                      onClick={()=>handleTipsVisibility()}
+                    >
+                      {showTips == true?
+                        <>
+                          {tipsVisibilityTogglerIcon?
+                            <HelpCircle
+                              color={'#0d6efd'} 
+                              title={'Category'}
+                              height="20px"
+                              width="20px"
+                            />
+                          :
+                            <HelpCircleOutline
+                              color={'#0d6efd'} 
+                              title={'Category'}
+                              height="20px"
+                              width="20px"
+                            />
+                          }
+                        </>
+                      :
+                        <>
+                          {tipsVisibilityTogglerIcon?
+                            <HelpCircleOutline
+                              color={'#000'} 
+                              title={'Category'}
+                              height="20px"
+                              width="20px"
+                            />
+                          :
+                            <HelpCircle
+                              color={'#000'} 
+                              title={'Category'}
+                              height="20px"
+                              width="20px"
+                            />
+                          }
+                        </>
+                      }
+                    </button>
+                 </div>
+                </div>
+              }
               <NavDropdown
                 id="nav-dropdown-dark-example"
                 title={user?.displayName}
@@ -89,12 +202,22 @@ const Navigation = () => {
         </Container>
       </Navbar>
 
-
-
+      {showTips?
+      <Tips
+        name={userName}
+        page={props.page}
+        isNew={isNew}
+      />
+      :
+      <></>
+    }
+    
     </div>
-
   );
 
 
 }
+/*
+
+*/
 export default Navigation;

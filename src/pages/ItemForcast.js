@@ -1140,7 +1140,6 @@ function Itemforecast() {
                 <div className="row contents">
                     <div className="row py-4 px-5">
                         <div className="sidebar">
-
                             <Card className='sidebar-card' style={{ height: "550px" }}>
                                 <Card.Header>
                                     <div className='row'>
@@ -1188,7 +1187,7 @@ function Itemforecast() {
                                                             onClick={() => { setDocId(stockcard.id) }}>
                                                             <div className="row gx-0 sidebar-contents">
                                                                 <div className="col-4">
-                                                                    {stockcard.id}
+                                                                    {stockcard.id.substring(0, 9)}
                                                                 </div>
                                                                 <div className="col-8">
                                                                     {stockcard.description}
@@ -1204,6 +1203,9 @@ function Itemforecast() {
                                     </div>
                                 </Card.Body>
                             </Card>
+                            <div className="sidebar-visibility-toggler">
+                                <div>hello</div>
+                            </div>
                         </div>
                         <div className="divider">
 
@@ -1293,7 +1295,16 @@ function Itemforecast() {
                                                 <hr className="yellow-strip-divider"></hr>
                                                 <div className="row my-2">
                                                     <div className="col-3 text-center">
-                                                        <h5><strong>{docId}</strong></h5>
+                                                        <h5><strong>
+                                                            {docId===undefined?
+                                                                <>
+                                                                </>
+                                                                :
+                                                                <>
+                                                                    {docId.substring(0,9)}
+                                                                </>
+                                                            }
+                                                        </strong></h5>
                                                     </div>
                                                     <div className="col-7 text-center">
                                                         <h5><strong>{stockcardDoc.description}</strong></h5>

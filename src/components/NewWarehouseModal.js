@@ -25,7 +25,7 @@ function NewWarehouseModal(props) {
   const [newAddress, setnewAddress] = useState("");
 
   useEffect((()=> {
-    if(warehouseCounter > 1) {
+    if(warehouseCounter > 2) {
       updateDoc(doc(db, "user", userProfileID),
       {
         isNew : false
@@ -41,22 +41,21 @@ function NewWarehouseModal(props) {
 
   useEffect(() => {
     if (userID === undefined) {
-          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+      const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
     
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-        }
-        else {
-          const q = query(userCollectionRef, where("user", "==", userID));
-    
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-          
-        }
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else
+    {
+      const q = query(userCollectionRef, where("user", "==", userID));
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
   }, [userID])
 
   useEffect(() => {
@@ -67,10 +66,6 @@ function NewWarehouseModal(props) {
     });
   }, [userCollection])
  
-  const closeModal=()=>{
-    document.querySelector("#warehouse-modal").style.display = 'none';
-    document.querySelector(".modal-backdrop").style.display = 'none';
-}
 
   const createFormat = () => {
     var format = warehouseCounter + "";
@@ -110,10 +105,9 @@ function NewWarehouseModal(props) {
       {
 	      warehouseId : Number(warehouseCounter) + 1
       });
-      
-   closeModal();
-   successToast();
 
+    successToast();
+    props.onHide()
   }
 
   return (
@@ -122,66 +116,86 @@ function NewWarehouseModal(props) {
       size="md"
       aria-labelledby="contained-modal-title-vcenter"
       centered
+      className="IMS-modal"
     >
 
-      <ToastContainer
-        position="top-right"
-        autoClose={3500}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-      
-      <Modal.Header closeButton>
-        <Modal.Title id="contained-modal-title-vcenter" className="px-3">
-          Add a Warehouse
-              
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <div className="p-3">
-          <div className="row my-2">
-            <div className="col-8">
+    <ToastContainer
+      position="top-right"
+      autoClose={3500}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+    />
+
+      <Modal.Body >
+        <div className="px-3 py-2">
+          <div className="module-header mb-4">
+            <h3 className="text-center">Add a Warehouse</h3>
+          </div>
+          <div className="row my-2 mb-3">
+            <div className='col-5 ps-4'>
+              <label>Warehouse ID</label>
+              <input type="text"
+                readOnly
+                className="form-control shadow-none shadow-none no-click"
+                placeholder=""
+                defaultValue={createFormat().substring(0,4)}
+              />
+            </div>
+            <div className='col-7 ps-4'>
               <label>Warehouse Name</label>
               <input type="text"
-                className="form-control"
+                className="form-control shadow-none"
                 placeholder="Warehouse"
                 onChange={(event) => { setnewWHName(event.target.value); }}
               />
             </div>
           </div>
-          <div className="row my-2">
-            <div className="col-12">
+          <div className="row my-2 mb-3">
+            <div className='col-12 ps-4'>
               <label>Address</label>
               <input type="text"
-                className="form-control"
+                className="form-control shadow-none"
                 placeholder="Address"
                 rows={3}
                 onChange={(event) => { setnewAddress(event.target.value); }}
               />
             </div>
           </div>
-            <div className="row my-2">
-            <div className="col-7">
-              <label>Notes</label>
-              <input type="text"
-                className="form-control"
-                placeholder="Notes"
+          <div className="row my-2 mb-3">
+            <div className='col-12 ps-4'>
+              <label>Notes: (Optional)</label>
+              <textarea
+                className="form-control shadow-none shadow-none"
+                as="textarea"
+                rows={2}
                 onChange={(event) => { setnewWHNotes(event.target.value); }}
               />
             </div>
           </div>
         </div>
-      </Modal.Body>
-      <Modal.Footer>
+      </Modal.Body>   
+      <Modal.Footer
+        className="d-flex justify-content-center"
+      >
         <Button
-          className="btn btn-success"
-          style={{ width: "150px" }}
-          onClick={addWarehouse}>Save</Button>
+          className="btn btn-danger"
+          style={{ width: "6rem" }}
+          onClick={() => props.onHide()}
+        >
+          Cancel
+        </Button>
+        <Button
+          className="btn btn-light float-start"
+          style={{ width: "6rem" }}
+          onClick={() => { addWarehouse() }}
+        >
+          Save
+      </Button>
       </Modal.Footer>
     </Modal>
   );

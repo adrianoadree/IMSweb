@@ -12,6 +12,7 @@ import NewSalesModal from "../components/NewSalesModal";
 import { UserAuth } from '../context/AuthContext'
 import  UserRouter  from '../pages/UserRouter'
 import { Spinner } from 'loading-animations-react';
+import  ProductQuickView  from '../components/ProductQuickView'
 
 
 
@@ -26,6 +27,7 @@ function SalesRecords({ isAuth }) {
   const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
 
   const [modalShow, setModalShow] = useState(false); //add new sales record modal
+  const [modalShowPQV, setModalShowPQV] = useState(false); //product quick view modal
   const [salesRecordCollection, setSalesRecordCollection] = useState(); //sales_record Collection
   const [salesRecordDoc, setSalesRecordDoc] = useState([]); //sales_record Collection
   const [docId, setDocId] = useState("PR10001") // doc id variable
@@ -36,6 +38,7 @@ function SalesRecords({ isAuth }) {
   const [queryList, setQueryList] = useState([]); //compound query access
   const [stockcardData, setStockcardData] = useState([{}]);
   const [total, setTotal] = useState(0); //total amount
+  const [productToView, setProductToView] = useState(["IT0000001"])
 
 
   //---------------------FUNCTIONS---------------------
@@ -46,10 +49,6 @@ function SalesRecords({ isAuth }) {
       setUserID(user.uid)
     }
   }, [{ user }])
-
-  useEffect(() => {
-    console.log(isFetched)
-  }, )
 
   useEffect(()=>{
     if(salesRecordCollection === undefined) {
@@ -124,17 +123,14 @@ function SalesRecords({ isAuth }) {
     setKey('main')
   }
 
-
-
-
-
-
   return (
     <div>
       <UserRouter
       route='/salesrecord'
       />
-      <Navigation />
+      <Navigation 
+        page='/sales'
+      />
       <Tab.Container
         id="controlled-tab-example"
         activeKey={key}
@@ -422,10 +418,25 @@ function SalesRecords({ isAuth }) {
                             </tr>
                           </thead>
                           <tbody>
+                            <ProductQuickView
+                              show={modalShowPQV}
+                              onHide={() => setModalShowPQV(false)}
+                              productid={productToView}
+                            />
                             {list.map((sales, index) => (
                               <tr key={index}>
                                 <td className='ic pt-entry px-3' key={sales.itemId}>
-                                  {sales.itemId}
+                                {sales.itemId === undefined?
+                                  <></>
+                                :
+                                  <>
+                                    <button
+                                      onClick={()=>{setProductToView(sales.itemId); setModalShowPQV(true)}}
+                                    >
+                                    {sales.itemId.substring(0,9)}
+                                    </button>
+                                  </>
+                                }
                                 </td>
                                 <td className="qc pt-entry text-center" key={sales.itemQuantity}>
                                   {sales.itemQuantity}
