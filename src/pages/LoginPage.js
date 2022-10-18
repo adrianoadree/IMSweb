@@ -47,11 +47,6 @@ const LoginPage = () => {
                             </div>
                         </div>
                     </div>
-                    <div className='row p-5'>
-                        <hr />
-                        <GoogleButton
-                            type="light" onClick={handleGoogleSignIn} style={{ width: "500px" }} />
-                    </div>
                 </div>
             </div>
         </div>

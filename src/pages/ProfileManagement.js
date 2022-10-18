@@ -10,8 +10,8 @@ import { InformationCircle } from 'react-ionicons'
 import { UserAuth } from '../context/AuthContext';
 import RestrictedNavigation from '../layout/RestrictedNavigation';
 import Navigation from '../layout/Navigation';
-import NewUserBanner from '../components/NewUserBanner';
 import  UserRouter  from '../pages/UserRouter'
+import { useNavigate } from 'react-router-dom'
 
 
 function ProfileManagement() {
@@ -128,7 +128,7 @@ function ProfileManagement() {
       bphone: newBPhone,
       bemail: newBEmail,
       btype: newBType,
-      inVerification: true,
+      status: 'inVerification',
       accounts: []
     });
   }
@@ -176,20 +176,12 @@ function ProfileManagement() {
       <UserRouter
         route='/profileManagement'
       />
+      <Navigation 
+              page='profileManagement'/>
       {userCollection.map((metadata) => {
         return(
           <>
-            {metadata.isNew ?
-              <RestrictedNavigation/>
-            :
-              <Navigation />
-            }
-            {metadata.isNew ?
-              <NewUserBanner
-              name={metadata.name} />
-            :
-              <div></div>
-            }
+           
             <div id="errormessage">
               <InformationCircle
                 className="me-2 pull-down"
@@ -212,12 +204,12 @@ function ProfileManagement() {
                         <Nav.Item>
                           <Nav.Link as={Link} to="/profilemanagement" active>Profile</Nav.Link>
                         </Nav.Item>
-                          {metadata.isVerified ?
+                          {metadata.status == 'verified'?
                             <Nav.Item>
                               <Nav.Link as={Link} to="/accountmanagement">Accounts</Nav.Link>
                             </Nav.Item>
                             :
-                            <div></div>
+                            <></>
                           }
                         </Nav>
                       </Card.Body>
@@ -277,9 +269,8 @@ function ProfileManagement() {
                           </div>
 
                         </div>
-                        {metadata.isVerified ?
-                          <div></div>
-                          :
+                        {metadata.status == 'new'?
+                          
                           <div className="user-management-form-section">
                             <div className="row m-0">
                               <h4>Business Profile</h4>
@@ -356,22 +347,37 @@ function ProfileManagement() {
                                 </form>
                               </div>
                             </div>
-                          </div>}
+                          </div>
+                          :
+                          <></>
+                        }
+                        {metadata.status == 'verified'?
+                          <div className="user-management-form-section">
+                          <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                        <h5 className="mb-2"><strong>Need to change your business information?</strong></h5>
+                        <p className="d-flex align-items-center justify-content-center">
+                          <span style={{color: '#0d6efd'}}>Email us at ims-bodegako@gmail.com</span>
+                        </p>
+                      </div>
+                          </div>
+                        :
+                        <></>
+                        }
                         {isComplete?
                           <div id="submit-button">
-                            {metadata.isVerified ?
-                              <Button
-                                className="btn btn-success"
-                                style={{ width: "150px" }}
-                                onClick={() => { updateInfo(metadata.id) } }>
-                                Save Changes
-                              </Button>
-                              :
+                            {metadata.status == 'new' ?
                               <Button
                                 className="btn btn-success"
                                 style={{ width: "150px" }}
                                 onClick={() => { getVerified(metadata.id)} }>
                                 Submit
+                              </Button>
+                              :
+                              <Button
+                                className="btn btn-success"
+                                style={{ width: "150px" }}
+                                onClick={() => { updateInfo(metadata.id) } }>
+                                Save Changes
                               </Button>
                             }
                           </div>

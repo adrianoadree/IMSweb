@@ -24,10 +24,9 @@ function NewSalesModal(props) {
     const [userCollection, setUserCollection] = useState([]);// userCollection variable
     const [userProfileID, setUserProfileID] = useState(""); // user profile id
     const userCollectionRef = collection(db, "user")// user collection
-    const [salesCounter, setSalesCounter] = useState(0); // purchase counter
+    const [salesCounter, setSalesCounter] = useState(0); // sales counter
 
     const [newNote, setNewNote] = useState(""); // note form input
-    const [varRef, setVarRef] = useState([]); // variable collection
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
     const [items, setItems] = useState([]); // array of objects containing product information
     const [itemId, setItemId] = useState("IT999999"); //product id
@@ -40,10 +39,8 @@ function NewSalesModal(props) {
     const [buttonBool, setButtonBool] = useState(true); //button disabler
 
 
-
-
     //---------------------FUNCTIONS---------------------
-
+    
     //set Product ids
     useEffect(() => {
         items.map((item) => {
@@ -73,12 +70,12 @@ function NewSalesModal(props) {
       }, [userID])
     
     //assign profile and purchase counter
-      useEffect(() => {
-        userCollection.map((metadata) => {
-            setSalesCounter(metadata.salesId)
-            setUserProfileID(metadata.id)
-        });
-      }, [userCollection])
+    useEffect(() => {
+    userCollection.map((metadata) => {
+        setSalesCounter(metadata.salesId)
+        setUserProfileID(metadata.id)
+    });
+    }, [userCollection])
 
     //Read stock card collection from database
     useEffect(() => {
@@ -175,7 +172,7 @@ function NewSalesModal(props) {
         while(format.length < 5) {format = "0" + format};
         format = "SR" + format + '@' + userID;
         return format;
-     }
+    }
 
     //add document to database
     const addRecord = async () => {
@@ -193,8 +190,9 @@ function NewSalesModal(props) {
         setItems([]);
         setNewNote("");
         updateQuantity()  //update stockcard.qty function
-        updatePurchDocNum() //update variables.salesDocNum function
+        updateSalesDocNum() //update variables.salesDocNum function
         successToast() //display success toast
+
         props.onHide()
     }
 
@@ -213,9 +211,9 @@ function NewSalesModal(props) {
     }
 
     //update variables.salesDocNum function
-    function updatePurchDocNum(salesDocNum) {
+    function updateSalesDocNum() {
         const userDocRef = doc(db, "user", userProfileID)
-        const newData = { purchaseId: Number(salesCounter) + 1 }
+        const newData = { salesId: Number(salesCounter) + 1 }
 
         updateDoc(userDocRef, newData)
     }
@@ -275,7 +273,7 @@ function NewSalesModal(props) {
             <Modal.Body >
                 <div className="px-3 py-2">
                     <div className="module-header mb-4">
-                        <h3 className="text-center">Generate a Purchase Record</h3>
+                        <h3 className="text-center">Generate a Sales Record</h3>
                     </div>
                     <div className="row my-2 mb-3">
                         <div className='col-3 ps-4'>
@@ -370,7 +368,15 @@ function NewSalesModal(props) {
                                                 <tr
                                                     className='text-center'
                                                     key={index}>
-                                                    <td>{item.itemId}</td>
+                                                    <td>
+                                                        {item.itemId === undefined?
+                                                            <></>
+                                                        :
+                                                            <>
+                                                                {item.itemId.substring(0,9)}
+                                                            </>
+                                                        }
+                                                    </td>
                                                     <td>{item.itemName}</td>
                                                     <td>{item.itemQuantity}</td>
                                                     <td>

@@ -84,9 +84,7 @@ function ManageUsers() {
   const VerifyAccount = (id) => {
     const saveVerification = async () => {
       await updateDoc(doc(db, 'user', id), {
-        isNew: false,
-        inVerification: false,
-        isVerified: true,
+        status: 'verified'
       });
   }
 
@@ -96,9 +94,7 @@ function ManageUsers() {
   const UndoVerifyAccount = (id) => {
     const saveUndoVerification = async () => {
       await updateDoc(doc(db, 'user', id), {
-        isNew: true,
-        inVerification: true,
-        isVerified: false,
+        status: 'inVerification'
       });
   }
 
@@ -108,12 +104,11 @@ function ManageUsers() {
   useEffect(() => {
     async function readUser() {
         const userProfileDoc = doc(db, "user", docId)
-        const docSnap = await getDoc(userProfileDoc)
+        const docSnap = await getDoc(doc(db, "user", docId))
         if (docSnap.exists()) {
             setUserProfile(docSnap.data());
         }
     }
-    console.log("Updated Supplier Info")
     readUser()
     }, [docId])
 
@@ -176,23 +171,29 @@ function ManageUsers() {
                               <div className="col-7" style={{fontSize: "9pt"}}>
                                 {user.email}
                               </div>
-                              {user.isNew?
                                 <div className="col-2" style={{fontSize: "9pt"}}>
-                                  {user.inVerification?
-                                      <span>In verification</span>
-                                    :
+                                  {user.status == 'new'?
                                       <span>New</span>
+                                    :
+                                      <span></span>
                                   }
-                                </div>
-                              :
-                                <div className="col-2" style={{fontSize: "9pt"}}>
-                                  {user.isVerified?
+                                  {user.status == 'inVerification'?
+                                      <span>In Verification</span>
+                                    :
+                                      <span></span>
+                                  }
+                                  {user.status == 'verified'?
                                     <span>Verified</span>
                                   :
-                                    <span>N/A</span>
+                                    <span></span>
+                                  }
+                                  {user.status == '' || user.status === undefined?
+                                      <span>N/A</span>
+                                    :
+                                      <span></span>
                                   }
                                 </div>
-                              }
+                              
                             </div>
                         </ListGroup.Item>
                       )
@@ -228,8 +229,8 @@ function ManageUsers() {
                       </div>
                       <div className="col">
                         <div className="float-end">
-                        <label class="horizontal-switch">
-                          <span class="horizontal-slider round"></span>
+                        <label className="horizontal-switch">
+                          <span className="horizontal-slider round"></span>
                         </label>
                         </div>
                       </div>
@@ -263,93 +264,103 @@ function ManageUsers() {
                       <div className="col">
                         <div className="float-end d-flex align-items-center">
                           <h4 className="data-id me-3">Status:</h4>
-                          {userProfile.isNew?
                             <div className="d-inline-block">
-                              {userProfile.inVerification?
-                                <label class="horizontal-switch unchecked">
-                                  <input 
-                                  type="checkbox"
-                                  defaultValue="false"
-                                  onChange={()=>VerifyAccount(docId)}
-                                  />
-                                  <span class="horizontal-slider round"></span>
-                                  <h6>Unverified</h6>
-                                </label>
-                              :
-                                <label class="horizontal-switch new">
-                                  <span class="horizontal-slider round"></span>
-                                  <h6>New User</h6>
-                                </label>
-                              }
-                            </div>
-                          :
-                            <div>
-                              {userProfile.isVerified?
-                                <label class="horizontal-switch">
-                                  <input 
-                                  type="checkbox"
-                                  checked="checked"
-                                  onChange={()=>UndoVerifyAccount(docId)}
-                                  />
-                                  <span class="horizontal-slider round"></span>
-                                  <h6>Verified</h6>
-                                </label>
-                              :
-                                <label class="horizontal-switch na">
-                                  <span class="horizontal-slider round"></span>
-                                  <h6>Unavailable</h6>
-                                </label>
-                              }
-                            </div>
-                          }
+                              {userProfile.status == 'new'?
+                                      <label className="horizontal-switch new">
+                                      <span className="horizontal-slider round"></span>
+                                      <h6>New User</h6>
+                                    </label>
+                                    :
+                                      <></>
+                                  }
+                                  {userProfile.status == 'inVerification'?
+                                      <label className="horizontal-switch unchecked">
+                                      <input 
+                                      type="checkbox"
+                                      defaultValue="false"
+                                      onChange={()=>VerifyAccount(docId)}
+                                      />
+                                      <span className="horizontal-slider round"></span>
+                                      <h6>Unverified</h6>
+                                    </label>
+                                    :
+                                      <></>
+                                  }
+                                  {userProfile.status == 'verified'?
+                                    <label className="horizontal-switch">
+                                    <input 
+                                    type="checkbox"
+                                    checked="checked"
+                                    onChange={()=>UndoVerifyAccount(docId)}
+                                    />
+                                    <span className="horizontal-slider round"></span>
+                                    <h6>Verified</h6>
+                                  </label>
+                                  :
+                                    <></>
+                                  }
+                                  {userProfile.status == '' || userProfile.status === undefined?
+                                      <label className="horizontal-switch na">
+                                      <span className="horizontal-slider round"></span>
+                                      <h6>Unavailable</h6>
+                                    </label>
+                                    :
+                                      <></>
+                                  }
+                              
+                          </div>
                         </div>
                       </div>
                     </div>
                     <div className="row py-1 data-specs">
                       <div className="col-12 p-3" id="user-table">
                         <Table bordered hover size="sm">
-                          <tr>
-                            <td className="header left-curve">Name</td>
-                            <td className="content right-curve">{userProfile.name}</td>
-                          </tr>
-                          <tr>
-                            <td className="header">Email</td>
-                            <td className="content">{userProfile.email}</td>
-                          </tr>
-                          <tr>
-                            <td className="header">Phone Number</td>
-                            <td className="content">{userProfile.phone}</td>
-                          </tr>
-                          <tr>
-                            <td className="header">Address</td>
-                            <td className="content">{userProfile.address}</td>
-                          </tr>
+                          <tbody>
+                            <tr>
+                              <td className="header left-curve">Name</td>
+                              <td className="content right-curve">{userProfile.name}</td>
+                            </tr>
+                            <tr>
+                              <td className="header">Email</td>
+                              <td className="content">{userProfile.email}</td>
+                            </tr>
+                            <tr>
+                              <td className="header">Phone Number</td>
+                              <td className="content">{userProfile.phone}</td>
+                            </tr>
+                            <tr>
+                              <td className="header">Address</td>
+                              <td className="content">{userProfile.address}</td>
+                            </tr>
+                          </tbody>
                         </Table>
                         <Table bordered hover size="sm">
-                          <tr>
-                            <td className="header business left-curve">Business Name</td>
-                            <td className="content right-curve">{userProfile.bname}</td>
-                          </tr>
-                          <tr>
-                            <td className="header business">Business Address</td>
-                            <td className="content">{userProfile.baddress}</td>
-                          </tr>
-                          <tr>
-                            <td className="header business">Nature of Business</td>
-                            <td className="content">{userProfile.bnature}</td>
-                          </tr>
-                          <tr>
-                            <td className="header business">Business Type</td>
-                            <td className="content">{userProfile.btype}</td>
-                          </tr>
-                          <tr>
-                            <td className="header business">Business Phone Number</td>
-                            <td className="content">{userProfile.bphone}</td>
-                          </tr>
-                          <tr>
-                            <td className="header business">Business Email Address</td>
-                            <td className="content">{userProfile.bemail}</td>
-                          </tr>
+                          <tbody>
+                            <tr>
+                              <td className="header business left-curve">Business Name</td>
+                              <td className="content right-curve">{userProfile.bname}</td>
+                            </tr>
+                            <tr>
+                              <td className="header business">Business Address</td>
+                              <td className="content">{userProfile.baddress}</td>
+                            </tr>
+                            <tr>
+                              <td className="header business">Nature of Business</td>
+                              <td className="content">{userProfile.bnature}</td>
+                            </tr>
+                            <tr>
+                              <td className="header business">Business Type</td>
+                              <td className="content">{userProfile.btype}</td>
+                            </tr>
+                            <tr>
+                              <td className="header business">Business Phone Number</td>
+                              <td className="content">{userProfile.bphone}</td>
+                            </tr>
+                            <tr>
+                              <td className="header business">Business Email Address</td>
+                              <td className="content">{userProfile.bemail}</td>
+                            </tr>
+                          </tbody>
                         </Table>
                     </div>
                   </div>

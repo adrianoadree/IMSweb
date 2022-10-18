@@ -25,6 +25,7 @@ function AccountManagement() {
   const [addModalShow, setAddModalShow] = useState(false);//display/hide add modal
   const [profileID, setProfileID] = useState([]); //user profile id
   const [account, setAccount] = useState([]);//accounts container
+  const [selectedAccount, setSelectedAccount] = useState(0);
 
   //---------------------FUNCTIONS---------------------
   
@@ -33,6 +34,8 @@ function AccountManagement() {
       setUserID(user.uid)
     }
   }, [{ user }])
+
+  
 
   //read Functions
 
@@ -93,11 +96,12 @@ function AccountManagement() {
 
   const handleClose = () => setEditModalShow(false);
   function EditAccountModal(param) {
-    var acc = param.list;//get accounts list and place in temp array
-    var index = param.index;//index of account to edit
-    const [name, setName] = useState("");
-    const [designation, setDesignation] = useState("");
-    const [password, setPassword] = useState("");
+    var acc = account;//get accounts list and place in temp array
+    var index = selectedAccount;//index of account to edit
+    const [name, setName] = useState(acc[index].name);
+    const [designation, setDesignation] = useState(acc[index].designation);
+    const [password, setPassword] = useState(acc[index].password);
+    const [isComplete, setIsComplete] = useState(2);
     
     const saveEdit = async () => {
       //change the values of the array
@@ -108,15 +112,16 @@ function AccountManagement() {
       await updateDoc(doc(db, 'user', profileID), {
         accounts: acc,//replace firestore accounts array with temp array
       });
-
+      param.onHide()
     }
 
     return (
       <Modal
       {... param}
-        size="lg"
+        size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
+        className="IMS-modal"
       >
         <ToastContainer
           position="top-right"
@@ -129,56 +134,65 @@ function AccountManagement() {
           draggable
           pauseOnHover
         />
-        <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-vcenter" className="px-3">
-            Edit Account
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="p-3">
-            <div className="row my-2">
-              <div className='row'>
-                <div className='col-12 mb-3'>
-                  <label>Employee Name</label>
+                    <Modal.Body >
+                <div className="px-3 py-2">
+                    <div className="module-header mb-4">
+                        <h3 className="text-center">Editing <span style={{color: '#000'}}>{acc[index].name}</span></h3>
+                    </div>
+                    <div className="row my-2 mb-3">
+                        <div className='col-12 ps-4'>
+                        <label>Employee Name</label>
                   <input type="text"
-                    className="form-control"
+                    className="form-control shadow-none"
                     placeholder="Annie Batumbakal"
                     autoFocus
-                    defaultValue={acc[index].name}
-                    onChange={(e)=>setName(e.target.value)}
+                    value={name}
+                    onChange={(e)=>{setName(e.target.value)}}
                   />
-                </div>
-                <div className='col-12 mb-3'>
-                  <label>Designation</label>
+                        </div>
+                    </div>
+                    <div className="row my-2 mb-3">
+                        <div className='col-12 ps-4'>
+                        <label>Designation</label>
                   <input type="text"
-                    className="form-control"
+                    className="form-control shadow-none"
                     placeholder="Warehouse Supervisor"
-                    defaultValue={acc[index].designation}
+                    value={designation}
                     onChange={(e)=>setDesignation(e.target.value)}
                   />
-                </div>
-                <div className='col-12'>
-                  <label>Password</label>
+                        </div>
+                    </div>
+                    <div className="row my-2 mb-3">
+                        <div className='col-12 ps-4'>
+                        <label>Password</label>
                   <input type="text"
-                    className="form-control"
+                    className="form-control shadow-none"
                     placeholder="junathan121257"
-                    defaultValue={acc[index].password}
+                    value={password}
                     onChange={(e)=>setPassword(e.target.value)}
                   />
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            className="btn btn-success"
-            style={{ width: "150px" }}
-            onClick={()=>saveEdit()}
-            >
-            Save
-          </Button>
-        </Modal.Footer>
+            </Modal.Body> 
+        <Modal.Footer
+          className="d-flex justify-content-center"
+        >
+                <Button
+                    className="btn btn-danger"
+                    style={{ width: "6rem" }}
+                    onClick={() => param.onHide()}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    className="btn btn-light float-start"
+                    style={{ width: "6rem" }}
+                    disabled={isComplete<2? true: false}
+                    onClick={()=>saveEdit()}>
+                    Save
+                </Button>
+            </Modal.Footer>
 
       </Modal>
     );
@@ -208,14 +222,16 @@ function AccountManagement() {
       });
 
       successToast(name)
+      param.onHide()
     }
 
     return (
       <Modal
       {... param}
-        size="lg"
+        size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
+        className="IMS-modal"
       >
         <ToastContainer
           position="top-right"
@@ -228,53 +244,62 @@ function AccountManagement() {
           draggable
           pauseOnHover
         />
-        <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-vcenter" className="px-3">
-            Add an Account
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="p-3">
-            <div className="row my-2">
-              <div className='row'>
-                <div className='col-12 mb-3'>
-                  <label>Employee Name</label>
+                            <Modal.Body >
+                <div className="px-3 py-2">
+                    <div className="module-header mb-4">
+                        <h3 className="text-center">Add an Account</h3>
+                    </div>
+                    <div className="row my-2 mb-3">
+                        <div className='col-12 ps-4'>
+                        <label>Employee Name</label>
                   <input type="text"
-                    className="form-control"
+                    className="form-control shadow-none"
                     placeholder="Annie Batumbakal"
                     autoFocus
                     onChange={(e)=>setName(e.target.value)}
                   />
-                </div>
-                <div className='col-12 mb-3'>
-                  <label>Designation</label>
+                        </div>
+                    </div>
+                    <div className="row my-2 mb-3">
+                        <div className='col-12 ps-4'>
+                        <label>Designation</label>
                   <input type="text"
-                    className="form-control"
+                    className="form-control shadow-none"
                     placeholder="Warehouse Supervisor"
                     onChange={(e)=>setDesignation(e.target.value)}
                   />
-                </div>
-                <div className='col-12'>
-                  <label>Password</label>
+                        </div>
+                    </div>
+                    <div className="row my-2 mb-3">
+                        <div className='col-12 ps-4'>
+                        <label>Password</label>
                   <input type="text"
-                    className="form-control"
+                    className="form-control shadow-none"
                     placeholder="junathan121257"
                     onChange={(e)=>setPassword(e.target.value)}
                   />
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button
-            className="btn btn-success"
-            style={{ width: "150px" }}
-            onClick={()=>{saveAdd(); handleClose()}}
-            >
-            Save
-          </Button>
-        </Modal.Footer>
+            </Modal.Body> 
+        <Modal.Footer
+          className="d-flex justify-content-center"
+        >
+                <Button
+                    className="btn btn-danger"
+                    style={{ width: "6rem" }}
+                    onClick={() => param.onHide()}
+                >
+                    Cancel
+                </Button>
+                <Button
+                    className="btn btn-light float-start"
+                    style={{ width: "6rem" }}
+                    onClick={()=>saveAdd()}>
+                    Save
+                </Button>
+            </Modal.Footer>
+
       </Modal>
     );
   }
@@ -396,7 +421,12 @@ function AccountManagement() {
                     
                     <tbody>
                       {account.map((acc, i) => {
-                        return(    
+                        return(
+                          <>   
+                        <EditAccountModal
+                        show={editModalShow}
+                        onHide={() => setEditModalShow(false)}
+                        />
                           <tr key={i}>
                             {acc.isActive?
                               <td className="nm pt-entry text-center">
@@ -417,14 +447,9 @@ function AccountManagement() {
                               <Button
                               className="edit me-1"
                               data-title="Edit Account"
-                              onClick={()=>setEditModalShow(true)}
+                              onClick={()=>{setSelectedAccount(i); setEditModalShow(true)}}
                               >
-                              <EditAccountModal
-                                show={editModalShow}
-                                onHide={() => setEditModalShow(false)}
-                                index={i}
-                                list={account}
-                              />
+                              
                                 <FontAwesomeIcon icon={faEdit} />
                               </Button>
                               <Button
@@ -443,6 +468,7 @@ function AccountManagement() {
                               </Button>
                             </td>
                           </tr>
+                          </> 
                         )
                        })
                       }

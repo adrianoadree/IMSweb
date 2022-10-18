@@ -319,6 +319,9 @@ function SupplierList() {
 
   return (
     <div>
+      <UserRouter
+        route='supplier'
+      />
       <Navigation />
 
       <ToastContainer

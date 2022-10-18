@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tab, Button, Card, ListGroup, Modal, Form, Alert, Table, Tooltip, OverlayTrigger, Accordion, ButtonGroup, ToggleButton, ToggleButtonGroup, ListGroupItem } from 'react-bootstrap';
+import { Tab, Button, Card, ListGroup, Modal, Form, Alert, Table, Tooltip, OverlayTrigger, Accordion } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
@@ -19,11 +19,11 @@ import Barcode from 'react-jsbarcode'
 import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';
+import  UserRouter  from '../pages/UserRouter'
 import { Spinner } from 'loading-animations-react';
 
 
-
-function StockcardPage() {
+function StockcardPage({ isAuth }) {
 
 
   //---------------------VARIABLES---------------------
@@ -36,11 +36,39 @@ function StockcardPage() {
   const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
+  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
+  const [selectedProducts, setSelectedProducts] = useState([]);
 
 
   //---------------------FUNCTIONS---------------------
 
-
+  useEffect(()=>{
+    console.log(selectedProducts)
+  })
+  const handleProductSelect = (product) => {
+      let productIndex = selectedProducts.indexOf(product)
+      var currentSelectedProduct = document.getElementById(product);
+      
+      if(currentSelectedProduct.classList.contains("product-selected")) 
+      {
+        currentSelectedProduct.classList.remove("product-selected")
+      }
+      else
+      {
+        currentSelectedProduct.classList.add("product-selected")
+      }
+      console.log(currentSelectedProduct)
+      if(productIndex >= 0) {
+        setSelectedProducts([
+          ...selectedProducts.slice(0, productIndex),
+          ...selectedProducts.slice(productIndex + 1, selectedProducts.length)
+        ]);
+      }
+      else
+      {
+        setSelectedProducts([... selectedProducts, product])
+    }
+  }
 
   //access stockcard document
   useEffect(() => {
@@ -53,6 +81,16 @@ function StockcardPage() {
     }
     readStockcardDoc()
   }, [docId])
+
+  useEffect(()=>{
+    if(stockcard === undefined) {
+      setIsFetched(false)
+    }
+    else
+    {
+      setIsFetched(true)
+    }
+  }, [stockcard])
 
   useEffect(() => {
     if (user) {
@@ -439,7 +477,7 @@ function StockcardPage() {
   const [purchaseFilteredResults, setPurchaseFilteredResults] = useState([])
   const [totalPurchase, setTotalPurchase] = useState(0); // total sales
 
-  //query documents from purchase_record that contains docId
+  //query documents from sales_record that contains docId
   useEffect(() => {
 
     const collectionRef = collection(db, "purchase_record")
@@ -600,48 +638,21 @@ function StockcardPage() {
 
   //-----------------------------------------------------------------------------------------------
 
-
-  // ==================================== START OF REPORT GENERATION ====================================
-
-  useEffect(() => {
-    setStart(new Date())
-    setEnd(new Date())
-    setSalesStart(new Date())
-    setSalesEnd(new Date())
-  }, [docId])
-
-
-  // =============================== START OF PURCHASE REPORT FUNCTIONS ===============================
-
-  const [reportBooleanValue, setReportBooleanValue] = useState(true)
-  const handleReportBooleanChange = (val) => setReportBooleanValue(val);
-
-  const [purchaseReport, setPurchaseReport] = useState()
   const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
   const [start, setStart] = useState(new Date());
   const [end, setEnd] = useState(new Date());
-  const [reportTotalPurchase, setReportTotalPurchase] = useState(0)
-
-  const [filteredPurchaseReport, setFilteredPurchaseReport] = useState()
-  const [startDateHolder, setStartDateHolder] = useState()
-  const [endDateHolder, setEndDateHolder] = useState()
-
-  const [purchaseReportHeaderBoolean, setPurchaseReportHeaderBoolean] = useState(true)
 
 
-  //reset state values
-  useEffect(() => {
-    setPurchaseReport()
-    setReportTotalPurchase(0)
-    setDateRange(([null, null]))
-  }, [docId])
 
-  useEffect(() => {
-    setStart(startDate)
-    setEnd(endDate)
-  }, [dateRange])
 
+
+
+  const [salesReport, setSalesReport] = useState()
+  const [reportSalesQuantity, setReportSalesQuantity] = useState([])
+  const [reportSalesDate, setReportSalesDate] = useState([])
+  const [reportSalesId, setReportSalesId] = useState([])
+  const [reportTotalSales, setReportTotalSales] = useState(0)
 
 
   useEffect(() => {
@@ -661,42 +672,65 @@ function StockcardPage() {
 
       while (start < end) {
         tempDate = start.toISOString().substring(0, 10)
-        purchaseRecordCollection.map((purch) => {
-          if (purch.transaction_date === tempDate && userID === purch.user) {
-            purch.product_list.map((prod) => {
+        salesRecordCollection.map((sale) => {
+          if (sale.transaction_date === tempDate && userID === sale.user) {
+            sale.product_list.map((prod) => {
               if (prod.itemId === docId) {
                 tempTotal += prod.itemQuantity
-                tempIDArr.push(purch.transaction_number)
-                tempDateArr.push(purch.transaction_date)
+                tempIDArr.push(sale.transaction_number)
+                tempDateArr.push(sale.transaction_date)
                 tempQuantityArr.push(prod.itemQuantity)
-                tempArrReport.push({ ID: purch.transaction_number, Date: purch.transaction_date, Quantity: prod.itemQuantity })
+                tempArrReport.push({ ID: sale.transaction_number, Date: sale.transaction_date, Quantity: prod.itemQuantity })
               }
             })
           }
         })
         start.setDate(start.getDate() + 1)
       }
-      setPurchaseReport(tempArrReport)
-      setReportTotalPurchase(tempTotal)
+      setSalesReport(tempArrReport)
+      setReportSalesQuantity(tempQuantityArr)
+      setReportSalesId(tempIDArr)
+      setReportSalesDate(tempDateArr)
+      setReportTotalSales(tempTotal)
     }
 
   }, [end])
 
+  useEffect(() => {
+    setSalesReport()
+    setReportSalesQuantity([])
+    setReportSalesId([])
+    setReportSalesDate([])
+    setReportTotalSales(0)
+    setDateRange(([null, null]))
+  }, [docId])
 
+
+
+  const [filteredReport, setFilteredReport] = useState()
 
   useEffect(() => {
-    if (purchaseReport !== undefined) {
-      const results = purchaseReport.filter(element => {
+    if (salesReport !== undefined) {
+      const results = salesReport.filter(element => {
         if (Object.keys(element).length !== 0) {
           return true;
         }
         return false;
       });
 
-      setFilteredPurchaseReport(results)
+      setFilteredReport(results)
     }
-  }, [purchaseReport])
+  }, [salesReport])
 
+
+  const [strStartDate, setStrStartDate] = useState("")
+  const [startDateHolder, setStartDateHolder] = useState()
+  const [endDateHolder, setEndDateHolder] = useState()
+
+
+  useEffect(() => {
+    console.log(startDate)
+  }, [startDate])
 
   useEffect(() => {
     if (startDate !== null) {
@@ -723,38 +757,46 @@ function StockcardPage() {
     }
   }, [endDate])
 
+  useEffect(() => {
+    console.log(filteredReport)
+  }, [filteredReport])
 
+
+  const [tableHeaderBoolean, setTableHeaderBoolean] = useState(true)
 
   useEffect(() => {
-    if (filteredPurchaseReport !== undefined) {
-      if (filteredPurchaseReport.length === 0) {
-        setPurchaseReportHeaderBoolean(true)
+    if (filteredReport !== undefined) {
+      if (filteredReport.length === 0) {
+        setTableHeaderBoolean(true)
       }
       else {
-        setPurchaseReportHeaderBoolean(false)
+        setTableHeaderBoolean(false)
       }
     }
-  }, [filteredPurchaseReport])
-
+  }, [filteredReport])
 
   useEffect(() => {
-    if (filteredPurchaseReport !== undefined) {
-      if (filteredPurchaseReport.length === 0) {
+    if (filteredReport !== undefined) {
+      if (filteredReport.length === 0) {
         setDateRange([null], [null])
       }
     }
-  }, [filteredPurchaseReport])
+  }, [filteredReport])
 
 
-  //-----------------PURCHASE REPORT HEADER FUNCTIONS-----------------
-  function reportPurchaseHeader() {
-    if (filteredPurchaseReport !== undefined) {
+  useEffect(() => {
+    reportTableHeader()
+    reportTable()
+  }, [filteredReport])
+
+  function reportTableHeader() {
+    if (filteredReport !== undefined) {
       return (
         <>
-          {filteredPurchaseReport.length !== 0 ?
-            reportPurchaseHeaderTrue()
+          {filteredReport.length !== 0 ?
+            reportTableHeaderTrue()
             :
-            reportPurchaseHeaderFalse()
+            reportTableHeaderFalse()
           }
         </>
       )
@@ -762,13 +804,13 @@ function StockcardPage() {
   }
 
 
-  function reportPurchaseHeaderTrue() {
+  function reportTableHeaderTrue() {
     return (
       <>
         <div className='row'>
           <div className='row text-center'>
             <div className='row p-3'>
-              <h4 className='text-primary'>PURCHASE TRANSACTION REPORT <br />FOR DATE(S)</h4>
+              <h4 className='text-primary'>Sold Quantity Report for date(s)</h4>
             </div>
             <div className='row'>
               <span>
@@ -790,8 +832,7 @@ function StockcardPage() {
     )
   }
 
-
-  function reportPurchaseHeaderFalse() {
+  function reportTableHeaderFalse() {
     return (
       <div>
 
@@ -809,7 +850,7 @@ function StockcardPage() {
               delay={{ show: 250, hide: 400 }}
               overlay={salesQuantityReport}
             >
-              <h4 className="data-id">PURCHASE TRANSACTION REPORT</h4>
+              <h4 className="data-id">SALES QUANTITY REPORT</h4>
             </OverlayTrigger>
           </span>
 
@@ -831,287 +872,39 @@ function StockcardPage() {
 
     )
   }
-  //------------------------------------------------------------------
-
-  //-----------------PURCHASE REPORT BODY FUNCTIONS-----------------
-
-  function reportPurchaseBody() {
-    if (filteredPurchaseReport !== undefined) {
-      return (
-        <div>
-          <Table striped bordered hover>
-            <thead>
-              <tr className='text-center'>
-                <th>Date</th>
-                <th>Transaction Number</th>
-                <th>Quantity</th>
-              </tr>
-            </thead>
-            <tbody className='text-center'>
-              {filteredPurchaseReport.length === 0 ?
-                <tr>
-                  <td colSpan={3}>
-                    <Alert variant='warning'>
-                      <strong>No Transaction to Report</strong>
-                    </Alert>
-                  </td>
-                </tr>
-                :
-                <>{
-                  filteredPurchaseReport.map((purch, index) => {
-                    return (
-                      <tr key={index}>
-                        <td>{moment(purch.Date).format('ll')}</td>
-                        <td>{purch.ID}</td>
-                        <td>{purch.Quantity}</td>
-                      </tr>
-                    )
-                  })}
-                </>
-
-              }
-              <tr>
-                <td colSpan={2}><strong>Total</strong></td>
-                <td><strong>{reportTotalPurchase} units</strong></td>
-              </tr>
-            </tbody>
-          </Table >
-        </div>
-      )
-    }
-  }
-
-
-  //------------------------------------------------------------------
-
-
-  function reportPurchaseCard() {
-    return (
-      <Card>
-        <Card.Header className='bg-white'>
-          {reportPurchaseHeader()}
-        </Card.Header>
-        <Card.Body className='bg-white'>
-          {reportPurchaseBody()}
-        </Card.Body>
-      </Card>
-    )
-  }
-  // =============================== END OF PURCHASE REPORT FUNCTIONS ===============================
-
-
-  // =============================== START OF SALES REPORT FUNCTIONS ===============================
-
-
-  const [salesDateRange, setSalesDateRange] = useState([null, null]);
-  const [salesStartDate, salesEndDate] = salesDateRange;
-  const [reportTotalSales, setReportTotalSales] = useState(0)
-  const [salesReport, setSalesReport] = useState()
-  const [filteredSalesReport, setFilteredSalesReport] = useState()
-
-  const [salesStart, setSalesStart] = useState(new Date());
-  const [salesEnd, setSalesEnd] = useState(new Date());
-
-  const [salesStartDateHolder, setSalesStartDateHolder] = useState()
-  const [salesEndDateHolder, setSalesEndDateHolder] = useState()
-
-
 
   useEffect(() => {
-    setSalesStart(salesStartDate)
-    setSalesEnd(salesEndDate)
-  }, [salesDateRange])
+    setStart(startDate)
+    setEnd(endDate)
+  }, [dateRange])
 
-
-
-  useEffect(() => {
-    if (salesStartDate !== null) {
-      let x = new Date(salesStartDate)
-      let tempDate = new Date()
-
-      if (x !== null) {
-        tempDate = x
-        setSalesStartDateHolder(tempDate)
-      }
-    }
-  }, [salesStartDate])
-
-
-  useEffect(() => {
-    if (salesEndDate !== null) {
-      let x = new Date(salesEndDate)
-      let tempDate = new Date()
-
-      if (x !== null) {
-        tempDate = x
-        setSalesEndDateHolder(tempDate)
-      }
-    }
-  }, [salesEndDate])
-
-
-
-
-  useEffect(() => {
-    if (salesReport !== undefined) {
-      const results = salesReport.filter(element => {
-        if (Object.keys(element).length !== 0) {
-          return true;
-        }
-        return false;
-      });
-
-      setFilteredSalesReport(results)
-    }
-  }, [salesReport])
-
-
-
-  useEffect(() => {
-    if (filteredSalesReport !== undefined) {
-      if (filteredSalesReport.length === 0) {
-        setSalesDateRange([null], [null])
-      }
-    }
-  }, [filteredSalesReport])
-
-
-
-  useEffect(() => {
-
-    if (salesStart && salesEnd !== null) {
-
-
-      salesStart.setDate(salesStart.getDate() + 1)
-      salesEnd.setDate(salesEnd.getDate() + 2)
-      let tempTotal = 0
-      let tempDate
-      let tempIDArr = []
-      let tempQuantityArr = []
-      let tempDateArr = []
-
-      let tempArrReport = [{}]
-
-      while (salesStart < salesEnd) {
-        tempDate = salesStart.toISOString().substring(0, 10)
-        salesRecordCollection.map((sales) => {
-          if (sales.transaction_date === tempDate && userID === sales.user) {
-            sales.product_list.map((prod) => {
-              if (prod.itemId === docId) {
-                tempTotal += prod.itemQuantity
-                tempIDArr.push(sales.transaction_number)
-                tempDateArr.push(sales.transaction_date)
-                tempQuantityArr.push(prod.itemQuantity)
-                tempArrReport.push({ ID: sales.transaction_number, Date: sales.transaction_date, Quantity: prod.itemQuantity })
-              }
-            })
-          }
-        })
-        salesStart.setDate(salesStart.getDate() + 1)
-      }
-      setSalesReport(tempArrReport)
-      setReportTotalSales(tempTotal)
-    }
-
-  }, [salesEnd])
-
-
-
-
-
-
-  // --------------------------- START OF SALES REPORT HEADER FUNCTIONS ---------------------------
-
-  function reportSalesHeader() {
-    if (filteredSalesReport !== undefined) {
+  function reportTable() {
+    if (filteredReport !== undefined) {
       return (
         <>
-          {filteredSalesReport.length !== 0 ?
-            reportSalesHeaderTrue()
+          {filteredReport.length !== 0 ?
+            reportTableTrue()
             :
-            reportSalesHeaderFalse()
+            reportTableFalse()
           }
         </>
       )
     }
   }
 
-
-  function reportSalesHeaderTrue() {
+  function reportTableFalse() {
     return (
       <>
-        <div className='row'>
-          <div className='row text-center'>
-            <div className='row p-3'>
-              <h4 className='text-primary'>SALES TRANSACTION REPORT <br />FOR DATE(S)</h4>
-            </div>
-            <div className='row'>
-              <span>
-                <strong>{moment(salesStartDateHolder).format('ll')}</strong> to <strong>{moment(salesEndDateHolder).format('ll')}</strong>
-                <Button
-                  className='ml-2'
-                  size='sm'
-                  variant="outline-primary"
-                  onClick={() => { setSalesStart(new Date()); setSalesEnd(new Date()); }}
-                >
-                  reset
-                </Button>
-              </span>
-
-            </div>
-          </div>
-        </div>
+        <Alert variant='warning' className='text-center'>
+          <strong>No Transaction to Report</strong><br />
+          <span>Enter different Date-Range</span>
+        </Alert>
       </>
     )
   }
 
-  function reportSalesHeaderFalse() {
-    return (
-      <div>
-
-        <div className="row py-1 m-0 mb-2">
-          <span>
-            <InformationCircle
-              className="me-2 pull-down"
-              color={'#0d6efd'}
-              title={'Category'}
-              height="40px"
-              width="40px"
-            />
-            <OverlayTrigger
-              placement="right"
-              delay={{ show: 250, hide: 400 }}
-              overlay={salesQuantityReport}
-            >
-              <h4 className="data-id">SALES TRANSACTION REPORT</h4>
-            </OverlayTrigger>
-          </span>
-
-        </div>
-        <div className='row text-center mb-2'>
-          <label>Date-Range to Report</label>
-          <DatePicker
-            placeholderText='Enter Date-Range'
-            selectsRange={true}
-            startDate={salesStartDate}
-            endDate={salesEndDate}
-            onChange={(update) => {
-              setSalesDateRange(update);
-            }}
-            withPortal
-          />
-        </div>
-      </div>
-
-    )
-  }
-  // ---------------------------- END OF SALES REPORT HEADER FUNCTIONS ----------------------------
-
-  // ---------------------------- START OF SALES REPORT BODY FUNCTIONS ----------------------------
-
-
-  function reportSalesBody() {
-    if (filteredSalesReport !== undefined) {
+  function reportTableTrue() {
+    if (filteredReport !== undefined) {
       return (
         <div>
           <Table striped bordered hover>
@@ -1123,7 +916,7 @@ function StockcardPage() {
               </tr>
             </thead>
             <tbody className='text-center'>
-              {filteredSalesReport.length === 0 ?
+              {filteredReport.length === 0 ?
                 <tr>
                   <td colSpan={3}>
                     <Alert variant='warning'>
@@ -1133,12 +926,12 @@ function StockcardPage() {
                 </tr>
                 :
                 <>{
-                  filteredSalesReport.map((sales, index) => {
+                  filteredReport.map((sale, index) => {
                     return (
                       <tr key={index}>
-                        <td>{moment(sales.Date).format('ll')}</td>
-                        <td>{sales.ID}</td>
-                        <td>{sales.Quantity}</td>
+                        <td>{moment(sale.Date).format('ll')}</td>
+                        <td>{sale.ID}</td>
+                        <td>{sale.Quantity}</td>
                       </tr>
                     )
                   })}
@@ -1156,92 +949,15 @@ function StockcardPage() {
     }
   }
 
-  // ------------------------------ END OF SALES REPORT BODY FUNCTIONS -----------------------------
-
-  function reportSalesCard() {
-    return (
-      <Card>
-        <Card.Header className='bg-white'>
-          {reportSalesHeader()}
-        </Card.Header>
-        <Card.Body className='bg-white'>
-          {reportSalesBody()}
-        </Card.Body>
-      </Card>
-    )
-  }
-  // ================================ END OF SALES REPORT FUNCTIONS ================================
-
-
-
-
-  // ===================================== END OF REPORT GENERATION =====================================
-
-  // ****************************************************************************************************
-
-  // ===================================== START OF SEARCH FUNCTION =====================================
-  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
-
-
-  const [searchValue, setSearchValue] = useState('');    // the value of the search field 
-  const [searchResult, setSearchResult] = useState();    // the search result
-
-  useEffect(() => {
-    console.log("searchValue: ", searchValue)
-  }, [searchValue])
-
-
-  useEffect(() => {
-    console.log("searchResult: ", searchResult)
-  }, [searchResult])
-
-  useEffect(() => {
-    console.log("stockcard: ", stockcard)
-  }, [stockcard])
-
-
-  useEffect(() => {
-    if (stockcard === undefined) {
-      setIsFetched(false)
-    }
-    else {
-      setIsFetched(true)
-    }
-  }, [stockcard])
-
-  useEffect(() => {
-    setSearchResult(stockcard)
-  }, [stockcard])
-
-
-  const filter = (e) => {
-    const keyword = e.target.value;
-
-    if (keyword !== '') {
-      const results = stockcard.filter((user) => {
-        return user.description.toLowerCase().startsWith(keyword.toLowerCase()) ||
-          user.id.toLowerCase().startsWith(keyword.toLowerCase());
-        // Use the toLowerCase() method to make it case-insensitive
-      });
-      setSearchResult(results);
-    } else {
-      setSearchResult(stockcard);
-      // If the text field is empty, show all users
-    }
-
-    setSearchValue(keyword);
-  };
-
-  // ====================================== END OF SEARCH FUNCTION ======================================
-
-
-
-
 
 
   return (
     <div>
-      <Navigation />
+      <UserRouter
+      route='/stockcard'
+      />
+      <Navigation 
+        page="/stockcard"/>
 
       <ToastContainer
         position="top-right"
@@ -1266,18 +982,19 @@ function StockcardPage() {
               <Card className='sidebar-card'>
                 <Card.Header>
                   <div className='row'>
-                    <InputGroup className="mb-3">
-                      <InputGroup.Text id="basic-addon1">
+                    <div className="col-1 left-full-curve">
+                      <Button className="fc-search no-click me-0">
                         <FontAwesomeIcon icon={faSearch} />
-                      </InputGroup.Text>
+                      </Button>
+                    </div>
+                    <div className="col-11">
                       <FormControl
-                        type="search"
-                        value={searchValue}
-                        onChange={filter}
-                        className="input"
                         placeholder="Search"
+                        aria-label="Search"
+                        aria-describedby="basic-addon2"
+                        className="fc-search right-full-curve mw-0"
                       />
-                    </InputGroup>
+                    </div>
                   </div>
                 </Card.Header>
                 <Card.Body style={{ height: "500px" }}>
@@ -1290,11 +1007,11 @@ function StockcardPage() {
                     </div>
                   </div>
                   <div id='scrollbar' style={{ height: '400px' }}>
-                    {isFetched ?
-                      (
-                        stockcard.length === 0 ?
+                    {isFetched?
+                      <>
+                        {stockcard.length === 0 ?
                           <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to show.</strong></h5>
+                            <h5 className="mb-3"><strong>No <span style={{color: '#0d6efd'}}>products</span> to show.</strong></h5>
                             <p className="d-flex align-items-center justify-content-center">
                               <span>Click the</span>
                               <Button
@@ -1309,45 +1026,38 @@ function StockcardPage() {
                           </div>
                           :
                           <ListGroup variant="flush">
-                            {searchResult && searchResult.length > 0 ? (
-                              searchResult.map((stockcard) => (
+                            {stockcard.map((stockcard) => {
+                              return (
                                 <ListGroup.Item
                                   action
                                   key={stockcard.id}
                                   eventKey={stockcard.id}
-                                  onClick={() => { setDocId(stockcard.id) }}
-                                >
+                                  onClick={() => { setDocId(stockcard.id) }}>
                                   <div className="row gx-0 sidebar-contents">
                                     <div className="col-4">
-                                      {stockcard.id}
+                                      {stockcard.id.substring(0, 9)}
                                     </div>
                                     <div className="col-8">
                                       {stockcard.description}
                                     </div>
                                   </div>
                                 </ListGroup.Item>
-                              ))
-                            ) : (
-                              <div className='mt-5 text-center'>
-                                <Alert variant='danger'>
-                                  No Search Result for
-                                  <br /><strong>{searchValue}</strong>
-                                </Alert>
-                              </div>
-                            )}
-
+                              )
+                            })}
                           </ListGroup>
-                      )
-                      :
+                        }
+                      </>
+                    :
                       <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                        <Spinner
+                        <Spinner 
                           color1="#b0e4ff"
                           color2="#fff"
                           textColor="rgba(0,0,0, 0.5)"
                           className="w-50 h-50"
-                        />
+                          />
                       </div>
                     }
+                    
                   </div>
                 </Card.Body>
               </Card>
@@ -1528,7 +1238,7 @@ function StockcardPage() {
                     <Accordion defaultActiveKey="0">
                       <Accordion.Item eventKey="1">
                         <Accordion.Header>
-                          <h6><FontAwesomeIcon icon={faFileLines} /> PRODUCT TRANSACTION REPORT</h6>
+                          <h6><FontAwesomeIcon icon={faFileLines} /> PRODUCT REPORT</h6>
                         </Accordion.Header>
                         <Accordion.Body>
                           <Alert variant='primary' className='mt-2 text-center'>
@@ -1558,7 +1268,7 @@ function StockcardPage() {
                             width="40px"
                           />
                         </span>
-                        <h4 className="data-id">{docId}</h4>
+                        <h4 className="data-id">{docId.substring(0,9)}</h4>
                       </div>
                       <div className="col">
                         <div className="float-end">
@@ -1786,44 +1496,24 @@ function StockcardPage() {
                       <Accordion defaultActiveKey="0">
                         <Accordion.Item eventKey="1">
                           <Accordion.Header>
-                            <h6><FontAwesomeIcon icon={faFileLines} /> PRODUCT TRANSACTION REPORT</h6>
+                            <h6><FontAwesomeIcon icon={faFileLines} /> PRODUCT REPORT</h6>
                           </Accordion.Header>
                           <Accordion.Body>
-                            <div className="row py-1 m-0">
-                              <div className="col">
-
-                              </div>
-                              <div className="col">
-                                <div className="float-end">
-                                  <ToggleButtonGroup
-                                    type="radio"
-                                    name='reportBooleanButton'
-                                    value={reportBooleanValue}
-                                    onChange={handleReportBooleanChange}>
-                                    <ToggleButton
-                                      id="tbg-btn-1"
-                                      variant="outline-primary"
-                                      value={true}>
-                                      <FontAwesomeIcon icon={faArrowRightFromBracket} />
-                                      SALES
-                                    </ToggleButton>
-                                    <ToggleButton
-                                      id="tbg-btn-2"
-                                      variant="outline-primary"
-                                      value={false}>
-                                      <FontAwesomeIcon icon={faArrowRightToBracket} />
-                                      PURCHASE
-                                    </ToggleButton>
-                                  </ToggleButtonGroup>
-                                </div>
-                              </div>
-                            </div>
                             <div className="row data-specs-add mt-4">
-                              {reportBooleanValue ?
-                                reportSalesCard()
-                                :
-                                reportPurchaseCard()
-                              }
+                              <div className='row'>
+                                <Card>
+                                  <Card.Header className="bg-white">
+                                    {tableHeaderBoolean === true ?
+                                      reportTableHeaderFalse()
+                                      :
+                                      reportTableHeaderTrue()
+                                    }
+                                  </Card.Header>
+                                  <Card.Body>
+                                    {reportTable()}
+                                  </Card.Body>
+                                </Card>
+                              </div>
                             </div>
                           </Accordion.Body>
                         </Accordion.Item>
