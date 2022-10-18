@@ -19,7 +19,7 @@ import Barcode from 'react-jsbarcode'
 import DatePicker from 'react-datepicker'
 import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';
-import  UserRouter  from '../pages/UserRouter'
+import UserRouter from '../pages/UserRouter'
 import { Spinner } from 'loading-animations-react';
 
 
@@ -42,31 +42,28 @@ function StockcardPage({ isAuth }) {
 
   //---------------------FUNCTIONS---------------------
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log(selectedProducts)
   })
   const handleProductSelect = (product) => {
-      let productIndex = selectedProducts.indexOf(product)
-      var currentSelectedProduct = document.getElementById(product);
-      
-      if(currentSelectedProduct.classList.contains("product-selected")) 
-      {
-        currentSelectedProduct.classList.remove("product-selected")
-      }
-      else
-      {
-        currentSelectedProduct.classList.add("product-selected")
-      }
-      console.log(currentSelectedProduct)
-      if(productIndex >= 0) {
-        setSelectedProducts([
-          ...selectedProducts.slice(0, productIndex),
-          ...selectedProducts.slice(productIndex + 1, selectedProducts.length)
-        ]);
-      }
-      else
-      {
-        setSelectedProducts([... selectedProducts, product])
+    let productIndex = selectedProducts.indexOf(product)
+    var currentSelectedProduct = document.getElementById(product);
+
+    if (currentSelectedProduct.classList.contains("product-selected")) {
+      currentSelectedProduct.classList.remove("product-selected")
+    }
+    else {
+      currentSelectedProduct.classList.add("product-selected")
+    }
+    console.log(currentSelectedProduct)
+    if (productIndex >= 0) {
+      setSelectedProducts([
+        ...selectedProducts.slice(0, productIndex),
+        ...selectedProducts.slice(productIndex + 1, selectedProducts.length)
+      ]);
+    }
+    else {
+      setSelectedProducts([...selectedProducts, product])
     }
   }
 
@@ -82,12 +79,11 @@ function StockcardPage({ isAuth }) {
     readStockcardDoc()
   }, [docId])
 
-  useEffect(()=>{
-    if(stockcard === undefined) {
+  useEffect(() => {
+    if (stockcard === undefined) {
       setIsFetched(false)
     }
-    else
-    {
+    else {
       setIsFetched(true)
     }
   }, [stockcard])
@@ -951,13 +947,49 @@ function StockcardPage({ isAuth }) {
 
 
 
+  // ===================================== START OF SEARCH FUNCTION =====================================
+
+
+  const [searchValue, setSearchValue] = useState('');    // the value of the search field 
+  const [searchResult, setSearchResult] = useState();    // the search result
+
+
+  useEffect(() => {
+    setSearchResult(stockcard)
+  }, [stockcard])
+
+
+
+  const filter = (e) => {
+    const keyword = e.target.value;
+
+    if (keyword !== '') {
+      const results = stockcard.filter((stockcard) => {
+        return stockcard.id.toLowerCase().startsWith(keyword.toLowerCase())
+        // Use the toLowerCase() method to make it case-insensitive
+      });
+      setSearchResult(results);
+    } else {
+      setSearchResult(stockcard);
+      // If the text field is empty, show all users
+    }
+
+    setSearchValue(keyword);
+  };
+
+  // ====================================== END OF SEARCH FUNCTION ======================================
+
+
+
+
+
   return (
     <div>
       <UserRouter
-      route='/stockcard'
+        route='/stockcard'
       />
-      <Navigation 
-        page="/stockcard"/>
+      <Navigation
+        page="/stockcard" />
 
       <ToastContainer
         position="top-right"
@@ -982,19 +1014,18 @@ function StockcardPage({ isAuth }) {
               <Card className='sidebar-card'>
                 <Card.Header>
                   <div className='row'>
-                    <div className="col-1 left-full-curve">
-                      <Button className="fc-search no-click me-0">
+                    <InputGroup className="mb-3">
+                      <InputGroup.Text id="basic-addon1">
                         <FontAwesomeIcon icon={faSearch} />
-                      </Button>
-                    </div>
-                    <div className="col-11">
+                      </InputGroup.Text>
                       <FormControl
-                        placeholder="Search"
-                        aria-label="Search"
-                        aria-describedby="basic-addon2"
-                        className="fc-search right-full-curve mw-0"
+                        type="search"
+                        value={searchValue}
+                        onChange={filter}
+                        className="input"
+                        placeholder="Search by Item Code/Description"
                       />
-                    </div>
+                    </InputGroup>
                   </div>
                 </Card.Header>
                 <Card.Body style={{ height: "500px" }}>
@@ -1006,12 +1037,12 @@ function StockcardPage({ isAuth }) {
                       Description
                     </div>
                   </div>
-                  <div id='scrollbar' style={{ height: '400px' }}>
-                    {isFetched?
-                      <>
-                        {stockcard.length === 0 ?
+                  <div className='scrollbar' style={{ height: '400px' }}>
+                    {isFetched ?
+                      (
+                        stockcard.length === 0 ?
                           <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                            <h5 className="mb-3"><strong>No <span style={{color: '#0d6efd'}}>products</span> to show.</strong></h5>
+                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to show.</strong></h5>
                             <p className="d-flex align-items-center justify-content-center">
                               <span>Click the</span>
                               <Button
@@ -1026,39 +1057,48 @@ function StockcardPage({ isAuth }) {
                           </div>
                           :
                           <ListGroup variant="flush">
-                            {stockcard.map((stockcard) => {
-                              return (
+                            {searchResult && searchResult.length > 0 ? (
+                              searchResult.map((stockcard) => (
                                 <ListGroup.Item
                                   action
                                   key={stockcard.id}
                                   eventKey={stockcard.id}
-                                  onClick={() => { setDocId(stockcard.id) }}>
+                                  onClick={() => { setDocId(stockcard.id) }}
+                                >
                                   <div className="row gx-0 sidebar-contents">
                                     <div className="col-4">
-                                      {stockcard.id.substring(0, 9)}
+                                      {stockcard.id}
                                     </div>
                                     <div className="col-8">
                                       {stockcard.description}
                                     </div>
                                   </div>
                                 </ListGroup.Item>
-                              )
-                            })}
+                              ))
+                            ) : (
+                              <div className='mt-5 text-center'>
+                                <Alert variant='danger'>
+                                  No Search Result for
+                                  <br /><strong>{searchValue}</strong>
+                                </Alert>
+                              </div>
+                            )}
                           </ListGroup>
-                        }
-                      </>
-                    :
+                      )
+                      :
                       <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                        <Spinner 
+                        <Spinner
                           color1="#b0e4ff"
                           color2="#fff"
                           textColor="rgba(0,0,0, 0.5)"
                           className="w-50 h-50"
-                          />
+                        />
                       </div>
                     }
-                    
                   </div>
+
+
+
                 </Card.Body>
               </Card>
             </div>
@@ -1268,7 +1308,7 @@ function StockcardPage({ isAuth }) {
                             width="40px"
                           />
                         </span>
-                        <h4 className="data-id">{docId.substring(0,9)}</h4>
+                        <h4 className="data-id">{docId.substring(0, 9)}</h4>
                       </div>
                       <div className="col">
                         <div className="float-end">

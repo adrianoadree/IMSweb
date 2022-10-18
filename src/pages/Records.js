@@ -12,7 +12,7 @@ import moment from "moment";
 import { UserAuth } from '../context/AuthContext'
 import UserRouter from '../pages/UserRouter'
 import { Spinner } from 'loading-animations-react';
-import  ProductQuickView  from '../components/ProductQuickView'
+import ProductQuickView from '../components/ProductQuickView'
 
 
 
@@ -44,7 +44,7 @@ function Records() {
 
   //---------------------FUNCTIONS---------------------
 
-  useEffect(()=>{
+  useEffect(() => {
   })
 
   useEffect(() => {
@@ -209,7 +209,7 @@ function Records() {
       <UserRouter
         route='/records'
       />
-      <Navigation 
+      <Navigation
         page='/purchase'
       />
       <Tab.Container
@@ -232,7 +232,7 @@ function Records() {
                         value={searchValue}
                         onChange={filter}
                         className="input"
-                        placeholder="Search"
+                        placeholder="Search by Doc ID"
                       />
                     </InputGroup>
                   </div>
@@ -528,21 +528,21 @@ function Records() {
                               productid={productToView}
                             />
                             {list.map((prod, index) => (
-                              
+
                               <tr key={index}>
                                 <td className='ic pt-entry px-3' key={prod.itemId}>
-                                
-                                {prod.itemId === undefined?
-                                  <></>
-                                :
-                                  <>
-                                    <button
-                                      onClick={()=>{setProductToView(prod.itemId); setModalShowPQV(true)}}
-                                    >
-                                      {prod.itemId.substring(0,9)}
-                                    </button>
-                                  </>
-                                }
+
+                                  {prod.itemId === undefined ?
+                                    <></>
+                                    :
+                                    <>
+                                      <button
+                                        onClick={() => { setProductToView(prod.itemId); setModalShowPQV(true) }}
+                                      >
+                                        {prod.itemId.substring(0, 9)}
+                                      </button>
+                                    </>
+                                  }
                                 </td>
                                 <td className="qc pt-entry text-center" key={prod.itemQuantity}>
                                   {prod.itemQuantity}

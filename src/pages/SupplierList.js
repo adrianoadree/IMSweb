@@ -355,7 +355,7 @@ function SupplierList() {
                         value={searchValue}
                         onChange={filter}
                         className="input"
-                        placeholder="Search"
+                        placeholder="Search by Supplier ID/Name"
                       />
                     </InputGroup>
                   </div>
@@ -520,23 +520,23 @@ function SupplierList() {
                                 color={'#000000'}
                                 height="25px"
                                 width="25px"
-                                title={'Selling Price'}
+                                title={'Mobile Number'}
                               />
                             </span>
-                            <span className="data-label sm">Selling Price</span>
+                            <span className="data-label sm">Mobile Number</span>
                           </div>
                           <div className="col-3 px-1">
                             <span className="data-icon sm">
                               <Call
                                 className="me-2 pull-down"
                                 color={'#00000'}
-                                title={'Purchase Price'}
+                                title={'Telephone Number'}
                                 height="25px"
                                 width="25px"
                               />
                             </span>
                             <span className="data-label sm">
-                              Purchase Price
+                              Telephone Number
                             </span>
                           </div>
                           <div className="col-6 px-1">
@@ -544,13 +544,13 @@ function SupplierList() {
                               <Mail
                                 className="me-2 pull-down"
                                 color={'#00000'}
-                                title={'Category'}
+                                title={'Email Address'}
                                 height="25px"
                                 width="25px"
                               />
                             </span>
                             <span className="data-label">
-                              Barcode
+                              Email Address
                             </span>
                           </div>
                         </div>

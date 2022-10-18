@@ -70,6 +70,16 @@ function TestPage() {
     const [searchValue, setSearchValue] = useState('');    // the value of the search field 
     const [searchResult, setSearchResult] = useState();    // the search result
 
+    const [converter, setConverter] = useState();    // the value of the search field 
+    const [output, setOutput] = useState("05 October 2011");    // the value of the search field 
+
+
+    useEffect(() => {
+        let data
+        data = output.toISOString()
+        setConverter(data)
+    }, [output])
+
 
     useEffect(() => {
         setSearchResult(salesRecordCollection)
@@ -190,6 +200,21 @@ function TestPage() {
                             </div>
                         </Card.Body>
                     </Card>
+                </div>
+                <div className="col">
+                    <InputGroup className="mb-3">
+                        <InputGroup.Text id="basic-addon1">
+                            <FontAwesomeIcon icon={faSearch} />
+                        </InputGroup.Text>
+                        <FormControl
+                            type="search"
+                            value={output}
+                            onChange={(event) => { setOutput(event.target.value); }}
+                            className="input"
+                            placeholder="Search"
+                        />
+                    </InputGroup>
+                    {converter}
                 </div>
             </div>
         </div >
