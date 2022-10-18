@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Card, Nav, Table, Button, ButtonGroup, Tab, Carousel } from "react-bootstrap";
+import { Card, Nav, Table, Button, ButtonGroup, Tab, Carousel, Accordion } from "react-bootstrap";
 import NewSupplierModal from "../components/NewSupplierModal";
 import Navigation from "../layout/Navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCartFlatbed, faFileInvoice, faUserPlus,faArrowRightToBracket,faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
+import { faCartFlatbed, faFileInvoice, faUserPlus, faArrowRightToBracket, faArrowRightFromBracket } from "@fortawesome/free-solid-svg-icons";
 import NewProductModal from "../components/NewProductModal";
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import NewSalesModal from "../components/NewSalesModal";
@@ -36,40 +36,185 @@ function LandingPage() {
 
     //---------------------FUNCTIONS---------------------
 
+    // =================================== START OF TODAY'S REPORT FUNCTION ===================================
+    // ----------------------------------- START OF PURCHASE REPORT FUNCTION ----------------------------------
+    //--------------------------------PURCHASE TOTAL RECORD FUNCTION---------------------------------
+    const [purchaseRecordCollection, setPurchaseRecordCollection] = useState(); // sales_record collection
+    const [totalPurchase, setTotalPurchase] = useState(0)
+    const [arrTotalPurchase, setArrTotalPurchase] = useState()
 
-    /* useEffect(() => {
-         if (user == null) {
-             navigate('/login');
-         }
-     }, [user]);
- */
+    const [purchToday, setPurchaseToday] = useState(new Date())
+    const [purchStringDate, setPurchStringDate] = useState()
 
-    //read sales_record collection
+
+
     useEffect(() => {
-        const purchaseRecordCollectionRef = collection(db, "sales_record")
-        const q = query(purchaseRecordCollectionRef, where("document_date", "==", date));
+        let tempDate
+        tempDate = purchToday.toISOString().substring(0, 10)
+        setPurchStringDate(tempDate)
+    }, [purchToday])
 
-        const unsub = onSnapshot(q, (snapshot) =>
-            setSalesRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-    }, [])
-
-    //read from purchase_record collection
     useEffect(() => {
-        const purchaseRecordCollectionRef = collection(db, "purchase_record")
-        const q = query(purchaseRecordCollectionRef, where("document_date", "==", date));
+        console.log("purchStringDate", purchStringDate)
+    }, [purchStringDate])
 
-        const unsub = onSnapshot(q, (snapshot) =>
-            setPurchRecord(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-    }, [])
 
-    function formatDate(string) {
-        var options = { year: 'numeric', month: 'long', day: 'numeric' };
-        return new Date(string).toLocaleDateString([], options);
+    useEffect(() => {
+        console.log("purchaseRecordCollection", purchaseRecordCollection)
+    }, [purchaseRecordCollection])
+
+
+    //query documents from purchase_record that contains docId
+    useEffect(() => {
+        if (purchStringDate !== undefined) {
+            const collectionRef = collection(db, "purchase_record")
+            const q = query(collectionRef, where("transaction_date", "==", purchStringDate));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [purchStringDate])
+
+
+
+    useEffect(() => {
+
+        let tempPurch = 0
+        let arrPurchTotal = []
+        let purchTransId
+        let purchTransProd
+        if (purchaseRecordCollection !== undefined) {
+
+            purchaseRecordCollection.map((purch) => {
+                purch.product_list.map((prod) => {
+                    tempPurch += Number(prod.itemQuantity)
+                })
+                arrPurchTotal.push(tempPurch)
+            })
+        }
+        setArrTotalPurchase(arrPurchTotal)
+    }, [purchaseRecordCollection])
+
+
+    useEffect(() => {
+        console.log("totalPurchase", totalPurchase)
+    }, [totalPurchase])
+
+
+
+    // ------------------------------------ END OF PURCHASE REPORT FUNCTION -----------------------------------
+
+    // ==================================== END OF TODAY'S REPORT FUNCTION ====================================
+
+
+    function purchaseTable() {
+        return (
+            purchaseRecordCollection !== undefined ?
+                <Table striped bordered hover size="sm" className="records-table light">
+                    <thead className="bg-primary">
+                        <tr>
+                            <th className="pth text-center">Transaction Number</th>
+                            <th className="pth text-center">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        {purchaseRecordCollection.map((purch, index) => (
+                            <tr
+                                key={index}>
+                                <td className="pt-entry">
+                                    <Accordion style={{ width: '420px' }}>
+                                        <Accordion.Item eventKey="0">
+                                            <Accordion.Header className='text-center'>
+                                                <h6 className='text-left'>{purch.id}</h6>
+                                            </Accordion.Header>
+                                            <Accordion.Body>
+                                                <Table className='text-center' striped bordered hover size="sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Item ID</th>
+                                                            <th>Item Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {purch.product_list.map((prod) => (
+                                                            <tr>
+                                                                <td>{prod.itemId}</td>
+                                                                <td>{prod.itemName}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </Table>
+                                            </Accordion.Body>
+                                        </Accordion.Item>
+                                    </Accordion>
+                                </td>
+                                <td className="pt-entry text-center">
+                                    <Accordion style={{ width: '200px' }}>
+                                        <Accordion.Item eventKey="0">
+                                            <Accordion.Header className='text-center'>
+                                            {arrTotalPurchase.map((total,index) => (
+                                                <h6 className='text-center' key={index}>{total}</h6>
+                                            ))}
+                                            </Accordion.Header>
+                                            <Accordion.Body className='text-center'>
+                                                <Table striped bordered hover size="sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Item Quantity</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {purch.product_list.map((prod) => (
+                                                            <tr key={index}>
+                                                                <td>{prod.itemQuantity}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </Table>
+                                            </Accordion.Body>
+                                        </Accordion.Item>
+                                    </Accordion>
+                                </td>
+
+                            </tr>
+                        ))
+                        }
+
+
+
+                    </tbody>
+                </Table>
+                :
+                <p>false</p>
+
+        )
     }
+
+
+    function salesTable() {
+        return (
+
+            <Table striped bordered hover size="sm" className="records-table light">
+                <thead className="bg-primary">
+                    <tr>
+                        <th className="pth text-center">Transaction Number</th>
+                        <th className="pth text-center">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td className="pt-entry text-center"></td>
+                        <td className="pt-entry text-center">{totalPurchase}</td>
+                    </tr>
+                </tbody>
+            </Table>
+        )
+    }
+
 
     return (
         <div>
@@ -176,7 +321,7 @@ function LandingPage() {
                                 </span>
                             </Card.Header>
                             <Card.Body className="folder-style">
-                                <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+                                <Tab.Container id="list-group-tabs-example" defaultActiveKey={1}>
                                     <Nav variant="pills" defaultActiveKey={1}>
                                         <Nav.Item>
                                             <Nav.Link eventKey={0}>
@@ -193,50 +338,13 @@ function LandingPage() {
                                     </Nav>
                                     <Tab.Content>
                                         <Tab.Pane eventKey={0}>
-                                            <Table striped bordered hover size="sm" className="records-table light">
-                                                <thead className="bg-primary">
-                                                    <tr>
-                                                        <th className="pth text-center">Document Number</th>
-                                                        <th className="pth text-center">Date</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {salesRecord.map((salesRecord) => (
-                                                        <tr>
-                                                            <td className="pt-entry text-center">{salesRecord.document_number}</td>
-                                                            <td className="pt-entry text-center">{salesRecord.document_date}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </Table>
+                                            {salesTable()}
                                         </Tab.Pane>
                                         <Tab.Pane eventKey={1}>
-                                            <Table striped bordered hover size="sm" className="records-table light">
-                                                <thead className="bg-primary">
-                                                    <tr>
-                                                        <th className="pth text-center">Document Number</th>
-                                                        <th className="pth text-center">Date</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {purchRecord.map((purchRecord) => {
-                                                        return (
-                                                            <tr>
-                                                                <td className="pt-entry text-center">{purchRecord.document_number}</td>
-                                                                <td className="pt-entry text-center">{date}</td>
-                                                            </tr>
-                                                        )
-                                                    })}
-                                                </tbody>
-                                            </Table>
+                                            {purchaseTable()}
                                         </Tab.Pane>
-
-
                                     </Tab.Content>
-
-
                                 </Tab.Container>
-
                             </Card.Body>
                         </Card>
                     </div>
