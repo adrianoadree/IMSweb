@@ -11,9 +11,9 @@ function NewProductModal(props) {
 
 
   //---------------------VARIABLES---------------------
-  const {user} = UserAuth();
+  const { user } = UserAuth();
   const [userID, setUserID] = useState("");
-  
+
   const [userCollection, setUserCollection] = useState([]);// userCollection variable
   const [userProfileID, setUserProfileID] = useState(""); // user profile id
   const userCollectionRef = collection(db, "user")// user collection
@@ -25,7 +25,7 @@ function NewProductModal(props) {
   const [newPriceS, setNewPriceS] = useState(0);
   const [newProdCategory, setNewProdCategory] = useState("");
 
-  
+
   //---------------------FUNCTIONS---------------------
   useEffect(() => {
     if (user) {
@@ -37,7 +37,7 @@ function NewProductModal(props) {
     console.log(productCounter)
     console.log(userCollection)
     console.log(categorySuggestions)
-}, )
+  },)
 
 
   //Toastify
@@ -56,45 +56,44 @@ function NewProductModal(props) {
   //fetch user collection from database
   useEffect(() => {
     if (userID === undefined) {
-          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
-    
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-        }
-        else {
-          const q = query(userCollectionRef, where("user", "==", userID));
-    
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-          
-        }
+      const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+      const q = query(userCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+
+    }
   }, [userID])
 
   //assign profile and purchase counter
   useEffect(() => {
     userCollection.map((metadata) => {
-        setProductCounter(metadata.stockcardId)
-        setUserProfileID(metadata.id)
-        setCategorySuggestions(metadata.categories)
+      setProductCounter(metadata.stockcardId)
+      setUserProfileID(metadata.id)
+      setCategorySuggestions(metadata.categories)
     });
   }, [userCollection])
 
 
   const createFormat = () => {
     var format = productCounter + "";
-    while(format.length < 7) {format = "0" + format};
+    while (format.length < 7) { format = "0" + format };
     format = "IT" + format + '@' + userID;
     return format;
   }
 
   const newCatergories = () => {
     var newcategories = categorySuggestions;
-    if(categorySuggestions.indexOf(newProdCategory) == -1)
-    {
+    if (categorySuggestions.indexOf(newProdCategory) == -1) {
       newcategories.push(newProdCategory)
     }
     return newcategories;
@@ -130,7 +129,7 @@ function NewProductModal(props) {
     const newData = { stockcardId: Number(productCounter) + 1 }
 
     updateDoc(userDocRef, newData)
-}
+  }
 
   const handleClickSuggestion = (suggestion) => {
     console.log(suggestion.index)
@@ -170,7 +169,7 @@ function NewProductModal(props) {
                 className="form-control shadow-none shadow-none no-click"
                 placeholder=""
                 defaultValue={createFormat().substring(0, 9)}
-                />
+              />
             </div>
             <div id="product-category" className='col-6 ps-4 d-flex align-item-center flex-column'>
               <label>Category</label>
@@ -185,15 +184,19 @@ function NewProductModal(props) {
               />
               <div id="product-category-suggestions">
                 <div>
-                  {categorySuggestions.map((index, k)=>{
-                    return(
-                      <button
-                        onClick={()=>handleClickSuggestion({index})}
-                      >
-                        {index}
-                      </button>
-                    );
-                  })}
+                  {categorySuggestions !== undefined ?
+                    categorySuggestions.map((index, k) => {
+                      return (
+                        <button
+                          onClick={() => handleClickSuggestion({ index })}
+                        >
+                          {index}
+                        </button>
+                      );
+                    })
+                    :
+                    <></>
+                  }
                 </div>
               </div>
             </div>
@@ -218,7 +221,7 @@ function NewProductModal(props) {
                 min={0}
                 className="form-control shadow-none"
                 placeholder="Purchase Price"
-                onChange={(event) => { setNewPriceP(event.target.value); }} 
+                onChange={(event) => { setNewPriceP(event.target.value); }}
               />
             </div>
             <div className='col-6 ps-4'>
@@ -233,7 +236,7 @@ function NewProductModal(props) {
             </div>
           </div>
         </div>
-      </Modal.Body> 
+      </Modal.Body>
       <Modal.Footer
         className="d-flex justify-content-center"
       >
