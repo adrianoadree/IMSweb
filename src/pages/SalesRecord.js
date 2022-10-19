@@ -74,7 +74,7 @@ function SalesRecords({ isAuth }) {
     else {
 
       const collectionRef = collection(db, "sales_record")
-      const q = query(collectionRef, where("user", "==", userID));
+      const q = query(collectionRef, where("user", "==", userID), orderBy("transaction_number", "desc"));
 
       const unsub = onSnapshot(q, (snapshot) =>
         setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))

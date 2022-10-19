@@ -79,7 +79,7 @@ function Records() {
     else {
 
       const purchaseRecordCollectionRef = collection(db, "purchase_record")
-      const q = query(purchaseRecordCollectionRef, where("user", "==", userID));
+      const q = query(purchaseRecordCollectionRef, where("user", "==", userID), orderBy("transaction_number", "desc"));
 
       const unsub = onSnapshot(q, (snapshot) =>
         setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -249,7 +249,7 @@ function Records() {
                       Date
                     </div>
                   </div>
-                  <div id='scrollbar' style={{ height: '400px' }}>
+                  <div className='scrollbar' style={{ height: '400px' }}>
                     {isFetched ?
                       (
                         purchaseRecordCollection.length === 0 ?

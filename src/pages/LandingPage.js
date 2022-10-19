@@ -245,27 +245,27 @@ function LandingPage() {
                                                         {purch.id}
                                                     </h6>
                                                 </Accordion.Header>
-                                                <Accordion.Body>
-                                                    <Table className='text-center' striped bordered hover size="sm">
-                                                        <thead>
-                                                            <tr>
-                                                                <th>Item ID</th>
-                                                                <th>Item Description</th>
-                                                                <th>Quantity</th>
+                                                    <Accordion.Body>
+                                                        <Table className='text-center' striped bordered hover size="sm">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Item ID</th>
+                                                                    <th>Item Description</th>
+                                                                    <th>Quantity</th>
 
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {purch.product_list.map((prod, index) => (
-                                                                <tr key={index}>
-                                                                    <td>{prod.itemId}</td>
-                                                                    <td>{prod.itemName}</td>
-                                                                    <td>{prod.itemQuantity}</td>
                                                                 </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </Table>
-                                                </Accordion.Body>
+                                                            </thead>
+                                                            <tbody>
+                                                                {purch.product_list.map((prod, index) => (
+                                                                    <tr key={index}>
+                                                                        <td>{prod.itemId.substring(0,20)}...</td>
+                                                                        <td>{prod.itemName}</td>
+                                                                        <td>{prod.itemQuantity}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </Table>
+                                                    </Accordion.Body>
                                             </Accordion.Item>
                                         </Accordion>
                                     </td>
