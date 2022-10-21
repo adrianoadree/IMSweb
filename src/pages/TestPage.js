@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import Navigation from "../layout/Navigation";
 import Barcode from 'react-jsbarcode'
-import { Card, Table, OverlayTrigger, Alert, Tooltip, ToggleButtonGroup, ToggleButton, FormControl, ListGroup, InputGroup } from "react-bootstrap";
+import { Card, Table, OverlayTrigger, Alert, Tooltip, ToggleButtonGroup, ToggleButton, FormControl, Accordion, ListGroup, InputGroup } from "react-bootstrap";
 import React, { useState } from "react";
 import DatePicker from "react-datepicker";
 import moment from "moment";
@@ -12,15 +12,220 @@ import { UserAuth } from '../context/AuthContext'
 import { db } from '../firebase-config';
 import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc, where } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faTriangleExclamation, faSearch, faTruck, faBarcode, faFileLines, faInbox, faArrowRightFromBracket, faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faMinus, faTrashCan, faTriangleExclamation, faSearch, faTruck, faBarcode, faFileLines, faInbox, faArrowRightFromBracket, faArrowRightToBracket } from '@fortawesome/free-solid-svg-icons'
 import { Spinner } from 'loading-animations-react';
 
 
 function TestPage() {
+
+
+
+
+    //---------------------VARIABLES---------------------
+
+
     const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
-    const [docId, setDocId] = useState("xx"); //document Id
-    const [salesRecordCollection, setSalesRecordCollection] = useState(); //sales_record Collection
+    const [productIds, setProductIds] = useState([]); // array of prod id
+
+    const [userCollection, setUserCollection] = useState([]);// userCollection variable
+    const [userProfileID, setUserProfileID] = useState(""); // user profile id
+    const userCollectionRef = collection(db, "user")// user collection
+    const [salesCounter, setSalesCounter] = useState(0); // sales counter
+
+    const [newNote, setNewNote] = useState(""); // note form input
+    const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+    const [items, setItems] = useState([]); // array of objects containing product information
+    const [itemId, setItemId] = useState("IT999999"); //product id
+    const [itemName, setItemName] = useState(""); //product description
+    const [itemSPrice, setItemSPrice] = useState(0); //product Selling Price
+    const [itemPPrice, setItemPPrice] = useState(0); //product Purchase Price
+    const [itemQuantity, setItemQuantity] = useState(1); //product quantity
+    const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
+    const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
+    const [buttonBool, setButtonBool] = useState(true); //button disabler
+
+
+    //---------------------FUNCTIONS---------------------
+
+    //set Product ids
+    useEffect(() => {
+        items.map((item) => {
+            setProductIds([...productIds, item.itemId])
+        })
+    }, [items])
+
+    //fetch user collection from database
+    useEffect(() => {
+        if (userID === undefined) {
+            const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+            const q = query(userCollectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+
+        }
+    }, [userID])
+
+    //assign profile and purchase counter
+    useEffect(() => {
+        userCollection.map((metadata) => {
+            setSalesCounter(metadata.salesId)
+            setUserProfileID(metadata.id)
+        });
+    }, [userCollection])
+
+    //Read stock card collection from database
+    useEffect(() => {
+        if (userID === undefined) {
+
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", userID), where("qty", ">=", 1));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
+
+
+    //Read and set data from stockcard document
+    useEffect(() => {
+        if (itemName != undefined) {
+
+            const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
+                if (doc.data() != undefined) {
+                    setItemName(doc.data().description)
+                    setItemCurrentQuantity(doc.data().qty)
+                    setItemSPrice(doc.data().s_price)
+                    setItemPPrice(doc.data().p_price)
+                }
+            }, (error) => {
+            });
+        }
+    }, [itemId])
+
+    //----------------------Start of Dynamic form functions----------------------
+    const addItem = event => {
+        event.preventDefault();
+        setItems([
+            ...items,
+            {
+                itemId: itemId,
+                itemName: itemName,
+                itemPPrice: Number(itemPPrice),
+                itemSPrice: Number(itemSPrice),
+                itemQuantity: Number(itemQuantity),
+                itemCurrentQuantity: Number(itemCurrentQuantity),
+                itemNewQuantity: Number(itemCurrentQuantity) - Number(itemQuantity)
+            }
+        ]);
+        setItemId("IT999999");
+        setItemQuantity(1);
+    };
+
+    const handleItemRemove = (index) => {
+        const list = [...items]
+        list.splice(index, 1)
+        setItems(list)
+    }
+
+    //ButtonDisabler
+    useEffect(() => {
+        if (itemId != "IT999999" && itemQuantity <= itemCurrentQuantity && itemQuantity > 0) {
+            setButtonBool(false)
+        }
+        else {
+            setButtonBool(true)
+        }
+    }, [itemQuantity])
+    //ButtonDisabler
+    useEffect(() => {
+        if (itemId != "IT999999" && itemQuantity <= itemCurrentQuantity && itemQuantity > 0) {
+            setButtonBool(false)
+        }
+        else {
+            setButtonBool(true)
+        }
+    }, [itemId])
+
+    //----------------------End of Dynamic form functions----------------------
+
+
+    //----------------------Start of addRecord functions----------------------
+
+    const createFormat = () => {
+        var format = salesCounter + "";
+        while (format.length < 5) { format = "0" + format };
+        format = "SR" + format + '@' + userID;
+        return format;
+    }
+
+    //add document to database
+    const addRecord = async () => {
+        setDoc(doc(db, "sales_record", createFormat()), {
+            user: userID,
+            transaction_number: createFormat().substring(0, 7),
+            transaction_note: newNote,
+            transaction_date: newDate,
+            product_list: items,
+            product_ids: productIds
+
+        });
+
+        setProductIds([])
+        setItems([]);
+        setNewNote("");
+        updateQuantity()  //update stockcard.qty function
+        updateSalesDocNum() //update variables.salesDocNum function
+
+    }
+
+    //update stockcard.qty function
+    function updateQuantity() {
+        items.map((items) => {
+
+            const stockcardRef = doc(db, "stockcard", items.itemId);
+
+            // Set the "capital" field of the city 'DC'
+            updateDoc(stockcardRef, {
+                qty: items.itemNewQuantity
+            });
+
+        })
+    }
+
+    //update variables.salesDocNum function
+    function updateSalesDocNum() {
+        const userDocRef = doc(db, "user", userProfileID)
+        const newData = { salesId: Number(salesCounter) + 1 }
+
+        updateDoc(userDocRef, newData)
+    }
+
+
+    //----------------------End of addRecord functions----------------------
+
 
     useEffect(() => {
         if (user) {
@@ -28,193 +233,160 @@ function TestPage() {
         }
     }, [{ user }])
 
-    //Read stock card collection from database
+
+    //current date
     useEffect(() => {
-        if (userID === undefined) {
+        let tempDate = new Date()
+        setNewDate(tempDate.toISOString().substring(0, 10))
 
-            const stockcardCollectionRef = collection(db, "sales_record")
-            const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-        else {
-            const stockcardCollectionRef = collection(db, "sales_record")
-            const q = query(stockcardCollectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-    }, [userID])
-
-    //======================================================================================
-    const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
+    }, [])
 
 
-    useEffect(() => {
-        if (salesRecordCollection === undefined) {
-            setIsFetched(false)
-        }
-        else {
-            setIsFetched(true)
-        }
-    }, [salesRecordCollection])
+    // ================================================= =================================================
 
-    // ===================================== START OF SEARCH FUNCTION =====================================
+    useEffect(()=>{
+        console.log("itemId: ",itemId)
+    },[itemId])
 
 
-    const [searchValue, setSearchValue] = useState('');    // the value of the search field 
-    const [searchResult, setSearchResult] = useState();    // the search result
-
-    const [converter, setConverter] = useState();    // the value of the search field 
-    const [output, setOutput] = useState("05 October 2011");    // the value of the search field 
-
-
-    useEffect(() => {
-        let data
-        data = output.toISOString()
-        setConverter(data)
-    }, [output])
-
-
-    useEffect(() => {
-        setSearchResult(salesRecordCollection)
-    }, [salesRecordCollection])
-
-
-
-    const filter = (e) => {
-        const keyword = e.target.value;
-
-        if (keyword !== '') {
-            const results = salesRecordCollection.filter((salesRecordCollection) => {
-                return salesRecordCollection.id.toLowerCase().startsWith(keyword.toLowerCase())
-                // Use the toLowerCase() method to make it case-insensitive
-            });
-            setSearchResult(results);
-        } else {
-            setSearchResult(salesRecordCollection);
-            // If the text field is empty, show all users
-        }
-
-        setSearchValue(keyword);
-    };
-
-    // ====================================== END OF SEARCH FUNCTION ======================================
-
-
+    useEffect(()=>{
+        console.log("items: ",items)
+    },[items])
 
     return (
         <div>
             <Navigation />
             <div className="row">
-                <div className='sidebar'>
-                    <Card className='sidebar-card'>
-                        <Card.Header>
-                            <div className='row'>
-                                <InputGroup className="mb-3">
-                                    <InputGroup.Text id="basic-addon1">
-                                        <FontAwesomeIcon icon={faSearch} />
-                                    </InputGroup.Text>
-                                    <FormControl
-                                        type="search"
-                                        value={searchValue}
-                                        onChange={filter}
-                                        className="input"
-                                        placeholder="Search"
-                                    />
-                                </InputGroup>
-                            </div>
-                        </Card.Header>
-                        <Card.Body style={{ height: "500px" }}>
-                            <div className="row g-1 sidebar-header">
-                                <div className="col-4 left-curve">
-                                    Doc
-                                </div>
-                                <div className="col-8 right-curve">
-                                    Date
-                                </div>
-                            </div>
-                            <div id='scrollbar' style={{ height: '400px' }}>
-                                {isFetched ?
-                                    (
-                                        salesRecordCollection.length === 0 ?
-                                            <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                                                <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Record</span> to show.</strong></h5>
-                                                <p className="d-flex align-items-center justify-content-center">
-                                                    <span>Click the</span>
-                                                    <Button
-                                                        className="add ms-1 me-1 static-button no-click"
-                                                    >
-                                                        <FontAwesomeIcon icon={faPlus} />
-                                                    </Button>
-                                                    <span>
-                                                        button to add one.
-                                                    </span>
-                                                </p>
-                                            </div>
-                                            :
-                                            <ListGroup variant="flush">
-                                                {searchResult && searchResult.length > 0 ? (
-                                                    searchResult.map((sales) => (
-                                                        <ListGroup.Item
-                                                            action
-                                                            key={sales.id}
-                                                            eventKey={sales.id}
-                                                            onClick={() => { setDocId(sales.id) }}>
-                                                            <div className="row gx-0 sidebar-contents">
-                                                                <div className="col-4">
-                                                                    <small>{sales.transaction_number}</small>
-                                                                </div>
-                                                                <div className="col-8">
-                                                                    <small>{moment(sales.transaction_date).format('ll')}</small>
-                                                                </div>
-                                                            </div>
-                                                        </ListGroup.Item>
-                                                    ))
-                                                ) : (
-                                                    <div className='mt-5 text-center'>
-                                                        <Alert variant='danger'>
-                                                            No Search Result for
-                                                            <br /><strong>{searchValue}</strong>
-                                                        </Alert>
-                                                    </div>
-                                                )}
+                <div className="col-6 p-5 bg-white" >
 
-                                            </ListGroup>
-                                    )
-                                    :
-                                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                                        <Spinner
-                                            color1="#b0e4ff"
-                                            color2="#fff"
-                                            textColor="rgba(0,0,0, 0.5)"
-                                            className="w-50 h-50"
-                                        />
-                                    </div>
-                                }
+                    <div className="px-3 py-2">
+                        <div className="module-header mb-4">
+                            <h3 className="text-center">Generate a Sales Record</h3>
+                        </div>
+                        <div className="row my-2 mb-3">
+                            <div className='col-3 ps-4'>
+                                <label>Transaction Number</label>
+                                <input type="text"
+                                    readOnly
+                                    className="form-control shadow-none no-click"
+                                    placeholder=""
+                                    defaultValue={createFormat().substring(0, 7)}
+                                />
                             </div>
-                        </Card.Body>
-                    </Card>
-                </div>
-                <div className="col">
-                    <InputGroup className="mb-3">
-                        <InputGroup.Text id="basic-addon1">
-                            <FontAwesomeIcon icon={faSearch} />
-                        </InputGroup.Text>
-                        <FormControl
-                            type="search"
-                            value={output}
-                            onChange={(event) => { setOutput(event.target.value); }}
-                            className="input"
-                            placeholder="Search"
-                        />
-                    </InputGroup>
-                    {converter}
+                            <div className='col-4 ps-4'>
+                                <label>Transaction Date</label>
+                                <input
+                                    type='date'
+                                    className="form-control shadow-none"
+                                    value={newDate}
+                                    onChange={e => setNewDate(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <div className="row my-2 mb-3">
+                            <div className='col-12 ps-4'>
+                                <label>Notes: (Optional)</label>
+                                <textarea
+                                    className="form-control shadow-none"
+                                    as="textarea"
+                                    rows={1}
+                                    onChange={(event) => { setNewNote(event.target.value); }}
+                                />
+                            </div>
+                        </div>
+                        <div className="row my-2 mb-3 p-3 item-adding-container">
+                            <div className="row m-0 p-0">
+                                <div className='col-12 text-center mb-2'>
+                                    <h5><strong>Sales List</strong></h5>
+                                    <div className="row p-0 m-0 py-1">
+                                        <div className='col-6 p-1'>
+                                            <select
+                                                className="form-select shadow-none"
+                                                value={itemId}
+                                                onChange={e => setItemId(e.target.value)}
+                                            >
+                                                <option
+                                                    value="IT999999">
+                                                    Select Item
+                                                </option>
+                                                {stockcard.map((stockcard) => {
+                                                    return (
+                                                        <option
+                                                            key={stockcard.id}
+                                                            value={stockcard.id}
+                                                        >{stockcard.description}</option>
+                                                    )
+                                                })}
+                                            </select>
+                                        </div>
+                                        <div className='col-4 p-1'>
+                                            <input
+                                                className="form-control shadow-none"
+                                                placeholder='Quantity'
+                                                type='number'
+                                                value={itemQuantity}
+                                                min={1}
+                                                max={itemCurrentQuantity}
+                                                onChange={e => setItemQuantity(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className='col-2 p-1'>
+                                            <Button
+                                                onClick={addItem}
+                                                disabled={buttonBool ? true : false}
+                                            >
+                                                <FontAwesomeIcon icon={faPlus} />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="row p-0 m-0 py-1">
+                                    <div className="col-12">
+                                        <Table striped bordered hover size="sm">
+                                            <thead>
+                                                <tr className='text-center bg-white'>
+                                                    <th>Item ID</th>
+                                                    <th>Item Description</th>
+                                                    <th>Quantity</th>
+                                                    <th>Remove</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {items.map((item, index) => (
+                                                    <tr
+                                                        className='text-center'
+                                                        key={index}>
+                                                        <td>
+                                                            {item.itemId === undefined ?
+                                                                <></>
+                                                                :
+                                                                <>
+                                                                    {item.itemId.substring(0, 9)}
+                                                                </>
+                                                            }
+                                                        </td>
+                                                        <td>{item.itemName}</td>
+                                                        <td>{item.itemQuantity}</td>
+                                                        <td>
+                                                            <Button
+                                                                size='sm'
+                                                                variant="outline-danger"
+                                                                onClick={() => handleItemRemove(index)}>
+                                                                <FontAwesomeIcon icon={faMinus} />
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
                 </div>
             </div>
         </div >

@@ -454,198 +454,76 @@ function Itemforecast() {
                                 <Accordion.Header><h6>Inventory Projection Statistical Tools</h6></Accordion.Header>
                                 <Accordion.Body>
 
-                                    <div className="row pt-2 pb-1 px-3">
-                                        <hr />
-                                        <div className="col-4">
-                                            <OverlayTrigger
-                                                placement="right"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={NdaysROPTooltip}
-                                            >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            N Days Before ROP <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{daysROP} day(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
-                                            </OverlayTrigger>
-
-                                        </div>
-                                        <div className="col-4">
+                                    <div className='row'>
+                                        <div className='col-4'>
                                             <OverlayTrigger
                                                 placement="right"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={ROPToolTip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            ReorderPoint <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{reorderPoint} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h3>ReorderPoint: </h3>
                                             </OverlayTrigger>
-
                                         </div>
-                                        <div className="col-4">
+                                        <div className='col-5'>
+                                            <h5>
+                                                <span className="data-label">
+                                                    {reorderPoint} unit(s)
+                                                </span>
+                                            </h5>
+                                        </div>
+                                    </div>
+
+                                    <div className='row'>
+
+                                        <div className='col-3'>
                                             <OverlayTrigger
                                                 placement="left"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={safetystockTooltip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header
-                                                        className="text-center text-white"
-                                                    >
-                                                        <small>
-                                                            Safety Stock <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{safetyStock} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h5>Safety Stock: </h5>
                                             </OverlayTrigger>
                                         </div>
+                                        <div className='col-5'>
+                                            <h5>
+                                                <span className="data-label">
+                                                    {safetyStock} unit(s)
+                                                </span>
+                                            </h5>
+                                        </div>
+
                                     </div>
 
-                                    <div className="row pt-2 pb-1 px-3">
-                                        <div className="col-4">
-                                            <OverlayTrigger
-                                                placement="right"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={averageSalesTooltip}
-                                            >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Average Daily Sales <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{averageDailySales} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
-                                            </OverlayTrigger>
-                                        </div>
-                                        <div className="col-4">
+
+                                    <hr />
+                                    <div className="row">
+                                        <div className="col-6">
                                             <OverlayTrigger
                                                 placement="right"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={highestSalesTooltip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Highest Daily Sales <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{highestDailySales} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h6>Total Sales: {totalSales} unit(s)</h6>
                                             </OverlayTrigger>
-                                        </div>
-                                        <div className="col-4">
-                                            <OverlayTrigger
-                                                placement="left"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={totalSalesTooltip}
-                                            >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Total Sales <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{totalSales} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
-                                            </OverlayTrigger>
-                                        </div>
-                                    </div>
-
-                                    <div className="row pt-2 pb-1 px-3">
-                                        <div className="col-4">
-                                            <OverlayTrigger
-                                                placement="left"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={totalSalesTooltip}
-                                            >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Minimum Leadtime <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{minLeadtime} day(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
-                                            </OverlayTrigger>
-                                        </div>
-                                        <div className="col-4">
                                             <OverlayTrigger
                                                 placement="right"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={highestSalesTooltip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Maximum Leadtime <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{maxLeadtime} day(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h6>Highest Daily Sales: {highestDailySales} unit(s)</h6>
                                             </OverlayTrigger>
-                                        </div>
-                                        <div className="col-4">
                                             <OverlayTrigger
                                                 placement="right"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={averageSalesTooltip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Average Leadtime <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{averageLeadtime} day(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h6>Average Daily Sales: {averageDailySales} unit(s)</h6>
                                             </OverlayTrigger>
+                                        </div>
+                                        <div className="col-6">
+                                            <h6>Average Leadtime: {averageLeadtime} day(s)</h6>
+                                            <h6>Minimum Leadtime: {minLeadtime} day(s)</h6>
+                                            <h6>Maximum Leadtime: {maxLeadtime} day(s)</h6>
                                         </div>
                                     </div>
 
