@@ -2,10 +2,22 @@ import React from "react";
 import { Button, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { collection, updateDoc, onSnapshot, query, doc, setDoc, where } from "firebase/firestore";
-import { db } from "../firebase-config";
+import { db, st } from "../firebase-config";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserAuth } from '../context/AuthContext'
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  listAll,
+  list,
+} from "firebase/storage";
+import { v4 } from "uuid";
+import { Spinner } from 'loading-animations-react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
+
 
 function NewProductModal(props) {
 
@@ -19,12 +31,21 @@ function NewProductModal(props) {
   const userCollectionRef = collection(db, "user")// user collection
   const [productCounter, setProductCounter] = useState(0); // product counter
   const [categorySuggestions, setCategorySuggestions] = useState([])
+  const [disallowAddition, setDisallowAddtion] = useState(true)
 
   const [newProductName, setNewProductName] = useState("");
   const [newPriceP, setNewPriceP] = useState(0);
   const [newPriceS, setNewPriceS] = useState(0);
+  const [newProdClassification, setNewProdClassification] = useState("");
   const [newProdCategory, setNewProdCategory] = useState("");
+  const [newBarcode, setNewBarcode] = useState(0);
+  const [newMaxQty, setNewMaxQty] = useState(0);
+  const [newMinQty, setNewMinQty] = useState(0);
+  const [uploadedOneImage, setUploadedOneImage] = useState(false);
 
+  const [imageUpload, setImageUpload] = useState(null);
+  const [imageUrls, setImageUrls] = useState([]);
+  const [uploading, setUploading] = useState(false);
   
   //---------------------FUNCTIONS---------------------
   useEffect(() => {
@@ -34,10 +55,31 @@ function NewProductModal(props) {
   }, [{ user }])
 
   useEffect(() => {
-    console.log(productCounter)
-    console.log(userCollection)
-    console.log(categorySuggestions)
-}, )
+    if(
+      newProductName == " " || newProductName == "" ||
+      newPriceP == 0 ||
+      newPriceS == 0 ||
+      newProdCategory == " " || newProdCategory == "" ||
+      newProdClassification == " " || newProdClassification == "" ||
+      imageUrls.length == 0
+    ){
+      setDisallowAddtion(true)
+    }
+    else
+    {
+      setDisallowAddtion(false)
+    }
+    if(imageUrls.length == 0) {
+      setUploadedOneImage(false)
+    }
+    else
+    {
+      setUploadedOneImage(true)
+      setUploading(false)
+    }
+    console.log(imageUrls)
+  })
+
 
 
   //Toastify
@@ -74,14 +116,36 @@ function NewProductModal(props) {
         }
   }, [userID])
 
+  const createBarcode = () => {
+    var prefix = userProfileID.substring(1,4)
+    var suffix = productCounter +"";
+    while(suffix.length < 11) {suffix = "0" + suffix};
+    var barcode = prefix + suffix;
+    return parseInt(barcode);
+  }
+
   //assign profile and purchase counter
   useEffect(() => {
     userCollection.map((metadata) => {
         setProductCounter(metadata.stockcardId)
         setUserProfileID(metadata.id)
         setCategorySuggestions(metadata.categories)
+        
     });
+    setNewBarcode(createBarcode())
+    console.log(newBarcode)
   }, [userCollection])
+
+  useEffect(() => {
+    if(productCounter === undefined)
+    {
+
+    }
+    else
+    {
+      setNewBarcode(createBarcode())
+    }
+  }, [productCounter])
 
 
   const createFormat = () => {
@@ -100,26 +164,46 @@ function NewProductModal(props) {
     return newcategories;
   }
 
+  const imagesListRef = ref(st, userID + "/stockcard/");
+  const uploadFile = () => {
+    if (imageUpload == null) return;
+    const imageRef = ref(st, `${userID}/stockcard/${createFormat().substring(0,9)}`);
+    uploadBytes(imageRef, imageUpload).then((snapshot) => {
+      getDownloadURL(snapshot.ref).then((url) => {
+        setImageUrls((prev) => [...prev, url]);
+      });
+    });
+  };
+
   //Create product to database
   const addProduct = async () => {
     setDoc(doc(db, "stockcard", createFormat()), {
       user: user.uid,
       description: newProductName,
+      classification: newProdClassification,
+      category: newProdCategory,
+      barcode: newBarcode,
       p_price: Number(newPriceP),
       s_price: Number(newPriceS),
+      min_qty: newMinQty,
+      max_qty: newMaxQty,
+      img: imageUrls[0],
       qty: 0,
-      category: newProdCategory,
-      barcode: 0,
-      img: "",
       analytics_boolean: false,
       analytics_minLeadtime: 0,
-      analytics_maxLeadtime: 0
+      analytics_maxLeadtime: 0,
     });
     await updateDoc(doc(db, 'user', userProfileID), {
       categories: newCatergories(),
     });
     updateProductDocNum()
     successToast();
+    setImageUrls([])
+    setNewProductName(" ")
+    setNewProdCategory(" ")
+    setNewProdClassification(" ")
+    setNewPriceP(0)
+    setNewPriceP(0)
 
     props.onHide();
   }
@@ -141,7 +225,7 @@ function NewProductModal(props) {
   return (
     <Modal
       {...props}
-      size="md"
+      size="xl"
       aria-labelledby="contained-modal-title-vcenter"
       centered
       className="IMS-modal"
@@ -162,77 +246,209 @@ function NewProductModal(props) {
           <div className="module-header mb-4">
             <h3 className="text-center">Register a New Product</h3>
           </div>
-          <div className="row my-2 mb-3">
-            <div className='col-6 ps-4'>
-              <label>Item Code</label>
-              <input type="text"
-                readOnly
-                className="form-control shadow-none shadow-none no-click"
-                placeholder=""
-                defaultValue={createFormat().substring(0, 9)}
-                />
-            </div>
-            <div id="product-category" className='col-6 ps-4 d-flex align-item-center flex-column'>
-              <label>Category</label>
-              <input type="text"
-                id="product-category-input"
-                className="form-control shadow-none"
-                placeholder="Category"
-                defaultValue=""
-                required
-                onChange={(event) => { setNewProdCategory(event.target.value); }}
-                value={newProdCategory}
-              />
-              <div id="product-category-suggestions">
-                <div>
-                  {categorySuggestions.map((index, k)=>{
-                    return(
-                      <button
-                        onClick={()=>handleClickSuggestion({index})}
+          <div 
+            id="image-upload"
+            className="row m-0 p-0"
+          >
+            <div className="col-4 px-3">
+              <div className="row my-2 mb-3">
+                <div className='col-12 ps-4'>
+                  <label className="">Product Image</label>
+                  <div className="row m-0 p-0">
+                    <div className="col-10 p-0 m-0">
+                      <input
+                        className="form-control shadow-none"
+                        type="file"
+                        onChange={(event) => {
+                          setImageUrls([]);
+                          setImageUpload(event.target.files[0]);
+                        }}
+                      />
+                    </div>
+                    <div className="col-2 p-0 m-0">
+                      <Button
+                        variant="btn btn-success"
+                        className="shadow-none w-100"
+                        disabled={uploadedOneImage}
+                        onClick={()=>{setUploading(true);uploadFile()}}
                       >
-                        {index}
-                      </button>
-                    );
-                  })}
+                        <FontAwesomeIcon icon={faEye}/>
+                      </Button>
+                    </div>
+                  </div>
+              </div>
+              </div>
+              <div className="row my-2 mb-3 ps-4 w-100 h-75">
+                <div 
+                  id="image-upload-preview"
+                  className='col-12 w-100 h-100 d-flex align-items-center justify-content-center'
+                >
+                  {uploading?
+                    <>
+                      {imageUrls.length == 0?
+                        <Spinner 
+                          color1="#b0e4ff"
+                          color2="#fff"
+                          textColor="rgba(0,0,0, 0.5)"
+                          className="w-25 h-25"
+                        />
+                      :
+                        <></>
+                      }
+                    </>
+                  :
+                  <>
+                    {imageUrls.map((url) => {
+                      return <img src={url} style={{height: '100%', width: '100%'}}/>;
+                    })}
+                  </>
+                  }
+                </div>
+              </div>
+            </div>
+            <div className="col-8 px-3">
+              <div className="row my-2 mb-3">
+                <div className='col-6 ps-4'>
+                  <label>Item Code</label>
+                  <input type="text"
+                    readOnly
+                    className="form-control shadow-none shadow-none no-click"
+                    placeholder=""
+                    defaultValue={createFormat().substring(0, 9)}
+                    />
+                </div>
+                <div className='col-6 ps-4'>
+                  <label>Classification</label>
+                  <select
+                    type="text"
+                    className="form-control shadow-none"
+                    onChange={(event)=>{setNewProdClassification(event.target.value)}}
+                  >
+                    <option value="Imported">Imported</option>
+                    <option value="Manufactured">Manufactured</option>
+                    <option value="Non-trading">Non-trading</option>
+                  </select>
+                </div>
+              </div>
+              <div className="row my-2 mb-3">
+                <div className='col-12 ps-4'>
+                  <label>Item Name</label>
+                  <input type="text"
+                    className="form-control shadow-none"
+                    placeholder="LM Pancit Canton Orig (Pack-10pcs)"
+                    required
+                    autoFocus
+                    onChange={(event) => { setNewProductName(event.target.value); }}
+                  />
+                </div>
+              </div>
+              <div className="row my-2 mb-3">
+                <div id="product-category" className='col-6 ps-4 d-flex align-item-center flex-column'>
+                  <label>Category</label>
+                  <input type="text"
+                    id="product-category-input"
+                    className="form-control shadow-none"
+                    placeholder="Category"
+                    required
+                    onChange={(event) => { setNewProdCategory(event.target.value); }}
+                    value={newProdCategory}
+                  />
+                  <div id="product-category-suggestions">
+                    <div>
+                      {categorySuggestions.map((index, k)=>{
+                        return(
+                          <button
+                            onClick={()=>handleClickSuggestion({index})}
+                          >
+                            {index}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div className='col-6 ps-4'>
+                  <label>
+                    Barcode
+                    <a
+                      className="ms-2"
+                      data-title="This barcode is autogenerated"
+                    >
+                      <FontAwesomeIcon icon={faCircleInfo}/>
+                    </a>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={newBarcode}
+                    className="form-control shadow-none"
+                    onChange={(event)=>{setNewBarcode(event.target.value)}}
+                    />
+                </div>
+              </div>
+              <div className="row my-2 mb-3">
+                <div className='col-3 ps-4'>
+                  <label>Purchase Price</label>
+                  <input
+                    type="number"
+                    min={1}
+                    defaultValue={1}
+                    className="form-control shadow-none"
+                    placeholder="Purchase Price"
+                    onChange={(event) => { setNewPriceP(event.target.value); }} 
+                  />
+                </div>
+                <div className='col-3 ps-4'>
+                  <label>Selling Price</label>
+                  <input
+                    type="number"
+                    min={1}
+                    defaultValue={1}
+                    className="form-control shadow-none"
+                    placeholder="Selling Price"
+                    onChange={(event) => { setNewPriceS(event.target.value); }}
+                  />
+                </div>
+                <div className='col-3 ps-4'>
+                  <label>
+                    Min Quantity
+                    <a
+                      className="ms-2"
+                      data-title="The quantity to be considered low stock level"
+                    >
+                      <FontAwesomeIcon icon={faCircleInfo}/>
+                    </a>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    defaultValue={0}
+                    className="form-control shadow-none"
+                    onChange={(event) => { setNewMinQty(event.target.value); }} 
+                  />
+                </div>
+                <div className='col-3 ps-4'>
+                  <label>
+                    Max Quantity
+                    <a
+                      className="ms-2"
+                      data-title="The quantity to be considered overstocked"
+                    >
+                      <FontAwesomeIcon icon={faCircleInfo}/>
+                    </a>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    defaultValue={0}
+                    className="form-control shadow-none"
+                    onChange={(event) => { setNewMaxQty(event.target.value); }}
+                  />
                 </div>
               </div>
             </div>
           </div>
-          <div className="row my-2 mb-3">
-            <div className='col-12 ps-4'>
-              <label>Item Name</label>
-              <input type="text"
-                className="form-control shadow-none"
-                placeholder="Item name"
-                required
-                autoFocus
-                onChange={(event) => { setNewProductName(event.target.value); }}
-              />
-            </div>
-          </div>
-          <div className="row my-2 mb-3">
-            <div className='col-6 ps-4'>
-              <label>Purchase Price</label>
-              <input
-                type="number"
-                min={0}
-                className="form-control shadow-none"
-                placeholder="Purchase Price"
-                onChange={(event) => { setNewPriceP(event.target.value); }} 
-              />
-            </div>
-            <div className='col-6 ps-4'>
-              <label>Selling Price</label>
-              <input
-                type="number"
-                min={0}
-                className="form-control shadow-none"
-                placeholder="Selling Price"
-                onChange={(event) => { setNewPriceS(event.target.value); }}
-              />
-            </div>
-          </div>
-        </div>
+      </div>
       </Modal.Body> 
       <Modal.Footer
         className="d-flex justify-content-center"
@@ -246,10 +462,11 @@ function NewProductModal(props) {
         </Button>
         <Button
           className="btn btn-light float-start"
-          style={{ width: "6rem" }}
+          disabled={disallowAddition}
+          style={{ width: "8rem" }}
           onClick={() => { addProduct() }}
         >
-          Save
+          Add Product
         </Button>
       </Modal.Footer>
     </Modal>

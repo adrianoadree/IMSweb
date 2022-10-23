@@ -20,6 +20,7 @@ function NewSupplierModal(props) {
   const [userProfileID, setUserProfileID] = useState(""); // user profile id
   const userCollectionRef = collection(db, "user")// user collection
   const [supplierCounter, setSupplierCounter] = useState(0); // purchase counter
+  const [disallowAddition, setDisallowAddition] = useState(true); // purchase counter
 
   const [newSupplierName, setnewSupplierName] = useState("");
   const [newSupplierAddress, setnewSupplierAddress] = useState("");
@@ -32,6 +33,18 @@ function NewSupplierModal(props) {
 
 
   //---------------------FUNCTIONS---------------------
+
+  useEffect(() => {
+    if(newSupplierName == "" || newSupplierName == " ")
+    {
+      setDisallowAddition(true)
+    }
+    else
+    {
+      setDisallowAddition(false)
+    }
+  })
+
 
   useEffect(() => {
     if (user) {
@@ -143,7 +156,8 @@ function NewSupplierModal(props) {
       />
 
       
-      <Modal.Body>
+      <Modal.Body
+      className="d-flex justify-content-center">
         <div className="px-3 py-2">
           <div className="module-header mb-4">
             <h3 className="text-center">Add New Supplier</h3>
@@ -183,7 +197,7 @@ function NewSupplierModal(props) {
           <div className="row my-2 mb-3">
             <div className="col-6 ps-4">
               <label>Mobile Number</label>
-              <input type="number"
+              <input type="text"
                 className="form-control shadow-none"
                 placeholder="09---------"
                 onChange={(event) => { setnewSupplierMobileNumber(event.target.value); }}
@@ -191,7 +205,7 @@ function NewSupplierModal(props) {
             </div>
             <div className="col-6 ps-4">
               <label>Telephone Number</label>
-              <input type="number"
+              <input type="text"
                 className="form-control shadow-none"
                 placeholder="(---) --- ---"
                 onChange={(event) => { setnewSupplierTelephoneNumber(event.target.value); }}
@@ -222,6 +236,7 @@ function NewSupplierModal(props) {
         </Button>
         <Button
           className="btn btn-light float-start"
+          disabled={disallowAddition}
           style={{ width: "6rem" }}
           onClick={() => { addSupplier(varRef.supplierId) }}>
           Save

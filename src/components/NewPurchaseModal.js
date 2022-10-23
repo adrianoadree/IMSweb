@@ -209,7 +209,8 @@ function NewPurchaseModal(props) {
             transaction_date: newDate,
             transaction_supplier: itemSupplier,
             product_list: items,
-            product_ids: productIds
+            product_ids: productIds,
+            isVoided: false
         });
 
         setItemSupplier("0")

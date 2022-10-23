@@ -1167,7 +1167,7 @@ function Itemforecast() {
                                             Description
                                         </div>
                                     </div>
-                                    <div className='scrollbar' style={{ height: '400px' }}>
+                                    <div className='scrollbar' style={{ height: '500px' }}>
                                         {stockcard.length === 0 ?
                                             <div className='py-4 px-2'>
                                                 <Alert variant="secondary" className='text-center'>

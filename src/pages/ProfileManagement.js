@@ -308,7 +308,8 @@ function ProfileManagement() {
                                   className="form-control"
                                   defaultValue={metadata.btype}
                                   required
-                                  onChange={(event) => { setNewBType((event.target.value)); } }>
+                                  onChange={(event) => { setNewBType((event.target.value)); } }
+                                >
                                   <option value="physical">Operation Type</option>
                                   <option value="online">Online</option>
                                   <option value="physical">Physical</option>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tab, Button, ListGroup, Modal, Card } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, Component  } from 'react';
 import { db, st} from '../firebase-config';
 import { getDoc, collection, doc, deleteDoc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -19,16 +19,25 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { UserAuth } from '../context/AuthContext'
 import  UserRouter  from '../pages/UserRouter'
 import { Spinner } from 'loading-animations-react';
+import  ProductQuickView  from '../components/ProductQuickView'
 
 
 function Warehouse({isAuth}) {
 
   const [shown, setShown] = useState(true);
+  
+  const [productToView, setProductToView] = useState(["IT0000001"])
   const [modalShowWH, setModalShowWH] = useState(false);
   const [modalShowMap, setModalShowMap] = useState(false);
   const [modalShowAP, setModalShowAP] = useState(false);
+  const [modalShowVS, setModalShowVS] = useState(false);
+  const [modalShowPQV, setModalShowPQV] = useState(false); //product quick view modal
   const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
-
+  const [productsInStorageWithInfo, setProductsInStorageWithInfo] = useState([])
+  const [idOfStorage, setIdOfStorage] = useState("");
+  const [remarksOfStorage, setRemarksOfStorage] = useState("");
+  const [typeOfStorage, setTypeOfStorage] = useState("");
+  const [productsOfStorage, setProductsOfStorage] = useState([]);
   const [warehouseDoc, setWarehouseDoc] = useState([]);
   const [warehouse, setWarehouse] = useState();
   const [whId, setWHId] = useState("xx");
@@ -45,6 +54,7 @@ function Warehouse({isAuth}) {
   const [warehouseListVisible, setWarehouseListVisible] = useState(true);
   const [colIndex, setColIndex] = useState(0);
   const [rowIndex, setRowIndex] = useState(0);
+  const [isStockcardFetched, setIsStockcardFetched] = useState();
   const [warehouseCell, setWarehouseCell] = 
       useState(
         [
@@ -68,9 +78,16 @@ function Warehouse({isAuth}) {
         ]
       );
 
+
+  
+
   //element state updater
   useEffect(() => {
-    setDimensions(1200/col) //set space width
+    //compute for DOM dimensions for proportions
+    var mapContainerWidth = getComputedStyle(document.getElementById("warehouse-map"));// get warehouse-map dimensions
+    var mapWidth = document.getElementById("warehouse-map").clientWidth // get warehouse-map width
+    mapWidth -= parseFloat(mapContainerWidth.paddingLeft) + parseFloat(mapContainerWidth.paddingRight); // subtract padding dimensions from width
+    setDimensions(mapWidth/col) //set space width
     setFontSize(60/col) // set font size for space id's
 
     var allGridlines = document.querySelectorAll(".box-col"); // select all box-col for editing
@@ -192,6 +209,16 @@ function Warehouse({isAuth}) {
       setIsFetched(true)
     }
   }, [warehouse])
+
+  useEffect(()=>{
+    if(stockcard === undefined) {
+      setIsStockcardFetched(false)
+    }
+    else
+    {
+      setIsStockcardFetched(true)
+    }
+  }, [stockcard])
   
   // get warehouse cell specification
   useEffect(() => {
@@ -242,6 +269,7 @@ function Warehouse({isAuth}) {
     tempCells[rowIndex][colIndex].isStorage = true;
     tempCells[rowIndex][colIndex].type = option;
     tempCells[rowIndex][colIndex].orientation = "flip-top";
+    tempCells[rowIndex][colIndex].remarks = " ";
     const getMap = doc(db, 'warehouse', whId);
     await updateDoc(getMap,{
         cells: tempCells
@@ -272,22 +300,179 @@ function Warehouse({isAuth}) {
   const deStorage = async (cells, rowIndex, colIndex) => {
     var tempCells = cells;
     tempCells[rowIndex][colIndex].isStorage = false;
+    tempCells[rowIndex][colIndex].products = [];
+    tempCells[rowIndex][colIndex].remarks = "";
     const getMap = doc(db, 'warehouse', whId);
     await updateDoc(getMap,{
         cells: tempCells
       });
   }
 
+  const handleProductDisplayWithInfo = (productList) => {
+    var tempStockcardList = [];
+    if(stockcard === undefined) 
+    {
+
+    }
+    else
+    {
+      stockcard.map((product)=>{
+        if(productList.indexOf(product.id) >= 0)
+          tempStockcardList.push(product)
+      })
+      setProductsInStorageWithInfo(tempStockcardList)
+    }
+  }
+
+  function ViewStorage(props) {
+    var tempStockcardList = [];
+    if(stockcard === undefined) 
+    {
+
+    }
+    else
+    {
+      stockcard.map((product)=>{
+        if(productsOfStorage.indexOf(product.id) >= 0)
+          tempStockcardList.push(product)
+      })
+    }
+
+    while (tempStockcardList.length < 32) {
+      var stockcardTempObj={
+        "id":" ",
+        "qty": "",
+        "description": " ",
+        "img": ""
+      }
+      tempStockcardList.push(stockcardTempObj)
+    }
+
+    while (tempStockcardList.length % 8 != 0) {
+      var stockcardTempObj={
+        "id":" ",
+        "qty": "",
+        "description": " "
+      }
+      tempStockcardList.push(stockcardTempObj)
+    }
+
+    var rowArray = []
+    var colArray = []
+
+    for(var i = 0; i < tempStockcardList.length; i++) {
+      colArray.push(tempStockcardList[i])
+      if((i + 1) % 8 == 0) {
+        rowArray.push(colArray)
+        colArray = []
+      }
+    }
+
+    return (
+        <Modal
+            {...props}
+            size="lg"
+            aria-labelledby="contained-modal-title-vcenter"
+            centered
+            className="IMS-modal"
+        >
+          <Modal.Body
+            className="d-flex justify-content-center">
+            {isFetched?
+              <div className='row py-3 px-4'>
+                <div className="storage-metadata-container d-flex align-items-center justify-content-center">
+                  <div className="storage-metadata d-flex justify-content-center flex-column align-items-center">
+                    <div>
+                      <h3 className="text-center">
+                        {whId.substring(0,4)}
+                      </h3>
+                      <h5 className="text-center">
+                        {idOfStorage}
+                      </h5>
+                    </div>
+                  </div>
+                </div>
+                <div className="row my-2 mx-0 mb-3">
+                  <div className='col-12 p-0' style={{lineHeight: '0'}}>
+                      {rowArray.map((products) => {
+                        return(
+                          <>
+                          <div className="col-12 p-0 shelf-top m-0"></div>
+                          <div className="col-12 p-0 m-0 shelf-center w-100">
+                            <div className=" d-flex justify-content-center flex-row align-items-center p-3 h-100">
+                              
+                              {products.map((item)=>{
+                                return (
+                                  <>
+                                    {item.id != " "?
+                                      <div 
+                                        className="storage-item w-100 h-100"
+                                        key={item.id}
+                                      >
+                                        <div className="product-qty-container">
+                                          <div className="product-qty">
+                                            <div className="blue-circle d-flex align-items-center justify-content-center" style={{padding: '0'}}>
+                                              <div>
+                                            {item.qty}  
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <button 
+                                          className="storage-item-img-container m-0 p-0 w-100 d-flex align-items-center justify-content-center"
+                                          onClick={()=>{setProductToView(item.id); setModalShowPQV(true)}}
+                                        >
+                                          {item.img == " " || item.img == ""?
+                                            <div className="scroll-text-horizontally storage-item-no-image" style={{margin: '0.2em'}}>{item.description}</div>
+                                          :
+                                          <img src={item.img} style={{height: '100%', width: 'auto'}}/>
+                                          }
+                                        </button>
+                                      </div>
+                                    :
+                                      <div 
+                                        className="storage-item-empty w-100 h-100"
+                                        key={item.id}
+                                      >
+                                        <button 
+                                          className="storage-item-img-container m-0 p-0 w-100 d-flex align-items-center justify-content-center"
+                                          style={{background: 'none !important'}}
+                                        >
+                                        </button>
+                                      </div>
+                                    }
+                                  </>
+                                )
+                              })}
+                            </div>
+                          </div>
+                          </>
+                        )
+                      })}
+                      <div className="col-12 p-0 shelf-bottom"></div>
+                  </div>
+                </div>
+              </div>
+            :
+              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                <Spinner 
+                color1="#b0e4ff"
+                color2="#fff"
+                textColor="rgba(0,0,0, 0.5)"
+                className="w-50 h-50"
+                />
+              </div>
+            }
+        </Modal.Body>
+      </Modal>
+    );
+  }
+
   function WarehouseMapAddProductModal(props) {
     const [productsInStorage, setProductsInStorage] = useState([]);
     const [cellId, setCellId] = useState("");
     const [cellType, setCellType] = useState("");
-    const [cellRemarks, setCellRemarks] = useState("");
-
-    useEffect(()=>{
-      /*console.log(newCellID)
-      console.log(cellRemarks)*/
-    })
+    const [cellRemarks, setCellRemarks] = useState(" ");
 
     useEffect(()=>{
       if(warehouseDoc === undefined) {
@@ -331,10 +516,11 @@ function Warehouse({isAuth}) {
     tempCell[rowIndex][colIndex].products = productsInStorage
     tempCell[rowIndex][colIndex].id = cellId
     tempCell[rowIndex][colIndex].remarks = cellRemarks
-      const getWarehouse = doc(db, 'warehouse', whId);
-      await updateDoc(getWarehouse,{
-          cells: tempCell,
-        });
+    const getWarehouse = doc(db, 'warehouse', whId);
+    
+    await updateDoc(getWarehouse,{
+      cells: tempCell
+    });
     props.onHide()
   }
 
@@ -370,139 +556,139 @@ function Warehouse({isAuth}) {
                     />
                   </div>
                 </div>
-          <div className="row my-2 mb-3">
-            {isFetched?
-              <div id="product-adding-stage">
-                <div className="row h-100">
-                  <div className="col-5 p-0 h-100 ">
-                    <div className="product-adding-stage-active h-100 ">
-                      <div className="product-adding-stage-header">
-                        Products in Stockcard
-                      </div>
-                      <div className="products-container">
-                        <div className="row">
-                        <p className="product-adding-stage-tip">Click a product to <span style={{color: '#629ce3c3'}}>add</span> to the storage</p>
+                <div className="row my-2 mb-3">
+                  {isStockcardFetched?
+                    <div id="product-adding-stage">
+                      <div className="row h-100">
+                        <div className="col-5 p-0 h-100 ">
+                          <div className="product-adding-stage-active h-100 ">
+                            <div className="product-adding-stage-header">
+                              Products in Stockcard
+                            </div>
+                            <div className="products-container">
+                              <div className="row">
+                              <p className="product-adding-stage-tip">Click a product to <span style={{color: '#629ce3c3'}}>add</span> to the storage</p>
+                              </div>
+                              <div className="row">
+                                {stockcard.map((stockcard, index) => {
+                                  return (
+                                    <>
+                                    {productsInStorage === undefined? <>
+                                    <Spinner 
+                                      color1="#b0e4ff"
+                                      color2="#fff"
+                                      textColor="rgba(0,0,0, 0.5)"
+                                      className="w-25 h-25"
+                                    /></>:<>
+                                      {stockcard === undefined?<></>:<>
+                                        {productsInStorage.indexOf(stockcard.id) == -1?
+                                          <div className="col-6 p-0">
+                                            <button
+                                              className="product-inselection"
+                                              id={stockcard.id}
+                                              key={stockcard.id}
+                                              onClick={() => { handleProductSelect(stockcard.id)}}
+                                              style={{border: '0', background: 'none'}}
+                                            >
+                                              <Card>
+                                                <Card.Body>
+                                                  <strong>{stockcard.description}</strong>
+                                                  <div className="row specification" style={{margin: '0 auto'}}>
+                                                    <div className="col-8 p-0 p-0">
+                                                      <p className="code">{stockcard.id.substring(0, 9)}</p>
+                                                    </div>
+                                                    <div className="col-4 p-0 p-0">
+                                                    <p className="qty">QTY: {stockcard.qty}</p>
+                                                    </div>
+                                                  </div>
+                                                  
+                                                  
+                                                </Card.Body>
+                                              </Card>
+                                            </button>
+                                          </div>
+                                      
+                                        :<></>}
+                                      </>}
+                                    </>}
+                                  </>)})}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="row">
-                          {stockcard.map((stockcard, index) => {
-                            return (
-                              <>
-                              {productsInStorage === undefined? <>
-                              <Spinner 
-                                color1="#b0e4ff"
-                                color2="#fff"
-                                textColor="rgba(0,0,0, 0.5)"
-                                className="w-25 h-25"
-                                /></>:<>
-                                {stockcard === undefined?<></>:<>
-                                  {productsInStorage.indexOf(stockcard.id) == -1?
-                                    <div className="col-6 p-0">
-                                      <button
-                                        className="product-inselection"
-                                        id={stockcard.id}
-                                        key={stockcard.id}
-                                        onClick={() => { handleProductSelect(stockcard.id)}}
-                                        style={{border: '0', background: 'none'}}
-                                      >
-                                        <Card>
-                                          <Card.Body>
-                                            <strong>{stockcard.description}</strong>
-                                            <div className="row specification" style={{margin: '0 auto'}}>
-                                              <div className="col-8 p-0 p-0">
-                                                <p className="code">{stockcard.id.substring(0, 9)}</p>
-                                              </div>
-                                              <div className="col-4 p-0 p-0">
-                                              <p className="qty">QTY: {stockcard.qty}</p>
-                                              </div>
-                                            </div>
-                                            
-                                            
-                                          </Card.Body>
-                                        </Card>
-                                      </button>
-                                    </div>
-                                
-                                  :<></>}
-                                </>}
-                              </>}
-                            </>)})}
+                        <div className="col-2 h-100 d-flex align-items-center justify-content-center">
+                          <div className={'storage ' + cellType} style={{height: '100px', width: '100px'}}>
+                            <div className="w-100 h-100 position-relative d-inline-block d-flex align-items-center">
+                              <div className="position-absolute" style={{color: 'rgb(9, 255, 0)', lineHeight: '0', fontSize: '1.5rem', left: '-0.5em', backgroundColor: '#fff', padding: '0.25em', borderRadius: '50%'}}>
+                                <div><FontAwesomeIcon icon={faArrowCircleRight} /></div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
+                        <div className="col-5 h-100 p-0">
+                        <div className="product-adding-stage-active instorage h-100">
+                            <div className="product-adding-stage-header">
+                              Products in this Storage
+                            </div>
+                            <div className="products-container">
+                            <div className="row">
+                              <p className="product-adding-stage-tip">Click a product to <span style={{color: '#e36262c3'}}>remove</span> from the storage</p>
+                              </div>
+                              <div className="row">
+                                {stockcard.map((stockcard, index) => {
+                                  return (
+                                    <>
+                                    {productsInStorage === undefined?<></>:<>
+                                      {stockcard === undefined?<></>:<>
+                                        {productsInStorage.indexOf(stockcard.id) >= 0?
+                                          <div className="col-6 p-0">
+                                            <button
+                                              className="product-inselection"
+                                              id={stockcard.id}
+                                              key={stockcard.id}
+                                              onClick={() => { handleProductSelect(stockcard.id)}}
+                                              
+                                            >
+                                              <Card
+                                              >
+                                                <Card.Body>
+                                                  <strong>{stockcard.description}</strong>
+                                                  <div className="row specification" style={{margin: '0 auto'}}>
+                                                    <div className="col-8 p-0 p-0">
+                                                      <p className="code">{stockcard.id.substring(0, 9)}</p>
+                                                    </div>
+                                                    <div className="col-4 p-0 p-0">
+                                                    <p className="qty">QTY: {stockcard.qty}</p>
+                                                    </div>
+                                                  </div>
+                                                </Card.Body>
+                                              </Card>
+                                            </button>
+                                          </div>
+                                      
+                                        :<></>}
+                                      </>}
+                                    </>}
+                                  </>)})}
+                              </div>
+                            </div>
+                          </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="col-2 h-100 d-flex align-items-center justify-content-center">
-                    <div className={'storage ' + cellType} style={{height: '100px', width: '100px'}}>
-                      <div className="w-100 h-100 position-relative d-inline-block d-flex align-items-center">
-                        <div className="position-absolute" style={{color: 'rgb(9, 255, 0)', lineHeight: '0', fontSize: '1.5rem', left: '-0.5em', backgroundColor: '#fff', padding: '0.25em', borderRadius: '50%'}}>
-                          <div><FontAwesomeIcon icon={faArrowCircleRight} /></div>
-                        </div>
-                      </div>
+                      
                     </div>
-                  </div>
-                  <div className="col-5 h-100 p-0">
-                  <div className="product-adding-stage-active instorage h-100">
-                      <div className="product-adding-stage-header">
-                        Products in this Storage
-                      </div>
-                      <div className="products-container">
-                      <div className="row">
-                        <p className="product-adding-stage-tip">Click a product to <span style={{color: '#e36262c3'}}>remove</span> from the storage</p>
-                        </div>
-                        <div className="row">
-                          {stockcard.map((stockcard, index) => {
-                            return (
-                              <>
-                              {productsInStorage === undefined?<></>:<>
-                                {stockcard === undefined?<></>:<>
-                                  {productsInStorage.indexOf(stockcard.id) >= 0?
-                                    <div className="col-6 p-0">
-                                      <button
-                                        className="product-inselection"
-                                        id={stockcard.id}
-                                        key={stockcard.id}
-                                        onClick={() => { handleProductSelect(stockcard.id)}}
-                                        
-                                      >
-                                        <Card
-                                        >
-                                          <Card.Body>
-                                            <strong>{stockcard.description}</strong>
-                                            <div className="row specification" style={{margin: '0 auto'}}>
-                                              <div className="col-8 p-0 p-0">
-                                                <p className="code">{stockcard.id.substring(0, 9)}</p>
-                                              </div>
-                                              <div className="col-4 p-0 p-0">
-                                              <p className="qty">QTY: {stockcard.qty}</p>
-                                              </div>
-                                            </div>
-                                          </Card.Body>
-                                        </Card>
-                                      </button>
-                                    </div>
-                                
-                                  :<></>}
-                                </>}
-                              </>}
-                            </>)})}
-                        </div>
-                      </div>
+                  :
+                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                      <Spinner 
+                      color1="#b0e4ff"
+                      color2="#fff"
+                      textColor="rgba(0,0,0, 0.5)"
+                      className="w-25 h-25"
+                      />
                     </div>
+                  }
                 </div>
-              </div>
-                
-              </div>
-            :
-              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                <Spinner 
-                color1="#b0e4ff"
-                color2="#fff"
-                textColor="rgba(0,0,0, 0.5)"
-                className="w-25 h-25"
-                />
-              </div>
-            }
-          </div>
-          </div>
+                </div>
             </Modal.Body>
             <Modal.Footer
         className="d-flex justify-content-center"
@@ -529,179 +715,190 @@ function Warehouse({isAuth}) {
   function DisplayMap(){
     return (
       <>
+      
+                          
+      <ViewStorage
+                                      show={modalShowVS}
+                                      onHide={() => setModalShowVS(false)}
+                                    />
       {warehouseDoc.cells.map((content,index) => {
         return(
           <div className="box-row d-flex align-items-center">    
             {Object.keys(content).map((k) => {
               return (
                 <>
-                  <a 
-                    className="box d-flex align-items-center justify-content-center"
-                    key={'row' + index + '-' + k}
+                  <div
+                    draggable
                   >
-                    <div className="box-call-to-action"
-                      key={'ca' + index + '-' + k}>
-                      <div className="box-ca-container">
-                        {editing?
-                          <>
-                            <div className="color-changer d-flex justify-content-center align-items-center mb-2">
-                              <div className="color-swatch d-flex justify-content-center">
-                                <button className="color pattern-none"
-                                  onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-none")}}
-                                >
-                                </button>
-                                <button className="color pattern-smooth-concrete"
-                                  onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-smooth-concrete") }}
-                                >
-                                </button>
-                                <button className="color pattern-rough-concrete"
-                                  onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-rough-concrete")}}
-                                >
-                                </button>
-                                <button className="color pattern-dark-wood"
-                                  onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-dark-wood")}}
-                                >
-                                </button>
-                                <button className="color pattern-light-wood"
-                                  style={{}}
-                                  onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-light-wood")}}
-                                >
-                                </button>
-                                <button className="color pattern-white-tile"
-                                  onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-white-tile")}}
-                                >
-                                </button>
-                                <button className="color pattern-cobblestone"
-                                  style={{}}
-                                  onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-cobblestone")}}
-                                >
-                                </button>
-                              </div>
-                            </div>
-                            {content[k].isStorage?
+                    <a 
+                      className="box d-flex align-items-center justify-content-center"
+                      key={'row' + index + '-' + k}
+                      onMouseEnter={()=>{handleProductDisplayWithInfo(content[k].products)}}
+                    >
+                      <div className="box-call-to-action"
+                        key={'ca' + index + '-' + k}>
+                        <div className="box-ca-container">
+                          {editing?
                             <>
-                              <div className="d-flex flex-row mb-2">
-                                <button className="box-call-to-action-button me-5"
-                                  onClick={()=>{setRowIndex(index);setColIndex(k);setModalShowAP(true)}}
-                                >
-                                  Edit Products
-                                </button>
-                                <div className="storage-options">
-                                  <button
-                                    className="box-call-to-action-button "
-                                    value="delete"
-                                    onClick={(show)=>deStorage(warehouseDoc.cells, index, k)}
+                              <div className="color-changer d-flex justify-content-center align-items-center mb-2">
+                                <div className="color-swatch d-flex justify-content-center">
+                                  <button className="color pattern-none"
+                                    onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-none")}}
                                   >
-                                    Clear
+                                  </button>
+                                  <button className="color pattern-smooth-concrete"
+                                    onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-smooth-concrete") }}
+                                  >
+                                  </button>
+                                  <button className="color pattern-rough-concrete"
+                                    onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-rough-concrete")}}
+                                  >
+                                  </button>
+                                  <button className="color pattern-dark-wood"
+                                    onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-dark-wood")}}
+                                  >
+                                  </button>
+                                  <button className="color pattern-light-wood"
+                                    style={{}}
+                                    onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-light-wood")}}
+                                  >
+                                  </button>
+                                  <button className="color pattern-white-tile"
+                                    onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-white-tile")}}
+                                  >
+                                  </button>
+                                  <button className="color pattern-cobblestone"
+                                    style={{}}
+                                    onClick={()=>{changeColor(warehouseDoc.cells, index, k, "pattern-cobblestone")}}
+                                  >
                                   </button>
                                 </div>
                               </div>
-                                <div className="storage-options d-flex flex-row mb-2">
-                                  <button
-                                    className="box-call-to-action-button no-click"
-                                    value="context-sm"
-                                  >Edit:</button>
-                                  <button
-                                    className="box-call-to-action-button with-icon"
-                                    data-title="Palet"
-                                    onClick={()=>changeStorage(warehouseDoc.cells, index, k, 'palet')}
-                                  >
-                                    <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-palet.png?alt=media&token=8c2de023-30de-4f00-8d2b-453a25ae823f")'}}></div>
-                                  </button>
-                                  <button
-                                    className="box-call-to-action-button with-icon"
-                                    data-title="Shelf"
-                                    onClick={()=>changeStorage(warehouseDoc.cells, index, k, 'shelf')}
-                                  >
-                                    <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-shelf.png?alt=media&token=167f685a-d810-4fe4-a90e-a5cd2168647c")'}}></div>
-                                  </button>
-                                  <button
-                                    className="box-call-to-action-button with-icon"
-                                    onClick={()=>changeStorage(warehouseDoc.cells, index, k, 'freezer')}
-                                  >
-                                    <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-freezer.png?alt=media&token=83f133ae-7159-4c4c-8d14-bd61f35ef8ed")'}}></div>
-                                    </button>
-                                </div>
-                                <div className="storage-options d-flex flex-row mb-2">
-                                  <button
-                                    className="box-call-to-action-button no-click"
-                                    value="context-sm"
-                                  >Flip:</button>
-                                  <button
-                                    className="box-call-to-action-button with-icon"
-                                    onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-top')}
-                                  >
-                                    <div 
-                                      className="flip-top"
-                                      style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
-                                    ></div>
-                                  </button>
-                                  <button
-                                    className="box-call-to-action-button with-icon"
-                                    onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-left')}
-                                  >
-                                    <div 
-                                      className="flip-left"
-                                      style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
-                                    ></div>
-                                  </button>
-                                  <button
-                                    className="box-call-to-action-button with-icon"
-                                    onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-right')}
-                                  >
-                                    <div 
-                                      className="flip-right"
-                                      style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
-                                    ></div>
-                                  </button>
-                                  <button
-                                    className="box-call-to-action-button with-icon"
-                                    onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-bottom')}
-                                  >
-                                    <div 
-                                      className="flip-bottom"
-                                      style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
-                                    ></div>
-                                  </button>
-                                </div>
-                              </>
-                            :
+                              {content[k].isStorage?
                               <>
-                                <div className="storage-options d-flex flex-row">
-                                  <button
-                                    className="box-call-to-action-button no-click"
-                                    value="context"
-                                  >Place a:</button>
-                                  <button
-                                    className="box-call-to-action-button"
-                                    onClick={()=>toStorage(warehouseDoc.cells, index, k, "palet")}>Palet</button>
-                                  <button
-                                    className="box-call-to-action-button"
-                                    onClick={()=>toStorage(warehouseDoc.cells, index, k, "shelf")}>Shelf</button>
-                                  <button
-                                    className="box-call-to-action-button"
-                                    onClick={()=>toStorage(warehouseDoc.cells, index, k, "freezer")}>Freezer</button>
+                                <div className="d-flex flex-row mb-2">
+                                  <button className="box-call-to-action-button me-5"
+                                    onClick={()=>{setRowIndex(index);setColIndex(k);setModalShowAP(true)}}
+                                  >
+                                    Edit Products
+                                  </button>
+                                  <div className="storage-options">
+                                    <button
+                                      className="box-call-to-action-button "
+                                      value="delete"
+                                      onClick={(show)=>deStorage(warehouseDoc.cells, index, k)}
+                                    >
+                                      Clear
+                                    </button>
+                                  </div>
                                 </div>
-                              </>
-                            }
-                          </>
-                        :
-                        <>
-                          {content[k].isStorage?
-                            <>
-                            {content[k].products.length == 0?
-                              <div className="product-list fst-italic d-flex align-items-center justify-content-center">
-                                <div>No products in this Storage</div>
-                              </div>
-                            :
+                                  <div className="storage-options d-flex flex-row mb-2">
+                                    <button
+                                      className="box-call-to-action-button no-click"
+                                      value="context-sm"
+                                    >Edit:</button>
+                                    <button
+                                      className="box-call-to-action-button with-icon"
+                                      data-title="Pallet"
+                                      onClick={()=>changeStorage(warehouseDoc.cells, index, k, 'pallet')}
+                                    >
+                                      <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-palet.png?alt=media&token=8c2de023-30de-4f00-8d2b-453a25ae823f")'}}></div>
+                                    </button>
+                                    <button
+                                      className="box-call-to-action-button with-icon"
+                                      data-title="Shelf"
+                                      onClick={()=>changeStorage(warehouseDoc.cells, index, k, 'shelf')}
+                                    >
+                                      <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-shelf.png?alt=media&token=167f685a-d810-4fe4-a90e-a5cd2168647c")'}}></div>
+                                    </button>
+                                    <button
+                                      className="box-call-to-action-button with-icon"
+                                      onClick={()=>changeStorage(warehouseDoc.cells, index, k, 'freezer')}
+                                    >
+                                      <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-freezer.png?alt=media&token=83f133ae-7159-4c4c-8d14-bd61f35ef8ed")'}}></div>
+                                      </button>
+                                  </div>
+                                  <div className="storage-options d-flex flex-row mb-2">
+                                    <button
+                                      className="box-call-to-action-button no-click"
+                                      value="context-sm"
+                                    >Flip:</button>
+                                    <button
+                                      className="box-call-to-action-button with-icon"
+                                      onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-top')}
+                                    >
+                                      <div 
+                                        className="flip-top"
+                                        style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
+                                      ></div>
+                                    </button>
+                                    <button
+                                      className="box-call-to-action-button with-icon"
+                                      onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-left')}
+                                    >
+                                      <div 
+                                        className="flip-left"
+                                        style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
+                                      ></div>
+                                    </button>
+                                    <button
+                                      className="box-call-to-action-button with-icon"
+                                      onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-right')}
+                                    >
+                                      <div 
+                                        className="flip-right"
+                                        style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
+                                      ></div>
+                                    </button>
+                                    <button
+                                      className="box-call-to-action-button with-icon"
+                                      onClick={()=>flipStorage(warehouseDoc.cells, index, k, 'flip-bottom')}
+                                    >
+                                      <div 
+                                        className="flip-bottom"
+                                        style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
+                                      ></div>
+                                    </button>
+                                  </div>
+                                </>
+                              :
+                                <>
+                                  <div className="storage-options d-flex flex-row">
+                                    <button
+                                      className="box-call-to-action-button no-click"
+                                      value="context"
+                                    >Place a:</button>
+                                    <button
+                                      className="box-call-to-action-button"
+                                      onClick={()=>toStorage(warehouseDoc.cells, index, k, "pallet")}>Pallet</button>
+                                    <button
+                                      className="box-call-to-action-button"
+                                      onClick={()=>toStorage(warehouseDoc.cells, index, k, "shelf")}>Shelf</button>
+                                    <button
+                                      className="box-call-to-action-button"
+                                      onClick={()=>toStorage(warehouseDoc.cells, index, k, "freezer")}>Freezer</button>
+                                  </div>
+                                </>
+                              }
+                            </>
+                          :
+                          <>
+                            {content[k].isStorage?
                               <div className="product-list">
-                                {stockcard.slice(0, 4).map((prod, index) => {
-                                  return(
+                              {content[k].products.length == 0?
+                                <div>No products in this Storage</div>
+                              :
+                                <>
+                                  {productsInStorageWithInfo === undefined?
+                                    <></>
+                                  :
                                     <>
-                                      {stockcard === undefined?<></>:<>
-                                        {content[k].products.indexOf(prod.id) >= 0?
+                                      {productsInStorageWithInfo.slice(0, 4).map((prod, index) => {
+                                        return(
                                           <>
-                                            <div className="row my-2 d-flex align-items-center">
+                                            <div className="row my-2 d-flex align-items-center
+                                              key={productCounter++}"
+                                            >
                                               <div className="col-1 p-0">
                                                 <div className="blue-circle d-flex align-items-center justify-content-center">
                                                   <div>{index + 1}</div>
@@ -710,77 +907,90 @@ function Warehouse({isAuth}) {
                                               <div className="col-3 p-0">
                                                 <strong>{prod.id.substring(0,9)}</strong>
                                               </div>
-                                              <div className="col-6 p-0">{prod.description}</div>
+                                              <div className="col-6 p-0 pe-1 scroll-text-horizontally">{prod.description}</div>
                                               <div className="col-2 p-0"><span className="qty">QTY: {prod.qty}</span></div>
                                             </div>
                                             <br />
                                           </>
-                                        :
-                                        
-                                          <></>
-                                        }
-                                        </>
-                                        
-                                      }
+                                        )
+                                      })}
                                     </>
-                                  )
-                                })}
-                                {content[k].products.length > 4?
-                                          <div className="row my-3">
-                                            <div className="col-12">View All</div>
-                                          </div>
-                                          :
-                                          <></>
-                                        }
+                                  }
+                                  <div className="row my-1">
+                                    {content[k].products.length > 4?
+                                      <div className="col-1 px-0">
+                                        <div className="blue-circle d-flex align-items-center justify-content-center" style={{letterSpacing: '0'}}>
+                                          <div><span style={{fontSize: '0.8em'}}>+</span>{content[k].products.length -4}</div>
+                                        </div>
+                                      </div>
+                                    :
+                                      <></>
+                                    }
+                                    <div className="col-9 px-0">
+                                      <Button
+                                        variant="btn btn-success"
+                                        onClick={()=>{
+                                          setIdOfStorage(content[k].id);
+                                          setRemarksOfStorage(content[k].id);
+                                          setProductsOfStorage(content[[k]].products);
+                                          setTypeOfStorage(content[k].type);
+                                          setModalShowVS(true)
+                                        }}
+                                      >
+                                        View in Detail
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </>
+                              }
                               </div>
+                            :
+                              <></>
                             }
-                            
-                            </>
-                          :
-                            <></>
+                          </>
+                          
                           }
-                        </>
-                        }
-                        
-                      </div>
-                    </div>
-                    <div className={'box-col ' + content[k].color} style ={{width: dimensions + 'px', height: dimensions + 'px'}}
-                    key={'col' + index + '-' + k}
-                    >
-                      {content[k].isStorage?
-                        <div className={'storage ' + content[k].type + ' ' + content[k].orientation}>
-                          <div className="cell-info" style={{fontSize: fontSize + 'pt'}}>
-                            <span className="cell-id d-none">{content[k].id}</span>
-                            <div className="qr-code d-flex justify-content-center d-none">
-                              <QRCode
-                                value={content[k].id}
-                                size={50}
-                              />
-                            </div>
-                          </div>      
-                          {content[k].products.map((val, k) => {
-                            return(
-                              <div>
-                                
-                              </div>
-                              )
-                            })}
+                          
                         </div>
-                      :
-                        <>
-                        <div className="cell-info" style={{fontSize: fontSize + 'pt'}}>
-                          <span className="cell-id d-none">{content[k].id}</span>
-                        </div>      
-                          {content[k].products.map((val, k) => {
-                            return(
-                              <div>
+                      </div>
+                      <div className={'box-col ' + content[k].color} style ={{width: dimensions + 'px', height: dimensions + 'px'}}
+                      key={'col' + index + '-' + k}
+                      >
+                        {content[k].isStorage?
+                          <div className={'storage ' + content[k].type + ' ' + content[k].orientation}>
+                            <div className="cell-info" style={{fontSize: fontSize + 'pt'}}>
+                              <span className="cell-id d-none">{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</span>
+                              <div className="qr-code d-flex justify-content-center d-none">
+                                <QRCode
+                                  value={content[k].id}
+                                  size={50}
+                                />
                               </div>
-                              )
-                          })}
-                        </>
-                      }
-                    </div>
-                  </a>
+                            </div>      
+                            {content[k].products.map((val, k) => {
+                              return(
+                                <div>
+                                  
+                                </div>
+                                )
+                              })}
+                          </div>
+                        :
+                          <>
+                          <div className="cell-info" style={{fontSize: fontSize + 'pt'}}>
+                            <span className="cell-id d-none">{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</span>
+                          </div>      
+                            {content[k].products.map((val, k) => {
+                              return(
+                                <div>
+                                </div>
+                                )
+                            })}
+                          </>
+                        }
+                      </div>
+                    </a>
+                  </div>
                 </>   
               ); 
             })}
@@ -799,6 +1009,11 @@ return (
     <Navigation 
       page='/warehouse'
     />
+    <ProductQuickView
+      show={modalShowPQV}
+      onHide={() => setModalShowPQV(false)}
+      productid={productToView}
+    />
     <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
       <div className="row contents">
         <div className="row py-4 px-5">
@@ -807,14 +1022,12 @@ return (
               <h1 className="pb-2 module-title">Warehouse Management</h1>
               <hr></hr>
             </div>
-            <div className="hsidebar-segment divider">
-                  
-            </div>
+            <div className="hsidebar-segment divider"></div>
             <div className="hsidebar-segment right">
-              <div className="warehouse-title">
+              <div id="warehouse-title">
                 <h5>Warehouse List [{isFetched?<>{warehouse.length}</>:<></>}]</h5>
               </div>
-              <div className="warehouse-list" style={{height: '100px'}}>
+              <div id="warehouse-list" style={{minHeight: '100px'}}>
                 <div className="row">
                   <div className="col-11">
                     <NewWarehouseModal
@@ -1001,7 +1214,7 @@ return (
                 onClick={() => {warehouseListVisible?setWarehouseListVisible(false):setWarehouseListVisible(true)}}
               >
                 {warehouseListVisible?
-                  <CaretDown
+                  <CaretUp
                     className="caret pull-down"
                     color={'#000000'} 
                     title={'Category'}
@@ -1009,7 +1222,7 @@ return (
                     width="15px"
                   />
                 :
-                  <CaretUp
+                  <CaretDown
                     className="caret pull-down"
                     color={'#000000'} 
                     title={'Category'}
@@ -1026,7 +1239,7 @@ return (
             className="px-0">
             <Tab.Pane eventKey={whId}>
               <div className="data-contents horizontal">
-                <div className="warehouse-info">
+                <div id="warehouse-info">
                   <div className="row d-flex align-items-center">
                     <div className="col-4">
                       <h3><strong>{warehouseDoc.wh_name}</strong></h3>
@@ -1065,7 +1278,7 @@ return (
                   </div>
                 </div>
                 <div className="map-container">
-                  <div className="warehouse-map">
+                  <div id="warehouse-map">
                     {warehouseDoc.isInit === undefined?
                       <div className="d-flex align-items-center justify-content-center flex-column p-5">
                         <Spinner 
@@ -1079,44 +1292,41 @@ return (
                       <>
                       {warehouseDoc.isInit?
                         <>
-                            <WarehouseMapAddProductModal
-                              show={modalShowAP}
-                              onHide={() => setModalShowAP(false)}
-                            />
-                            {zooming?
+                          <WarehouseMapAddProductModal
+                            show={modalShowAP}
+                            onHide={() => setModalShowAP(false)}
+                          />
+                          {zooming?
                             <>
-                           
-                                <TransformWrapper
-                                  initialScale={1}
-                                  minScale={0.25}
-                                  maxScale={7}
-                                  initialPositionX={0}
-                                  initialPositionY={0}
-                                  position={0}
-                                  options={
-                                    {
-                                      transformEnabled: false,
-                                      centerContent: false,}
-                                    }
-                                  wheel={
-                                    {disabled: !zooming,}
+                              <TransformWrapper
+                                initialScale={1}
+                                minScale={0.25}
+                                maxScale={7}
+                                initialPositionX={0}
+                                initialPositionY={0}
+                                position={0}
+                                options={
+                                  {
+                                    transformEnabled: false,
+                                    centerContent: false,}
                                   }
-                                  enablePadding={false}
-                                >
-                                  {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
-                                    <React.Fragment>
-                                      <TransformComponent>
-                                        <DisplayMap/>
-                                      </TransformComponent>
-                                    </React.Fragment>
-                                  )}
-                                </TransformWrapper>
-                              
-                              
+                                wheel={
+                                  {disabled: !zooming,}
+                                }
+                                enablePadding={false}
+                              >
+                                {({ zoomIn, zoomOut, resetTransform, ...rest }) => (
+                                  <React.Fragment>
+                                    <TransformComponent>
+                                      <DisplayMap/>
+                                    </TransformComponent>
+                                  </React.Fragment>
+                                )}
+                              </TransformWrapper>
                             </>
-                            :<DisplayMap/>
-                              
-                            }
+                          :
+                            <DisplayMap/>
+                          }
                         </>
                       :
                         <>
@@ -1142,8 +1352,6 @@ return (
                       }
                       </>
                     }
-                    
-                   
                   </div>
                 </div>
               </div>
@@ -1154,6 +1362,5 @@ return (
     </Tab.Container>
  </div>
 );
-
 }
 export default Warehouse;

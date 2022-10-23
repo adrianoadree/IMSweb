@@ -1,4 +1,4 @@
-import React from 'react';
+import RPersoneact from 'react';
 import { Tab, Button, Card, ListGroup, Modal, Form, Alert } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
@@ -328,11 +328,15 @@ function SupplierList() {
                 </Card.Header>
                 <Card.Body style={{ height: "500px" }}>
                   <div className="row g-1 sidebar-header">
-                    <div className="col-4 left-curve">
-                      Supplier ID
+                    <div className="col-2 left-curve">
+                      <div  style={{fontSize: '0.6em'}}>Supplier</div>
+                      ID
                     </div>
-                    <div className="col-8 right-curve">
+                    <div className="col-6">
                       Supplier Name
+                    </div>
+                    <div className="col-4 right-curve">
+                      Contact Number
                     </div>
                   </div>
                   <div id='scrollbar' style={{ height: '400px' }}>
@@ -364,11 +368,14 @@ function SupplierList() {
                             eventKey={supplier.id}
                             onClick={() => { setDocId(supplier.id) }}>
                             <div className="row gx-0 sidebar-contents">
-                              <div className="col-4">
+                              <div className="col-2">
                                 <small>{supplier.id.substring(0,5)}</small>
                               </div>
-                              <div className="col-8">
+                              <div className="col-6">
                                 <small>{supplier.supplier_name}</small>
+                              </div>
+                              <div className="col-4">
+                                <small>{supplier.supplier_mobileNum}</small>
                               </div>
                             </div>
                           </ListGroup.Item>
@@ -408,7 +415,6 @@ function SupplierList() {
                       <div className="col">
                         <span>
                           <InformationCircle
-                            className="me-2 pull-down"
                             color={'#0d6efd'}
                             title={'Category'}
                             height="40px"
@@ -450,7 +456,6 @@ function SupplierList() {
                           <div className="col-6 px-1">
                             <span className="data-icon">
                               <Person
-                                className="me-2 pull-down"
                                 color={'#000000'}
                                 height="25px"
                                 width="25px"
@@ -462,7 +467,6 @@ function SupplierList() {
                           <div className="col-6 px-1">
                             <span className="data-icon">
                               <Location
-                                className="me-2 pull-down"
                                 color={'#00000'}
                                 title={'Category'}
                                 height="25px"
@@ -478,7 +482,6 @@ function SupplierList() {
                           <div className="col-3 px-1">
                             <span className="data-icon sm">
                               <PhonePortrait
-                                className="me-2 pull-down"
                                 color={'#000000'}
                                 height="25px"
                                 width="25px"
@@ -490,7 +493,6 @@ function SupplierList() {
                           <div className="col-3 px-1">
                             <span className="data-icon sm">
                               <Call
-                                className="me-2 pull-down"
                                 color={'#00000'}
                                 title={'Purchase Price'}
                                 height="25px"
@@ -504,7 +506,6 @@ function SupplierList() {
                           <div className="col-6 px-1">
                             <span className="data-icon">
                               <Mail
-                                className="me-2 pull-down"
                                 color={'#00000'}
                                 title={'Category'}
                                 height="25px"
@@ -523,22 +524,24 @@ function SupplierList() {
 
                 <Tab.Pane eventKey={docId}>
                   <div className='row py-1 m-0' id="supplier-contents">
-                    <div className='row m-0'>
+                    <div className='row m-0 p-0'>
                       <h1 className='text-center pb-2 module-title'>Supplier List</h1>
                       <hr></hr>
                     </div>
                     <div className="row py-1 m-0">
-                      <div className="col">
-                        <span>
-                          <InformationCircle
-                            className="me-2 pull-down"
-                            color={'#0d6efd'}
-                            title={'Category'}
-                            height="40px"
-                            width="40px"
-                          />
-                        </span>
-                        <h4 className="data-id">{docId.substring(0,5)}</h4>
+                      <div className="col d-flex align-items-center">
+                          <div className="me-2">
+                            <InformationCircle
+                              color="#0d6efd"
+                              height="40px"
+                              width="40px"
+                            />
+                          </div>
+                          <div>
+                            <h4 className="data-id">
+                              <strong>{docId.substring(0, 5)}</strong>
+                            </h4>
+                          </div>
                       </div>
                       <div className="col">
                         <div className="float-end">
@@ -571,80 +574,114 @@ function SupplierList() {
                         </div>
                       </div>
                     </div>
-                    <div className="row py-1 data-specs" id="supplier-info">
-                      <div className="col-12 py-3">
-                        <div className="row m-0 mb-4">
-                          <div className="col-6 px-1">
-                            <span className="data-icon">
+                    <div className="row p-1 m-0 data-specs d-flex align-items-center" id="supplier-info">
+                      <div className="mb-3">
+                        <div className="row m-0 mt-2">
+                          <div className="col-12">
+                            <div className="row m-0 p-0">
+                              <a 
+                                className="col-1 data-icon d-flex align-items-center justify-content-center"
+                                data-title="Supplier Name"
+                              >
                               <Person
-                                className="me-2 pull-down"
-                                color={'#000000'}
-                                height="25px"
-                                width="25px"
-                                data-title={'Supplier Description'}
-                              />
-                            </span>
-                            <span className="data-label">
-                              {supplierDoc.supplier_name}
-                            </span>
-                          </div>
-                          <div className="col-6 px-1">
-                            <span className="data-icon">
-                              <Location
-                                className="me-2 pull-down"
                                 color={'#00000'}
-                                data-title={'Supplier Category'}
+                                title={'Category'}
                                 height="25px"
                                 width="25px"
                               />
-                            </span>
-                            <span className="data-label">
-                              {supplierDoc.supplier_address}
-                            </span>
+                              </a>
+                              <div className="col-11 data-label">
+                                {supplierDoc.supplier_name}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                        <div className="row m-0 mb-4">
-                          <div className="col-3 px-1">
-                            <span className="data-icon md">
+                        <div className="row m-0 mt-2">
+                          <div className="col-12">
+                            <div className="row m-0 p-0">
+                              <a 
+                                className="col-1 data-icon d-flex align-items-center justify-content-center"
+                                data-title="Address"
+                              >
+                              <Location
+                                color={'#00000'}
+                                title={'Category'}
+                                height="25px"
+                                width="25px"
+                              />
+                              </a>
+                              <div className="col-11 data-label">
+                                {supplierDoc.supplier_address}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="row m-0 mt-2">
+                          <div className="col-4">
+                            <div className="row m-0 p-0">
+                              <a 
+                                className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                data-title="Mobile Number"
+                              >
                               <PhonePortrait
-                                className="me-2 pull-down"
-                                color={'#000000'}
+                                color={'#00000'}
+                                title={'Category'}
                                 height="25px"
                                 width="25px"
-                                data-title={'Selling Price'}
                               />
-                            </span>
-                            <span className="data-label md">
-                              {supplierDoc.supplier_mobileNum}
-                            </span>
+                              </a>
+                              <div className="col-9 data-label">
+                                {supplierDoc.supplier_mobileNum === undefined || supplierDoc.supplier_mobileNum == "" || supplierDoc.supplier_mobileNum == " "?
+                                  <div style={{fontStyle: 'italic', opacity: '0.8'}}>None</div>
+                                :
+                                  <>{supplierDoc.supplier_mobileNum}</>
+                                }
+                              </div>
+                            </div>
                           </div>
-                          <div className="col-3 px-1">
-                            <span className="data-icon md">
+                          <div className="col-4">
+                            <div className="row m-0 p-0">
+                              <a 
+                                className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                data-title="Telephone Number"
+                              >
                               <Call
-                                className="me-2 pull-down"
                                 color={'#00000'}
-                                data-title={'Purchase Price'}
+                                title={'Category'}
                                 height="25px"
                                 width="25px"
                               />
-                            </span>
-                            <span className="data-label md">
-                              {supplierDoc.supplier_telNum}
-                            </span>
+                              </a>
+                              <div className="col-9 data-label">
+                                {supplierDoc.supplier_telNum === undefined || supplierDoc.supplier_telNum == "" || supplierDoc.supplier_telNum == " "?
+                                  <div style={{fontStyle: 'italic', opacity: '0.8'}}>None</div>
+                                :
+                                  <>{supplierDoc.supplier_telNum}</>
+                                }
+                              </div>
+                            </div>
                           </div>
-                          <div className="col-6 px-1">
-                            <span className="data-icon">
+                          <div className="col-4">
+                            <div className="row m-0 p-0">
+                              <a 
+                                className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                data-title="Email Address"
+                              >
                               <Mail
-                                className="me-2 pull-down"
                                 color={'#00000'}
-                                data-title="Barcode"
+                                title={'Category'}
                                 height="25px"
                                 width="25px"
                               />
-                            </span>
-                            <span className="data-label">
-                              {supplierDoc.supplier_emailaddress}
-                            </span>
+                              </a>
+                              <div className="col-9 data-label">
+                                {supplierDoc.supplier_emailaddress === undefined || supplierDoc.supplier_emailaddress == "" || supplierDoc.supplier_emailaddress == " "?
+                                  <div style={{fontStyle: 'italic', opacity: '0.8'}}>None</div>
+                                :
+                                  <>{supplierDoc.supplier_emailaddress}</>
+                                }
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>

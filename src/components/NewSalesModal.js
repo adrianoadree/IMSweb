@@ -182,8 +182,8 @@ function NewSalesModal(props) {
             transaction_note: newNote,
             transaction_date: newDate,
             product_list: items,
-            product_ids: productIds
-            
+            product_ids: productIds,
+            isVoided: false,
         });
 
         setProductIds([])

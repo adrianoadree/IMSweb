@@ -29,8 +29,6 @@ function NewMapModal(props) {
   const [prevClicked, setPrevClicked] = useState(false);
 
 
-
-
   useEffect(() => {
     if (props.id) {
       setWarehouseID(props.id);
@@ -51,10 +49,6 @@ function NewMapModal(props) {
     }
     readWarehouseDoc()
   }, [warehouseID])
-
-  const handlePreview = () => {
-
-  }
 
   function changeMode(evt, cityName) {
     // Declare all variables
@@ -82,10 +76,6 @@ function NewMapModal(props) {
 
   } 
 
-  const closeModal=()=>{
-      document.querySelector("#warehouse-modal").style.display = 'none';
-      document.querySelector(".modal-backdrop").style.display = 'none';
-  } 
 
   onSnapshot(masterdataDocRef, (doc) => {
     setCntr(doc.data().idCntr)
@@ -129,7 +119,7 @@ function NewMapModal(props) {
           isStorage: false,
           color: prevBackground
         };
-        obj.id = (i + 10).toString(36).toUpperCase() + addPadding(Number(j+1));
+        obj.id = warehouseID.substring(0, 4) + '-' + (i + 10).toString(36).toUpperCase() + addPadding(Number(j+1));
         tempCol[j] = obj;
       }
       tempArray.push(tempCol);
@@ -185,6 +175,7 @@ function NewMapModal(props) {
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered
+      className="IMS-modal"
     >
 
       <ToastContainer
@@ -198,14 +189,15 @@ function NewMapModal(props) {
         draggable
         pauseOnHover
       />
-      
-      <Modal.Header closeButton>
-        <Modal.Title id="contained-modal-title-vcenter" className="px-3">
-          Setting up map for <strong>{warehouseDoc.wh_name}</strong>
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <div className="tab">
+          <Modal.Body
+        className="d-flex justify-content-center">
+        <div className="px-3 py-2">
+            <div className="module-header mb-4">
+                <h3 className="text-center">Set-up Warehouse Map</h3>
+            </div>
+            <div className="row my-2 mb-3">
+                <div className='col-12 ps-4'>
+                <div className="tab">
           <button className="tablinks no-click me-5">
           <Warning
                                 className="me-2 pull-down"
@@ -232,9 +224,9 @@ function NewMapModal(props) {
                 key={index}
               >
                 {row.map((col, i) =>
-                  <div className="prev-box-col"
+                  <div className={'prev-box-col ' + prevBackground}
                     key={i}
-                    style={{width: prevDimension + 'px', height: prevDimension + 'px', backgroundColor: prevBackground, backgroundImage: 'url("'+prevBackground+'")'}}
+                    style={{width: prevDimension + 'px', height: prevDimension + 'px' }}
                     
                   >
                   </div>
@@ -283,40 +275,40 @@ function NewMapModal(props) {
                           <button className="color"
                             style={{backgroundColor: '#ffffff'}}
                             data-title="None"
-                            onClick={()=>{setPrevBackground('#ffffff')
+                            onClick={()=>{setPrevBackground('#ffffff');setPrevClicked(false)
                             }}
                           >
                             </button>
                           <button className="color"
                             style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fsmooth_conrete.jpg?alt=media&token=0773acac-c048-4f33-8f39-47fd644330d6")'}}
                             data-title="Smooth Concrete"
-                            onClick={()=>{setPrevBackground('https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fsmooth_conrete.jpg?alt=media&token=0773acac-c048-4f33-8f39-47fd644330d6')}}
+                            onClick={()=>{setPrevBackground('pattern-smooth-concrete');setPrevClicked(false)}}
                           >
                           </button>
                           <button className="color"
                             style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Frough_concrete.jpg?alt=media&token=3cce02b1-a2fd-49cc-8011-507f6ea3c352")'}}
                             data-title="Rough Concrete"
-                            onClick={()=>{setPrevBackground('https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Frough_concrete.jpg?alt=media&token=3cce02b1-a2fd-49cc-8011-507f6ea3c352')}}
+                            onClick={()=>{setPrevBackground('pattern-rough-concrete');setPrevClicked(false)}}
                           ></button>
                           <button className="color"
                             style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fdark_wood.jpg?alt=media&token=d3385145-b7ac-4845-a06c-e51012d56226")'}}
                             data-title="Dark Wood"
-                            onClick={()=>{setPrevBackground('https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fdark_wood.jpg?alt=media&token=d3385145-b7ac-4845-a06c-e51012d56226')}}
+                            onClick={()=>{setPrevBackground('pattern-dark-wood');setPrevClicked(false)}}
                           ></button>
                           <button className="color"
                             style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Flight_wood.jpg?alt=media&token=307a303c-1698-4c92-ad96-def38752042e")'}}
                             data-title="Light Wood"
-                            onClick={()=>{setPrevBackground('https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Flight_wood.jpg?alt=media&token=307a303c-1698-4c92-ad96-def38752042e')}}
+                            onClick={()=>{setPrevBackground('pattern-light-wood');setPrevClicked(false)}}
                           ></button>
                           <button className="color"
                             style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fwhite_tile.jpg?alt=media&token=09c77e80-ba5c-44c8-a056-e169a449100d")'}}
                             data-title="Tile"
-                            onClick={()=>{setPrevBackground('https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fwhite_tile.jpg?alt=media&token=09c77e80-ba5c-44c8-a056-e169a449100d')}}
+                            onClick={()=>{setPrevBackground('pattern-white-tile');setPrevClicked(false)}}
                           ></button>
                           <button className="color"
                             style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fbrick.jpg?alt=media&token=403814c0-b98b-4c8f-89f9-f23720905649")'}}
                             data-title="Cobblestone"
-                            onClick={()=>{setPrevBackground('https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fbrick.jpg?alt=media&token=403814c0-b98b-4c8f-89f9-f23720905649')}}
+                            onClick={()=>{setPrevBackground('pattern-cobblestone');setPrevClicked(false)}}
                           ></button>
                           </div>
               </div>
@@ -344,36 +336,31 @@ function NewMapModal(props) {
 
         </div>
       <div id="scale" className="tabcontent">
-        <h3>Paris</h3>
-        <p>Paris is the capital of France.</p>
+        <h3>By scale</h3>
+        <p>By Scale.</p>
       </div>
+                </div>
+          </div>
+        </div>
     </Modal.Body>
-      <Modal.Footer>
-      {cell === undefined || cell.length == 0?
+      <Modal.Footer
+        className="d-flex justify-content-center"
+      >
         <Button
-        className="btn btn-success"
-        disabled
-        style={{ width: "150px" }}
-        onClick={()=>addMap()}
+          className="btn btn-danger"
+          style={{ width: "6rem" }}
+          onClick={() => props.onHide()}
         >
-          <Spinner 
-                      color1="#b0e4ff"
-                      color2="#fff"
-                      textColor="rgba(0,0,0, 0.5)"
-                      className="w-50 h-50"
-                      />
+          Cancel
         </Button>
-      :
-      <Button
-        className="btn btn-success"
-        
-        style={{ width: "150px" }}
-        disabled={!prevClicked}
-        onClick={()=>{setPrevClicked(true); addMap()}}
-        >Save
-      </Button>
-      }
-        
+        <Button
+          className="btn btn-light float-start"
+          style={{ width: "6rem" }}
+          disabled={!prevClicked}
+          onClick={()=>{setPrevClicked(true); addMap()}}
+        >
+          Save
+        </Button>
       </Modal.Footer>
     </Modal>
   );

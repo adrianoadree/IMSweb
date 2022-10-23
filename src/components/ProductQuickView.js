@@ -51,12 +51,6 @@ function ProductQuickView(props) {
       }
     }, [stockcardDoc])
 
-    useEffect(()=>{
-      
-        console.log(props.productid)
-        console.log(docId)
-    }, )
-
     return (
         <Modal
             {...props}
@@ -64,6 +58,7 @@ function ProductQuickView(props) {
             aria-labelledby="contained-modal-title-vcenter"
             centered
             className="IMS-modal"
+            id="product-quick-view-modal"
         >
             <Modal.Body
             className="d-flex justify-content-center">
