@@ -187,7 +187,7 @@ function Records() {
 
     if (keyword !== '') {
       const results = purchaseRecordCollection.filter((purchaseRecordCollection) => {
-        return purchaseRecordCollection.id.toLowerCase().startsWith(keyword.toLowerCase())
+        return purchaseRecordCollection.transaction_date.toLowerCase().startsWith(keyword.toLowerCase())
         // Use the toLowerCase() method to make it case-insensitive
       });
       setSearchResult(results);
