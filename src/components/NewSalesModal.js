@@ -8,7 +8,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserAuth } from '../context/AuthContext'
 
-import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faMinus, faY } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 
@@ -24,6 +24,7 @@ function NewSalesModal(props) {
     const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
     const [productIds, setProductIds] = useState([]); // array of prod id
+    const [prodList, setProdList] = useState([])
 
     const [userCollection, setUserCollection] = useState([]);// userCollection variable
     const [userProfileID, setUserProfileID] = useState(""); // user profile id
@@ -55,6 +56,29 @@ function NewSalesModal(props) {
             setProductIds([...productIds, item.itemId])
         })
     }, [items])
+
+
+    //set Product ids
+    useEffect(() => {
+        setProdList()
+        let arrObj = []
+        if (items !== undefined) {
+            items.map((prod) => {
+                let person = {
+                    itemId: prod.itemId,
+                    itemQuantity: Number(prod.itemQuantity),
+                    itemPPrice: Number(prod.itemPPrice),
+                    itemSPrice: Number(prod.itemSPrice),
+                    itemQuantity: Number(prod.itemQuantity),
+                    itemCurrentQuantity: Number(prod.itemCurrentQuantity),
+                    itemNewQuantity: Number(prod.itemCurrentQuantity) - Number(prod.itemQuantity)
+                }
+                arrObj.push(person)
+            })
+        }
+        setProdList(arrObj)
+    }, [items])
+
 
     //fetch user collection from database
     useEffect(() => {
@@ -188,6 +212,8 @@ function NewSalesModal(props) {
         return format;
     }
 
+
+
     //add document to database
     const addRecord = async () => {
         setDoc(doc(db, "sales_record", createFormat()), {
@@ -195,7 +221,7 @@ function NewSalesModal(props) {
             transaction_number: createFormat().substring(0, 7),
             transaction_note: newNote,
             transaction_date: newDate,
-            product_list: items,
+            product_list: prodList,
             product_ids: productIds
 
         });
@@ -216,16 +242,11 @@ function NewSalesModal(props) {
 
             updateDoc(stockcardRef, {
                 qty: items.itemNewQuantity,
-                analytics:
-                {
-                    averageDailySales: Number(items.averageDailySales),
-                    highestDailySales: Number(items.highestDailySales),
-                    averageLeadtime: Number(items.averageLeadtime),
-                    safetyStock: Number(items.safetyStock),
-                    reorderPoint: Number(items.reorderPoint),
-                    daysROP: Number(items.daysROP)
-                }
-
+                "analytics.averageDailySales": Number(items.averageDailySales),
+                "analytics.highestDailySales": Number(items.highestDailySales),
+                "analytics.safetyStock": Number(items.safetyStock),
+                "analytics.reorderPoint": Number(items.reorderPoint),
+                "analytics.daysROP": Number(items.daysROP)
             });
 
         })
@@ -261,49 +282,63 @@ function NewSalesModal(props) {
 
     // =================================================COMPUTE ANALYTIC VARIABLES =================================================
     const [stockcardDoc, setStockcardDoc] = useState(); //
-    const [salesRecordCollection, setSalesRecordCollection] = useState(); // sales_record collection
-    const [filteredResults, setFilteredResults] = useState()
-    const [startDate, setStartDate] = useState(new Date(2022, 8, 1));
-    const [today, setToday] = useState(new Date());
+    const [salesRecordCollection, setSalesRecordCollection] = useState([]); // sales_record collection
     const [arrDate, setArrDate] = useState();
-    const [arrDailySales, setArrDailySales] = useState();
-    const [arrAverageDailySales, setArrAverageDailySales] = useState();
-    const [product_list, setProduct_list] = useState({ itemId: '', itemQuantity: 0 });
-    const [currTransaction, setCurrTransaction] = useState()
-    const [salesQuery, setSalesQuery] = useState()
     const [minDate, setMinDate] = useState()
+    const [max, setMax] = useState()
+    const [min, setMin] = useState()
     const [maxDate, setMaxDate] = useState(new Date())
     const [dateDifference, setDateDifference] = useState()
+    const [salesQuery, setSalesQuery] = useState([])
+
 
     //ANALYTICS VARIABLE
-    const [averageDailySales, setAverageDailySales] = useState(); //average daily sales 
-    const [highestDailySales, setHighestDailySales] = useState(); //highest daily sales
+    const [totalSales, setTotalSales] = useState()
+    const [averageDailySales, setAverageDailySales] = useState(0); //average daily sales 
+    const [highestDailySales, setHighestDailySales] = useState(0); //highest daily sales
+    const [arrDailySales, setArrDailySales] = useState(); //highest daily sales
+
+    const [arrayDailySales, setArrayDailySales] = useState([]); //highest daily sales
+
 
     const [minLeadtime, setMinLeadtime] = useState()
     const [maxLeadtime, setMaxLeadtime] = useState()
-    const [averageLeadtime, setAverageLeadtime] = useState()
-    const [safetyStock, setSafetyStock] = useState(); // safetyStock
+    const [averageLeadtime, setAverageLeadtime] = useState(0)
+    const [safetyStock, setSafetyStock] = useState(0); // safetyStock
     const [reorderPoint, setReorderPoint] = useState(); // ReorderPoint
     const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
 
 
-
-    //initiate leadtime values
+    //query documents from sales_record that contains docId
     useEffect(() => {
-        setMinLeadtime()
-        setMaxLeadtime()
-        if (stockcardDoc !== undefined) {
-            setMinLeadtime(stockcardDoc.analytics_minLeadtime)
-            setMaxLeadtime(stockcardDoc.analytics_maxLeadtime)
+        setSalesRecordCollection([])
+        const collectionRef = collection(db, "sales_record")
+        const q = query(collectionRef, where("product_ids", "array-contains", itemId));
+
+        const unsub = onSnapshot(q, (snapshot) =>
+            setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+        return unsub;
+
+    }, [itemId])
+
+
+
+    //array of dates of transaction of a product
+    useEffect(() => {
+        var temp = []
+        setArrDate()
+        if (salesQuery !== undefined) {
+            salesQuery.map((sales) => {
+                if (!temp.includes(sales.transaction_date)) {
+                    temp.push(sales.transaction_date);
+                }
+            })
+            setArrDate(temp)
         }
-    }, [stockcardDoc])
+    }, [salesQuery])
 
 
-    //initiate leadtime values
-    useEffect(() => {
-        setAverageLeadtime()
-        setAverageLeadtime((maxLeadtime + minLeadtime) / 2)
-    }, [maxLeadtime && minLeadtime])
 
 
     //access stockcard document
@@ -319,26 +354,158 @@ function NewSalesModal(props) {
     }, [itemId])
 
 
-    //compute safetystock
-    //formula to calculate SafetyStock = (highest daily sales * leadtime in days) - (average daily sales * leadtime)
     useEffect(() => {
-        setSafetyStock()
-        let x = highestDailySales * maxLeadtime
-        let y = averageDailySales * averageLeadtime
-        let z = Math.round(x - y)
+        if (salesRecordCollection !== undefined) {
+            setSalesQuery([{
+                id: createFormat(),
+                user: userID,
+                transaction_number: createFormat().substring(0, 7),
+                transaction_note: "CURRENT TRANSACTION",
+                transaction_date: newDate,
+                product_list: {
+                    itemId: itemId,
+                    itemQuantity: Number(itemQuantity)
+                },
+                product_ids: [itemId]
+            }, ...salesRecordCollection])
+        }
+    }, [newDate, salesRecordCollection, itemQuantity, itemId])
+
+    //compute Total Sales
+    useEffect(() => {
+        let temp = 0
+        salesRecordCollection.map((sales) => {
+            sales.product_list.map((prod) => {
+                if (prod.itemId === itemId) {
+                    temp += prod.itemQuantity
+                }
+            })
+        })
+        setTotalSales(temp + Number(itemQuantity))
+    }, [salesRecordCollection, itemQuantity])
+
+    //compute Average Daily Sales
+    useEffect(() => {
+        setAverageDailySales()
+        let x = 0
+        let y = 0
+        let z = 0
+        x = totalSales
+        y = dateDifference
+        z = Number(totalSales / dateDifference)
+        setAverageDailySales(z)
+    }, [totalSales, dateDifference])
+
+    //compute array of Daily Sales
+    useEffect(() => {
+        setArrayDailySales()
+        let tempArrQuantity = []
+        salesRecordCollection.map((sales) => {
+            sales.product_list.map((prod) => {
+                if (prod.itemId === itemId) {
+                    tempArrQuantity.push(prod.itemQuantity)
+                }
+            })
+        })
+        tempArrQuantity.push(Number(itemQuantity))
+        setArrayDailySales(tempArrQuantity)
+    }, [salesRecordCollection, itemQuantity])
+
+
+    //initiate leadtime values
+    useEffect(() => {
+        setMinLeadtime()
+        setMaxLeadtime()
+        setAverageLeadtime()
+        if (stockcardDoc !== undefined) {
+            setMinLeadtime(stockcardDoc.analytics.leadtimeMinimum)
+            setMaxLeadtime(stockcardDoc.analytics.leadtimeMaximum)
+            setAverageLeadtime(stockcardDoc.analytics.leadtimeAverage)
+        }
+    }, [stockcardDoc])
+
+    //set array of daily sales
+    useEffect(() => {
+        let tempMin = minDate
+        let tempDate = tempMin
+        let tempArrSales = []
+        let tempVal = 0
+
+
+        while (tempMin < maxDate) {
+            tempDate = tempMin.toISOString().substring(0, 10)
+
+            salesRecordCollection.map((value) => {
+                if (value.transaction_date === tempDate) {
+                    value.product_list.map((prod) => {
+                        if (prod.itemId === itemId) {
+                            tempVal += Number(prod.itemQuantity)
+                        }
+                    })
+                }
+
+            })
+            if (tempDate === newDate) {
+                tempVal += Number(itemQuantity)
+            }
+            if (tempVal !== 0) {
+                tempArrSales.push(tempVal)
+            }
+            tempVal = 0
+            tempMin.setDate(tempMin.getDate() + 1)
+        }
+        setArrDailySales(tempArrSales)
+    }, [maxDate, minDate, newDate, itemId, itemQuantity, salesRecordCollection])
+
+    //find Highest Daily Sales in arrDailySales
+    useEffect(() => {
+        findHighestDailySales()
+    }, [arrDailySales])
+
+    function findHighestDailySales() {
+        setHighestDailySales(0)
+        let tempVal = 0
+        if (arrDailySales !== undefined) {
+            arrDailySales.map((sales) => {
+                if (tempVal < sales) {
+                    tempVal = sales
+                }
+            })
+        }
+        setHighestDailySales(tempVal)
+    }
+
+    //compute SafetyStock
+    useEffect(() => {
+
+        let x = 0
+        let y = 0
+        let z = 0
+        x = Number(highestDailySales) * Number(maxLeadtime)
+        y = Number(averageDailySales) * Number(averageLeadtime)
+        z = Number(x - y)
+
         setSafetyStock(z)
-    }, [averageDailySales])
+
+    }, [highestDailySales, averageDailySales, maxLeadtime, averageLeadtime, salesQuery, salesRecordCollection])
+
+
+
+
 
     //compute reoderpoint
     //formula to calculate ROP = (average daily sales * leadtime in days) + safetystock
     useEffect(() => {
         setReorderPoint()
-        let x = averageDailySales * averageLeadtime
-        let y = safetyStock
-        let a = (x + y)
-        let z = Math.round(a)
+        let x = 0
+        let y = 0
+        let z = 0
+ 
+        x = Number(averageDailySales * averageLeadtime)
+        y = x + safetyStock
+        z = Math.round(y)
         setReorderPoint(z)
-    }, [safetyStock])
+    }, [safetyStock, averageDailySales, averageLeadtime])
 
     //compute days before ROP
     //formula to calculate Number of Days Before reaching ROP = ( Current Quantity of Product - Reorder Point ) / average daily usage
@@ -354,117 +521,14 @@ function NewSalesModal(props) {
     }, [averageDailySales, reorderPoint, stockcardDoc])
 
 
-    useEffect(() => {
-        console.log("highestDailySales: ", highestDailySales)
-    }, [highestDailySales])
-
-
-    useEffect(() => {
-        console.log("averageDailySales: ", averageDailySales)
-    }, [averageDailySales])
-
-    useEffect(() => {
-        console.log("averageLeadtime: ", averageLeadtime)
-    }, [averageLeadtime])
-
-
-    useEffect(() => {
-        console.log("safetyStock: ", safetyStock)
-    }, [safetyStock])
-
-    useEffect(() => {
-        console.log("reorderPoint: ", reorderPoint)
-    }, [reorderPoint])
-
-    useEffect(() => {
-        console.log("daysROP: ", daysROP)
-    }, [daysROP])
-
-
-
-
-    useEffect(() => {
-        setProduct_list({ itemId: itemId, itemQuantity: Number(itemQuantity) })
-    }, [itemId])
-
-    useEffect(() => {
-        setProduct_list({ itemId: itemId, itemQuantity: Number(itemQuantity) })
-    }, [itemQuantity])
-
-
-
-    useEffect(() => {
-        setCurrTransaction({
-            user: userID,
-            transaction_number: createFormat().substring(0, 7),
-            transaction_note: "CURRENT TRANSACTION",
-            transaction_date: newDate,
-            product_list: product_list,
-            product_ids: [itemId]
-        })
-    }, [product_list])
-
-
-    useEffect(() => {
-        if (salesRecordCollection !== undefined) {
-            setSalesQuery([{ currTransaction }, ...salesRecordCollection])
-        }
-    }, [currTransaction])
-
-    useEffect(() => {
-        if (salesRecordCollection !== undefined) {
-            setSalesQuery([{ currTransaction }, ...salesRecordCollection])
-        }
-    }, [salesRecordCollection])
-
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-
-        const collectionRef = collection(db, "sales_record")
-        const q = query(collectionRef, where("product_ids", "array-contains", itemId));
-
-        const unsub = onSnapshot(q, (snapshot) =>
-            setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-
-    }, [itemId])
-
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-        if (salesQuery !== undefined) {
-
-            setFilteredResults(salesRecordCollection.map((element) => {
-                return {
-                    ...element, product_list: element.product_list.filter((product_list) => product_list.itemId === itemId)
-                }
-            }))
-        }
-    }, [salesQuery])
-
-    //array of dates of transaction of a product
-    useEffect(() => {
-        var temp = []
-        setArrDate()
-        if (salesRecordCollection !== undefined) {
-            salesRecordCollection.map((sales) => {
-                if (!temp.includes(sales.transaction_date)) {
-                    temp.push(sales.transaction_date);
-                }
-            })
-            setArrDate(temp)
-        }
-    }, [salesQuery])
 
 
     //search for min Date in array
     useEffect(() => {
         let tempMin
+        let tempMax
         setMinDate()
+        setMaxDate()
         if (arrDate !== undefined) {
             tempMin = new Date(
                 Math.min(
@@ -473,113 +537,74 @@ function NewSalesModal(props) {
                     }),
                 ),
             );
+
+            tempMax = new Date(
+                Math.max(
+                    ...arrDate.map(element => {
+                        return new Date(element);
+                    }),
+                ),
+            );
+            tempMax = tempMax.setDate(tempMax.getDate() + 1)
+            let tempDate = new Date(tempMax)
+            setMaxDate(tempDate)
             setMinDate(tempMin)
         }
-    }, [arrDate])
+    }, [arrDate, itemQuantity, itemId, newDate])
+
+    //search for min Date in array
+    useEffect(() => {
+        let tempMin
+        let tempMax
+        setMin()
+        setMax()
+        if (arrDate !== undefined) {
+            tempMin = new Date(
+                Math.min(
+                    ...arrDate.map(element => {
+                        return new Date(element);
+                    }),
+                ),
+            );
+
+            tempMax = new Date(
+                Math.max(
+                    ...arrDate.map(element => {
+                        return new Date(element);
+                    }),
+                ),
+            );
+            setMin(tempMin)
+            setMax(tempMax)
+        }
+    }, [arrDate, itemQuantity, itemId, newDate])
+
+
 
     //search for min Date in array
     useEffect(() => {
         setDateDifference()
-        let tempDays
-        const diffTime = Math.abs(maxDate - minDate);
-        tempDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        setDateDifference(tempDays)
-    }, [minDate])
-
-
-    //loops from start date to current date
-    //compute and provides array of totalSales per day
-    //compute array of average per day
-    useEffect(() => {
-        var tempDate
-        var totalDailySales = []
-        var tempVal = 0
-        var tempAverageDailySales = []
-        var tempAverage = 0
-        var AverageCounter = 0
-        today.setDate(today.getDate() + 14)
-        setArrDailySales()
-        setArrAverageDailySales()
-
-        if (arrDate !== undefined) {
-            while (startDate < today) {
-                tempDate = startDate.toISOString().substring(0, 10)
-
-                if (arrDate.includes(tempDate)) {
-
-                    filteredResults.map((value) => {
-                        if (value.transaction_date === tempDate) {
-                            value.product_list.map((prod) => {
-                                tempVal += prod.itemQuantity
-                            })
-                            AverageCounter++
-                        }
-                        tempAverage = tempVal / AverageCounter
-                    })
-
-                    totalDailySales.push(tempVal)
-                    tempAverageDailySales.push(tempAverage)
-                    tempVal = 0
-                    tempAverage = 0
-                    AverageCounter = 0
-                }
-                setArrDailySales(totalDailySales)
-                setArrAverageDailySales(tempAverageDailySales)
-                startDate.setDate(startDate.getDate() + 1)
-            }
+        var date1 = new Date(max)
+        var date2 = new Date(min)
+        let x = 0
+        x = date1 - date2
+        let TotalDays = Math.ceil(x / (1000 * 3600 * 24))
+        if(TotalDays===0){
+            TotalDays=1 
         }
+        setDateDifference(TotalDays)
+    }, [minDate, maxDate, newDate])
 
-
-        var tempEndDate = new Date(today.setDate(today.getDate() + 14))
-
-        setToday(tempEndDate)
-        setStartDate(new Date(2022, 8, 1))
-    }, [filteredResults])
-
-
-
-    //compute for averageDailySales
     useEffect(() => {
-        var tempTotal = 0
-        setAverageDailySales()
-        if (arrDailySales !== undefined) {
-            arrDailySales.map((val) => {
-                tempTotal += val
-            })
-        }
-        let x = (tempTotal / dateDifference)
-        setAverageDailySales(Math.round(x))
-    }, [arrDailySales])
+        console.log("highestDailySales:", highestDailySales)
+        console.log("reorderPoint:", reorderPoint)
+        console.log("daysROP: ", daysROP)
+        console.log("averageDailySales: ", averageDailySales)
+        console.log("dateDifference: ", dateDifference)
 
-    //compute for averageDailySales
-    useEffect(() => {
-        var tempTotal = 0
-        setAverageDailySales()
-        if (arrDailySales !== undefined) {
-            arrDailySales.map((val) => {
-                tempTotal += val
-            })
-        }
-        let x = (tempTotal / dateDifference)
-        setAverageDailySales(Math.round(x))
-    }, [dateDifference])
+    }, [daysROP, reorderPoint, highestDailySales, averageDailySales, dateDifference])
 
 
-    //compute for highestDailySales
-    useEffect(() => {
-        var temp = 0;
-        setHighestDailySales()
-        if (filteredResults !== undefined) {
-            filteredResults.map((value) => {
-                value.product_list.map((prod) => {
-                    if (temp < prod.itemQuantity) {
-                        temp = prod.itemQuantity
-                    }
-                })
-            })
-        }
-        setHighestDailySales(temp)
-    }, [arrDailySales])
 
     return (
         <Modal

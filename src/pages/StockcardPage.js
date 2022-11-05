@@ -33,14 +33,19 @@ function StockcardPage({ isAuth }) {
   const [modalShow, setModalShow] = useState(false); //show/hide new product modal
   const [stockcard, setStockcard] = useState(); // stockcardCollection variable
   const [docId, setDocId] = useState("xx"); //document Id
-  const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
+  const [stockcardDoc, setStockcardDoc] = useState(); //stockcard Document variable
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
   const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
   const [selectedProducts, setSelectedProducts] = useState([]);
 
+  const [leadtimeAverage, setLeadtimeAverage] = useState()
+  const [leadtimeMinimum, setLeadtimeMinimum] = useState()
+  const [leadtimeMaximum, setLeadtimeMaximum] = useState()
 
   //---------------------FUNCTIONS---------------------
+
+
 
   useEffect(() => {
     console.log(selectedProducts)
@@ -78,6 +83,17 @@ function StockcardPage({ isAuth }) {
     }
     readStockcardDoc()
   }, [docId])
+
+  useEffect(() => {
+    setLeadtimeAverage()
+    setLeadtimeMinimum()
+    setLeadtimeMaximum()
+    if (stockcardDoc !== undefined) {
+      setLeadtimeAverage(stockcardDoc.analytics.leadtimeAverage)
+      setLeadtimeMinimum(stockcardDoc.analytics.leadtimeMinimum)
+      setLeadtimeMaximum(stockcardDoc.analytics.leadtimeMaximum)
+    }
+  }, [stockcardDoc])
 
   useEffect(() => {
     if (stockcard === undefined) {
@@ -160,10 +176,12 @@ function StockcardPage({ isAuth }) {
 
     //SetValues
     useEffect(() => {
-      setNewStockcardDescription(stockcardDoc.description)
-      setNewStockcardCategory(stockcardDoc.category)
-      setNewStockcardSPrice(stockcardDoc.s_price)
-      setNewStockcardPPrice(stockcardDoc.p_price)
+      if (stockcardDoc !== undefined) {
+        setNewStockcardDescription(stockcardDoc.description)
+        setNewStockcardCategory(stockcardDoc.category)
+        setNewStockcardSPrice(stockcardDoc.s_price)
+        setNewStockcardPPrice(stockcardDoc.p_price)
+      }
     }, [docId])
 
 
@@ -513,14 +531,95 @@ function StockcardPage({ isAuth }) {
   function EditLeadtimeModal(props) {
     const [newMinLeadtime, setNewMinLeadtime] = useState(0);
     const [newMaxLeadtime, setNewMaxLeadtime] = useState(0);
+    const [newAverageLeadtime, setNewAverageLeadtime] = useState(0);
+
+    
+    const [safetyStock, setSafetyStock] = useState(0); // safetyStock
+    const [reorderPoint, setReorderPoint] = useState(); // ReorderPoint
+    const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
+    const [highestDailySales, setHighestDailySales] = useState(0); //highest daily sales
+    const [averageDailySales, setAverageDailySales] = useState(0); //average daily sales 
 
     const handleEditLeadtimeClose = () => setLeadtimeModalShow(false);
 
-    //SetValues
+    useEffect(()=>{
+      computeAverageLeadtime()
+    },[newMaxLeadtime, newMinLeadtime])
+
+    function computeAverageLeadtime(){
+      let x = 0
+      let y = 0
+      x = Number(newMaxLeadtime) + Number(newMinLeadtime)
+      y = Number(x/2)
+      setNewAverageLeadtime(y)
+    }
+
+    useEffect(()=>{
+      if(stockcardDoc!==undefined){
+        setSafetyStock(stockcardDoc.analytics.safetyStock)
+        setReorderPoint(stockcardDoc.analytics.reorderPoint)
+        setDaysROP(stockcardDoc.analytics.daysROP)
+        setHighestDailySales(stockcardDoc.analytics.highestDailySales)
+        setAverageDailySales(stockcardDoc.analytics.averageDailySales)
+      }
+    },[stockcardDoc])
+
+    //compute SafetyStock
     useEffect(() => {
-      setNewMaxLeadtime(stockcardDoc.analytics_maxLeadtime)
-      setNewMinLeadtime(stockcardDoc.analytics_minLeadtime)
-    }, [docId])
+
+      let x = 0
+      let y = 0
+      let z = 0
+      x = Number(highestDailySales) * Number(newMaxLeadtime)
+      y = Number(averageDailySales) * Number(newAverageLeadtime)
+      z = Number(x - y)
+
+      setSafetyStock(z)
+  }, [highestDailySales, averageDailySales, newMaxLeadtime, newAverageLeadtime, stockcardDoc])
+
+
+    //compute reoderpoint
+    //formula to calculate ROP = (average daily sales * leadtime in days) + safetystock
+    useEffect(() => {
+      setReorderPoint()
+      let x = 0
+      let y = 0
+      let z = 0
+
+      x = Number(averageDailySales * newAverageLeadtime)
+      y = x + safetyStock
+      z = Math.round(y)
+      setReorderPoint(z)
+  }, [safetyStock, averageDailySales, newAverageLeadtime])
+
+
+    //compute days before ROP
+    //formula to calculate Number of Days Before reaching ROP = ( Current Quantity of Product - Reorder Point ) / average daily usage
+    useEffect(() => {
+      setDaysROP()
+      if (stockcardDoc !== undefined) {
+          let x = stockcardDoc.qty - reorderPoint
+          let y = averageDailySales
+          let a = (x / y)
+          let z = Math.round(a)
+          setDaysROP(z)
+      }
+  }, [averageDailySales, reorderPoint, stockcardDoc])
+
+
+    useEffect(()=>{
+      console.log("newAverageLeadtime:", newAverageLeadtime)
+    },[newAverageLeadtime])
+    
+    useEffect(()=>{
+      console.log("newMinLeadtime:", newMinLeadtime)
+    },[newMinLeadtime])
+
+    useEffect(()=>{
+      console.log("newMaxLeadtime:", newMaxLeadtime)
+    },[newMaxLeadtime])
+
+
 
     //update Toast
     const updateLeadtimeToast = () => {
@@ -538,8 +637,12 @@ function StockcardPage({ isAuth }) {
 
     function updateLeadtime() {
       updateDoc(doc(db, "stockcard", docId), {
-        analytics_maxLeadtime: Number(newMaxLeadtime),
-        analytics_minLeadtime: Number(newMinLeadtime)
+        "analytics.leadtimeMaximum": Number(newMaxLeadtime),
+        "analytics.leadtimeMinimum": Number(newMinLeadtime),
+        "analytics.leadtimeAverage": Number(newAverageLeadtime),
+        "analytics.safetyStock": Number(safetyStock),
+        "analytics.reorderPoint": Number(reorderPoint),
+        "analytics.daysROP": Number(daysROP)
       });
       updateLeadtimeToast()
       handleEditLeadtimeClose()
@@ -1629,7 +1732,11 @@ function StockcardPage({ isAuth }) {
                               />
                             </span>
                             <span className="data-label">
-                              {stockcardDoc.description}
+                              {stockcardDoc !== undefined ?
+                                stockcardDoc.description
+                                :
+                                <></>
+                              }
                             </span>
                           </div>
                           <div className="col-6 px-1">
@@ -1643,7 +1750,11 @@ function StockcardPage({ isAuth }) {
                               />
                             </span>
                             <span className="data-label">
-                              {stockcardDoc.category}
+                              {stockcardDoc !== undefined ?
+                                stockcardDoc.category
+                                :
+                                <></>
+                              }
                             </span>
                           </div>
                         </div>
@@ -1659,7 +1770,11 @@ function StockcardPage({ isAuth }) {
                               />
                             </span>
                             <span className="data-label sm">
-                              {stockcardDoc.s_price}
+                              {stockcardDoc !== undefined ?
+                                stockcardDoc.s_price
+                                :
+                                <></>
+                              }
                             </span>
                           </div>
                           <div className="col-6 px-1">
@@ -1673,7 +1788,11 @@ function StockcardPage({ isAuth }) {
                               />
                             </span>
                             <span className="data-label sm">
-                              {stockcardDoc.p_price}
+                              {stockcardDoc !== undefined ?
+                                stockcardDoc.p_price
+                                :
+                                <></>
+                              }
                             </span>
                           </div>
 
@@ -1684,7 +1803,11 @@ function StockcardPage({ isAuth }) {
                               <FontAwesomeIcon icon={faInbox} />
                             </span>
                             <span className="data-label sm">
-                              {stockcardDoc.qty}
+                              {stockcardDoc !== undefined ?
+                                stockcardDoc.qty
+                                :
+                                <></>
+                              }
                             </span>
                           </div>
                           <div className="col-4 px-1">
@@ -1715,7 +1838,10 @@ function StockcardPage({ isAuth }) {
                             <h6><FontAwesomeIcon icon={faBarcode} /> BARCODE</h6>
                           </Accordion.Header>
                           <Accordion.Body>
-                            {DisplayBarcodeInfo()}
+                            {stockcardDoc !== undefined ?
+                              DisplayBarcodeInfo()
+                              :
+                              <></>}
                           </Accordion.Body>
                         </Accordion.Item>
                       </Accordion>
@@ -1777,7 +1903,7 @@ function StockcardPage({ isAuth }) {
                                   <h5><FontAwesomeIcon icon={faTruck} /></h5>
                                 </span>
                                 <span className="data-label sm">
-                                  <small>{stockcardDoc.analytics_minLeadtime} day(s)</small>
+                                  {leadtimeMinimum}
                                 </span>
                               </div>
                               <div className="col-4">
@@ -1785,7 +1911,7 @@ function StockcardPage({ isAuth }) {
                                   <h5><FontAwesomeIcon icon={faTruck} /></h5>
                                 </span>
                                 <span className="data-label sm">
-                                  <small>{stockcardDoc.analytics_maxLeadtime} day(s)</small>
+                                  {leadtimeMaximum}
                                 </span>
                               </div>
                               <div className="col-4">
@@ -1793,7 +1919,7 @@ function StockcardPage({ isAuth }) {
                                   <h5><FontAwesomeIcon icon={faTruck} /></h5>
                                 </span>
                                 <span className="data-label sm">
-                                  <small>{(stockcardDoc.analytics_maxLeadtime + stockcardDoc.analytics_minLeadtime) / 2} day(s)</small>
+                                  {leadtimeAverage}
                                 </span>
                               </div>
                               <hr className='mt-2' />

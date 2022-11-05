@@ -30,30 +30,14 @@ function TestPage() {
     const [stockcard, setStockcard] = useState(); // stockcardCollection variable
     const [stockcardDoc, setStockcardDoc] = useState(); //stockcard Document variable
     const [salesRecordCollection, setSalesRecordCollection] = useState([]); // sales_record collection
-
     const [filteredResults, setFilteredResults] = useState([])
-
-    //needed for analytics
-
-    //formula to calculate ROP = (average daily sales * leadtime in days) + safetystock
-    //formula to calculate SafetyStock = (highest daily sales * leadtime in days) - (average daily sales * leadtime)
-    //formula to calculate Number of Days Before reaching ROP = ( Current Quantity of Product - Reorder Point ) / average daily usage
-
-    //ask user for : leadtime
-    //compute for : average daily sales, highest daily sales, 
+    const [forecastingBoolean, setForecastingBoolean] = useState(false)
 
     //ANALYTICS Datas
     const [totalSales, setTotalSales] = useState(0); // total sales
-    const [safetyStock, setSafetyStock] = useState(0); // safetyStock
-    const [reorderPoint, setReorderPoint] = useState(0); // ReorderPoint
-
-    const [daysROP, setDaysROP] = useState(0); // days before ReorderPoint
-
-
     const [minLeadtime, setMinLeadtime] = useState()
     const [maxLeadtime, setMaxLeadtime] = useState()
-    const [averageLeadtime, setAverageLeadtime] = useState(0)
-
+    const [averageLeadtime, setAverageLeadtime] = useState()
 
     const [startDate, setStartDate] = useState(new Date(2022, 8, 1));
 
@@ -64,10 +48,107 @@ function TestPage() {
 
 
     const [arrDate, setArrDate] = useState([]);
-    const [arrDailySales, setArrDailySales] = useState([]);
-    const [arrAverageDailySales, setArrAverageDailySales] = useState([]);
+    // ==================================== VARIABLES ====================================
 
-    const [sortedTransactionDates, setSortedTransactionDates] = useState([])
+    const [transactionDates, setTransactionDates] = useState()
+    const [sortedTransactionDates, setSortedTransactionDates] = useState()
+
+    const [date1, setDate1] = useState("")
+    const [date2, setDate2] = useState("")
+    const [date3, setDate3] = useState("")
+    const [date4, setDate4] = useState("")
+    const [date5, setDate5] = useState("")
+
+    // ===================================================================================
+
+    // ==================================== FUNCTIONS ====================================
+    useEffect(() => {
+        if (sortedTransactionDates !== undefined) {
+            {
+                sortedTransactionDates.length >= 5 ?
+                    setForecastingBoolean(true)
+                    :
+                    setForecastingBoolean(false)
+            }
+        }
+    }, [sortedTransactionDates])
+
+    useEffect(() => {
+        arrayOfSalesDate()
+    }, [salesRecordCollection])
+
+    function arrayOfSalesDate() {
+        let tempArr = []
+        salesRecordCollection.map((sales) => {
+            if (!tempArr.includes(sales.transaction_date))
+                tempArr.push(sales.transaction_date)
+        })
+        setTransactionDates(tempArr)
+    }
+
+    function sortDates() {
+        setSortedTransactionDates()
+        if (transactionDates !== undefined) {
+            let temp = transactionDates.sort()
+            setSortedTransactionDates(temp)
+        }
+    }
+
+    //sort array of transaction dates
+    useEffect(() => {
+        sortDates()
+    }, [transactionDates])
+
+    useEffect(() => {
+        console.log("transactionDates:", transactionDates)
+    }, [transactionDates])
+
+
+    useEffect(() => {
+        console.log("sortedTransactionDates:", sortedTransactionDates)
+    }, [sortedTransactionDates])
+
+    //-------------------------------Chart Data function-------------------------
+
+    useEffect(() => {
+        setDate1("")
+        setDate2("")
+        setDate3("")
+        setDate4("")
+        setDate5("")
+        if (sortedTransactionDates !== undefined) {
+            if (sortedTransactionDates.length >= 5) {
+                setDate1(sortedTransactionDates[sortedTransactionDates.length - 1])
+                setDate2(sortedTransactionDates[sortedTransactionDates.length - 2])
+                setDate3(sortedTransactionDates[sortedTransactionDates.length - 3])
+                setDate4(sortedTransactionDates[sortedTransactionDates.length - 4])
+                setDate5(sortedTransactionDates[sortedTransactionDates.length - 5])
+            }
+            else {
+                setDate1("")
+                setDate2("")
+                setDate3("")
+                setDate4("")
+                setDate5("")
+            }
+        }
+    }, [sortedTransactionDates])
+
+
+
+
+    // ===================================================================================
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -88,9 +169,11 @@ function TestPage() {
     useEffect(() => {
         setMinLeadtime()
         setMaxLeadtime()
+        setAverageLeadtime()
         if (stockcardDoc !== undefined) {
-            setMaxLeadtime(stockcardDoc.analytics_maxLeadtime)
-            setMinLeadtime(stockcardDoc.analytics_minLeadtime)
+            setMaxLeadtime(stockcardDoc.analytics.leadtimeMaximum)
+            setMinLeadtime(stockcardDoc.analytics.leadtimeMinimum)
+            setAverageLeadtime(stockcardDoc.analytics.leadtimeAverage)
         }
     }, [stockcardDoc])
 
@@ -114,11 +197,6 @@ function TestPage() {
 
 
 
-    //sort array of transaction dates
-    useEffect(() => {
-        let temp = arrDate.sort()
-        setSortedTransactionDates(temp)
-    }, [arrDate])
 
     //compute for total sales
     useEffect(() => {
@@ -241,177 +319,188 @@ function TestPage() {
 
     function displayAccordion() {
 
+        if (stockcardDoc !== undefined) {
+            return (
+                maxLeadtime !== 0 ?
+                    <>
+                        <div>
+                            <Accordion defaultActiveKey="0" className="mt-2">
+                                <Accordion.Item eventKey="0">
+                                    <Accordion.Header><h6>Stock Level Projection Chart</h6></Accordion.Header>
+                                    <Accordion.Body>
+                                        <LineChart
+                                            width={600}
+                                            height={400}
+                                            data={data}
+                                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                                        >
+                                            <XAxis dataKey="date">
+                                            </XAxis>
+                                            <YAxis label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }} />
+                                            <Tooltip />
+                                            <Legend />
+                                            <ReferenceLine y={stockcardDoc.analytics.reorderPoint}
+                                                label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
+                                                stroke="green" strokeDasharray="3 3" />
+                                            <ReferenceLine y={stockcardDoc.analytics.safetyStock}
+                                                label={{ value: 'SafetyStock', position: 'insideLeft', textAnchor: 'middle' }}
+                                                stroke="yellow" strokeDasharray="3 3" />
+                                            <Line type="monotone" dataKey="StockLevel" stroke="green"
+                                                dot={{ stroke: '#8884d8', strokeWidth: 1, r: 10, strokeDasharray: '' }}
+                                            />
+                                            <Line type="monotone" dataKey="ProjectedStockLevel" stroke="blue"
+                                                dot={{ stroke: '#blue', strokeWidth: 1, r: 10, strokeDasharray: '' }}
+                                            />
+                                        </LineChart>
+                                    </Accordion.Body>
+                                </Accordion.Item>
 
-        return (
+                            </Accordion>
 
-            maxLeadtime !== 0 ?
-                <>
-                    <div>
-                        <Accordion defaultActiveKey="0" className="mt-2">
-                            <Accordion.Item eventKey="0">
-                                <Accordion.Header><h6>Stock Level Projection Chart</h6></Accordion.Header>
-                                <Accordion.Body>
-                                    <LineChart
-                                        width={600}
-                                        height={400}
-                                        data={data}
-                                        margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                                    >
-                                        <XAxis dataKey="date">
-                                        </XAxis>
-                                        <YAxis label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }} />
-                                        <Tooltip />
-                                        <Legend />
-                                        <ReferenceLine y={stockcardDoc.analytics.reorderPoint}
-                                            label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
-                                            stroke="green" strokeDasharray="3 3" />
-                                        <ReferenceLine y={stockcardDoc.analytics.safetyStock}
-                                            label={{ value: 'SafetyStock', position: 'insideLeft', textAnchor: 'middle' }}
-                                            stroke="yellow" strokeDasharray="3 3" />
-                                        <Line type="monotone" dataKey="StockLevel" stroke="green"
-                                            dot={{ stroke: '#8884d8', strokeWidth: 1, r: 10, strokeDasharray: '' }}
-                                        />
-                                        <Line type="monotone" dataKey="ProjectedStockLevel" stroke="blue"
-                                            dot={{ stroke: '#blue', strokeWidth: 1, r: 10, strokeDasharray: '' }}
-                                        />
-                                    </LineChart>
-                                </Accordion.Body>
-                            </Accordion.Item>
+                            <Accordion defaultActiveKey="1">
+                                <Accordion.Item eventKey="1">
+                                    <Accordion.Header><h6>Inventory Projection Statistical Tools</h6></Accordion.Header>
+                                    <Accordion.Body>
 
-                        </Accordion>
-
-                        <Accordion defaultActiveKey="1">
-                            <Accordion.Item eventKey="1">
-                                <Accordion.Header><h6>Inventory Projection Statistical Tools</h6></Accordion.Header>
-                                <Accordion.Body>
-
-                                    <div className='row'>
-                                        <div className='col-4'>
-                                            <OverlayTrigger
-                                                placement="right"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={ROPToolTip}
-                                            >
-                                                <h3>ReorderPoint: </h3>
-                                            </OverlayTrigger>
-                                        </div>
-                                        <div className='col-5'>
-                                            <h5>
-                                                <span className="data-label">
-                                                    {stockcardDoc.analytics.reorderPoint} unit(s)
-                                                </span>
-                                            </h5>
-                                        </div>
-                                    </div>
-
-                                    <div className='row'>
-
-                                        <div className='col-3'>
-                                            <OverlayTrigger
-                                                placement="left"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={safetystockTooltip}
-                                            >
-                                                <h5>Safety Stock: </h5>
-                                            </OverlayTrigger>
-                                        </div>
-                                        <div className='col-5'>
-                                            <h5>
-                                                <span className="data-label">
-                                                    {stockcardDoc.analytics.safetyStock} unit(s)
-                                                </span>
-                                            </h5>
+                                        <div className='row'>
+                                            <div className='col-4'>
+                                                <OverlayTrigger
+                                                    placement="right"
+                                                    delay={{ show: 250, hide: 400 }}
+                                                    overlay={ROPToolTip}
+                                                >
+                                                    <h3>ReorderPoint: </h3>
+                                                </OverlayTrigger>
+                                            </div>
+                                            <div className='col-5'>
+                                                <h5>
+                                                    <span className="data-label">
+                                                        {stockcardDoc.analytics.reorderPoint} unit(s)
+                                                    </span>
+                                                </h5>
+                                            </div>
                                         </div>
 
-                                    </div>
+                                        <div className='row'>
 
+                                            <div className='col-3'>
+                                                <OverlayTrigger
+                                                    placement="left"
+                                                    delay={{ show: 250, hide: 400 }}
+                                                    overlay={safetystockTooltip}
+                                                >
+                                                    <h5>Safety Stock: </h5>
+                                                </OverlayTrigger>
+                                            </div>
+                                            <div className='col-5'>
+                                                <h5>
+                                                    <span className="data-label">
+                                                        {stockcardDoc.analytics.safetyStock} unit(s)
+                                                    </span>
+                                                </h5>
+                                            </div>
 
-                                    <hr />
-                                    <div className="row">
-                                        <div className="col-6">
-
-                                            <h6>Total Sales: {totalSales} unit(s)</h6>
-
-
-                                            <h6>Average Daily Sales: {stockcardDoc.analytics.averageDailySales} unit(s)</h6>
                                         </div>
-                                        <div className="col-6">
-                                            <h6>Average Leadtime: {averageLeadtime} day(s)</h6>
-                                            <h6>Minimum Leadtime: {minLeadtime} day(s)</h6>
-                                            <h6>Maximum Leadtime: {maxLeadtime} day(s)</h6>
+
+
+                                        <hr />
+                                        <div className="row">
+                                            <div className="col-6">
+
+                                                <h6>Total Sales: {totalSales} unit(s)</h6>
+
+
+                                                <h6>Average Daily Sales: {stockcardDoc.analytics.averageDailySales} unit(s)</h6>
+                                            </div>
+                                            <div className="col-6">
+                                                <h6>Average Leadtime: {stockcardDoc.analytics.leadtimeAverage} day(s)</h6>
+                                                <h6>Minimum Leadtime: {stockcardDoc.analytics.leadtimeMinimum} day(s)</h6>
+                                                <h6>Maximum Leadtime: {stockcardDoc.analytics.leadtimeMaximum} day(s)</h6>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                </Accordion.Body>
-                            </Accordion.Item>
-                        </Accordion>
-                    </div >
-                </>
+                                    </Accordion.Body>
+                                </Accordion.Item>
+                            </Accordion>
+                        </div >
+                    </>
 
-                :
-                <div className='mt-2 p-3'>
-                    <Alert variant="danger">
-                        <Alert.Heading className='text-center'>Setup Product Leadtime</Alert.Heading>
-                        <p className="text-center">
-                            Forecasting only works when the product <strong>leadtime</strong> has been set. to set product leadtime go to  <Alert.Link as={Link} to="/stockcard">Stockcard Page</Alert.Link>.
-                        </p>
-                    </Alert>
-                </div>
-
+                    :
+                    <div className='mt-2 p-3'>
+                        <Alert variant="danger">
+                            <Alert.Heading className='text-center'>Setup Product Leadtime</Alert.Heading>
+                            <p className="text-center">
+                                Forecasting only works when the product <strong>leadtime</strong> has been set. to set product leadtime go to  <Alert.Link as={Link} to="/stockcard">Stockcard Page</Alert.Link>.
+                            </p>
+                        </Alert>
+                    </div>
 
 
 
-        )
+
+            )
+        }
     }
+
+    const [errorBoolean, setErrorBoolean] = useState(false)
+
+    useEffect(() => {
+        {
+            maxLeadtime === 0 ?
+                setErrorBoolean(true)
+                :
+                setErrorBoolean(false)
+        }
+    }, [maxLeadtime])
 
     function displayChartError() {
         return (
-            <div className='mt-2 p-3'>
-                <Alert variant="danger">
-                    <Alert.Heading className="text-center">
-                        PREREQUISITE FOR FORECASTING
-                    </Alert.Heading>
-                    <p className="text-center">
-                        Forecasting only works when the product <strong>leadtime</strong> has been set. to set product leadtime go to  <Alert.Link as={Link} to="/stockcard">Stockcard Page</Alert.Link>. <br />
-                        and the product needs to have more than <strong>5 days</strong> existing sales transaction. to create a sales transaction, go to <Alert.Link as={Link} to="/salesrecord">Sales Record</Alert.Link>. <br />
-                    </p>
-                </Alert>
-            </div>
+            errorBoolean ?
+                <>
+
+                    < div className='mt-2 p-3' >
+                        <Alert variant="danger">
+                            <Alert.Heading className="text-center">
+                                PREREQUISITE FOR FORECASTING
+                            </Alert.Heading>
+                            <p className="text-center">
+                                Forecasting Chart only displays when product <strong>Leadtime</strong> has been set. To set product leadtime go to  <Alert.Link as={Link} to="/stockcard">Stockcard Page</Alert.Link>. <br />
+                            </p>
+                        </Alert>
+                    </div >
+                </>
+                :
+                <>
+                    <div className='mt-2 p-3'>
+                        <Alert variant="danger">
+                            <Alert.Heading className="text-center">
+                                PREREQUISITE FOR FORECASTING
+                            </Alert.Heading>
+                            <p className="text-center">
+                                Forecasting Chart is only available for those products with <strong>Five(5) days</strong>  or more sales transaction days. to create a sales transaction, go to 
+                               <Alert.Link as={Link} to="/salesrecord">Sales Record</Alert.Link>. <br />
+                            </p>
+                        </Alert>
+                    </div>
+                </>
+
+
         )
+
+
     }
 
     //-----------------------------------------------------------------------
 
-
-    //-------------------------------Chart Data function-------------------------
-
-    const [date1, setDate1] = useState("")
-    const [date2, setDate2] = useState("")
-    const [date3, setDate3] = useState("")
-    const [date4, setDate4] = useState("")
-    const [date5, setDate5] = useState("")
-
     useEffect(() => {
-        if (sortedTransactionDates.length >= 5) {
-            setDate1(sortedTransactionDates[sortedTransactionDates.length - 1])
-            setDate2(sortedTransactionDates[sortedTransactionDates.length - 2])
-            setDate3(sortedTransactionDates[sortedTransactionDates.length - 3])
-            setDate4(sortedTransactionDates[sortedTransactionDates.length - 4])
-            setDate5(sortedTransactionDates[sortedTransactionDates.length - 5])
-        }
-        else {
-            setDate1("")
-            setDate2("")
-            setDate3("")
-            setDate4("")
-            setDate5("")
-        }
+        console.log("sortedTransactionDates: ", sortedTransactionDates)
     }, [sortedTransactionDates])
 
 
     useEffect(() => {
-        console.log(date1, date2, date3, date4, date5)
-    }, [date1])
+        console.log("arrDate: ", arrDate)
+    }, [arrDate])
+
 
 
     // ---------------------------------Q1 DATA---------------------------------
@@ -652,9 +741,6 @@ function TestPage() {
 
 
     useEffect(() => {
-        let halfROP = Math.round(daysROP / 2)
-        let quarterROP = Math.round(daysROP / 4)
-
         let tempDate1 = new Date(q1Date)
         let tempDate2 = new Date(q1Date)
         let tempDate3 = new Date(q1Date)
@@ -774,19 +860,6 @@ function TestPage() {
     const [searchValue, setSearchValue] = useState('');    // the value of the search field 
     const [searchResult, setSearchResult] = useState();    // the search result
 
-    useEffect(() => {
-        console.log("searchValue: ", searchValue)
-    }, [searchValue])
-
-
-    useEffect(() => {
-        console.log("searchResult: ", searchResult)
-    }, [searchResult])
-
-    useEffect(() => {
-        console.log("stockcard: ", stockcard)
-    }, [stockcard])
-
 
     useEffect(() => {
         if (stockcard === undefined) {
@@ -821,6 +894,7 @@ function TestPage() {
     };
 
     // ====================================== END OF SEARCH FUNCTION ======================================
+
 
 
     return (
@@ -1034,8 +1108,13 @@ function TestPage() {
                                                 </div>
                                             </div>
                                         </div>
+                                        {forecastingBoolean ?
+                                            displayAccordion()
+                                            :
+                                            displayChartError()
+                                        }
 
-                                        {sortedTransactionDates <= 5 ? displayChartError() : displayAccordion()}
+
 
 
 
