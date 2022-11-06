@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, Form, Button, ListGroup, Card, Tab, FormControl, Accordion, Alert } from 'react-bootstrap';
+import { Table, Form, Button, ListGroup, Card, Tab, FormControl, Accordion, Alert, InputGroup } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
@@ -7,12 +7,13 @@ import { collection, onSnapshot, query, where, doc, updateDoc, setDoc, getDoc } 
 import moment from 'moment';
 import "react-toastify/dist/ReactToastify.css";
 import { UserAuth } from '../context/AuthContext'
-import { faCircleInfo, faSearch, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
+import { faCircleInfo, faSearch, faTriangleExclamation, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import ToolTip from 'react-bootstrap/Tooltip';
 import { LineChart, Line, XAxis, YAxis, ReferenceDot, Legend, Tooltip, Label, ReferenceLine } from 'recharts';
 import { Link } from 'react-router-dom';
+import { Spinner } from 'loading-animations-react';
 
 
 
@@ -28,7 +29,7 @@ function Itemforecast() {
     const [userID, setUserID] = useState("");
 
     const [docId, setDocId] = useState("xx"); //document Id
-    const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+    const [stockcard, setStockcard] = useState(); // stockcardCollection variable
     const [stockcardDoc, setStockcardDoc] = useState([]); //stockcard Document variable
     const [salesRecordCollection, setSalesRecordCollection] = useState([]); // sales_record collection
 
@@ -453,249 +454,82 @@ function Itemforecast() {
                                 <Accordion.Header><h6>Inventory Projection Statistical Tools</h6></Accordion.Header>
                                 <Accordion.Body>
 
-                                    <div className="row pt-2 pb-1 px-3">
-                                        <hr />
-                                        <div className="col-4">
-                                            <OverlayTrigger
-                                                placement="right"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={NdaysROPTooltip}
-                                            >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            N Days Before ROP <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{daysROP} day(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
-                                            </OverlayTrigger>
-
-                                        </div>
-                                        <div className="col-4">
+                                    <div className='row'>
+                                        <div className='col-4'>
                                             <OverlayTrigger
                                                 placement="right"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={ROPToolTip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            ReorderPoint <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{reorderPoint} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h3>ReorderPoint: </h3>
                                             </OverlayTrigger>
-
                                         </div>
-                                        <div className="col-4">
+                                        <div className='col-5'>
+                                            <h5>
+                                                <span className="data-label">
+                                                    {reorderPoint} unit(s)
+                                                </span>
+                                            </h5>
+                                        </div>
+                                    </div>
+
+                                    <div className='row'>
+
+                                        <div className='col-3'>
                                             <OverlayTrigger
                                                 placement="left"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={safetystockTooltip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header
-                                                        className="text-center text-white"
-                                                    >
-                                                        <small>
-                                                            Safety Stock <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{safetyStock} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h5>Safety Stock: </h5>
                                             </OverlayTrigger>
                                         </div>
+                                        <div className='col-5'>
+                                            <h5>
+                                                <span className="data-label">
+                                                    {safetyStock} unit(s)
+                                                </span>
+                                            </h5>
+                                        </div>
+
                                     </div>
 
-                                    <div className="row pt-2 pb-1 px-3">
-                                        <div className="col-4">
-                                            <OverlayTrigger
-                                                placement="right"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={averageSalesTooltip}
-                                            >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Average Daily Sales <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{averageDailySales} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
-                                            </OverlayTrigger>
-                                        </div>
-                                        <div className="col-4">
+
+                                    <hr />
+                                    <div className="row">
+                                        <div className="col-6">
                                             <OverlayTrigger
                                                 placement="right"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={highestSalesTooltip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Highest Daily Sales <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{highestDailySales} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h6>Total Sales: {totalSales} unit(s)</h6>
                                             </OverlayTrigger>
-                                        </div>
-                                        <div className="col-4">
-                                            <OverlayTrigger
-                                                placement="left"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={totalSalesTooltip}
-                                            >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Total Sales <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{totalSales} unit(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
-                                            </OverlayTrigger>
-                                        </div>
-                                    </div>
-
-                                    <div className="row pt-2 pb-1 px-3">
-                                        <div className="col-4">
-                                            <OverlayTrigger
-                                                placement="left"
-                                                delay={{ show: 250, hide: 400 }}
-                                                overlay={totalSalesTooltip}
-                                            >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Minimum Leadtime <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{minLeadtime} day(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
-                                            </OverlayTrigger>
-                                        </div>
-                                        <div className="col-4">
                                             <OverlayTrigger
                                                 placement="right"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={highestSalesTooltip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Maximum Leadtime <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{maxLeadtime} day(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h6>Highest Daily Sales: {highestDailySales} unit(s)</h6>
                                             </OverlayTrigger>
-                                        </div>
-                                        <div className="col-4">
                                             <OverlayTrigger
                                                 placement="right"
                                                 delay={{ show: 250, hide: 400 }}
                                                 overlay={averageSalesTooltip}
                                             >
-                                                <Card className="bg-dark">
-                                                    <Card.Header className="text-center text-white">
-                                                        <small>
-                                                            Average Leadtime <FontAwesomeIcon icon={faCircleInfo} />
-                                                        </small>
-                                                    </Card.Header>
-                                                    <Card.Body
-                                                        className="text-white text-center"
-                                                        style={{ height: "50px" }}>
-                                                        <h5>{averageLeadtime} day(s)</h5>
-                                                    </Card.Body>
-                                                </Card>
+                                                <h6>Average Daily Sales: {averageDailySales} unit(s)</h6>
                                             </OverlayTrigger>
+                                        </div>
+                                        <div className="col-6">
+                                            <h6>Average Leadtime: {averageLeadtime} day(s)</h6>
+                                            <h6>Minimum Leadtime: {minLeadtime} day(s)</h6>
+                                            <h6>Maximum Leadtime: {maxLeadtime} day(s)</h6>
                                         </div>
                                     </div>
 
                                 </Accordion.Body>
                             </Accordion.Item>
                         </Accordion>
-                        <Accordion>
-                            <Accordion.Item>
-                                <Accordion.Header>
-                                    DATA COMPILATION
-                                </Accordion.Header>
-                                <Accordion.Body>
-                                    <div className='row'>
-
-                                        <div className='col-3'>
-                                            Array of Transaction Dates
-                                            <ul>
-                                                {arrDate.map((date) => {
-                                                    return (
-                                                        <li key={date}>{date}</li>
-                                                    )
-                                                })}
-                                            </ul>
-                                        </div>
-                                        <div className='col-3'>
-                                            Array of Total Daily Sales
-                                            {arrDailySales.map((daily) => {
-                                                return (
-                                                    <li key={daily}>{daily}</li>
-                                                )
-                                            })}
-                                        </div>
-
-                                        <div className='col-3'>
-                                            Sorted Array of Total Daily Sales
-                                            {sortedTransactionDates.map((sorted) => {
-                                                return (
-                                                    <li key={sorted}>{sorted}</li>
-                                                )
-                                            })}
-                                        </div>
-                                        <div className='col-3'>
-                                            {sortedTransactionDates[0]}
-                                        </div>
-                                    </div>
-
-
-                                </Accordion.Body>
-                            </Accordion.Item>
-                        </Accordion>
-
                     </div >
                 </>
 
@@ -1071,11 +905,11 @@ function Itemforecast() {
 
 
     useEffect(() => {
-        setFillerQuantity1(Math.round(tempQuantity1 - (averageDailySales*7)))
-        setFillerQuantity2(Math.round(tempQuantity2 - (averageDailySales*14)))
-        setFillerQuantity3(Math.round(tempQuantity3 - (averageDailySales*21)))
-        setFillerQuantity4(Math.round(tempQuantity4 - (averageDailySales*28)))
-        setFillerQuantity5(Math.round(tempQuantity5 - (averageDailySales*35)))
+        setFillerQuantity1(Math.round(tempQuantity1 - (averageDailySales * 7)))
+        setFillerQuantity2(Math.round(tempQuantity2 - (averageDailySales * 14)))
+        setFillerQuantity3(Math.round(tempQuantity3 - (averageDailySales * 21)))
+        setFillerQuantity4(Math.round(tempQuantity4 - (averageDailySales * 28)))
+        setFillerQuantity5(Math.round(tempQuantity5 - (averageDailySales * 35)))
     }, [tempQuantity1])
 
     //---------------------------------------------------------------------------
@@ -1131,31 +965,89 @@ function Itemforecast() {
 
     ];
 
+    // ===================================== START OF SEARCH FUNCTION =====================================
+    const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
+
+
+    const [searchValue, setSearchValue] = useState('');    // the value of the search field 
+    const [searchResult, setSearchResult] = useState();    // the search result
+
+    useEffect(() => {
+        console.log("searchValue: ", searchValue)
+    }, [searchValue])
+
+
+    useEffect(() => {
+        console.log("searchResult: ", searchResult)
+    }, [searchResult])
+
+    useEffect(() => {
+        console.log("stockcard: ", stockcard)
+    }, [stockcard])
+
+
+    useEffect(() => {
+        if (stockcard === undefined) {
+            setIsFetched(false)
+        }
+        else {
+            setIsFetched(true)
+        }
+    }, [stockcard])
+
+    useEffect(() => {
+        setSearchResult(stockcard)
+    }, [stockcard])
+
+
+    const filter = (e) => {
+        const keyword = e.target.value;
+
+        if (keyword !== '') {
+            const results = stockcard.filter((user) => {
+                return user.description.toLowerCase().startsWith(keyword.toLowerCase()) ||
+                    user.id.toLowerCase().startsWith(keyword.toLowerCase());
+                // Use the toLowerCase() method to make it case-insensitive
+            });
+            setSearchResult(results);
+        } else {
+            setSearchResult(stockcard);
+            // If the text field is empty, show all users
+        }
+
+        setSearchValue(keyword);
+    };
+
+    // ====================================== END OF SEARCH FUNCTION ======================================
+
+
+
+
+
     return (
 
         <div className="row bg-light">
             <Navigation />
 
             <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-                <div className="row contents">
+                <div id="contents" className="row">
                     <div className="row py-4 px-5">
                         <div className="sidebar">
                             <Card className='sidebar-card' style={{ height: "550px" }}>
                                 <Card.Header>
                                     <div className='row'>
-                                        <div className="col-1 left-full-curve">
-                                            <Button className="fc-search no-click me-0">
+                                        <InputGroup className="mb-3">
+                                            <InputGroup.Text id="basic-addon1">
                                                 <FontAwesomeIcon icon={faSearch} />
-                                            </Button>
-                                        </div>
-                                        <div className="col-11">
+                                            </InputGroup.Text>
                                             <FormControl
-                                                placeholder="Search"
-                                                aria-label="Search"
-                                                aria-describedby="basic-addon2"
-                                                className="fc-search right-full-curve mw-0"
+                                                type="search"
+                                                value={searchValue}
+                                                onChange={filter}
+                                                className="input"
+                                                placeholder="Search by Item Code/Description"
                                             />
-                                        </div>
+                                        </InputGroup>
                                     </div>
                                 </Card.Header>
                                 <Card.Body>
@@ -1167,45 +1059,65 @@ function Itemforecast() {
                                             Description
                                         </div>
                                     </div>
-                                    <div className='scrollbar' style={{ height: '500px' }}>
-                                        {stockcard.length === 0 ?
-                                            <div className='py-4 px-2'>
-                                                <Alert variant="secondary" className='text-center'>
-                                                    <p>
-                                                        <strong>No Recorded Product Registered to Forecast ReorderPoint</strong>
-                                                    </p>
-                                                </Alert>
-                                            </div>
-                                            :
-                                            <ListGroup variant="flush">
-                                                {stockcard.map((stockcard) => {
-                                                    return (
-                                                        <ListGroup.Item
-                                                            action
-                                                            key={stockcard.id}
-                                                            eventKey={stockcard.id}
-                                                            onClick={() => { setDocId(stockcard.id) }}>
-                                                            <div className="row gx-0 sidebar-contents">
-                                                                <div className="col-4">
-                                                                    {stockcard.id.substring(0, 9)}
-                                                                </div>
-                                                                <div className="col-8">
-                                                                    {stockcard.description}
-                                                                </div>
+                                    <div id='scrollbar' style={{ height: '400px' }}>
+                                        {isFetched ?
+                                            (
+                                                stockcard.length === 0 ?
+                                                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                                                        <h5 className="text-center mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to display</strong>
+                                                            <br /><span style={{ color: '#0d6efd' }}>ReorderPoint Forecasting</span>.</h5>
+                                                        <p className="d-flex align-items-center justify-content-center">
+                                                            <span>Go to -</span>
+                                                            <Alert.Link as={Link} to="/stockcard">Stockcard Page</Alert.Link>
+                                                            <span>
+                                                                - to add one.
+                                                            </span>
+                                                        </p>
+                                                    </div>
+                                                    :
+                                                    <ListGroup variant="flush">
+                                                        {searchResult && searchResult.length > 0 ? (
+                                                            searchResult.map((stockcard) => (
+                                                                <ListGroup.Item
+                                                                    action
+                                                                    key={stockcard.id}
+                                                                    eventKey={stockcard.id}
+                                                                    onClick={() => { setDocId(stockcard.id) }}
+                                                                >
+                                                                    <div className="row gx-0 sidebar-contents">
+                                                                        <div className="col-4">
+                                                                            {stockcard.id}
+                                                                        </div>
+                                                                        <div className="col-8">
+                                                                            {stockcard.description}
+                                                                        </div>
+                                                                    </div>
+                                                                </ListGroup.Item>
+                                                            ))
+                                                        ) : (
+                                                            <div className='mt-5 text-center'>
+                                                                <Alert variant='danger'>
+                                                                    No Search Result for
+                                                                    <br /><strong>{searchValue}</strong>
+                                                                </Alert>
                                                             </div>
-                                                        </ListGroup.Item>
-                                                    )
-                                                })}
-
-                                            </ListGroup>
+                                                        )}
+                                                    </ListGroup>
+                                            )
+                                            :
+                                            <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                                                <Spinner
+                                                    color1="#b0e4ff"
+                                                    color2="#fff"
+                                                    textColor="rgba(0,0,0, 0.5)"
+                                                    className="w-50 h-50"
+                                                />
+                                            </div>
                                         }
-
                                     </div>
                                 </Card.Body>
                             </Card>
-                            <div className="sidebar-visibility-toggler">
-                                <div>hello</div>
-                            </div>
+
                         </div>
                         <div className="divider">
 
@@ -1296,12 +1208,12 @@ function Itemforecast() {
                                                 <div className="row my-2">
                                                     <div className="col-3 text-center">
                                                         <h5><strong>
-                                                            {docId===undefined?
+                                                            {docId === undefined ?
                                                                 <>
                                                                 </>
                                                                 :
                                                                 <>
-                                                                    {docId.substring(0,9)}
+                                                                    {docId.substring(0, 9)}
                                                                 </>
                                                             }
                                                         </strong></h5>
@@ -1334,8 +1246,8 @@ function Itemforecast() {
                 </div>
             </Tab.Container>
         </div >
-         )
+    )
 
-        }
-        
-        export default Itemforecast;
+}
+
+export default Itemforecast;

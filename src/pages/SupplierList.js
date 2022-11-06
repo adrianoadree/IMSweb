@@ -16,7 +16,7 @@ import Barcode from 'react-barcode';
 import JsBarcode from "jsbarcode";
 import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
-import  UserRouter  from '../pages/UserRouter'
+import UserRouter from '../pages/UserRouter'
 import { UserAuth } from '../context/AuthContext'
 import { Spinner } from 'loading-animations-react';
 
@@ -48,14 +48,13 @@ function SupplierList() {
 
   useEffect(() => {
     console.log(isFetched)
-  }, )
+  },)
 
-  useEffect(()=>{
-    if(supplier === undefined) {
+  useEffect(() => {
+    if (supplier === undefined) {
       setIsFetched(false)
     }
-    else
-    {
+    else {
       setIsFetched(true)
     }
   }, [supplier])
@@ -281,6 +280,43 @@ function SupplierList() {
     );
   }
 
+
+
+  // ===================================== START OF SEARCH FUNCTION =====================================
+
+
+
+  const [searchValue, setSearchValue] = useState('');    // the value of the search field 
+  const [searchResult, setSearchResult] = useState();    // the search result
+
+
+  useEffect(() => {
+    setSearchResult(supplier)
+  }, [supplier])
+
+
+
+  const filter = (e) => {
+    const keyword = e.target.value;
+
+    if (keyword !== '') {
+      const results = supplier.filter((supplier) => {
+        return supplier.supplier_name.toLowerCase().startsWith(keyword.toLowerCase()) ||
+          supplier.id.toLowerCase().startsWith(keyword.toLowerCase());
+        // Use the toLowerCase() method to make it case-insensitive
+      });
+      setSearchResult(results);
+    } else {
+      setSearchResult(supplier);
+      // If the text field is empty, show all users
+    }
+
+    setSearchValue(keyword);
+  };
+
+  // ====================================== END OF SEARCH FUNCTION ======================================
+
+
   return (
     <div>
       <UserRouter
@@ -304,26 +340,24 @@ function SupplierList() {
         id="controlled-tab-example"
         activeKey={key}
         onSelect={(k) => setKey(k)}>
-        <div className="row contents">
+        <div id="contents" className="row">
           <div className="row  py-4 px-5">
             <div className='sidebar'>
               <Card className='sidebar-card'>
                 <Card.Header>
                   <div className='row'>
-                    <div className="col-1">
-                      <Button className="fc-search left-full-curve no-click me-0"
-                        onClick={() => setModalShow(true)}>
+                    <InputGroup className="mb-3">
+                      <InputGroup.Text id="basic-addon1">
                         <FontAwesomeIcon icon={faSearch} />
-                      </Button>
-                    </div>
-                    <div className="col-11">
+                      </InputGroup.Text>
                       <FormControl
-                        placeholder="Search"
-                        aria-label="Search"
-                        aria-describedby="basic-addon2"
-                        className="fc-search right-full-curve mw-0"
+                        type="search"
+                        value={searchValue}
+                        onChange={filter}
+                        className="input"
+                        placeholder="Search by Supplier ID/Name"
                       />
-                    </div>
+                    </InputGroup>
                   </div>
                 </Card.Header>
                 <Card.Body style={{ height: "500px" }}>
@@ -340,24 +374,54 @@ function SupplierList() {
                     </div>
                   </div>
                   <div id='scrollbar' style={{ height: '400px' }}>
-                    {isFetched?
-                    <>
-                    {supplier.length === 0 ?
-                      <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                        <h5 className="mb-3"><strong>No <span style={{color: '#0d6efd'}}>supplier</span> to show.</strong></h5>
-                        <p className="d-flex align-items-center justify-content-center">
-                          <span>Click the</span>
-                          <Button
-                            className="add ms-1 me-1 static-button no-click"
-                          >
-                            <FontAwesomeIcon icon={faPlus} />
-                          </Button>
-                          <span>
-                            button to add one.
-                          </span>
-                        </p>
-                      </div>
-                      
+                    {isFetched ?
+                      (
+                        supplier.length === 0 ?
+                          <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>supplier</span> to show.</strong></h5>
+                            <p className="d-flex align-items-center justify-content-center">
+                              <span>Click the</span>
+                              <Button
+                                className="add ms-1 me-1 static-button no-click"
+                              >
+                                <FontAwesomeIcon icon={faPlus} />
+                              </Button>
+                              <span>
+                                button to add one.
+                              </span>
+                            </p>
+                          </div>
+                          :
+                          <ListGroup variant="flush">
+                            {searchResult && searchResult.length > 0 ? (
+                              searchResult.map((supplier) => (
+                                <ListGroup.Item
+                                  action
+                                  key={supplier.id}
+                                  eventKey={supplier.id}
+                                  onClick={() => { setDocId(supplier.id) }}
+                                >
+                                  <div className="row gx-0 sidebar-contents">
+                                    <div className="col-4">
+                                      {supplier.id}
+                                    </div>
+                                    <div className="col-8">
+                                      {supplier.supplier_name}
+                                    </div>
+                                  </div>
+                                </ListGroup.Item>
+                              ))
+                            ) : (
+                              <div className='mt-5 text-center'>
+                                <Alert variant='danger'>
+                                  No Search Result for
+                                  <br /><strong>{searchValue}</strong>
+                                </Alert>
+                              </div>
+                            )}
+
+                          </ListGroup>
+                      )
                       :
                       <ListGroup variant="flush">
                       {supplier.map((supplier) => {
@@ -384,19 +448,6 @@ function SupplierList() {
 
                     </ListGroup>
                     }
-                    </>
-                    :
-                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                      <Spinner 
-                      color1="#b0e4ff"
-                      color2="#fff"
-                      textColor="rgba(0,0,0, 0.5)"
-                      className="w-50 h-50"
-                      />
-                    </div>
-                    }
-
-                  
                   </div>
                 </Card.Body>
               </Card>
@@ -485,35 +536,35 @@ function SupplierList() {
                                 color={'#000000'}
                                 height="25px"
                                 width="25px"
-                                title={'Selling Price'}
+                                title={'Mobile Number'}
                               />
                             </span>
-                            <span className="data-label sm">Selling Price</span>
+                            <span className="data-label sm">Mobile Number</span>
                           </div>
                           <div className="col-3 px-1">
                             <span className="data-icon sm">
                               <Call
                                 color={'#00000'}
-                                title={'Purchase Price'}
+                                title={'Telephone Number'}
                                 height="25px"
                                 width="25px"
                               />
                             </span>
                             <span className="data-label sm">
-                              Purchase Price
+                              Telephone Number
                             </span>
                           </div>
                           <div className="col-6 px-1">
                             <span className="data-icon">
                               <Mail
                                 color={'#00000'}
-                                title={'Category'}
+                                title={'Email Address'}
                                 height="25px"
                                 width="25px"
                               />
                             </span>
                             <span className="data-label">
-                              Barcode
+                              Email Address
                             </span>
                           </div>
                         </div>

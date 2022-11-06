@@ -365,7 +365,7 @@ function AccountManagement() {
       />
 
       <Tab.Container id="list-group-tabs-example"defaultActiveKey={0}>
-        <div className="row contents">
+        <div id="contents" className="row">
           <div className="row  py-4 px-5">
             <div className='sidebar'>
               <Card className="sidebar-card">

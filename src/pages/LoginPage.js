@@ -31,7 +31,7 @@ const LoginPage = () => {
     return (
         <div>
             <div id="login-page">
-                <div className="contents">
+                <div id="contents">
                     <div id="add-border">           
                         <div id="brand-image-container">
                             <img id="brand-image" src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52">

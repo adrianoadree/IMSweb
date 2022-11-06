@@ -88,7 +88,7 @@ const months = {
           purchaseId: 1,
           warehouseId: 1,
           supplierId: 1,
-          showTips: true,
+          preferences: {showTips: true, showQuickAccess: false,},
           categories: [],
         });
 

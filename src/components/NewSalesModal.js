@@ -35,7 +35,10 @@ function NewSalesModal(props) {
     const [itemPPrice, setItemPPrice] = useState(0); //product Purchase Price
     const [itemQuantity, setItemQuantity] = useState(1); //product quantity
     const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
-    const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
+    var curr = new Date()
+    curr.setDate(curr.getDate());
+    var today = moment(curr).format('YYYY-MM-DD')
+    const [newDate, setNewDate] = useState(today); // stockcardCollection variable
     const [buttonBool, setButtonBool] = useState(true); //button disabler
 
 
@@ -118,6 +121,21 @@ function NewSalesModal(props) {
         }
     }, [itemId])
 
+    useEffect(()=>{
+        if(props.onHide)
+        {
+          clearFields()
+        }
+      }, [props.onHide])
+
+    const clearFields = () => {
+        setNewDate(today)
+        setProductIds([])
+        setItems([]);
+        setNewNote("");
+        updateQuantity()  
+    }
+
     //----------------------Start of Dynamic form functions----------------------
     const addItem = event => {
         event.preventDefault();
@@ -185,11 +203,7 @@ function NewSalesModal(props) {
             product_ids: productIds,
             isVoided: false,
         });
-
-        setProductIds([])
-        setItems([]);
-        setNewNote("");
-        updateQuantity()  //update stockcard.qty function
+        //update stockcard.qty function
         updateSalesDocNum() //update variables.salesDocNum function
         successToast() //display success toast
 
@@ -240,16 +254,6 @@ function NewSalesModal(props) {
         }
     }, [{ user }])
 
-
-    //current date
-    useEffect(() => {
-        newDate.setDate(newDate.getDate());
-        setNewDate(newDate.toISOString().substring(0, 10))
-
-    }, [])
-
-
-
     return (
         <Modal
             {...props}
@@ -289,6 +293,7 @@ function NewSalesModal(props) {
                             <label>Transaction Date</label>
                             <input
                                 type='date'
+                                required
                                 className="form-control shadow-none"
                                 value={newDate}
                                 onChange={e => setNewDate(e.target.value)}

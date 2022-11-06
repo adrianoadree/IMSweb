@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { db } from "../firebase-config";
 import { setDoc, collection, onSnapshot, query, doc, updateDoc, where } from "firebase/firestore";
 import { Modal, Button, Form, Table } from "react-bootstrap";
@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 import { UserAuth } from '../context/AuthContext'
 
-import { faPlus, faMinus } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faMinus, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import NewSupplierModal from '../components/NewSupplierModal'
 
@@ -42,7 +42,12 @@ function NewPurchaseModal(props) {
     const [itemPPrice, setItemPPrice] = useState(0); //product Purchase Price
     const [itemQuantity, setItemQuantity] = useState(1); //product quantity
     const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
-    const [newDate, setNewDate] = useState(new Date()); // stockcardCollection variable
+    const hasRun = useRef(false)
+    var curr = new Date()
+    curr.setDate(curr.getDate());
+    var today = moment(curr).format('YYYY-MM-DD')
+    const [newTransactionDate, setNewTransactionDate] = useState(today); // stockcardCollection variable
+    const [newOrderDate, setNewOrderDate] = useState(today); // stockcardCollection variable
 
 
     //---------------------FUNCTIONS---------------------
@@ -135,7 +140,21 @@ function NewPurchaseModal(props) {
 
     }, [userID])
 
+    useEffect(()=>{
+        if(props.onHide)
+        {
+          clearFields()
+        }
+      }, [props.onHide])
 
+    const clearFields = () => {
+        setItemSupplier("0")
+        setProductIds([])
+        setItems([]);
+        setNewNote("");
+        setNewTransactionDate(today)
+        setNewOrderDate(today)
+    }
 
     //Read and set data from stockcard document
     useEffect(() => {
@@ -185,6 +204,9 @@ function NewPurchaseModal(props) {
         const list = [...items]
         list.splice(index, 1)
         setItems(list)
+        const ids = [... productIds]
+        ids.splice(index, 1)
+        setProductIds(ids)
     }
 
     //----------------------End of Dynamic form functions----------------------
@@ -206,17 +228,14 @@ function NewPurchaseModal(props) {
             user: userID,
             transaction_number: createFormat().substring(0,7),
             transaction_note: newNote,
-            transaction_date: newDate,
+            transaction_date: newTransactionDate,
             transaction_supplier: itemSupplier,
+            transaction_date: newTransactionDate,
+            order_date: newOrderDate,
             product_list: items,
             product_ids: productIds,
             isVoided: false
         });
-
-        setItemSupplier("0")
-        setProductIds([])
-        setItems([]);
-        setNewNote("");
         updateQuantity()  //update stockcard.qty function
         updatePurchDocNum() //update variables.purchDocNum function
         successToast() //display success toast
@@ -271,12 +290,16 @@ function NewPurchaseModal(props) {
 
     //current date
     useEffect(() => {
-        newDate.setDate(newDate.getDate());
-        setNewDate(newDate.toISOString().substring(0, 10))
 
     }, [])
 
 
+    useEffect(() => {
+        if (!hasRun.current && newTransactionDate !== today) {
+          hasRun.current = true
+          setNewOrderDate(newTransactionDate)
+        }
+      },[newTransactionDate])
 
     return (
 
@@ -304,8 +327,8 @@ function NewPurchaseModal(props) {
                         <h3 className="text-center">Generate a Purchase Record</h3>
                     </div>
                     <div className="row my-2 mb-3">
-                        <div className='col-3 ps-4'>
-                            <label>Transaction Number</label>
+                        <div className='col-2 ps-4'>
+                            <label>Transaction #</label>
                             <input type="text"
                                 readOnly
                                 className="form-control shadow-none no-click"
@@ -313,16 +336,35 @@ function NewPurchaseModal(props) {
                                 defaultValue={createFormat().substring(0,7)}
                             />
                         </div>
-                        <div className='col-4 ps-4'>
+                        <div className='col-3 ps-4'>
                             <label>Transaction Date</label>
                             <input
                                 type='date'
+                                required
                                 className="form-control shadow-none"
-                                value={newDate}
-                                onChange={e => setNewDate(e.target.value)}
+                                value={newTransactionDate}
+                                onChange={e => setNewTransactionDate(e.target.value)}
                             />
                         </div>
-                        <div className='col-5 ps-4'>
+                        <div className="col-3 ps-4">
+                        <label>
+                            Date Ordered
+                            <a
+                                className="ms-2"
+                                data-title="The date when the purchase order was placed"
+                            >
+                            <FontAwesomeIcon icon={faCircleInfo
+                            }/>
+                            </a>
+                        </label>
+                        <input
+                                type='date'
+                                className="form-control shadow-none"
+                                value={newOrderDate}
+                                onChange={e => setNewOrderDate(e.target.value)}
+                            />
+                        </div>
+                        <div className='col-4 ps-4'>
                             <NewSupplierModal
                                 show={supplierModalShow}
                                 onHide={() => setSupplierModalShow(false)}
@@ -335,7 +377,7 @@ function NewPurchaseModal(props) {
                                     onChange={e => handleSupplierSelect(e.target.value)}
                                     >
                                     <option
-                                        value="0">
+                                        value="">
                                         Select Supplier
                                     </option>
                                     <option

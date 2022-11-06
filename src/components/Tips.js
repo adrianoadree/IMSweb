@@ -3,6 +3,7 @@ import { Checkbox, CaretDown, CaretUp } from 'react-ionicons'
 import { useState } from 'react';
 import { db } from '../firebase-config';
 import { doc, onSnapshot, } from 'firebase/firestore';
+import { ListGroup } from "react-bootstrap";
 
 
 
@@ -10,141 +11,212 @@ import { doc, onSnapshot, } from 'firebase/firestore';
 function Tips(props) {
 
   const [shown, setShown] = useState(true);
-  const [tips, setTips] = useState([]);
-  const [tipsIfNew, setTipsIfNew] = useState([]);
-  const [tipsToDisplay, setTipsToDisplay] = useState([]);
-  const toggle=() =>{
-    var bnr = document.getElementById("banner");
-    var tgl = document.getElementById("banner-visibility-toggle");
-    if (bnr.style.display === "none") {
-      bnr.style.display = "block";
-      tgl.setAttribute("data-title","Hide");
-      setShown(true);
-    } else {
-      bnr.style.display = "none";
-      tgl.setAttribute("data-title","Show");
-      setShown(false);
-    }
-  }
-  
-    
-  const getAids = () => {
-    onSnapshot(doc(db, "masterdata", "aids"), (doc) => {
-        setTips(doc.data().tips);
-        setTipsIfNew(doc.data().tipsIfNew);
-    }, []);
-  }
-    
+  const [tipDescriptions, setTipDescriptions] = useState()
+  const [tips, setTips] = useState();
+  const [tipId, setTipId] = useState()
+  const [tipsIfNew, setTipsIfNew] = useState();
+  const [tipsToDisplay, setTipsToDisplay] = useState();
+  const [changedView, setChangedView] = useState(false)
+
   useEffect(()=>{
-    if(tips === undefined || tipsIfNew === undefined) {
-      
+    var bnr = document.getElementById("banner");
+    if(shown) {
+      bnr.style.display = "block";
     }
     else
     {
-      getAids();
-      switch(props.page) {
-        case '/warehouse': props.new? setTipsToDisplay(tipsIfNew.warehouse):setTipsToDisplay(tips.warehouse)
-          break;
-        case '/purchase':  props.new? setTipsToDisplay(tipsIfNew.purchase):setTipsToDisplay(tips.purchase)
-        break;
-          case '/sales': props.new? setTipsToDisplay(tipsIfNew.sales):setTipsToDisplay(tips.sales)
-        break;
-          case '/stockcard': props.new? setTipsToDisplay(tipsIfNew.stockcard):setTipsToDisplay(tips.stockcard)
-        break;
-        case '/analytics': props.new? setTipsToDisplay(tipsIfNew.analytics):setTipsToDisplay(tips.analytics)
-          break;
-        case '/supplier': props.new? setTipsToDisplay(tipsIfNew.supplier):setTipsToDisplay(tips.supplier)
-          break;
-        default: setTipsToDisplay(["",""])
-      }
+      bnr.style.display = "none";
     }
-  }, [tips])
-    
-  useEffect(() =>{
-    console.log('set' + setTipsToDisplay)
-  })
+  }, [shown])
+
+ 
+  const expandTipsToDisplay = (tips_to_display) => {
+    var temp_tips_to_display = tips_to_display
+    while(temp_tips_to_display.length < 4)
+    {
+      temp_tips_to_display.push({"topic": "|", "description": ["|", "|"]})
+    }
+    setTipsToDisplay(temp_tips_to_display)
+  }
+
+
+    useEffect(()=>{
+      onSnapshot(doc(db, "masterdata", "aids"), (doc) => {
+        setTips(doc.data().tips);
+        setTipsIfNew(doc.data().tipsIfNew);
+      if(changedView)
+      {
+        setChangedView(false)
+      }
+      else
+      {
+        setChangedView(true)
+      }
+      }, []);
+    }, [props.isNew])
+
+  
+    useEffect(()=>{
+      if(tips === undefined && tipsIfNew === undefined) {
+        
+      }
+      else
+      {
+        switch(props.page) {
+          case '/warehouse':
+            props.isNew? setTipsToDisplay(tipsIfNew.warehouse):expandTipsToDisplay(tips.warehouse)
+            setTipId(0)
+            break;
+          case '/purchase':
+            props.isNew? setTipsToDisplay(tipsIfNew.purchase):expandTipsToDisplay(tips.purchase)
+            setTipId(0)
+          break;
+            case '/sales':
+            props.isNew? setTipsToDisplay(tipsIfNew.sales):expandTipsToDisplay(tips.sales)
+            setTipId(0)
+          break;
+            case '/stockcard':
+            props.isNew? setTipsToDisplay(tipsIfNew.stockcard):expandTipsToDisplay(tips.stockcard)
+            setTipId(0)
+            break;
+          case '/analytics':
+            props.isNew? setTipsToDisplay(tipsIfNew.analytics):expandTipsToDisplay(tips.analytics)
+            setTipId(0)
+            break;
+          case '/supplier':
+            props.isNew? setTipsToDisplay(tipsIfNew.supplier):expandTipsToDisplay(tips.supplier)
+            setTipId(0)
+            break;
+          case '/profileManagement':
+            props.isNew? setTipsToDisplay(tipsIfNew.profilemanagement):expandTipsToDisplay(tips.profilemanagement)
+            setTipId(0)
+            break;
+          case '/verify':
+            props.isNew? setTipsToDisplay(tipsIfNew.verify):expandTipsToDisplay(tips.verify)
+            setTipId(0)
+            break;
+          case '/home':
+            props.isNew? setTipsToDisplay(tipsIfNew.home):expandTipsToDisplay(tips.home)
+            setTipId(0)
+            break;
+          default: setTipsToDisplay(["hello"])
+        }
+      }
+    }, [tips && tipsIfNew])
+      
+    useEffect(() => {
+      if(tipId === undefined)
+      {
+  
+      }
+      else
+      {
+        setTipDescriptions(tipsToDisplay[tipId].descriptions)
+      }
+    }, [tipId || changedView])
+  
+  const handleTopicChange = (topic) => {
+    tipsToDisplay.map((tip, index)=>{
+      if(tip.topic == topic)
+      {
+        setTipId(index)
+      }
+    })
+  }
+
+useEffect(()=>{
+  console.log(tipsToDisplay)
+})
 
   var name = props.name;
   var fname = name.split(" ")[0];
 
   return(
-    <div id="banner-container">
+    <div id="banner-container" className={props.isNew?"":"customer-old"}>
       <div id="banner">
         <div id="banner-left">
-        <h1>
-          <span className="f-cursive">
             {props.isNew === undefined?
-              <>
-              </>
+              <></>
             :
               <>
-              {props.isNew?
-                <>
-                  Welcome 
-                </>
-              :
-                <>
-                  Hey 
-                </>
-              }
+                {props.isNew?
+                  <h1>
+                    <span className="f-cursive">
+                      Welcome 
+                    </span>
+                    <span> {fname},</span>
+                  </h1>
+                :
+                  <>
+                    {tipsToDisplay === undefined || tipsToDisplay.length == 0?
+                      <></>
+                    :
+                    <ListGroup defaultActiveKey={tipsToDisplay[0].topic}>
+                      {tipsToDisplay.map((tipItem)=>(
+                          <ListGroup.Item
+                            action
+                            eventKey={tipItem.topic}
+                            key={tipItem.topic}
+                            onClick={() => { handleTopicChange(tipItem.topic) }}
+                            className={tipItem.topic == "|"?"empty-topic":""}
+                          >
+                            {tipItem.topic}
+                          </ListGroup.Item>
+                      ))}
+                      </ListGroup>
+                    }
+                  </>
+                }
               </>
             }
-          </span>
-          <span> </span>{fname}!</h1>
         </div>
-          
+        <div id="banner-divider">
+        </div>
         <div id="banner-right">
-        
-        {tipsToDisplay === undefined?
+          {tipDescriptions === undefined || tipDescriptions.length == 0?
+            <></>
+          :
             <>
-            </>
-            :
-            <>
-            {tipsToDisplay.map((tip, index )=>{
+              {props.isNew?<h5><strong>{tipsToDisplay[0].topic}</strong></h5>:<></>}
+                {tipDescriptions.map((tip, index )=>{
                   return(
-                    <>
-                      <Checkbox
-                      className="me-2 pull-down"
-                      color={'#80b200'} 
-                      title={'Category'}
-                      height="25px"
-                      width="25px"
-                      />
+                    <div className="tip-item d-flex align-items-center">
+                      <div className="d-flex justify-content-center align-items-center me-2">
+                        <div className="circle-small green d-flex justify-content-center align-items-center">
+                          <strong>{props.isNew?<>&#9679;</>:index + 1}</strong>
+                        </div>
+                      </div>
+                    <div>
                       {tip}
-                      <br />
-                    </>
+                    </div>
+                  </div>
                   );
               })}
             </>
-            }
+          }
         </div>
-      
-</div>
-<div id="banner-footer">
+      </div>
+      <div id="banner-footer" className="d-flex justify-content-end align-items-center">
         <button
           id="banner-visibility-toggle"
-          className="hide float-end"
-          data-title="Hide"
-          onClick={() => toggle()}
+          className="plain-button d-flex justify-content-end align-items-center"
+          data-title={shown?"Minimize":"Maximize"}
+          onClick={() => {shown?setShown(false):setShown(true)}}
         >
           {shown?
             <CaretUp
-              className="caret pull-down"
-              color={'#000000'} 
-              title={'Category'}
+              color={'#000000'}
               height="15px"
               width="15px"
             />
-            :
+          :
             <CaretDown
-            className="caret pull-down"
-            color={'#000000'} 
-            title={'Category'}
-            height="15px"
-            width="15px"
+              color={'#000000'}
+              height="15px"
+              width="15px"
             />
           }
-      </button>
+        </button>
       </div>
     </div>
   )

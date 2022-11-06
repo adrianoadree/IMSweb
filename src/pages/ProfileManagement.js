@@ -1,17 +1,18 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { db } from '../firebase-config';
+import { db, st } from "../firebase-config";
 import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 
 import { Button, Card, Nav  } from 'react-bootstrap';
 import { InformationCircle } from 'react-ionicons'
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 import { UserAuth } from '../context/AuthContext';
-import RestrictedNavigation from '../layout/RestrictedNavigation';
 import Navigation from '../layout/Navigation';
 import  UserRouter  from '../pages/UserRouter'
-import { useNavigate } from 'react-router-dom'
+import { Spinner } from 'loading-animations-react';
+import { ActionCodeURL } from 'firebase/auth';
 
 
 function ProfileManagement() {
@@ -30,7 +31,12 @@ function ProfileManagement() {
   const [newBEmail, setNewBEmail] = useState("");
   const [newBType, setNewBType] = useState("physical");
   const [isComplete, setIsComplete] = useState(false);
-
+  const [isUpdateComplete, setIsUpdateComplete] = useState(false);
+  
+  const [fileUpload, setFileUpload] = useState([]);
+  const [fileUrls, setFileUrls] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadFinished, setUploadFinished] = useState(false);
 
 
   //---------------------FUNCTIONS---------------------
@@ -67,55 +73,58 @@ function ProfileManagement() {
         }
   }, [userID])
   
-  const handleInputChange = (event) => {
-    const target = event.target;
-    const name = target.name;
-    let element = document.getElementById('errormessage')
 
-    if (!target.value) {
-      
-      document.getElementById('errortext').innerHTML = name + ' can not be empty'
-      element.classList.remove('d-none')
-      element.classList.add('d-inline-block')
+
+  const handleInputChange = (value) => {
+    if (!value) {
+      return "Field can not be empty"
+    }
+    else
+    {
+      return "hide-warning-message"
+    }
+  }
+
+  useEffect(()=>{
+    console.log(fileUpload)
+    console.log(fileUrls)
+  })
+
+  const handleInputChangePhone = (value, required) => {
+    if (!value) {
+      if(required)
+      {
+        return "Field can not be empty"
+      }
+      else
+      {
+        return "hide-warning-message"
+      }
+    }
+    else if (value.substring(0,2) != '09')
+    {
+      return "Invalid prefix"
+    }
+    else if (value.length != 11)
+    {
+      return 'Phone number should be 11 digits'
     }
     else 
     {
-      element.classList.add('d-none')
-      element.classList.remove('d-inline-block')
-    }
-    
-  }
-
-  const handleInputChangePhone = (event) => {
-    const target = event.target;
-    const value = target.value;
-    let element = document.getElementById('errormessage')
-    
-    if (value.substring(0,2) != '09') {
-      document.getElementById('errortext').innerHTML = 'Invalid prefix'
-      element.classList.remove('d-none')
-      element.classList.add('d-inline-block')
-    }
-    else if (value.length != 11) {
-      document.getElementById('errortext').innerHTML = 'Phone number should be 11 digits'
-      element.classList.remove('d-none')
-      element.classList.add('d-inline-block')
-    }
-    else 
-    {
-      element.classList.add('d-none')
-      element.classList.remove('d-inline-block')
+      return "hide-warning-message"
     }
   }
 
-  let circle = document.getElementById('errormessage');const onMouseMove = (e) =>{
-    if(circle) {
-      circle.style.left = e.pageX + 'px';
-      circle.style.top = e.pageY + 'px';
-    }
-  }
-  
-  document.addEventListener('mousemove', onMouseMove);
+  const uploadFile = () => {
+    if (fileUpload == null) return;
+    Array.from(fileUpload).map((file, index)=>{
+      uploadBytes(ref(st, `${userID}/documents/${file.name}`), file).then((snapshot) => {
+        getDownloadURL(snapshot.ref).then((url) => {
+          setFileUrls((prev) => [...prev, url]);
+        });
+      });
+    })
+  };
 
   const getVerified = async (id) => {
     await updateDoc(doc(db, 'user', id), {
@@ -129,7 +138,8 @@ function ProfileManagement() {
       bemail: newBEmail,
       btype: newBType,
       status: 'inVerification',
-      accounts: []
+      accounts: [],
+      documents: fileUrls
     });
   }
 
@@ -156,18 +166,40 @@ function ProfileManagement() {
 
   useEffect(() => {
     if (
-      !newAddress ||
-      !newPhone ||
-      !newBName ||
-      !newBAddress ||
-      !newBEmail ||
-      !newBNature ||
-      !newBPhone 
-    ) {
+      handleInputChange(newName) != "hide-warning-message" ||
+      handleInputChange(newBName) != "hide-warning-message" ||
+      handleInputChange(newBAddress) != "hide-warning-message" ||
+      handleInputChange(newBEmail) != "hide-warning-message" ||
+      handleInputChange(newBNature) != "hide-warning-message" ||
+      handleInputChangePhone(newBPhone, true) != "hide-warning-message" ||
+      !uploadFinished
+    ) 
+    {
       setIsComplete(false)
     }
     else {
       setIsComplete(true);
+    }
+    if(fileUrls.length > 0)
+    {
+      if(fileUrls.length != fileUpload.length) {
+      }
+      else
+      {
+        if(fileUrls.length == fileUpload.length)
+        {
+          setUploadFinished(true)
+        }
+        setUploading(false)
+      }
+    }
+    if (handleInputChange(newName) != "hide-warning-message")
+    {
+      setIsUpdateComplete(false)
+    }
+    else
+    {
+      setIsUpdateComplete(true)
     }
   })
 
@@ -177,22 +209,13 @@ function ProfileManagement() {
         route='/profileManagement'
       />
       <Navigation 
-              page='profileManagement'/>
+        page='/profileManagement'
+      />
       {userCollection.map((metadata) => {
         return(
           <>
-           
-            <div id="errormessage">
-              <InformationCircle
-                className="me-2 pull-down"
-                color={'#cd4a4a'}
-                title={'Category'}
-                height="17px"
-                width="17px" />
-              <span id="errortext"></span>
-            </div>
             <div>
-              <div className="row contents">
+              <div id="contents" className="row">
                 <div className="row  py-4 px-5">
                   <div className='sidebar'>
                     <Card className="sidebar-card">
@@ -236,8 +259,23 @@ function ProfileManagement() {
                                 defaultValue={metadata.name}
                                 required
                                 autoFocus
-                                onChange={(event) => { handleInputChange(event); setNewName((event.target.value));} }/>
-                              <span className="floating-label">Name</span>
+                                onChange={(event) => {setNewName((event.target.value));} }
+                              />
+                              <span className="floating-label">
+                                Name
+                                <a 
+                                  style={{color: '#b42525'}}
+                                  className="header-tooltip"
+                                  data-title="This field is required"
+                                >
+                                   *
+                                </a>
+                              </span>
+                              <div 
+                                className={"field-warning-message red-strip my-1 m-0 " + (handleInputChange(newName))}
+                              >
+                                {handleInputChange(newName)}
+                              </div>
                             </div>
                             <div className="col-6">
                               <input type="text"
@@ -245,7 +283,8 @@ function ProfileManagement() {
                                 className="form-control no-click"
                                 value={metadata.email}
                                 onChange={(_event) => { } }
-                                style={{ background: '#f5f5f5' }} />
+                                style={{ background: '#f5f5f5' }}
+                              />
                               <span className="floating-label">Email Address</span>
                             </div>
                             <div className="col-4">
@@ -254,8 +293,14 @@ function ProfileManagement() {
                                 className="form-control"
                                 defaultValue={metadata.phone}
                                 required
-                                onChange={(event) => { handleInputChangePhone(event); setNewPhone((event.target.value)); } } />
+                                onChange={(event) => {setNewPhone((event.target.value));}}
+                                />
                               <span className="floating-label">Phone Number</span>
+                              <div 
+                                className={"field-warning-message yellow-strip my-1 m-0 " + (handleInputChangePhone(newPhone))}
+                              >
+                                {handleInputChangePhone(newPhone, false)}
+                              </div>
                             </div>
                             <div className="col-8">
                               <input type="text"
@@ -263,7 +308,7 @@ function ProfileManagement() {
                                 className="form-control"
                                 defaultValue={metadata.address}
                                 required
-                                onChange={(event) => { handleInputChange(event); setNewAddress((event.target.value)); } } />
+                                onChange={(event) => {setNewAddress((event.target.value)); } } />
                               <span className="floating-label">Address</span>
                             </div>
                           </div>
@@ -273,7 +318,16 @@ function ProfileManagement() {
                           
                           <div className="user-management-form-section">
                             <div className="row m-0">
-                              <h4>Business Profile</h4>
+                              <h4>
+                                Business Profile
+                                <a 
+                                  style={{color: '#b42525'}}
+                                  className="header-tooltip"
+                                  data-title="All fields are required"
+                                >
+                                   *
+                                </a>
+                              </h4>
                             </div>
                             <div className="row m-0 user-management-form-section-contents">
                               <div className="col-12">
@@ -282,8 +336,14 @@ function ProfileManagement() {
                                   className="form-control"
                                   defaultValue={metadata.bname}
                                   required
-                                  onChange={(event) => { handleInputChange(event); setNewBName((event.target.value)); } } />
+                                  onChange={(event) => {setNewBName((event.target.value)); } }
+                                />
                                 <span className="floating-label">Business Name</span>
+                                <div 
+                                  className={"field-warning-message red-strip my-1 m-0 " + (handleInputChange(newBName))}
+                                >
+                                  {handleInputChange(newBName)}
+                                </div>
                               </div>
                               <div className="col-12">
                                 <input type="text"
@@ -291,8 +351,13 @@ function ProfileManagement() {
                                   className="form-control"
                                   defaultValue={metadata.baddress}
                                   required
-                                  onChange={(event) => { handleInputChange(event); setNewBAddress((event.target.value)); } } />
+                                  onChange={(event) => {setNewBAddress((event.target.value)); } } />
                                 <span className="floating-label">Business Address</span>
+                                <div 
+                                  className={"field-warning-message red-strip my-1 m-0 " + (handleInputChange(newBAddress))}
+                                >
+                                  {handleInputChange(newBAddress)}
+                                </div>
                               </div>
                               <div className="col-6">
                                 <input type="text"
@@ -300,20 +365,25 @@ function ProfileManagement() {
                                   className="form-control"
                                   defaultValue={metadata.bnature}
                                   required
-                                  onChange={(event) => { handleInputChange(event); setNewBNature((event.target.value)); } } />
-                                <span className="floating-label">Nature of Business (e.g. reseller, boutique) </span>
+                                  onChange={(event) => {setNewBNature((event.target.value)); } } />
+                                <span className="floating-label">Nature of Business (e.g. reseller, boutique)</span>
+                                <div 
+                                  className={"field-warning-message red-strip my-1 m-0 " + (handleInputChange(newBNature))}
+                                >
+                                  {handleInputChange(newBNature)}
+                                </div>
                               </div>
                               <div className="col-6">
                                 <select type="text"
                                   className="form-control"
-                                  defaultValue={metadata.btype}
+                                  value={metadata.btype}
                                   required
                                   onChange={(event) => { setNewBType((event.target.value)); } }
                                 >
-                                  <option value="physical">Operation Type</option>
-                                  <option value="online">Online</option>
-                                  <option value="physical">Physical</option>
-                                  <option value="both">Both online and physical</option>
+                                  <option value="Physical">Operation Type</option>
+                                  <option value="Online">Online</option>
+                                  <option value="Physical">Physical</option>
+                                  <option value="Both">Both online and physical</option>
                                 </select>
                               </div>
                               <div className="col-4">
@@ -322,8 +392,13 @@ function ProfileManagement() {
                                   className="form-control"
                                   defaultValue={metadata.bphone}
                                   required
-                                  onChange={(event) => { handleInputChangePhone(event); setNewBPhone((event.target.value)); } } />
+                                  onChange={(event) => {setNewBPhone((event.target.value)); } } />
                                 <span className="floating-label">Phone Number</span>
+                                <div 
+                                  className={"field-warning-message red-strip my-1 m-0 " + (handleInputChangePhone(newBPhone, true))}
+                                >
+                                  {handleInputChangePhone(newBPhone, true)}
+                                </div>
                               </div>
                               <div className="col-8">
                                 <input type="text"
@@ -331,21 +406,57 @@ function ProfileManagement() {
                                   className="form-control"
                                   defaultValue={metadata.bemail}
                                   required
-                                  onChange={(event) => { handleInputChange(event); setNewBEmail((event.target.value)); } } />
+                                  onChange={(event) => {setNewBEmail((event.target.value)); } } />
                                 <span className="floating-label">Email Address</span>
+                                <div 
+                                  className={"field-warning-message red-strip my-1 m-0 " + (handleInputChange(newBEmail))}
+                                >
+                                {handleInputChange(newBEmail)}
+                              </div>
                               </div>
                               <div className="col-12">
                                 <label>Business Requirements</label>
-                                <form action="">
                                   <div className="row">
                                     <div className="col-10 m-0 pe-0">
-                                      <input type="file" id="requirement" className="form-control" name="file" />
+                                      <input type="file"
+                                        id="requirement"
+                                        className="form-control"
+                                        multiple
+                                        onChange={(event) => {
+                                          setFileUpload(event.target.files);
+                                          setFileUrls([])
+                                          setUploading(false);
+                                          setUploadFinished(false);
+                                        }}
+                                      />
                                     </div>
                                     <div className="col-2 m-0 p-0">
-                                      <input type="submit" className="form-control" name="Upload" value="Upload" />
+                                      <Button
+                                        type="button"
+                                        className="form-control"
+                                        disabled={fileUpload.length == 0 || uploading || uploadFinished}
+                                        onClick={()=>{setUploadFinished(false);setUploading(true);uploadFile()}}
+                                      >
+                                        {uploading?
+                                          <Spinner 
+                                            color1="#fff"
+                                            color2="#fff"
+                                            textColor="rgba(0,0,0,0)"
+                                            className="w-25 h-25"
+                                          />
+                                        :
+                                        <>
+                                          {uploadFinished?
+                                              <>Complete</>
+                                          :
+                                              <>Upload</>
+                                          
+                                          }
+                                        </>
+                                        }
+                                        </Button>
                                     </div>
                                   </div>
-                                </form>
                               </div>
                             </div>
                           </div>
@@ -364,12 +475,12 @@ function ProfileManagement() {
                         :
                         <></>
                         }
-                        {isComplete?
                           <div id="submit-button">
                             {metadata.status == 'new' ?
                               <Button
                                 className="btn btn-success"
                                 style={{ width: "150px" }}
+                                disabled={!isComplete}
                                 onClick={() => { getVerified(metadata.id)} }>
                                 Submit
                               </Button>
@@ -377,16 +488,12 @@ function ProfileManagement() {
                               <Button
                                 className="btn btn-success"
                                 style={{ width: "150px" }}
+                                disabled={!isUpdateComplete}
                                 onClick={() => { updateInfo(metadata.id) } }>
                                 Save Changes
                               </Button>
                             }
                           </div>
-                          :
-                          <div id="submit-message">
-                            Submit button will appear once all fields are filled in.
-                          </div>
-                        }
                       </div>
                     </div>
                   </div>

@@ -6,14 +6,7 @@ import { db, st } from "../firebase-config";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserAuth } from '../context/AuthContext'
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  listAll,
-  list,
-} from "firebase/storage";
-import { v4 } from "uuid";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Spinner } from 'loading-animations-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEye, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
@@ -23,20 +16,20 @@ function NewProductModal(props) {
 
 
   //---------------------VARIABLES---------------------
-  const {user} = UserAuth();
+  const { user } = UserAuth();
   const [userID, setUserID] = useState("");
-  
+
   const [userCollection, setUserCollection] = useState([]);// userCollection variable
   const [userProfileID, setUserProfileID] = useState(""); // user profile id
   const userCollectionRef = collection(db, "user")// user collection
-  const [productCounter, setProductCounter] = useState(0); // product counter
+  const [productCounter, setProductCounter] = useState(0); // product 
   const [categorySuggestions, setCategorySuggestions] = useState([])
   const [disallowAddition, setDisallowAddtion] = useState(true)
 
   const [newProductName, setNewProductName] = useState("");
   const [newPriceP, setNewPriceP] = useState(0);
   const [newPriceS, setNewPriceS] = useState(0);
-  const [newProdClassification, setNewProdClassification] = useState("");
+  const [newProdClassification, setNewProdClassification] = useState("Imported");
   const [newProdCategory, setNewProdCategory] = useState("");
   const [newBarcode, setNewBarcode] = useState(0);
   const [newMaxQty, setNewMaxQty] = useState(0);
@@ -56,12 +49,11 @@ function NewProductModal(props) {
 
   useEffect(() => {
     if(
-      newProductName == " " || newProductName == "" ||
-      newPriceP == 0 ||
-      newPriceS == 0 ||
+      newProductName === undefined || newProductName == " " || newProductName == "" ||
+      newPriceP < 0 ||
+      newPriceS < 0 ||
       newProdCategory == " " || newProdCategory == "" ||
-      newProdClassification == " " || newProdClassification == "" ||
-      imageUrls.length == 0
+      newProdClassification == " " || newProdClassification == ""
     ){
       setDisallowAddtion(true)
     }
@@ -77,10 +69,54 @@ function NewProductModal(props) {
       setUploadedOneImage(true)
       setUploading(false)
     }
-    console.log(imageUrls)
   })
+  
+  const clearFields = () => {
+    setNewProductName("")
+    setNewProdClassification("Imported")
+    setNewProdCategory("")
+    setNewBarcode(createBarcode())
+    setNewPriceP(0)
+    setNewPriceS(0)
+    setNewMinQty(0)
+    setNewMaxQty(0)
+  }
 
+  const checkIfEmpty = (value, number) => {
+    if (value === undefined)
+    {
+      if(number)
+      {
+        return 0;
+      }
+      else
+      {
+        return "";
+      }
+    }
+    else
+    {
+      return value
+    }
+  }
 
+  useEffect(()=>{
+    if(props.onHide)
+    {
+      clearFields()
+    }
+  }, [props.onHide])
+
+  const imagesListRef = ref(st, userID + "/stockcard/");
+  const uploadFile = () => {
+    if (imageUpload == null) return;
+    const imageRef = ref(st, `${userID}/stockcard/${createFormat().substring(0,9)}`);
+    uploadBytes(imageRef, imageUpload).then((snapshot) => {
+      getDownloadURL(snapshot.ref).then((url) => {
+        setImageUrls((prev) => [...prev, url]);
+      });
+    });
+  };
 
   //Toastify
   const successToast = () => {
@@ -98,22 +134,22 @@ function NewProductModal(props) {
   //fetch user collection from database
   useEffect(() => {
     if (userID === undefined) {
-          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
-    
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-        }
-        else {
-          const q = query(userCollectionRef, where("user", "==", userID));
-    
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-          
-        }
+      const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+      const q = query(userCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+
+    }
   }, [userID])
 
   const createBarcode = () => {
@@ -133,7 +169,6 @@ function NewProductModal(props) {
         
     });
     setNewBarcode(createBarcode())
-    console.log(newBarcode)
   }, [userCollection])
 
   useEffect(() => {
@@ -150,30 +185,20 @@ function NewProductModal(props) {
 
   const createFormat = () => {
     var format = productCounter + "";
-    while(format.length < 7) {format = "0" + format};
+    while (format.length < 7) { format = "0" + format };
     format = "IT" + format + '@' + userID;
     return format;
   }
 
   const newCatergories = () => {
     var newcategories = categorySuggestions;
-    if(categorySuggestions.indexOf(newProdCategory) == -1)
-    {
+    if (categorySuggestions.indexOf(newProdCategory) == -1) {
       newcategories.push(newProdCategory)
     }
     return newcategories;
   }
 
-  const imagesListRef = ref(st, userID + "/stockcard/");
-  const uploadFile = () => {
-    if (imageUpload == null) return;
-    const imageRef = ref(st, `${userID}/stockcard/${createFormat().substring(0,9)}`);
-    uploadBytes(imageRef, imageUpload).then((snapshot) => {
-      getDownloadURL(snapshot.ref).then((url) => {
-        setImageUrls((prev) => [...prev, url]);
-      });
-    });
-  };
+ 
 
   //Create product to database
   const addProduct = async () => {
@@ -183,11 +208,11 @@ function NewProductModal(props) {
       classification: newProdClassification,
       category: newProdCategory,
       barcode: newBarcode,
-      p_price: Number(newPriceP),
-      s_price: Number(newPriceS),
-      min_qty: newMinQty,
-      max_qty: newMaxQty,
-      img: imageUrls[0],
+      p_price: checkIfEmpty(Number(newPriceP), true),
+      s_price: checkIfEmpty(Number(newPriceS), true),
+      min_qty: checkIfEmpty(Number(newMinQty), true),
+      max_qty: checkIfEmpty(Number(newMaxQty), true),
+      img: imageUrls.length == 0?"":imageUrls[0],
       qty: 0,
       analytics_boolean: false,
       analytics_minLeadtime: 0,
@@ -214,10 +239,9 @@ function NewProductModal(props) {
     const newData = { stockcardId: Number(productCounter) + 1 }
 
     updateDoc(userDocRef, newData)
-}
+  }
 
   const handleClickSuggestion = (suggestion) => {
-    console.log(suggestion.index)
     setNewProdCategory(suggestion.index)
   }
 
@@ -229,6 +253,7 @@ function NewProductModal(props) {
       aria-labelledby="contained-modal-title-vcenter"
       centered
       className="IMS-modal"
+      id="add-product-modal"
     >
       <ToastContainer
         position="top-right"
@@ -270,7 +295,6 @@ function NewProductModal(props) {
                         variant="btn btn-success"
                         className="shadow-none w-100"
                         disabled={uploadedOneImage}
-                        onClick={()=>{setUploading(true);uploadFile()}}
                       >
                         <FontAwesomeIcon icon={faEye}/>
                       </Button>
@@ -299,7 +323,7 @@ function NewProductModal(props) {
                   :
                   <>
                     {imageUrls.map((url) => {
-                      return <img src={url} style={{height: '100%', width: '100%'}}/>;
+                      return <img key={url} src={url} style={{height: '100%', width: '100%'}}/>;
                     })}
                   </>
                   }
@@ -318,10 +342,14 @@ function NewProductModal(props) {
                     />
                 </div>
                 <div className='col-6 ps-4'>
-                  <label>Classification</label>
+                  <label>
+                    Classification
+                    <span style={{color: '#b42525'}}> *</span>
+                  </label>
                   <select
                     type="text"
                     className="form-control shadow-none"
+                    value={newProdClassification}
                     onChange={(event)=>{setNewProdClassification(event.target.value)}}
                   >
                     <option value="Imported">Imported</option>
@@ -332,7 +360,10 @@ function NewProductModal(props) {
               </div>
               <div className="row my-2 mb-3">
                 <div className='col-12 ps-4'>
-                  <label>Item Name</label>
+                  <label>
+                    Item Name
+                  <span style={{color: '#b42525'}}> *</span>
+                  </label>
                   <input type="text"
                     className="form-control shadow-none"
                     placeholder="LM Pancit Canton Orig (Pack-10pcs)"
@@ -358,6 +389,7 @@ function NewProductModal(props) {
                       {categorySuggestions.map((index, k)=>{
                         return(
                           <button
+                            key={index}
                             onClick={()=>handleClickSuggestion({index})}
                           >
                             {index}
@@ -391,8 +423,8 @@ function NewProductModal(props) {
                   <label>Purchase Price</label>
                   <input
                     type="number"
-                    min={1}
-                    defaultValue={1}
+                    min={0}
+                    defaultValue={0}
                     className="form-control shadow-none"
                     placeholder="Purchase Price"
                     onChange={(event) => { setNewPriceP(event.target.value); }} 
@@ -402,8 +434,8 @@ function NewProductModal(props) {
                   <label>Selling Price</label>
                   <input
                     type="number"
-                    min={1}
-                    defaultValue={1}
+                    min={0}
+                    defaultValue={0}
                     className="form-control shadow-none"
                     placeholder="Selling Price"
                     onChange={(event) => { setNewPriceS(event.target.value); }}

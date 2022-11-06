@@ -1,20 +1,26 @@
-import Navigation from "../layout/Navigation";
-import { Link } from 'react-router-dom';
+
 import { useEffect, useState } from "react";
+import { Link } from 'react-router-dom';
+
 import { db } from "../firebase-config";
-import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy, updateDoc } from "firebase/firestore";
-import { Modal, Tab, ListGroup, Card, Table, Button, Nav, FormControl, Alert } from "react-bootstrap";
-import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign, faSearch, faBan } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Create, Calendar, Document, InformationCircle, Person } from 'react-ionicons'
-import NewPurchaseModal from "../components/NewPurchaseModal";
-import moment from "moment";
+import { collection, onSnapshot, query, doc, getDoc, where, orderBy, updateDoc, setDoc } from "firebase/firestore";
+
 import { UserAuth } from '../context/AuthContext'
-import  UserRouter  from '../pages/UserRouter'
-import { Spinner } from 'loading-animations-react';
-import  ProductQuickView  from '../components/ProductQuickView'
+import UserRouter from '../pages/UserRouter'
+import Navigation from "../layout/Navigation";
+
+import { Modal, Tab, ListGroup, Card, Table, Button, Nav, FormControl, InputGroup } from "react-bootstrap";
+import { faPlus, faPesoSign, faSearch, faBan } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { Create, Calendar, InformationCircle, Person } from 'react-ionicons'
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+import { Spinner, Spinner as Spinner2 } from 'loading-animations-react';
+import moment from "moment";
+
+import NewPurchaseModal from "../components/NewPurchaseModal";
+import  ProductQuickView  from '../components/ProductQuickView'
 
 
 
@@ -24,16 +30,10 @@ function Records() {
 
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
-  const [key, setKey] = useState('main');//Tab controller
-  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
-
-
-  const [modalShow, setModalShow] = useState(false); //add new sales record modal
-  const [modalShowPQV, setModalShowPQV] = useState(false); //product quick view modal
-  const [modalShowVR, setModalShowVR] = useState(false); //product quick view modal
+  const [key, setKey] = useState("main");//Tab controller
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState(); //purchase_record Collection
-  const [purchaseRecord, setPurchaseRecord] = useState([]); //purchase_record spec doc
-  const [docId, setDocId] = useState("PR10001") // doc id variable
+  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
+  const [docId, setDocId] = useState() // doc id variable
   const [list, setList] = useState([
     { productId: "productName1", productQuantity: 1 },
     { productId: "productName2", productQuantity: 2 },
@@ -41,14 +41,22 @@ function Records() {
   const [productList, setProductList] = useState([]);
   const [queryList, setQueryList] = useState([]); //compound query access
   const [stockcardData, setStockcardData] = useState([{}]);
+
+  const [addProductModalShow, setAddProductModalShow] = useState(false); //add new sales record modal
+  const [productQuickViewModalShow, setProductQuickViewModalShow] = useState(false); //product quick view modal
+  const [voidRecordModalShow, setVoidRecordModalShow] = useState(false); //product quick view modal
+  
   const [productToView, setProductToView] = useState(["IT0000001"])
+  const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("add")
+  
 
 
 
 
   //---------------------FUNCTIONS---------------------
 
-  useEffect(()=>{
+  useEffect(() => {
+    console.log(key)
   })
 
   useEffect(() => {
@@ -57,22 +65,11 @@ function Records() {
     }
   }, [{ user }])
 
-  useEffect(()=>{
-    if(purchaseRecordCollection === undefined) {
-      setIsFetched(false)
-    }
-    else
-    {
-      setIsFetched(true)
-    }
-  }, [purchaseRecordCollection])
-
   //read Functions
 
   useEffect(() => {
     //read purchase_record collection
     if (userID === undefined) {
-
       const purchaseRecordCollectionRef = collection(db, "purchase_record")
       const q = query(purchaseRecordCollectionRef, where("user", "==", "DONOTDELETE"));
 
@@ -82,34 +79,46 @@ function Records() {
       return unsub;
     }
     else {
-
       const purchaseRecordCollectionRef = collection(db, "purchase_record")
-      const q = query(purchaseRecordCollectionRef, where("user", "==", userID));
+      const q = query(purchaseRecordCollectionRef, where("user", "==", userID), orderBy("transaction_number", "desc"));
 
       const unsub = onSnapshot(q, (snapshot) =>
         setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
       return unsub;
-
     }
-
-
   }, [userID])
 
+  useEffect(()=>{
+
+  }, [collectionUpdateMethod])
 
   useEffect(() => {
-    //fetch purchase_record spec Document
-    async function readPurchDoc() {
-      const purchRecord = doc(db, "purchase_record", docId)
-      const docSnap = await getDoc(purchRecord)
-      if (docSnap.exists()) {
-        setPurchaseRecord(docSnap.data());
+    if (purchaseRecordCollection === undefined) {
+      setIsFetched(false)
+    }
+    else {
+      setIsFetched(true)
+      if(collectionUpdateMethod == "add")
+      {
+        setDocId(0)
+        setKey(purchaseRecordCollection[0].id)
+      }
+      else
+      {
+        setCollectionUpdateMethod("add")
       }
     }
-    readPurchDoc();
+  }, [purchaseRecordCollection])
 
-  }, [docId])
-
+  const handleDocChange = (doc) => {
+    purchaseRecordCollection.map((purchase, index)=>{
+      if(purchase.id == doc)
+      {
+        setDocId(index)
+      }
+    })
+  }
 
   //-----------------------------------------------------------------------------
 
@@ -142,12 +151,19 @@ function Records() {
   useEffect(() => {
     //read list of product names in product list
     async function fetchPurchDoc() {
-      const unsub = await onSnapshot(doc(db, "purchase_record", docId), (doc) => {
-        if(doc.data() != undefined) {
-          setList(doc.data().product_list);
-        }
-      });
-      return unsub;
+      if(docId === undefined)
+      {
+
+      }
+      else
+      {
+        const unsub = await onSnapshot(doc(db, "purchase_record", purchaseRecordCollection[docId].id), (doc) => {
+          if (doc.data() != undefined) {
+            setList(doc.data().product_list);
+          }
+        });
+        return unsub;
+      }
     }
     fetchPurchDoc()
   }, [docId])
@@ -155,25 +171,11 @@ function Records() {
 
 
   function VoidRecordModal(props) {
-    
     const [voidNotes, setVoidNotes] = useState("");
     const [disallowVoiding, setDisallowVoiding] = useState(true);
-    var today = new Date();
-    var dd = today.getDate();
-
-    var mm = today.getMonth()+1; 
-    var yyyy = today.getFullYear();
-    if(dd<10) 
-    {
-        dd='0'+dd;
-    } 
-
-    if(mm<10) 
-    {
-        mm='0'+mm;
-    }
-
-    today = yyyy + '-' + mm + '-' + dd
+    var curr = new Date();
+    curr.setDate(curr.getDate());
+    var today = moment(curr).format('YYYY-MM-DD')
 
     useEffect(() => {
       if(voidNotes == "" || voidNotes == " ")
@@ -197,6 +199,18 @@ function Records() {
       }
     }
 
+    const voidToast = () => {
+      toast.error(purchaseRecordCollection[docId].id.substring(0, 7) + ' voided', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+
     const voidRecord = async() => {
       var productListItem
       for(var i = 0; i < productList.length; i++)
@@ -217,30 +231,18 @@ function Records() {
         })
       }
 
-      updateDoc((doc(db, "purchase_record", docId)),{
+      updateDoc((doc(db, "purchase_record", purchaseRecordCollection[docId].id)),{
         isVoided: true,
         void_date: today,
-        transaction_note: purchaseRecord.transaction_note + "; Voided for: " + voidNotes
+        transaction_note: purchaseRecordCollection[docId].transaction_note + "; Voided for: " + voidNotes
       })
 
+      voidToast()
       setVoidNotes("")
       props.onHide()
+      setCollectionUpdateMethod("void")
     }
-    /*
-    //delete Toast
-    const deleteToast = () => {
-      toast.error('Product DELETED from the Database', {
-        position: "top-right",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-    }*/
-  
-  
+
       return (
         <Modal
           {...props}
@@ -249,28 +251,17 @@ function Records() {
           centered
           className="IMS-modal warning"
         >
-          <ToastContainer
-            position="top-right"
-            autoClose={3500}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
           <Modal.Body >
             <div className="px-3 py-2">
               <div className="module-header mb-4">
-                <h3 className="text-center">Voiding {docId.substring(0,7)}</h3>
+                <h3 className="text-center">Voiding {purchaseRecordCollection[docId].id.substring(0,7)}</h3>
               </div>
               <div className="row m-0 p-0 mb-3">
                 <div className="col-12 px-3 text-center">
                   <strong>
                     Are you sure you want to void
                     <br />
-                    <span style={{color: '#b42525'}}>{docId.substring(0,7)}?</span>
+                    <span style={{color: '#b42525'}}>{purchaseRecordCollection[docId].id.substring(0,7)}?</span>
                   </strong>
                 </div>
               </div>
@@ -280,15 +271,15 @@ function Records() {
                     <tbody>
                       <tr>
                         <td>Date</td>
-                        <td>{purchaseRecord.transaction_date}</td>
+                        <td>{purchaseRecordCollection[docId].transaction_date}</td>
                       </tr>
                       <tr>
                         <td>Supplier</td>
-                        <td>{purchaseRecord.transaction_supplier}</td>
+                        <td>{purchaseRecordCollection[docId].transaction_supplier}</td>
                       </tr>
                       <tr>
                         <td>Notes</td>
-                        <td>{purchaseRecord.transaction_note}</td>
+                        <td>{purchaseRecordCollection[docId].transaction_note}</td>
                       </tr>
                     </tbody>
                   </Table>
@@ -335,40 +326,150 @@ function Records() {
       )
   }  
   
+  // ===================================== START OF SEARCH FUNCTION =====================================
 
+
+  const [searchValue, setSearchValue] = useState('');    // the value of the search field 
+  const [searchResult, setSearchResult] = useState();    // the search result
+
+
+  useEffect(() => {
+    setSearchResult(purchaseRecordCollection)
+  }, [purchaseRecordCollection])
+
+  const toMonth = (worded_month) => {
+    if("January".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "01"
+    }
+    else if("February".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "02"
+    }
+    else if("March".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "03"
+    }
+    else if("April".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "04"
+    }
+    else if("May".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "05"
+    }
+    else if("June".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "06"
+    }
+    else if("July".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "07"
+    }
+    else if("August".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "08"
+    }
+    else if("September".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "09"
+    }
+    else if("October".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "10"
+    }
+    else if("November".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "11"
+    }
+    else if("December".toLowerCase().startsWith(worded_month.toLowerCase()))
+    {
+      return "12"
+    }
+    else
+    {
+      return worded_month
+    }
+  }
+
+  const toDate = (keyword_in_date) => {
+    var tempDate = keyword_in_date
+    var tempDateAlpha = keyword_in_date.replace(/[^A-Za-z]/g, '')
+    if(tempDate.includes("/"))
+    {
+      tempDate = tempDate.replaceAll("/", "-")
+    }
+    if(tempDate.includes(" "))
+    {
+      tempDate = tempDate.replaceAll(" ", "-")
+    }
+    if(tempDateAlpha.length > 0)
+    {
+      tempDate = tempDate.replace(tempDateAlpha, toMonth(tempDateAlpha))
+      console.log("with alphabet")
+      console.log(tempDateAlpha)
+      console.log(tempDate)
+    }
+    return tempDate
+  }
+
+  const changeDateFormatToSearchable = (date) => {
+    return date.substring(5, date.length) + "-" + date.substring(0, 4)
+  }
+
+  const filter = (e) => {
+    const keyword = e.target.value;
+
+    if (keyword !== '') {
+      const results = purchaseRecordCollection.filter((purchaseRecordCollection) => {
+        return purchaseRecordCollection.id.toLowerCase().includes(keyword.toLowerCase()) || changeDateFormatToSearchable(purchaseRecordCollection.transaction_date).toLowerCase().includes(toDate(keyword)) || purchaseRecordCollection.transaction_supplier.toLowerCase().includes(keyword.toLowerCase())
+        // Use the toLowerCase() method to make it case-insensitive
+      });
+      setSearchResult(results);
+    } else {
+      setSearchResult(purchaseRecordCollection);
+      // If the text field is empty, show all users
+    }
+
+    setSearchValue(keyword);
+  };
+
+  // ====================================== END OF SEARCH FUNCTION ======================================
+  
   return (
     <div>
       <UserRouter
-      route='/records'
+        route='/records'
       />
-      <Navigation 
+      <Navigation
         page='/purchase'
       />
+      <ToastContainer
+        newestOnTop={false}
+        pauseOnFocusLoss
+      />
       <Tab.Container
-        id="controlled-tab-example"
         activeKey={key}
         onSelect={(k) => setKey(k)}
-        >
-        <div className="row contents">
+      >
+        <div id="contents" className="row">
           <div className="row py-4 px-5">
             <div className='sidebar'>
               <Card className='sidebar-card'>
                 <Card.Header>
                   <div className='row'>
-                    <div className="col-1">
-                      <Button className="fc-search left-full-curve no-click me-0"
-                        onClick={() => setModalShow(true)}>
+                    <InputGroup id="fc-search">
+                      <InputGroup.Text>
                         <FontAwesomeIcon icon={faSearch} />
-                      </Button>
-                    </div>
-                    <div className="col-11">
+                      </InputGroup.Text>
                       <FormControl
-                        placeholder="Search"
-                        aria-label="Search"
-                        aria-describedby="basic-addon2"
-                        className="fc-search right-full-curve mw-0"
-                      />
-                    </div>
+                        type="search"
+                        value={searchValue}
+                        onChange={filter}
+                        className="shadow-none fc-search"
+                        placeholder="PR00012, Cabral Merchandise, Jan-12/2020"
+                        />
+                    </InputGroup>
                   </div>
                 </Card.Header>
                 <Card.Body style={{ height: "500px" }}>
@@ -402,42 +503,52 @@ function Records() {
                         </p>
                       </div>
                       :
-                      <ListGroup variant="flush">
-                        {purchaseRecordCollection.map((purch) => {
-                          return (
-                            <ListGroup.Item
-                              action
-                              key={purch.id}
-                              eventKey={purch.id}
-                              onClick={() => { setDocId(purch.id) }}>
-                              <div className="row gx-0 sidebar-contents">
-                                <div className="col-3">
-                                  <small>{purch.transaction_number}</small>
-                                </div>
-                                <div className="col-5">
-                                  <small>{purch.transaction_supplier}</small>
-                                </div>
-                                <div className="col-4">
-                                  <small>{moment(purch.transaction_date).format('ll')}</small>
-                                </div>
+                      <ListGroup activeKey={key} variant="flush">
+                            {searchResult && searchResult.length > 0 ? (
+                              searchResult.map((purch) => (
+                                <ListGroup.Item
+                                  action
+                                  eventKey={purch.id}
+                                  onClick={() => { handleDocChange(purch.id) }}
+                                >
+                                  <div className="row gx-0 sidebar-contents">
+                                    <div className="col-3">
+                                      <small>{purch.transaction_number}</small>
+                                    </div>
+                                    <div className="col-5">
+                                      <small>{purch.transaction_supplier}</small>
+                                    </div>
+                                    <div className="col-4">
+                                      <small>{moment(purch.transaction_date).format('ll')}</small>
+                                    </div>
+                                  </div>
+                                </ListGroup.Item>
+                              ))
+                            ) : (
+                              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column"  style={{marginTop: '25%'}}>
+                                <h5>
+                                  <strong className="d-flex align-items-center justify-content-center flex-column">
+                                    No purchase record matched:
+                                    <br />
+                                    <span style={{color: '#0d6efd'}}>{searchValue}</span>
+                                  </strong>
+                                </h5>
                               </div>
-                            </ListGroup.Item>
-                          )
-                        })}
-                      </ListGroup>
-                    }
-                  </>
+                            )}
 
-                  :
-                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                      <Spinner 
-                      color1="#b0e4ff"
-                      color2="#fff"
-                      textColor="rgba(0,0,0, 0.5)"
-                      className="w-50 h-50"
-                      />
-                    </div>
-                  }
+                          </ListGroup>
+                      }
+                    </>
+                      :
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                        <Spinner
+                          color1="#b0e4ff"
+                          color2="#fff"
+                          textColor="rgba(0,0,0, 0.5)"
+                          className="w-50 h-50"
+                        />
+                      </div>
+                    }
                   </div>
                 </Card.Body>
               </Card>
@@ -474,7 +585,7 @@ function Records() {
                             <Button
                               className="add me-1"
                               data-title="Add New Purchase Record"
-                              onClick={() => setModalShow(true)}
+                              onClick={() => setAddProductModalShow(true)}
                             >
                               <FontAwesomeIcon icon={faPlus} />
                             </Button>
@@ -482,7 +593,7 @@ function Records() {
                               disabled
                               className="delete me-1"
                               data-title="Void Purchase Record"
-                              onClick={() => { setModalShowVR(true) }}
+                              onClick={() => { setVoidRecordModalShow(true) }}
                             >
                               <FontAwesomeIcon icon={faBan} />
                             </Button>
@@ -493,7 +604,13 @@ function Records() {
                       <div id="message-to-select">
                           <div className="blur-overlay">
                             <div className="d-flex align-items-center justify-content-center" style={{width: '100%', height: '100%'}}>
-                              <h5><strong>Select a transaction to get started</strong></h5>
+                            <div style={{width: '3em', height: '3em'}}>
+                              <Spinner
+                                color1="red"
+                                color2="#000"
+                                textColor="rgba(0,0,0,0)"
+                              />
+                            </div>
                             </div>
                           </div>
                         </div>
@@ -557,7 +674,7 @@ function Records() {
                             </div>
                           </div>
                         </div>
-                        <Table striped bordered hover size="sm" className="records-table">
+                        <table className="table-striped scrollable-table records-table "  cellSpacing={0}>
                           <thead>
                             <tr>
                               <th className='ic pth text-center'>Item Code</th>
@@ -584,190 +701,194 @@ function Records() {
                             ))
                             }
                           </tbody>
-                        </Table>
+                        </table>
                       </div>
                     </div>
                   </div>
                 </Tab.Pane>
-                <Tab.Pane eventKey={docId} id="determiner">
-                  <div className={purchaseRecord.isVoided?"voided-record":""}>
-                    <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
-                      <Nav.Item>
-                        <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
-                      </Nav.Item>
-                      <Nav.Item>
-                        <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
-                      </Nav.Item>
-                    </Nav>
-                    <div className="row m-0">
-                      <div className="row py-1 m-0">
-                        <div className="col-8 d-flex align-items-center">
-                          <div className="me-2">
-                            <InformationCircle
-                              color={purchaseRecord.isVoided?"#b6291f":"#0d6efd"}
-                              height="40px"
-                              width="40px"
-                            />
-                          </div>
-                          <div>
-                            <h4 className="data-id">
-                              <strong>{purchaseRecord.transaction_number}</strong>
-                              {purchaseRecord.isVoided?
-                                <span className="ms-2 voided-text">Voided {purchaseRecord.void_date}</span>
-                              :
-                                <></>
-                              }
-                            </h4>
-                          </div>
-                        </div>
-                        <div className="col-4">
-                          <div className="float-end">
-                            <NewPurchaseModal
-                              show={modalShow}
-                              onHide={() => setModalShow(false)}
-                            />
-                            <Button
-                              className="add me-1"
-                              data-title="Add New Purchase Record"
-                              onClick={() => setModalShow(true)}
-                            >
-                              <FontAwesomeIcon icon={faPlus} />
-                            </Button>
-                            <VoidRecordModal
-                              show={modalShowVR}
-                              onHide={() => setModalShowVR(false)}
-                            />
-                            <Button
-                              className="delete me-1"
-                              disabled={purchaseRecord.isVoided}
-                              data-title="Void Purchase Record"
-                              onClick={() => { setProductList(purchaseRecord.product_list); setModalShowVR(true) }}
-                            >
-                              <FontAwesomeIcon icon={faBan} />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="row p-1 m-0 data-specs" id="record-info">
-                      <div className="mb-3">
-                          <div className="row m-0 mt-2">
-                            <div className="col-6">
-                              <div className="row m-0 p-0">
-                                <a 
-                                  className="col-2 data-icon d-flex align-items-center justify-content-center"
-                                  data-title="Transaction Date"
-                                >
-                                  <Calendar
-                                    color={'#00000'}
-                                    title={'Category'}
-                                    height="25px"
-                                    width="25px"
-                                  />
-                                </a>
-                                <div className="col-10 data-label">
-                                  {moment(purchaseRecord.transaction_date).format('LL')}
-                                </div>
-                              </div>
+                {purchaseRecordCollection === undefined || docId === undefined?
+                  <></>
+                :
+                  <Tab.Pane eventKey={purchaseRecordCollection[docId].id}>
+                    <div className={purchaseRecordCollection[docId].isVoided?"voided-record":""}>
+                      <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
+                        <Nav.Item>
+                          <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
+                        </Nav.Item>
+                        <Nav.Item>
+                          <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
+                        </Nav.Item>
+                      </Nav>
+                      <div className="row m-0">
+                        <div className="row py-1 m-0">
+                          <div className="col-8 d-flex align-items-center">
+                            <div className="me-2">
+                              <InformationCircle
+                                color={purchaseRecordCollection[docId].isVoided?"#aaaaaa":"#0d6efd"}
+                                height="40px"
+                                width="40px"
+                              />
                             </div>
-                            <div className="col-6">
-                              <div className="row m-0 p-0">
-                                <a 
-                                  className="col-2 data-icon d-flex align-items-center justify-content-center"
-                                  data-title="Transaction Supplier"
-                                >
-                                  <Person
-                                    color={'#00000'}
-                                    title={'Category'}
-                                    height="25px"
-                                    width="25px"
-                                  />
-                                </a>
-                                <div className="col-10 data-label">
-                                  {purchaseRecord.transaction_supplier}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="row m-0 mt-2">
-                            <div className="col-12">
-                            <div className="row m-0 p-0">
-                                <a 
-                                  className="col-1 data-icon d-flex align-items-center justify-content-center"
-                                  data-title="Notes"
-                                >
-                                  <Create
-                                    color={'#00000'}
-                                    title={'Category'}
-                                    height="25px"
-                                    width="25px"
-                                  />
-                                </a>
-                                <div className="col-11 data-label">
-                                  {purchaseRecord.transaction_note == "" || purchaseRecord.transaction_note === undefined || purchaseRecord.transaction_note == " "?
-                                    <div style={{fontStyle: 'italic', opacity: '0.8'}}>No notes recorded</div>
-                                  :
-                                    <>{purchaseRecord.transaction_note}</>
-                                  }
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <Table striped bordered hover size="sm" className={purchaseRecord.isVoided?"records-table voided-record":"records-table"}>
-                          <thead>
-                            <tr>
-                              <th className='ic pth px-3'>Item Code</th>
-                              <th className="qc pth text-center">Quantity</th>
-                              <th className='dc pth text-center'>Description</th>
-                              <th className='pp pth text-center'>Purchase Price</th>
-                              <th className='ext pth text-center'>Extension</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <ProductQuickView
-                              show={modalShowPQV}
-                              onHide={() => setModalShowPQV(false)}
-                              productid={productToView}
-                            />
-                            {list.map((prod, index) => (
-                              
-                              <tr key={index}>
-                                <td className='ic pt-entry px-3' key={prod.itemId}>
-                                {prod.itemId === undefined?
-                                  <></>
+                            <div>
+                              <h4 className="data-id">
+                                <strong>{purchaseRecordCollection[docId].transaction_number}</strong>
+                                {purchaseRecordCollection[docId].isVoided?
+                                  <span className="ms-2 voided-text">Voided {purchaseRecordCollection[docId].void_date}</span>
                                 :
-                                  <>
-                                    <button
-                                      onClick={()=>{setProductToView(prod.itemId); setModalShowPQV(true)}}
-                                    >
-                                      {prod.itemId.substring(0,9)}
-                                    </button>
-                                  </>
+                                  <></>
                                 }
-                                </td>
-                                <td className="qc pt-entry text-center" key={prod.itemQuantity}>
-                                  {prod.itemQuantity}
-                                </td>
-                                <td className="dc pt-entry text-center" key={prod.itemName}>
-                                  {prod.itemName}
-                                </td>
-                                <td className="pp pt-entry text-center" >
-                                  <FontAwesomeIcon icon={faPesoSign} />
-                                  {prod.itemPPrice}
-                                </td>
-                                <td className="ext pt-entry text-center" >
-                                  <FontAwesomeIcon icon={faPesoSign} />
-                                  {prod.itemPPrice * prod.itemQuantity}
-                                </td>
+                              </h4>
+                            </div>
+                          </div>
+                          <div className="col-4">
+                            <div className="float-end">
+                              <NewPurchaseModal
+                                show={addProductModalShow}
+                                onHide={() => setAddProductModalShow(false)}
+                              />
+                              <Button
+                                className="add me-1"
+                                data-title="Add New Purchase Record"
+                                onClick={() => setAddProductModalShow(true)}
+                              >
+                                <FontAwesomeIcon icon={faPlus} />
+                              </Button>
+                              <VoidRecordModal
+                                show={voidRecordModalShow}
+                                onHide={() => setVoidRecordModalShow(false)}
+                              />
+                              <Button
+                                className="delete me-1"
+                                disabled={purchaseRecordCollection[docId].isVoided}
+                                data-title="Void Purchase Record"
+                                onClick={() => { setProductList(purchaseRecordCollection[docId].product_list); setVoidRecordModalShow(true) }}
+                              >
+                                <FontAwesomeIcon icon={faBan} />
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="row p-1 m-0 data-specs" id="record-info">
+                        <div className="mb-3">
+                            <div className="row m-0 mt-2">
+                              <div className="col-6">
+                                <div className="row m-0 p-0">
+                                  <a 
+                                    className="col-2 data-icon d-flex align-items-center justify-content-center"
+                                    data-title="Transaction Date"
+                                  >
+                                    <Calendar
+                                      color={'#00000'}
+                                      title={'Category'}
+                                      height="25px"
+                                      width="25px"
+                                    />
+                                  </a>
+                                  <div className="col-10 data-label">
+                                    {moment(purchaseRecordCollection[docId].transaction_date).format('LL')}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="col-6">
+                                <div className="row m-0 p-0">
+                                  <a 
+                                    className="col-2 data-icon d-flex align-items-center justify-content-center"
+                                    data-title="Transaction Supplier"
+                                  >
+                                    <Person
+                                      color={'#00000'}
+                                      title={'Category'}
+                                      height="25px"
+                                      width="25px"
+                                    />
+                                  </a>
+                                  <div className="col-10 data-label">
+                                    {purchaseRecordCollection[docId].transaction_supplier}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="row m-0 mt-2">
+                              <div className="col-12">
+                              <div className="row m-0 p-0">
+                                  <a 
+                                    className="col-1 data-icon d-flex align-items-center justify-content-center"
+                                    data-title="Notes"
+                                  >
+                                    <Create
+                                      color={'#00000'}
+                                      title={'Category'}
+                                      height="25px"
+                                      width="25px"
+                                    />
+                                  </a>
+                                  <div className="col-11 data-label">
+                                    {purchaseRecordCollection[docId].transaction_note == "" || purchaseRecordCollection[docId].transaction_note === undefined || purchaseRecordCollection[docId].transaction_note == " "?
+                                      <div style={{fontStyle: 'italic', opacity: '0.8'}}>No notes recorded</div>
+                                    :
+                                      <>{purchaseRecordCollection[docId].transaction_note}</>
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <Table striped bordered hover className="records-table scrollable-table">
+                            <thead>
+                              <tr>
+                                <th className='ic pth px-3'>Item Code</th>
+                                <th className="qc pth text-center">Quantity</th>
+                                <th className='dc pth text-center'>Description</th>
+                                <th className='pp pth text-center'>Purchase Price</th>
+                                <th className='ext pth text-center'>Extension</th>
                               </tr>
-                            ))
-                            }
-                          </tbody>
-                        </Table>
+                            </thead>
+                            <tbody>
+                              <ProductQuickView
+                                show={productQuickViewModalShow}
+                                onHide={() => setProductQuickViewModalShow(false)}
+                                productid={productToView}
+                              />
+                              {list.map((prod, index) => (
+
+                                <tr key={index}>
+                                  <td className='ic pt-entry px-3' key={prod.itemId}>
+                                    {prod.itemId === undefined?
+                                      <></>
+                                    :
+                                      <>
+                                        <button
+                                          onClick={()=>{setProductToView(prod.itemId); setProductQuickViewModalShow(true)}}
+                                        >
+                                          {prod.itemId.substring(0,9)}
+                                        </button>
+                                      </>
+                                    }
+                                  </td>
+                                  <td className="qc pt-entry text-center" key={prod.itemQuantity}>
+                                    {prod.itemQuantity}
+                                  </td>
+                                  <td className="dc pt-entry text-center" key={prod.itemName}>
+                                    {prod.itemName}
+                                  </td>
+                                  <td className="pp pt-entry text-center" >
+                                    <FontAwesomeIcon icon={faPesoSign} />
+                                    {prod.itemPPrice}
+                                  </td>
+                                  <td className="ext pt-entry text-center" >
+                                    <FontAwesomeIcon icon={faPesoSign} />
+                                    {prod.itemPPrice * prod.itemQuantity}
+                                  </td>
+                                </tr>
+                              ))
+                              }
+                            </tbody>
+                          </Table>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Tab.Pane>
+                  </Tab.Pane>
+                }
               </Tab.Content>
             </div>
           </div>
@@ -776,5 +897,4 @@ function Records() {
     </div >
   );
 }
-
 export default Records;

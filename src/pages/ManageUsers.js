@@ -54,37 +54,20 @@ function ManageUsers() {
       setAccount(["name:hi",])
       setProfileID(metadata.id)
     });
+    console.log(userProfile.documents)
   }, [userCollection])  
 
-  const successToast = (name) => {
-    toast.success('Account for ' + name + ' created', {
-      position: "top-right",
-      autoClose: 3500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
+  const handleFileName = (url) => {
+    var first_half = url.substring(121, url.length)
+    return first_half.substring(0, first_half.length - 53)
   }
-  const deleteToast = (name) => {
-      toast.error(name + ' removed', {
-          position: "top-right",
-          autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-      });
-  }
-
-  const handleClose = () => setEditModalShow(false);
 
   const VerifyAccount = (id) => {
     const saveVerification = async () => {
       await updateDoc(doc(db, 'user', id), {
-        status: 'verified'
+        isNew: true,
+        status: 'verified',
+        preferences: {showTips: true, showQuickAccess: true,}
       });
   }
 
@@ -94,7 +77,9 @@ function ManageUsers() {
   const UndoVerifyAccount = (id) => {
     const saveUndoVerification = async () => {
       await updateDoc(doc(db, 'user', id), {
-        status: 'inVerification'
+        isNew: true,
+        status: 'inVerification',
+        preferences: {showTips: true, showQuickAccess: false,}
       });
   }
 
@@ -314,7 +299,7 @@ function ManageUsers() {
                     </div>
                     <div className="row py-1 data-specs">
                       <div className="col-12 p-3" id="user-table">
-                        <Table bordered hover size="sm">
+                        <Table bordered size="sm">
                           <tbody>
                             <tr>
                               <td className="header left-curve">Name</td>
@@ -334,7 +319,7 @@ function ManageUsers() {
                             </tr>
                           </tbody>
                         </Table>
-                        <Table bordered hover size="sm">
+                        <Table bordered size="sm">
                           <tbody>
                             <tr>
                               <td className="header business left-curve">Business Name</td>
@@ -359,6 +344,24 @@ function ManageUsers() {
                             <tr>
                               <td className="header business">Business Email Address</td>
                               <td className="content">{userProfile.bemail}</td>
+                            </tr>
+                            <tr>
+                              <td className="header business">Business Documents</td>
+                              <td className="content">
+                                {userProfile.documents == undefined?
+                                  <></>
+                                :
+                                  <>
+                                  {userProfile.documents.map((document)=>{
+                                    return(
+                                      <div>
+                                        <a href={document}>{handleFileName(document)}</a>
+                                      </div>
+                                    )
+                                  })}
+                                  </>
+                                }
+                              </td>
                             </tr>
                           </tbody>
                         </Table>
