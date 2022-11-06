@@ -53,8 +53,12 @@ function StockcardPage({ isAuth }) {
   var curr = new Date();
   curr.setDate(curr.getDate());
   var today = moment(curr).format('YYYY-MM-DD')
-
   
+  const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("add")
+
+  const [leadtimeAverage, setLeadtimeAverage] = useState()
+  const [leadtimeMinimum, setLeadtimeMinimum] = useState()
+  const [leadtimeMaximum, setLeadtimeMaximum] = useState()
 
   //----------------------------------SALES TOTAL RECORD FUNCTION----------------------------------
 
@@ -84,6 +88,8 @@ function StockcardPage({ isAuth }) {
     }
   }, [docId])
   //query documents from sales_record that contains docId
+
+
 
   useEffect(() => {
     setProductSales(salesRecordCollection.map((element) => {
@@ -323,11 +329,31 @@ function StockcardPage({ isAuth }) {
 
 
   useEffect(() => {
+    setLeadtimeAverage()
+    setLeadtimeMinimum()
+    setLeadtimeMaximum()
+    if (docId !== undefined) {
+      setLeadtimeAverage(stockcard[docId].analytics.leadtimeAverage)
+      setLeadtimeMinimum(stockcard[docId].analytics.leadtimeMinimum)
+      setLeadtimeMaximum(stockcard[docId].analytics.leadtimeMaximum)
+    }
+  }, [docId])
+
+  useEffect(() => {
     if (stockcard === undefined) {
       setIsFetched(false)
     }
     else {
       setIsFetched(true)
+      if(collectionUpdateMethod == "add")
+      {
+        setDocId(stockcard.length-1)
+        setKey(stockcard[stockcard.length-1].id)
+      }
+      else
+      {
+        setCollectionUpdateMethod("add")
+      }
       
     }
   }, [stockcard])
@@ -1024,6 +1050,7 @@ function StockcardPage({ isAuth }) {
     await deleteDoc(stockcardDoc);
     setKey('main')
     props.onHide()
+    setCollectionUpdateMethod("delete")
   }
   
   //delete Toast
@@ -1320,16 +1347,113 @@ function StockcardPage({ isAuth }) {
     }
   },[docId])
   function EditLeadtimeModal(props) {
+    const [newMinLeadtime, setNewMinLeadtime] = useState(0);
+    const [newMaxLeadtime, setNewMaxLeadtime] = useState(0);
+    const [newAverageLeadtime, setNewAverageLeadtime] = useState(0);
+
+    
+    const [safetyStock, setSafetyStock] = useState(0); // safetyStock
+    const [reorderPoint, setReorderPoint] = useState(); // ReorderPoint
+    const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
+    const [highestDailySales, setHighestDailySales] = useState(0); //highest daily sales
+    const [averageDailySales, setAverageDailySales] = useState(0); //average daily sales 
 
     const handleEditLeadtimeClose = () => setLeadtimeModalShow(false);
 
-    //SetValues
+    useEffect(()=>{
+      computeAverageLeadtime()
+    },[newMaxLeadtime, newMinLeadtime])
+
+    function computeAverageLeadtime(){
+      let x = 0
+      let y = 0
+      x = Number(newMaxLeadtime) + Number(newMinLeadtime)
+      y = Number(x/2)
+      setNewAverageLeadtime(y)
+    }
+
+    useEffect(()=>{
+      if(stockcard[docId].id!==undefined){
+        setSafetyStock(stockcard[docId].id.analytics.safetyStock)
+        setReorderPoint(stockcard[docId].id.analytics.reorderPoint)
+        setDaysROP(stockcard[docId].id.analytics.daysROP)
+        setHighestDailySales(stockcard[docId].id.analytics.highestDailySales)
+        setAverageDailySales(stockcard[docId].id.analytics.averageDailySales)
+      }
+    },[stockcard[docId].id])
+
+    //compute SafetyStock
+    useEffect(() => {
+
+      let x = 0
+      let y = 0
+      let z = 0
+      x = Number(highestDailySales) * Number(newMaxLeadtime)
+      y = Number(averageDailySales) * Number(newAverageLeadtime)
+      z = Number(x - y)
+
+      setSafetyStock(z)
+  }, [highestDailySales, averageDailySales, newMaxLeadtime, newAverageLeadtime, stockcard[docId].id])
+
+
+    //compute reoderpoint
+    //formula to calculate ROP = (average daily sales * leadtime in days) + safetystock
+    useEffect(() => {
+      setReorderPoint()
+      let x = 0
+      let y = 0
+      let z = 0
+
+      x = Number(averageDailySales * newAverageLeadtime)
+      y = x + safetyStock
+      z = Math.round(y)
+      setReorderPoint(z)
+  }, [safetyStock, averageDailySales, newAverageLeadtime])
+
+
+    //compute days before ROP
+    //formula to calculate Number of Days Before reaching ROP = ( Current Quantity of Product - Reorder Point ) / average daily usage
+    useEffect(() => {
+      setDaysROP()
+      if (stockcard[docId].id !== undefined) {
+          let x = stockcard[docId].id.qty - reorderPoint
+          let y = averageDailySales
+          let a = (x / y)
+          let z = Math.round(a)
+          setDaysROP(z)
+      }
+  }, [averageDailySales, reorderPoint, stockcard[docId].id])
+
+
+    useEffect(()=>{
+      console.log("newAverageLeadtime:", newAverageLeadtime)
+    },[newAverageLeadtime])
+    
+    useEffect(()=>{
+      console.log("newMinLeadtime:", newMinLeadtime)
+    },[newMinLeadtime])
+
+    useEffect(()=>{
+      console.log("newMaxLeadtime:", newMaxLeadtime)
+    },[newMaxLeadtime])
+
+
 
     //update Toast
 
 
-
-
+    function updateLeadtime() {
+      updateDoc(doc(db, "stockcard", docId), {
+        "analytics.leadtimeMaximum": Number(newMaxLeadtime),
+        "analytics.leadtimeMinimum": Number(newMinLeadtime),
+        "analytics.leadtimeAverage": Number(newAverageLeadtime),
+        "analytics.safetyStock": Number(safetyStock),
+        "analytics.reorderPoint": Number(reorderPoint),
+        "analytics.daysROP": Number(daysROP)
+      });
+      updateLeadtimeToast()
+      handleEditLeadtimeClose()
+    }
 
 
     return (
@@ -1470,7 +1594,6 @@ function StockcardPage({ isAuth }) {
       />
 
       <Tab.Container
-        id="controlled-tab-example"
         activeKey={key}
         onSelect={(k) => setKey(k)}
       >
@@ -1539,7 +1662,7 @@ function StockcardPage({ isAuth }) {
                             </p>
                           </div>
                           :
-                          <ListGroup variant="flush">
+                          <ListGroup activeKey={key} variant="flush">
                             {searchResult && searchResult.length > 0 ? (
                               searchResult.map((stockcard) => (
                                 <ListGroup.Item

@@ -213,10 +213,18 @@ function NewProductModal(props) {
       min_qty: checkIfEmpty(Number(newMinQty), true),
       max_qty: checkIfEmpty(Number(newMaxQty), true),
       img: imageUrls.length == 0?"":imageUrls[0],
-      qty: 0,
-      analytics_boolean: false,
-      analytics_minLeadtime: 0,
-      analytics_maxLeadtime: 0,
+      analytics:
+      {
+        averageDailySales: 0,
+        highestDailySales: 0,
+        safetyStock: 0,
+        reorderPoint: 0,
+        daysROP: Infinity,
+        leadtimeMinimum: 0,
+        leadtimeMaximum: 0,
+        leadtimeAverage: 0
+      }
+
     });
     await updateDoc(doc(db, 'user', userProfileID), {
       categories: newCatergories(),

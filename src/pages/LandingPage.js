@@ -1064,6 +1064,10 @@ function LandingPage() {
 
                             </Card.Body>
                         </Card>
+
+                        <div className="row">
+                            <h5>Products Near Reorderpoint</h5>
+                        </div>
                     </div>
                 </div>
             </div>
