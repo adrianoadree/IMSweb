@@ -53,7 +53,7 @@ function StockcardPage({ isAuth }) {
   var curr = new Date();
   curr.setDate(curr.getDate());
   var today = moment(curr).format('YYYY-MM-DD')
-  
+
   const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("add")
 
   const [leadtimeAverage, setLeadtimeAverage] = useState()
@@ -62,7 +62,7 @@ function StockcardPage({ isAuth }) {
 
   //----------------------------------SALES TOTAL RECORD FUNCTION----------------------------------
 
-  useEffect(()=>{
+  useEffect(() => {
     console.log(docId)
   })
 
@@ -72,15 +72,13 @@ function StockcardPage({ isAuth }) {
 
   //query documents from sales_record that contains docId
   useEffect(() => {
-    if(stockcard === undefined)
-    {
+    if (stockcard === undefined) {
 
     }
-    else
-    {
+    else {
       const collectionRef = collection(db, "sales_record")
       const q = query(collectionRef, where("product_ids", "array-contains", stockcard[docId].id));
-  
+
       const unsub = onSnapshot(q, (snapshot) =>
         setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
@@ -103,8 +101,7 @@ function StockcardPage({ isAuth }) {
   useEffect(() => {
     var temp = 0;
     productSales.map((value) => {
-      if(!value.isVoided)
-      {
+      if (!value.isVoided) {
         value.product_list.map((prod) => {
           temp += prod.itemQuantity
         })
@@ -114,62 +111,50 @@ function StockcardPage({ isAuth }) {
   }, [productSales])
 
   const computeDelay = (transaction_date, order_date) => {
-    if(order_date === undefined)
-    {
+    if (order_date === undefined) {
       return "-"
     }
-    else
-    {
+    else {
       var t_date = new Date(transaction_date)
       t_date.setHours(0, 0, 0, 0)
       var o_date = new Date(order_date)
       o_date.setHours(0, 0, 0, 0)
-  
+
       return (t_date - o_date)
     }
   }
-  function DetermineStockLevel(curr, min, max, product_id){
+  function DetermineStockLevel(curr, min, max, product_id) {
     const checkProductPurchases = () => {
-    var cntr = 0
-      allPurchases.map((purch)=>{
-          purch.product_ids.map((item)=>{
-            if(item == product_id)
-            {
-              cntr++
-            }
-          })
+      var cntr = 0
+      allPurchases.map((purch) => {
+        purch.product_ids.map((item) => {
+          if (item == product_id) {
+            cntr++
+          }
+        })
       })
       return cntr;
     }
-    if((min === undefined || min == 0) || (max === undefined || max == 0))
-    {
-      if(curr == 0)
-      {
-        if(checkProductPurchases() > 0)
-          {
-            return "out-of-stock";
-          }
+    if ((min === undefined || min == 0) || (max === undefined || max == 0)) {
+      if (curr == 0) {
+        if (checkProductPurchases() > 0) {
+          return "out-of-stock";
+        }
       }
     }
-    else
-    {
-      if(curr == 0)
-      {
-        if(checkProductPurchases() > 0)
-          {
-            return "out-of-stock";
-          }
+    else {
+      if (curr == 0) {
+        if (checkProductPurchases() > 0) {
+          return "out-of-stock";
+        }
       }
-      else if(curr <= min)
-      {
+      else if (curr <= min) {
         return "low-stock"
       }
-      else if(curr >= max)
-      {
+      else if (curr >= max) {
         return "overstocked"
       }
-      else
-      {
+      else {
         return ""
       }
     }
@@ -183,12 +168,10 @@ function StockcardPage({ isAuth }) {
 
   //query documents from sales_record that contains docId
   useEffect(() => {
-    if(stockcard === undefined)
-    {
+    if (stockcard === undefined) {
 
     }
-    else
-    {
+    else {
       const collectionRef = collection(db, "purchase_record")
       const q = query(collectionRef, where("product_ids", "array-contains", stockcard[docId].id));
 
@@ -213,11 +196,10 @@ function StockcardPage({ isAuth }) {
   useEffect(() => {
     var tempPurch = 0;
     productPurchases.map((purch) => {
-      if(!purch.isVoided)
-      {
-      purch.product_list.map((purch) => {
-        tempPurch += purch.itemQuantity
-      })
+      if (!purch.isVoided) {
+        purch.product_list.map((purch) => {
+          tempPurch += purch.itemQuantity
+        })
       }
     })
     setTotalPurchase(tempPurch)
@@ -232,9 +214,8 @@ function StockcardPage({ isAuth }) {
     var date_start = new Date(filterDateStart)
     var date_end = new Date(filterDateEnd)
     var transac_date
-    switch(filterTransactionType)
-    {
-      case "all": 
+    switch (filterTransactionType) {
+      case "all":
         status_code = ""
         break;
       case "sales":
@@ -245,30 +226,24 @@ function StockcardPage({ isAuth }) {
         break;
     }
 
-    if(filterTransactionStatus == "all")
-    {
+    if (filterTransactionStatus == "all") {
       ledgerBaseLevel.map((transac) => {
         transac_date = new Date(transac.transaction_date)
-        if(transac.id.startsWith(status_code) && (transac_date.getTime() >= date_start.getTime() && transac_date.getTime() <= date_end.getTime()))
-        {
+        if (transac.id.startsWith(status_code) && (transac_date.getTime() >= date_start.getTime() && transac_date.getTime() <= date_end.getTime())) {
           tempTransac.push(transac)
         }
       })
     }
-    else if(filterTransactionStatus == "voided")
-    {
+    else if (filterTransactionStatus == "voided") {
       ledgerBaseLevel.map((transac) => {
-        if(transac.isVoided && transac.id.startsWith(status_code))
-        {
+        if (transac.isVoided && transac.id.startsWith(status_code)) {
           tempTransac.push(transac)
         }
       })
     }
-    else if(filterTransactionStatus == "unvoided")
-    {
+    else if (filterTransactionStatus == "unvoided") {
       ledgerBaseLevel.map((transac) => {
-        if(!transac.isVoided && transac.id.startsWith(status_code))
-        {
+        if (!transac.isVoided && transac.id.startsWith(status_code)) {
           tempTransac.push(transac)
         }
       })
@@ -280,50 +255,42 @@ function StockcardPage({ isAuth }) {
       transac2_date = new Date(transac2.transaction_date)
       return transac1_date.getTime() - transac2_date.getTime();
     }))
-  
+
   }
 
-  useEffect(()=>{
-    if(ledgerBaseLevel !== undefined)
-    {
+  useEffect(() => {
+    if (ledgerBaseLevel !== undefined) {
       handleLedgerChange()
     }
-    else
-    {
-      
+    else {
+
     }
   }, [filterTransactionStatus])
 
-  useEffect(()=>{
-    if(ledgerBaseLevel !== undefined)
-    {
+  useEffect(() => {
+    if (ledgerBaseLevel !== undefined) {
       handleLedgerChange()
     }
-    else
-    {
-      
+    else {
+
     }
   }, [filterTransactionType])
 
-  useEffect(()=>{
-    if(ledgerBaseLevel !== undefined)
-    {
+  useEffect(() => {
+    if (ledgerBaseLevel !== undefined) {
       handleLedgerChange()
     }
-    else
-    {
-      
+    else {
+
     }
   }, [filterDateStart])
 
-  useEffect(()=>{
-    if(ledgerBaseLevel !== undefined)
-    {
+  useEffect(() => {
+    if (ledgerBaseLevel !== undefined) {
       handleLedgerChange()
     }
-    else
-    {
-      
+    else {
+
     }
   }, [filterDateEnd])
 
@@ -345,16 +312,14 @@ function StockcardPage({ isAuth }) {
     }
     else {
       setIsFetched(true)
-      if(collectionUpdateMethod == "add")
-      {
-        setDocId(stockcard.length-1)
-        setKey(stockcard[stockcard.length-1].id)
+      if (collectionUpdateMethod == "add") {
+        setDocId(stockcard.length - 1)
+        setKey(stockcard[stockcard.length - 1].id)
       }
-      else
-      {
+      else {
         setCollectionUpdateMethod("add")
       }
-      
+
     }
   }, [stockcard])
 
@@ -396,7 +361,7 @@ function StockcardPage({ isAuth }) {
 
 
 
-    
+
   useEffect(() => {
     setLedgerBaseLevel(productSales.concat(productPurchases))
     setFilteredLedger((productSales.concat(productPurchases)).sort((transac1, transac2) => {
@@ -416,9 +381,9 @@ function StockcardPage({ isAuth }) {
         <div className="row m-0 px-0 d-flex justify-content-end">
           <div className="col-3 float-end">
             <button
-              className={showingFilterOptions?"filter ative float-end":"filter float-end"}
-              data-title={showingFilterOptions?"Hide Filter Options":"Show Filter Options"}
-              onClick={()=>{if(showingFilterOptions){setShowingFilterOptions(false)}else{setShowingFilterOptions(true)}}}
+              className={showingFilterOptions ? "filter ative float-end" : "filter float-end"}
+              data-title={showingFilterOptions ? "Hide Filter Options" : "Show Filter Options"}
+              onClick={() => { if (showingFilterOptions) { setShowingFilterOptions(false) } else { setShowingFilterOptions(true) } }}
             >
               <FontAwesomeIcon icon={faFilter} />
             </button>
@@ -426,7 +391,7 @@ function StockcardPage({ isAuth }) {
         </div>
         <div className="row m-0 p-0 py-2">
           <div className="col-12 p-0">
-            {showingFilterOptions?
+            {showingFilterOptions ?
               <div id="ledger-filter-options" className="interrelated-options mb-3">
                 <div className="row m-0 p-0 mb-4">
                   <div className="col-1 px-1 py-0 d-flex flex-row">
@@ -442,21 +407,21 @@ function StockcardPage({ isAuth }) {
                         <div><span> Type: </span></div>
                       </div>
                       <div className="col-9 m-0 p-0">
-                        <a 
-                          className={filterTransactionType == "all"?'start-option active':'start-option'}
-                          onClick={()=>{setFilterTransactionType("all"); setFilterClickCounter(filterClickCounter + 1)}}
+                        <a
+                          className={filterTransactionType == "all" ? 'start-option active' : 'start-option'}
+                          onClick={() => { setFilterTransactionType("all"); setFilterClickCounter(filterClickCounter + 1) }}
                         >
                           All
                         </a>
                         <a
-                          className={filterTransactionType == "sales"?'center-option active':'center-option'}
-                          onClick={()=>{setFilterTransactionType("sales"); setFilterClickCounter(filterClickCounter + 1)}}
+                          className={filterTransactionType == "sales" ? 'center-option active' : 'center-option'}
+                          onClick={() => { setFilterTransactionType("sales"); setFilterClickCounter(filterClickCounter + 1) }}
                         >
                           Sales
                         </a>
                         <a
-                          className={filterTransactionType == "purchases"?'end-option active':'end-option'}
-                          onClick={()=>{setFilterTransactionType("purchases"); setFilterClickCounter(filterClickCounter + 1)}}
+                          className={filterTransactionType == "purchases" ? 'end-option active' : 'end-option'}
+                          onClick={() => { setFilterTransactionType("purchases"); setFilterClickCounter(filterClickCounter + 1) }}
                         >
                           Purchases
                         </a>
@@ -465,29 +430,29 @@ function StockcardPage({ isAuth }) {
                   </div>
                   <div className="col-6 px-1 py-0 d-flex flex-row">
                     <div className="row m-0 p-0 d-flex align-items-center">
-                        <div className="col-3 m-0 p-0 d-flex justify-content-center">
-                          <div style={{lineHeight: '0'}}>Status: </div>
-                        </div>
-                        <div className="col-9 m-0 p-0">
-                        <a 
-                          className={filterTransactionStatus == "all"?'start-option active':'start-option'}
-                          onClick={()=>{setFilterTransactionStatus("all"); setFilterClickCounter(filterClickCounter + 1)}}
+                      <div className="col-3 m-0 p-0 d-flex justify-content-center">
+                        <div style={{ lineHeight: '0' }}>Status: </div>
+                      </div>
+                      <div className="col-9 m-0 p-0">
+                        <a
+                          className={filterTransactionStatus == "all" ? 'start-option active' : 'start-option'}
+                          onClick={() => { setFilterTransactionStatus("all"); setFilterClickCounter(filterClickCounter + 1) }}
                         >
                           All
                         </a>
                         <a
-                          className={filterTransactionStatus == "voided"?'center-option active':'center-option'}
-                          onClick={()=>{setFilterTransactionStatus("voided"); setFilterClickCounter(filterClickCounter + 1)}}
+                          className={filterTransactionStatus == "voided" ? 'center-option active' : 'center-option'}
+                          onClick={() => { setFilterTransactionStatus("voided"); setFilterClickCounter(filterClickCounter + 1) }}
                         >
                           Voided
                         </a>
                         <a
-                        className={filterTransactionStatus == "unvoided"?'end-option active':'end-option'}
-                        onClick={()=>{setFilterTransactionStatus("unvoided"); setFilterClickCounter(filterClickCounter + 1)}}
+                          className={filterTransactionStatus == "unvoided" ? 'end-option active' : 'end-option'}
+                          onClick={() => { setFilterTransactionStatus("unvoided"); setFilterClickCounter(filterClickCounter + 1) }}
                         >
                           Unvoided
-                          </a>
-                        </div>
+                        </a>
+                      </div>
                     </div>
 
                   </div>
@@ -495,10 +460,10 @@ function StockcardPage({ isAuth }) {
                 <div className="row m-0 p-0">
                   <div className="col-1 px-1 py-0 d-flex flex-row">
                     <div className="row m-0 p-0 d-flex align-items-center">
-                        <div className="col-12 m-0 p-0 d-flex justify-content-center">
-                          <div style={{lineHeight: '0'}}><strong>Date </strong></div>
-                        </div>
+                      <div className="col-12 m-0 p-0 d-flex justify-content-center">
+                        <div style={{ lineHeight: '0' }}><strong>Date </strong></div>
                       </div>
+                    </div>
                   </div>
                   <div className="col-4 px-1 py-0 d-flex flex-row">
                     <div className="row m-0 p-0 d-flex align-items-center">
@@ -506,18 +471,18 @@ function StockcardPage({ isAuth }) {
                         <div>From: </div>
                       </div>
                       <div className="col-8 m-0 p-0">
-                        <a 
+                        <a
                           className="solo-option active"
                         >
                           <input
                             type="date"
                             required
                             value={filterDateStart}
-                            onChange={(e)=>{setFilterDateStart(e.target.value)}}
+                            onChange={(e) => { setFilterDateStart(e.target.value) }}
                           />
                         </a>
                       </div>
-                    </div> 
+                    </div>
                   </div>
                   <div className="col-4 px-1 py-0 d-flex flex-row">
                     <div className="row m-0 p-0 d-flex align-items-center">
@@ -525,44 +490,44 @@ function StockcardPage({ isAuth }) {
                         <div>To: </div>
                       </div>
                       <div className="col-8 m-0 p-0">
-                        <a 
+                        <a
                           className="solo-option active"
                         >
                           <input
                             type="date"
                             required
                             value={filterDateEnd}
-                            onChange={(e)=>{setFilterDateEnd(e.target.value)}}
+                            onChange={(e) => { setFilterDateEnd(e.target.value) }}
                           />
                         </a>
                       </div>
-                    </div> 
+                    </div>
                   </div>
                   <div className="col-3 px-1 py-0 d-flex flex-row justify-content-center">
                     <div className="row m-0 p-0 d-flex align-items-center">
-                        <div className="col-12 m-0 p-0">
-                          <a 
-                            className="solo-option warning"
-                            onClick={()=>{setFilterTransactionType("all"); setFilterTransactionStatus("all"); setFilterDateStart("2000-01-01"); setFilterDateEnd(today)}}
-                          >
-                            Reset
-                          </a>
-                        </div>
-                    </div> 
+                      <div className="col-12 m-0 p-0">
+                        <a
+                          className="solo-option warning"
+                          onClick={() => { setFilterTransactionType("all"); setFilterTransactionStatus("all"); setFilterDateStart("2000-01-01"); setFilterDateEnd(today) }}
+                        >
+                          Reset
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            :
-            <div className="row m-0 mb-1 py-0 px-2 d-flex align-item-center">
-              <div className="col-8 m-0 p-0 d-flex justify-content-start">
-                <strong>
-                  {filterTransactionStatus.charAt(0).toUpperCase() + filterTransactionStatus.slice(1)} {filterTransactionType == "all"?"sales & purchases":filterTransactionType} records {filterDateStart == "2001-01-01"?"as of " + (filterDateEnd == today?"today":(moment(filterDateEnd).format('dddd'), moment(filterDateEnd).format('MMMM D, YYYY'))):"from " + (moment(filterDateStart).format('dddd'), moment(filterDateStart).format('MMMM D, YYYY')) + " to " + (filterDateEnd == today?"this day":(moment(filterDateEnd).format('dddd'), moment(filterDateEnd).format('MMMM D, YYYY')) )}:
-                </strong>
+              :
+              <div className="row m-0 mb-1 py-0 px-2 d-flex align-item-center">
+                <div className="col-8 m-0 p-0 d-flex justify-content-start">
+                  <strong>
+                    {filterTransactionStatus.charAt(0).toUpperCase() + filterTransactionStatus.slice(1)} {filterTransactionType == "all" ? "sales & purchases" : filterTransactionType} records {filterDateStart == "2001-01-01" ? "as of " + (filterDateEnd == today ? "today" : (moment(filterDateEnd).format('dddd'), moment(filterDateEnd).format('MMMM D, YYYY'))) : "from " + (moment(filterDateStart).format('dddd'), moment(filterDateStart).format('MMMM D, YYYY')) + " to " + (filterDateEnd == today ? "this day" : (moment(filterDateEnd).format('dddd'), moment(filterDateEnd).format('MMMM D, YYYY')))}:
+                  </strong>
+                </div>
+                <div className="col-4 m-0 p-0 d-flex justify-content-end">
+                  {filteredLedger.length + " " + (filteredLedger.length == 1 ? "record" : "records")}
+                </div>
               </div>
-              <div className="col-4 m-0 p-0 d-flex justify-content-end">
-                {filteredLedger.length + " " + (filteredLedger.length == 1?"record":"records")}
-              </div>
-            </div>
             }
           </div>
         </div>
@@ -578,21 +543,21 @@ function StockcardPage({ isAuth }) {
               </tr>
             </thead>
             <tbody>
-              {filteredLedger.length > 0?
+              {filteredLedger.length > 0 ?
                 <>
-                  {filteredLedger.map((transac)=>{
-                    return(
-                      <tr key={transac.id} className={transac.isVoided?'voided-transaction':''}>
+                  {filteredLedger.map((transac) => {
+                    return (
+                      <tr key={transac.id} className={transac.isVoided ? 'voided-transaction' : ''}>
                         <td className="tno">{transac.transaction_number}</td>
                         <td className="td">{transac.transaction_date}</td>
-                        <td className="ts">{transac.transaction_supplier === undefined?<>-</>:<>{transac.transaction_supplier}</>}</td>
+                        <td className="ts">{transac.transaction_supplier === undefined ? <>-</> : <>{transac.transaction_supplier}</>}</td>
                         <td className="tq">{transac.product_list[0].itemQuantity}</td>
                         <td className="tnt">{transac.transaction_note}</td>
                       </tr>
                     )
                   })}
                 </>
-              :
+                :
                 <tr>
                   <td colSpan="5" className="text-center">
                     <div className="w-100 h-100 font-italic">
@@ -603,8 +568,8 @@ function StockcardPage({ isAuth }) {
               }
             </tbody>
           </Table>
+        </div>
       </div>
-    </div>
     );
   }
 
@@ -626,37 +591,35 @@ function StockcardPage({ isAuth }) {
     const [userCollection, setUserCollection] = useState([]);// userCollection variable
     const [userProfileID, setUserProfileID] = useState(""); // user profile id
     const userCollectionRef = collection(db, "user")// user collection
-  
+
     const [imageUpload, setImageUpload] = useState(null);
     const [imageUrls, setImageUrls] = useState([]);
     const [uploading, setUploading] = useState(false);
 
     //SetValues
     useEffect(() => {
-      if(
+      if (
         newStockcardDescription == " " ||
         newStockcardPPrice == 0 ||
         newStockcardSPrice == 0 ||
         newStockcardCategory == " " ||
         newStockcardClassification == " "
-      ){
+      ) {
         setDisallowAddtion(true)
       }
-      else
-      {
+      else {
         setDisallowAddtion(false)
       }
-      if(imageUrls.length == 0) {
+      if (imageUrls.length == 0) {
         setUploadedOneImage(false)
       }
-      else
-      {
+      else {
         setUploadedOneImage(true)
         setUploading(false)
       }
     })
 
-    useEffect(()=>{
+    useEffect(() => {
       /*console.log(newStockcardDescription)
       console.log(newStockcardCategory)
       console.log(newStockcardPPrice)
@@ -667,42 +630,40 @@ function StockcardPage({ isAuth }) {
       console.log(newStockcardMinQty)
       console.log(uploadedOneImage)*/
     })
-      //fetch user collection from database
+    //fetch user collection from database
     useEffect(() => {
-    if (userID === undefined) {
-          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
-    
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-        }
-        else {
-          const q = query(userCollectionRef, where("user", "==", userID));
-    
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-          
-        }
-  }, [userID])
+      if (userID === undefined) {
+        const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+
+        const unsub = onSnapshot(q, (snapshot) =>
+          setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+        return unsub;
+      }
+      else {
+        const q = query(userCollectionRef, where("user", "==", userID));
+
+        const unsub = onSnapshot(q, (snapshot) =>
+          setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+        return unsub;
+
+      }
+    }, [userID])
 
     //assign profile and purchase counter
     useEffect(() => {
       userCollection.map((metadata) => {
-          setUserProfileID(metadata.id)
-          setCategorySuggestions(metadata.categories)
+        setUserProfileID(metadata.id)
+        setCategorySuggestions(metadata.categories)
       });
     }, [userCollection])
 
     useEffect(() => {
-      if(stockcard === undefined || docId === undefined)
-      {
+      if (stockcard === undefined || docId === undefined) {
 
       }
-      else
-      {
+      else {
         setNewStockcardDescription(stockcard[docId].description)
         setNewStockcardCategory(stockcard[docId].category)
         setNewStockcardSPrice(stockcard[docId].s_price)
@@ -712,15 +673,14 @@ function StockcardPage({ isAuth }) {
         setNewStockcardMaxQty(stockcard[docId].max_qty)
         setNewStockcardMinQty(stockcard[docId].min_qty)
         setNewStockcardMinQty(stockcard[docId].min_qty)
-        setImageUrls([... imageUrls, stockcard[docId].img])
+        setImageUrls([...imageUrls, stockcard[docId].img])
       }
     }, [docId])
 
 
     const newCatergories = () => {
       var newcategories = categorySuggestions;
-      if(categorySuggestions.indexOf(newStockcardCategory) == -1)
-      {
+      if (categorySuggestions.indexOf(newStockcardCategory) == -1) {
         newcategories.push(newStockcardCategory)
       }
       return newcategories;
@@ -729,11 +689,11 @@ function StockcardPage({ isAuth }) {
     const handleClickSuggestion = (suggestion) => {
       setNewStockcardCategory(suggestion.index)
     }
-  
+
     const imagesListRef = ref(st, userID + "/stockcard/");
     const uploadFile = () => {
       if (imageUpload == null) return;
-      const imageRef = ref(st, `${userID}/stockcard/${stockcard[docId].id.substring(0,9)}`);
+      const imageRef = ref(st, `${userID}/stockcard/${stockcard[docId].id.substring(0, 9)}`);
       uploadBytes(imageRef, imageUpload).then((snapshot) => {
         getDownloadURL(snapshot.ref).then((url) => {
           setImageUrls((prev) => [...prev, url]);
@@ -741,7 +701,7 @@ function StockcardPage({ isAuth }) {
       });
     };
 
-    
+
     //update stockcard Document
     function UpdateStockcard() {
       updateDoc(doc(db, "stockcard", stockcard[docId].id), {
@@ -795,15 +755,15 @@ function StockcardPage({ isAuth }) {
             <div className="module-header mb-4">
               <h3 className="text-center">
                 Editing
-                {editingBarcode?
+                {editingBarcode ?
                   <> barcode of </>
-                :
+                  :
                   <> </>
                 }
-                {stockcard === undefined || docId === undefined ?<></>:<>{stockcard[docId].description}</>}
+                {stockcard === undefined || docId === undefined ? <></> : <>{stockcard[docId].description}</>}
               </h3>
             </div>
-            <div 
+            <div
               id="image-upload"
               className="row m-0 p-0"
             >
@@ -827,38 +787,38 @@ function StockcardPage({ isAuth }) {
                           variant="btn btn-success"
                           className="shadow-none w-100"
                           disabled={uploadedOneImage}
-                          onClick={()=>{setUploading(true);uploadFile()}}
+                          onClick={() => { setUploading(true); uploadFile() }}
                         >
-                          <FontAwesomeIcon icon={faEye}/>
+                          <FontAwesomeIcon icon={faEye} />
                         </Button>
                       </div>
                     </div>
-                </div>
+                  </div>
                 </div>
                 <div className="row my-2 mb-3 ps-4 w-100 h-75">
-                  <div 
+                  <div
                     id="image-upload-preview"
                     className='col-12 w-100 h-100 d-flex align-items-center justify-content-center'
                   >
-                    {uploading?
+                    {uploading ?
                       <>
-                        {imageUrls.length == 0?
-                          <Spinner 
+                        {imageUrls.length == 0 ?
+                          <Spinner
                             color1="#b0e4ff"
                             color2="#fff"
                             textColor="rgba(0,0,0, 0.5)"
                             className="w-25 h-25"
                           />
-                        :
+                          :
                           <></>
                         }
                       </>
-                    :
-                    <>
-                      {imageUrls.map((url, index) => {
-                        return <img src={url} style={{height: '100%', width: '100%'}} key={index}/>;
-                      })}
-                    </>
+                      :
+                      <>
+                        {imageUrls.map((url, index) => {
+                          return <img src={url} style={{ height: '100%', width: '100%' }} key={index} />;
+                        })}
+                      </>
                     }
                   </div>
                 </div>
@@ -871,8 +831,8 @@ function StockcardPage({ isAuth }) {
                       readOnly
                       className="form-control shadow-none shadow-none no-click"
                       placeholder=""
-                      defaultValue={stockcard === undefined || docId === undefined ?"":stockcard[docId].id.substring(0,9)}
-                      />
+                      defaultValue={stockcard === undefined || docId === undefined ? "" : stockcard[docId].id.substring(0, 9)}
+                    />
                   </div>
                   <div className='col-6 ps-4'>
                     <label>Classification</label>
@@ -880,7 +840,7 @@ function StockcardPage({ isAuth }) {
                       type="text"
                       className="form-control shadow-none"
                       value={newStockcardClassification}
-                      onChange={(event)=>{setNewStockcardClassification(event.target.value)}}
+                      onChange={(event) => { setNewStockcardClassification(event.target.value) }}
                     >
                       <option value="Imported">Imported</option>
                       <option value="Manufactured">Manufactured</option>
@@ -896,7 +856,7 @@ function StockcardPage({ isAuth }) {
                       placeholder="LM Pancit Canton Orig (Pack-10pcs)"
                       required
                       value={newStockcardDescription}
-                      onChange={(event) => {setNewStockcardDescription(event.target.value); }}
+                      onChange={(event) => { setNewStockcardDescription(event.target.value); }}
                     />
                   </div>
                 </div>
@@ -913,11 +873,11 @@ function StockcardPage({ isAuth }) {
                     />
                     <div id="product-category-suggestions">
                       <div>
-                        {categorySuggestions.map((index, k)=>{
-                          return(
+                        {categorySuggestions.map((index, k) => {
+                          return (
                             <button
-                              key={"category-"+k}
-                              onClick={()=>handleClickSuggestion({index})}
+                              key={"category-" + k}
+                              onClick={() => handleClickSuggestion({ index })}
                             >
                               {index}
                             </button>
@@ -933,7 +893,7 @@ function StockcardPage({ isAuth }) {
                         className="ms-2"
                         data-title="This barcode is autogenerated"
                       >
-                        <FontAwesomeIcon icon={faCircleInfo}/>
+                        <FontAwesomeIcon icon={faCircleInfo} />
                       </a>
                     </label>
                     <input
@@ -941,9 +901,9 @@ function StockcardPage({ isAuth }) {
                       min={0}
                       autoFocus={editingBarcode}
                       value={newStockcardBarcode}
-                      className={editingBarcode?"form-control shadow-none barcode-in-edit":"form-control shadow-none"}
-                      onChange={(event)=>{setNewStockcardBarcode(event.target.value)}}
-                      />
+                      className={editingBarcode ? "form-control shadow-none barcode-in-edit" : "form-control shadow-none"}
+                      onChange={(event) => { setNewStockcardBarcode(event.target.value) }}
+                    />
                   </div>
                 </div>
                 <div className="row my-2 mb-3">
@@ -955,7 +915,7 @@ function StockcardPage({ isAuth }) {
                       value={newStockcardPPrice}
                       className="form-control shadow-none"
                       placeholder="Purchase Price"
-                      onChange={(event) => { setNewStockcardPPrice(event.target.value); }} 
+                      onChange={(event) => { setNewStockcardPPrice(event.target.value); }}
                     />
                   </div>
                   <div className='col-3 ps-4'>
@@ -976,7 +936,7 @@ function StockcardPage({ isAuth }) {
                         className="ms-2"
                         data-title="The quantity to be considered low stock level"
                       >
-                        <FontAwesomeIcon icon={faCircleInfo}/>
+                        <FontAwesomeIcon icon={faCircleInfo} />
                       </a>
                     </label>
                     <input
@@ -984,7 +944,7 @@ function StockcardPage({ isAuth }) {
                       min={0}
                       value={newStockcardMinQty}
                       className="form-control shadow-none"
-                      onChange={(event) => { setNewStockcardMinQty(event.target.value); }} 
+                      onChange={(event) => { setNewStockcardMinQty(event.target.value); }}
                     />
                   </div>
                   <div className='col-3 ps-4'>
@@ -994,7 +954,7 @@ function StockcardPage({ isAuth }) {
                         className="ms-2"
                         data-title="The quantity to be considered overstocked"
                       >
-                        <FontAwesomeIcon icon={faCircleInfo}/>
+                        <FontAwesomeIcon icon={faCircleInfo} />
                       </a>
                     </label>
                     <input
@@ -1009,7 +969,7 @@ function StockcardPage({ isAuth }) {
               </div>
             </div>
           </div>
-        </Modal.Body> 
+        </Modal.Body>
         <Modal.Footer
           className="d-flex justify-content-center"
         >
@@ -1026,45 +986,45 @@ function StockcardPage({ isAuth }) {
             style={{ width: "9rem" }}
             onClick={() => { UpdateStockcard(); }}
           >
-            Update 
-            {editingBarcode?
+            Update
+            {editingBarcode ?
               <> Barcode</>
-            :
+              :
               <> Product</>
             }
           </Button>
         </Modal.Footer>
       </Modal>
-  
-  
+
+
     )
   }
 
   //Edit Stockcard Data Modal-----------------------------------------------------------------------------
   function DeleteProductModal(props) {
 
-  //delete row 
-  const deleteStockcard = async () => {
-    const stockcardDoc = doc(db, "stockcard", stockcard[docId].id)
-    deleteToast();
-    await deleteDoc(stockcardDoc);
-    setKey('main')
-    props.onHide()
-    setCollectionUpdateMethod("delete")
-  }
-  
-  //delete Toast
-  const deleteToast = () => {
-    toast.error('Product DELETED from the Database', {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
-  }
+    //delete row 
+    const deleteStockcard = async () => {
+      const stockcardDoc = doc(db, "stockcard", stockcard[docId].id)
+      deleteToast();
+      await deleteDoc(stockcardDoc);
+      setKey('main')
+      props.onHide()
+      setCollectionUpdateMethod("delete")
+    }
+
+    //delete Toast
+    const deleteToast = () => {
+      toast.error('Product DELETED from the Database', {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
 
 
     return (
@@ -1087,61 +1047,61 @@ function StockcardPage({ isAuth }) {
           pauseOnHover
         />
         <Modal.Body >
-        {stockcard === undefined || docId === undefined ?
-        <></>
-        :
-        <div className="px-3 py-2">
-          <div className="module-header mb-4">
-            <h3 className="text-center">Deleting {stockcard === undefined || docId === undefined ?<></>:<>{stockcard[docId].id.substring(0,9)}</>}</h3>
-          </div>
-          <div className="row m-0 p-0 mb-3">
-            <div className="col-12 px-3 text-center">
-              <strong>
-                Are you sure you want to delete
-                <br />
-                <span style={{color: '#b42525'}}>{stockcard[docId].description}?</span>
-              </strong>
+          {stockcard === undefined || docId === undefined ?
+            <></>
+            :
+            <div className="px-3 py-2">
+              <div className="module-header mb-4">
+                <h3 className="text-center">Deleting {stockcard === undefined || docId === undefined ? <></> : <>{stockcard[docId].id.substring(0, 9)}</>}</h3>
+              </div>
+              <div className="row m-0 p-0 mb-3">
+                <div className="col-12 px-3 text-center">
+                  <strong>
+                    Are you sure you want to delete
+                    <br />
+                    <span style={{ color: '#b42525' }}>{stockcard[docId].description}?</span>
+                  </strong>
+                </div>
+              </div>
+              <div className="row m-0 p-0">
+                <div className="col-12 px-3 d-flex justify-content-center">
+                  <Table size="sm">
+                    <tbody>
+                      <tr>
+                        <td>Description</td>
+                        <td>{stockcard[docId].description}</td>
+                      </tr>
+                      <tr>
+                        <td>Classification</td>
+                        <td>{stockcard[docId].classification}</td>
+                      </tr>
+                      <tr>
+                        <td>Category</td>
+                        <td>{stockcard[docId].category}</td>
+                      </tr>
+                      <tr>
+                        <td>Purchase Price</td>
+                        <td>{stockcard[docId].p_price}</td>
+                      </tr>
+                      <tr>
+                        <td>Selling Price</td>
+                        <td>{stockcard[docId].s_price}</td>
+                      </tr>
+                      <tr>
+                        <td>Minimum Quantity</td>
+                        <td>{stockcard[docId].min_qty}</td>
+                      </tr>
+                      <tr>
+                        <td>Maximum Quantity</td>
+                        <td>{stockcard[docId].max_qty}</td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="row m-0 p-0">
-            <div className="col-12 px-3 d-flex justify-content-center">
-              <Table size="sm">
-                <tbody>
-                  <tr>
-                    <td>Description</td>
-                    <td>{stockcard[docId].description}</td>
-                  </tr>
-                  <tr>
-                    <td>Classification</td>
-                    <td>{stockcard[docId].classification}</td>
-                  </tr>
-                  <tr>
-                    <td>Category</td>
-                    <td>{stockcard[docId].category}</td>
-                  </tr>
-                  <tr>
-                    <td>Purchase Price</td>
-                    <td>{stockcard[docId].p_price}</td>
-                  </tr>
-                  <tr>
-                    <td>Selling Price</td>
-                    <td>{stockcard[docId].s_price}</td>
-                  </tr>
-                  <tr>
-                    <td>Minimum Quantity</td>
-                    <td>{stockcard[docId].min_qty}</td>
-                  </tr>
-                  <tr>
-                    <td>Maximum Quantity</td>
-                    <td>{stockcard[docId].max_qty}</td>
-                  </tr>
-                </tbody>
-              </Table>
-            </div>
-          </div>
-        </div>
-        }
-        </Modal.Body> 
+          }
+        </Modal.Body>
         <Modal.Footer
           className="d-flex justify-content-center"
         >
@@ -1161,40 +1121,41 @@ function StockcardPage({ isAuth }) {
           </Button>
         </Modal.Footer>
       </Modal>
-  
-  
-    )
-  }  
 
-  
-          
+
+    )
+  }
+
+
+
   function DisplayPurchases(props) {
     return (
       <div id="lead-time">
         <div className="row m-0 px-0 py-2 d-flex align-items-center justify-content-between">
-        <div className="col-9 p-0">
-            <div className="yellow-strip p-2 left-full-curve right-full-curve w-100 h-80" style={{fontSize: '0.95em'}}>
-            Some transactions have no order date. Lead time may be inaccurate.
+          <div className="col-9 p-0">
+            <div className="yellow-strip p-2 left-full-curve right-full-curve w-100 h-80" style={{ fontSize: '0.95em' }}>
+              Some transactions have no order date. Lead time may be inaccurate.
             </div>
           </div>
           <div className="col-3 p-0 float-end">
             <button
-              className={showingLeadtimeOptions?"filter active float-end":"filter float-end"}
-              data-title={showingLeadtimeOptions?"Save":"Set your own leadtime"}
-              onClick={()=>{
-                if(showingLeadtimeOptions){
+              className={showingLeadtimeOptions ? "filter active float-end" : "filter float-end"}
+              data-title={showingLeadtimeOptions ? "Save" : "Set your own leadtime"}
+              onClick={() => {
+                if (showingLeadtimeOptions) {
                   setShowingLeadtimeOptions(false)
                   updateLeadtime(stockcard[docId].id)
+                  updateLeadtimeToast()
                 }
-                else
-                {
+                else {
                   setShowingLeadtimeOptions(true)
-                }}
+                }
+              }
               }
             >
-              {showingLeadtimeOptions?
+              {showingLeadtimeOptions ?
                 <FontAwesomeIcon icon={faSave} />
-              :
+                :
                 <FontAwesomeIcon icon={faCog} />
               }
             </button>
@@ -1212,22 +1173,22 @@ function StockcardPage({ isAuth }) {
                 </tr>
               </thead>
               <tbody>
-                {purchaseRecordCollection === undefined?
-                  <Spinner/>        
-                :
+                {purchaseRecordCollection === undefined ?
+                  <Spinner />
+                  :
                   <>
-                    {purchaseRecordCollection.map((purch, index)=>{
-                      return(
+                    {purchaseRecordCollection.map((purch, index) => {
+                      return (
                         <tr key={purch.transaction_number}>
                           <td>{purch.transaction_number}</td>
                           <td>{purch.transaction_date}</td>
                           <td>
-                            {purch.order_date === undefined || purch.order_date == "" || purch.order_date == ""?
-                              <div style={{fontStyle: 'italic', opacity: '0.8'}}>Not set</div>
-                            :
-                            <>
-                              {purch.order_date}
-                            </>
+                            {purch.order_date === undefined || purch.order_date == "" || purch.order_date == "" ?
+                              <div style={{ fontStyle: 'italic', opacity: '0.8' }}>Not set</div>
+                              :
+                              <>
+                                {purch.order_date}
+                              </>
                             }
                           </td>
                           <td>{computeDelay(purch.transaction_date, purch.order_date)}</td>
@@ -1241,67 +1202,67 @@ function StockcardPage({ isAuth }) {
           </div>
           <div className="col-1">
           </div>
-          {showingLeadtimeOptions?
-            <div className="col-3 py-0 px-3">
-            <div id="leadtime-specs" className="row d-flex justify-content-center flex-column">
-              <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
-                <small>Minimum</small>
-                <h5><FontAwesomeIcon icon={faTruck}/></h5>
-                <input 
-                  type="number"
-                  className="data-label" 
-                  style={{backgroundColor: '#fff'}}
-                  autoFocus
-                  value={newMinLeadtime}
-                  onChange={(event) => { setNewMinLeadtime(event.target.value); }}
-                />
-              </div>
-              <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
-                <small>Maximum</small>
-                <h5><FontAwesomeIcon icon={faTruck}/></h5>
-                <input 
-                  type="number"
-                  className="data-label" 
-                  style={{backgroundColor: '#fff'}}
-                  autoFocus
-                  value={newMaxLeadtime}
-                  onChange={(event) => { setNewMaxLeadtime(event.target.value); }}
-                />
-              </div>
-              <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
-                  <small>Average</small>
-                  <h5><FontAwesomeIcon icon={faTruck}/></h5>
-                  <small className="data-label">
-                    {(stockcard[docId].analytics_maxLeadtime + stockcard[docId].analytics_minLeadtime) / 2} day(s)
-                  </small>
-              </div>
-          </div>
-          </div>
-          :
+          {showingLeadtimeOptions ?
             <div className="col-3 py-0 px-3">
               <div id="leadtime-specs" className="row d-flex justify-content-center flex-column">
                 <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
                   <small>Minimum</small>
-                  <h5><FontAwesomeIcon icon={faTruck}/></h5>
+                  <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                  <input
+                    type="number"
+                    className="data-label"
+                    style={{ backgroundColor: '#fff' }}
+                    autoFocus
+                    value={newMinLeadtime}
+                    onChange={(event) => { setNewMinLeadtime(event.target.value); }}
+                  />
+                </div>
+                <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
+                  <small>Maximum</small>
+                  <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                  <input
+                    type="number"
+                    className="data-label"
+                    style={{ backgroundColor: '#fff' }}
+                    autoFocus
+                    value={newMaxLeadtime}
+                    onChange={(event) => { setNewMaxLeadtime(event.target.value); }}
+                  />
+                </div>
+                <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
+                  <small>Average</small>
+                  <h5><FontAwesomeIcon icon={faTruck} /></h5>
                   <small className="data-label">
-                    {stockcard[docId].analytics_minLeadtime} day(s)
+                    {leadtimeAverage} day(s)
+                  </small>
+                </div>
+              </div>
+            </div>
+            :
+            <div className="col-3 py-0 px-3">
+              <div id="leadtime-specs" className="row d-flex justify-content-center flex-column">
+                <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
+                  <small>Minimum</small>
+                  <h5><FontAwesomeIcon icon={faTruck} /></h5>
+                  <small className="data-label">
+                    {stockcard[docId].analytics.leadtimeMinumum} day(s)
                   </small>
                 </div>
                 <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
                   <small>Maximum</small>
-                  <h5><FontAwesomeIcon icon={faTruck}/></h5>
+                  <h5><FontAwesomeIcon icon={faTruck} /></h5>
                   <small className="data-label">
-                    {stockcard[docId].analytics_maxLeadtime} day(s)
+                    {stockcard[docId].analytics.leadtimeMaximum} day(s)
                   </small>
                 </div>
                 <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
                   <small>Average</small>
-                  <h5><FontAwesomeIcon icon={faTruck}/></h5>
+                  <h5><FontAwesomeIcon icon={faTruck} /></h5>
                   <small className="data-label">
-                    {(stockcard[docId].analytics_maxLeadtime + stockcard[docId].analytics_minLeadtime) / 2} day(s)
+                    {stockcard[docId].analytics.leadtimeAverage} day(s)
                   </small>
                 </div>
-            </div>
+              </div>
             </div>
           }
         </div>
@@ -1312,14 +1273,56 @@ function StockcardPage({ isAuth }) {
   //--------------------------------LEAD TIME FUNCTION---------------------------------
 
   const [leadtimeModalShow, setLeadtimeModalShow] = useState(false);
-  
+
   const [newMinLeadtime, setNewMinLeadtime] = useState();
   const [newMaxLeadtime, setNewMaxLeadtime] = useState();
+  const [newAverageLeadtime, setNewAverageLeadtime] = useState(0);
+
+  const [safetyStock, setSafetyStock] = useState(0); // safetyStock
+  const [reorderPoint, setReorderPoint] = useState(); // ReorderPoint
+  const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
+  const [highestDailySales, setHighestDailySales] = useState(0); //highest daily sales
+  const [averageDailySales, setAverageDailySales] = useState(0); //average daily sales 
   
+  useEffect(()=>{
+    if(stockcard[docId].id!==undefined){
+      setSafetyStock(stockcard[docId].id.analytics.safetyStock)
+      setReorderPoint(stockcard[docId].id.analytics.reorderPoint)
+      setDaysROP(stockcard[docId].id.analytics.daysROP)
+      setHighestDailySales(stockcard[docId].id.analytics.highestDailySales)
+      setAverageDailySales(stockcard[docId].id.analytics.averageDailySales)
+    }
+  },[stockcard[docId].id])
+
+
+  useEffect(() => {
+    let x = 0
+    let y = 0
+    x = Number(newMinLeadtime) + Number(newMaxLeadtime)
+    y = Number(x / 2)
+    setNewAverageLeadtime(y)
+  }, [newMinLeadtime, newMaxLeadtime])
+
+  useEffect(() => {
+
+    let x = 0
+    let y = 0
+    let z = 0
+    x = Number(highestDailySales) * Number(newMaxLeadtime)
+    y = Number(averageDailySales) * Number(newAverageLeadtime)
+    z = Number(x - y)
+
+    setSafetyStock(z)
+}, [highestDailySales, averageDailySales, newMaxLeadtime, newAverageLeadtime, stockcard[docId].id])
+
+
+
   const updateLeadtime = () => {
     updateDoc(doc(db, "stockcard", stockcard[docId].id), {
-      analytics_maxLeadtime: Number(newMaxLeadtime),
-      analytics_minLeadtime: Number(newMinLeadtime)
+      "analytics.leadtimeMaximum": Number(newMaxLeadtime),
+      "analytics.leadtimeMinumum": Number(newMinLeadtime),
+      "analytics.leadtimeAverage": Number(newAverageLeadtime)
+
     });
   }
   const updateLeadtimeToast = () => {
@@ -1334,18 +1337,7 @@ function StockcardPage({ isAuth }) {
     });
   }
 
-  
-  useEffect(() => {
-    if(docId === undefined)
-    {
-
-    }
-    else
-    {
-      setNewMaxLeadtime(stockcard[docId].analytics_maxLeadtime)
-      setNewMinLeadtime(stockcard[docId].analytics_minLeadtime)
-    }
-  },[docId])
+  /*
   function EditLeadtimeModal(props) {
     const [newMinLeadtime, setNewMinLeadtime] = useState(0);
     const [newMaxLeadtime, setNewMaxLeadtime] = useState(0);
@@ -1527,49 +1519,49 @@ function StockcardPage({ isAuth }) {
       </Modal>
     );
   }
+  */
 
   //-----------------------------------------------------------------------------------------------
-  
+
   const handleDocChange = (doc) => {
-    stockcard.map((product, index)=>{
-      if(product.id == doc)
-      {
+    stockcard.map((product, index) => {
+      if (product.id == doc) {
         setDocId(index)
       }
     })
   }
 
-    // ===================================== START OF SEARCH FUNCTION =====================================
+  // ===================================== START OF SEARCH FUNCTION =====================================
 
 
-    const [searchValue, setSearchValue] = useState('');    // the value of the search field 
-    const [searchResult, setSearchResult] = useState();    // the search result
-  
-  
-    useEffect(() => {
-      setSearchResult(stockcard)
-    }, [stockcard])
-  
-  
-  
-    const filter = (e) => {
-      const keyword = e.target.value;
-  
-      if (keyword !== '') {
-        const results = stockcard.filter((stockcard) => {
-          return stockcard.id.toLowerCase().includes(keyword.toLowerCase()) || stockcard.description.toLowerCase().includes(keyword.toLowerCase())
-          // Use the toLowerCase() method to make it case-insensitive
-        });
-        setSearchResult(results);
-      } else {
-        setSearchResult(stockcard);
-        // If the text field is empty, show all users
-      }
-  
-      setSearchValue(keyword);
-    };
-  
-    // ====================================== END OF SEARCH FUNCTION ======================================
+  const [searchValue, setSearchValue] = useState('');    // the value of the search field 
+  const [searchResult, setSearchResult] = useState();    // the search result
+
+
+  useEffect(() => {
+    setSearchResult(stockcard)
+  }, [stockcard])
+
+
+
+  const filter = (e) => {
+    const keyword = e.target.value;
+
+    if (keyword !== '') {
+      const results = stockcard.filter((stockcard) => {
+        return stockcard.id.toLowerCase().includes(keyword.toLowerCase()) || stockcard.description.toLowerCase().includes(keyword.toLowerCase())
+        // Use the toLowerCase() method to make it case-insensitive
+      });
+      setSearchResult(results);
+    } else {
+      setSearchResult(stockcard);
+      // If the text field is empty, show all users
+    }
+
+    setSearchValue(keyword);
+  };
+
+  // ====================================== END OF SEARCH FUNCTION ======================================
 
 
 
@@ -1603,7 +1595,7 @@ function StockcardPage({ isAuth }) {
               <Card className='sidebar-card'>
                 <Card.Header>
                   <div className='row'>
-                    <InputGroup  id="fc-search">
+                    <InputGroup id="fc-search">
                       <InputGroup.Text>
                         <FontAwesomeIcon icon={faSearch} />
                       </InputGroup.Text>
@@ -1620,15 +1612,15 @@ function StockcardPage({ isAuth }) {
                 <Card.Body style={{ height: "500px" }}>
                   <div className="row pt-0 pb-3 px-3 d-flex align-items-center justify-content-center flex-row">
                     <div className="col-3 px-1 d-flex align-items-center justify-content-start">
-                      <div className="d-inline-block me-1 circle-small" style={{backgroundColor: '#f6f3bb', width: '1em', height: '1em'}}></div>
+                      <div className="d-inline-block me-1 circle-small" style={{ backgroundColor: '#f6f3bb', width: '1em', height: '1em' }}></div>
                       <div>Low Stock</div>
                     </div>
                     <div className="col-5 px-1 d-flex align-items-center justify-content-center">
-                      <div className="d-inline-block me-1 circle-small" style={{backgroundColor: '#e19f9f', width: '1em', height: '1em'}}></div>
+                      <div className="d-inline-block me-1 circle-small" style={{ backgroundColor: '#e19f9f', width: '1em', height: '1em' }}></div>
                       <div>Out of Stock</div>
                     </div>
                     <div className="col-4 px-1 d-flex align-items-center justify-content-end">
-                      <div className="d-inline-block me-1 circle-small" style={{backgroundColor: '#bebbf6', width: '1em', height: '1em'}}></div>
+                      <div className="d-inline-block me-1 circle-small" style={{ backgroundColor: '#bebbf6', width: '1em', height: '1em' }}></div>
                       <div>Overstocked</div>
                     </div>
                   </div>
@@ -1644,7 +1636,7 @@ function StockcardPage({ isAuth }) {
                     </div>
                   </div>
                   <div className='scrollbar' style={{ height: '415px' }}>
-                    {isFetched?
+                    {isFetched ?
                       <>
                         {stockcard.length === 0 ?
                           <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
@@ -1686,18 +1678,18 @@ function StockcardPage({ isAuth }) {
                                 </ListGroup.Item>
                               ))
                             ) : (
-                              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column"  style={{marginTop: '25%'}}>
+                              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
                                 <h5>
                                   <strong className="d-flex align-items-center justify-content-center flex-column">
                                     No product matched:
                                     <br />
-                                    <span style={{color: '#0d6efd'}}>{searchValue}</span>
+                                    <span style={{ color: '#0d6efd' }}>{searchValue}</span>
                                   </strong>
                                 </h5>
                               </div>
                             )}
                           </ListGroup>
-                      }
+                        }
                       </>
                       :
                       <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
@@ -1743,7 +1735,7 @@ function StockcardPage({ isAuth }) {
                         <div className="float-end">
                           <NewProductModal
                             show={modalShow}
-                            onHide={() => {setModalShow(false)}}
+                            onHide={() => { setModalShow(false) }}
                           />
                           <Button
                             className="add me-1"
@@ -1759,7 +1751,7 @@ function StockcardPage({ isAuth }) {
                             className="edit me-1"
                             disabled
                             data-title="Edit Product"
-                            onClick={() => {setEditingBarcode(false);setEditShow(true)}}>
+                            onClick={() => { setEditingBarcode(false); setEditShow(true) }}>
                             <FontAwesomeIcon icon={faEdit} />
                           </Button>
                           <DeleteProductModal
@@ -1779,7 +1771,7 @@ function StockcardPage({ isAuth }) {
                     <div className="row py-1 data-specs m-0 d-flex align-items-center" id="product-info">
                       <div id="message-to-select">
                         <div className="blur-overlay">
-                          <div className="d-flex align-items-center justify-content-center" style={{width: '100%', height: '100%'}}>
+                          <div className="d-flex align-items-center justify-content-center" style={{ width: '100%', height: '100%' }}>
                             <h5><strong>Select a product to get started</strong></h5>
                           </div>
                         </div>
@@ -1787,7 +1779,7 @@ function StockcardPage({ isAuth }) {
                       <div className="col-3">
                         <div className="row m-0 p-0 d-flex align-items-center flex-column">
                           <div className="data-img mb-2  d-flex align-items-center justify-content-center">
-                            <img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fproduct-image-placeholder.png?alt=media&token=c29c223b-c9a1-4b47-af4f-c57a76b3e6c2" style={{width: '80%'}}/>
+                            <img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fproduct-image-placeholder.png?alt=media&token=c29c223b-c9a1-4b47-af4f-c57a76b3e6c2" style={{ width: '80%' }} />
                           </div>
                           <a className="data-barcode">
                             <Barcode
@@ -1803,7 +1795,7 @@ function StockcardPage({ isAuth }) {
                         <div className="row mb-3">
                           <div className="col-12 px-1">
                             <div className="row m-0 p-0">
-                              <a 
+                              <a
                                 className="col-1 data-icon d-flex align-items-center justify-content-center"
                                 data-title="Product Description"
                               >
@@ -1821,7 +1813,7 @@ function StockcardPage({ isAuth }) {
                         <div className="row mb-3">
                           <div className="col-6 px-1">
                             <div className="row m-0 p-0">
-                              <a 
+                              <a
                                 className="col-2 data-icon d-flex align-items-center justify-content-center"
                                 data-title="Product Category"
                               >
@@ -1837,7 +1829,7 @@ function StockcardPage({ isAuth }) {
                           </div>
                           <div className="col-6 px-1">
                             <div className="row m-0 p-0">
-                              <a 
+                              <a
                                 className="col-2 data-icon d-flex align-items-center justify-content-center"
                                 data-title="Classification"
                               >
@@ -1855,7 +1847,7 @@ function StockcardPage({ isAuth }) {
                         <div className="row mb-3">
                           <div className="col-3 px-1">
                             <div className="row m-0 p-0">
-                              <a 
+                              <a
                                 className="col-4 data-icon d-flex align-items-center justify-content-center"
                                 data-title="Selling Price"
                               >
@@ -1871,7 +1863,7 @@ function StockcardPage({ isAuth }) {
                           </div>
                           <div className="col-3 px-1">
                             <div className="row m-0 p-0">
-                              <a 
+                              <a
                                 className="col-4 data-icon d-flex align-items-center justify-content-center"
                                 data-title="Purchase Price"
                               >
@@ -1888,7 +1880,7 @@ function StockcardPage({ isAuth }) {
                           </div>
                           <div className="col-3 px-1">
                             <div className="row m-0 p-0">
-                              <a 
+                              <a
                                 className="col-4 data-icon d-flex align-items-center justify-content-center"
                                 data-title="Maximum Quantity"
                               >
@@ -1904,7 +1896,7 @@ function StockcardPage({ isAuth }) {
                           </div>
                           <div className="col-3 px-1">
                             <div className="row m-0 p-0">
-                              <a 
+                              <a
                                 className="col-4 data-icon d-flex align-items-center justify-content-center"
                                 data-title="Minimum Quantity"
                               >
@@ -1919,7 +1911,7 @@ function StockcardPage({ isAuth }) {
                             </div>
                           </div>
                         </div>
-                        <div className="row mb-3"  id="product-info-qty">
+                        <div className="row mb-3" id="product-info-qty">
                           <div className="col-4 px-1">
                             <div className="row m-0 p-0">
                               <div className="col-3 data-icon d-flex align-items-center justify-content-center">
@@ -1949,7 +1941,7 @@ function StockcardPage({ isAuth }) {
                           <div className="col-4 px-1">
                             <div className="row m-0 p-0">
                               <div className="col-3 data-icon d-flex align-items-center justify-content-center">
-                              <Exit
+                                <Exit
                                   color={'#0d6efd'}
                                   height="25px"
                                   width="25px"
@@ -1965,370 +1957,370 @@ function StockcardPage({ isAuth }) {
                     </div>
                   </div>
                 </Tab.Pane>
-                {stockcard === undefined || docId === undefined?
+                {stockcard === undefined || docId === undefined ?
                   <></>
-                :
-                
-                <Tab.Pane eventKey={stockcard[docId].id}>
-                  <div className='row py-1 m-0' id="product-contents">
-                    <div className='row m-0 p-0'>
-                      <h1 className='text-center pb-2 module-title'>Inventory</h1>
-                      <hr></hr>
-                    </div>
-                    <div className="row py-1 m-0">
-                      <div className="col d-flex align-items-center">
-                        <div className="me-2">
-                          <InformationCircle
-                            color={'#0d6efd'}
-                            title={'Category'}
-                            height="40px"
-                            width="40px"
-                          />
-                        </div>
-                        <div>
-                          <h4 className="data-id"><strong>{stockcard === undefined || docId === undefined ?<></>:<>{stockcard[docId].id.substring(0,9)}</>}</strong></h4>
-                        </div>
+                  :
+
+                  <Tab.Pane eventKey={stockcard[docId].id}>
+                    <div className='row py-1 m-0' id="product-contents">
+                      <div className='row m-0 p-0'>
+                        <h1 className='text-center pb-2 module-title'>Inventory</h1>
+                        <hr></hr>
                       </div>
-                      <div className="col">
-                        <div className="float-end">
-                          <Button
-                            className="add me-1"
-                            data-title="Add New Product"
-                            onClick={() => setModalShow(true)}>
-                            <FontAwesomeIcon icon={faPlus} />
-                          </Button>
-                          <Button
-                            className="edit me-1"
-                            data-title="Edit Product Info"
-                            onClick={() => {setEditingBarcode(false);setEditShow(true)}}
-                          >
-                            <FontAwesomeIcon icon={faEdit}></FontAwesomeIcon>
-                          </Button>
+                      <div className="row py-1 m-0">
+                        <div className="col d-flex align-items-center">
+                          <div className="me-2">
+                            <InformationCircle
+                              color={'#0d6efd'}
+                              title={'Category'}
+                              height="40px"
+                              width="40px"
+                            />
+                          </div>
+                          <div>
+                            <h4 className="data-id"><strong>{stockcard === undefined || docId === undefined ? <></> : <>{stockcard[docId].id.substring(0, 9)}</>}</strong></h4>
+                          </div>
+                        </div>
+                        <div className="col">
+                          <div className="float-end">
                             <Button
-                              className={productPurchases.length>0?"delete disabled-conditionally me-1":"delete me-1"}
-                              data-title={productPurchases.length>0?"Product part of transactions":"Delete Product"}
-                              disabled={productPurchases.length>0?true:false}
-                              onClick={()=>{setModalShowDL(true)}}
+                              className="add me-1"
+                              data-title="Add New Product"
+                              onClick={() => setModalShow(true)}>
+                              <FontAwesomeIcon icon={faPlus} />
+                            </Button>
+                            <Button
+                              className="edit me-1"
+                              data-title="Edit Product Info"
+                              onClick={() => { setEditingBarcode(false); setEditShow(true) }}
+                            >
+                              <FontAwesomeIcon icon={faEdit}></FontAwesomeIcon>
+                            </Button>
+                            <Button
+                              className={productPurchases.length > 0 ? "delete disabled-conditionally me-1" : "delete me-1"}
+                              data-title={productPurchases.length > 0 ? "Product part of transactions" : "Delete Product"}
+                              disabled={productPurchases.length > 0 ? true : false}
+                              onClick={() => { setModalShowDL(true) }}
                             >
                               <FontAwesomeIcon icon={faTrashCan} />
                             </Button>
-                          
+
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="row py-1 data-specs m-0 d-flex" id="product-info">
-                      <div className="col-3 py-3">
-                        <div className="row m-0 p-0 d-flex justify-content-center flex-column">
-                            {stockcard[docId].img == " " || stockcard[docId].img == "" || stockcard[docId].img === undefined?
-                              <div className="data-img mb-2 d-flex align-items-center justify-content-center" style={{backgroundColor: '#f3f5f9'}}>
+                      <div className="row py-1 data-specs m-0 d-flex" id="product-info">
+                        <div className="col-3 py-3">
+                          <div className="row m-0 p-0 d-flex justify-content-center flex-column">
+                            {stockcard[docId].img == " " || stockcard[docId].img == "" || stockcard[docId].img === undefined ?
+                              <div className="data-img mb-2 d-flex align-items-center justify-content-center" style={{ backgroundColor: '#f3f5f9' }}>
                                 <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                                  <img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fproduct-image-placeholder.png?alt=media&token=c29c223b-c9a1-4b47-af4f-c57a76b3e6c2" style={{height: '50%', width: 'auto !important'}}/>
+                                  <img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fproduct-image-placeholder.png?alt=media&token=c29c223b-c9a1-4b47-af4f-c57a76b3e6c2" style={{ height: '50%', width: 'auto !important' }} />
                                   <h6 className="text-center">No Image Uploaded</h6>
                                 </div>
                               </div>
-                            :
+                              :
                               <div className="data-img mb-2 d-flex align-items-center justify-content-center">
-                                <img key={stockcard[docId].img}src={stockcard[docId].img} style={{width: '100%'}}/>
+                                <img key={stockcard[docId].img} src={stockcard[docId].img} style={{ width: '100%' }} />
                               </div>
                             }
-                          <a className="data-barcode">
-                            <div className="data-barcode-edit-container">
-                              <div className="data-barcode-edit align-items-center justify-content-center">
-                                <Button
-                                  className=""
-                                  data-title="Edit Barcode value"
-                                  onClick={() => {setEditingBarcode(true);setEditShow(true)}}>
-                                  <FontAwesomeIcon icon={faEdit} />
-                                </Button>
+                            <a className="data-barcode">
+                              <div className="data-barcode-edit-container">
+                                <div className="data-barcode-edit align-items-center justify-content-center">
+                                  <Button
+                                    className=""
+                                    data-title="Edit Barcode value"
+                                    onClick={() => { setEditingBarcode(true); setEditShow(true) }}>
+                                    <FontAwesomeIcon icon={faEdit} />
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                            {stockcard[docId].barcode == 0 || stockcard[docId].barcode === undefined?
-                              <Alert className="text-center" variant="warning" style={{height: '5em', fontSize: '0.8em'}}>
-                                <FontAwesomeIcon icon={faTriangleExclamation}/><span> Barcode Not Set</span>
-                              </Alert>
-                            :
-                              <Barcode
-                                className="barcode"
-                                format="EAN13"
-                                value={stockcard[docId].barcode}
-                              />
-                            }
-                          </a>
-                        </div>
-                      </div>
-                      <div className="col-9 py-3">
-                        <div className="row mb-3">
-                          <div className="col-12 px-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-1 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Product Description"
-                              >
-                                <Cube
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
+                              {stockcard[docId].barcode == 0 || stockcard[docId].barcode === undefined ?
+                                <Alert className="text-center" variant="warning" style={{ height: '5em', fontSize: '0.8em' }}>
+                                  <FontAwesomeIcon icon={faTriangleExclamation} /><span> Barcode Not Set</span>
+                                </Alert>
+                                :
+                                <Barcode
+                                  className="barcode"
+                                  format="EAN13"
+                                  value={stockcard[docId].barcode}
                                 />
-                              </a>
-                              <div className="col-11 data-label">
-                                {stockcard[docId].description}
+                              }
+                            </a>
+                          </div>
+                        </div>
+                        <div className="col-9 py-3">
+                          <div className="row mb-3">
+                            <div className="col-12 px-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-1 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Product Description"
+                                >
+                                  <Cube
+                                    color={'#000000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-11 data-label">
+                                  {stockcard[docId].description}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="row mb-3">
-                          <div className="col-6 px-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-2 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Classification"
-                              >
-                                <GitBranch
-                                  color={'#00000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-10 data-label
+                          <div className="row mb-3">
+                            <div className="col-6 px-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-2 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Classification"
+                                >
+                                  <GitBranch
+                                    color={'#00000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-10 data-label
                               key={productClassification}"
-                              >
-                              {stockcard[docId].classification === undefined || stockcard[docId].classification   == " " || stockcard[docId].classification  == ""?
-                                  <div style={{fontStyle: 'italic', opacity: '0.8'}}>Not set</div>
-                                :
-                                  <>{stockcard[docId].classification }</>
-                                }
+                                >
+                                  {stockcard[docId].classification === undefined || stockcard[docId].classification == " " || stockcard[docId].classification == "" ?
+                                    <div style={{ fontStyle: 'italic', opacity: '0.8' }}>Not set</div>
+                                    :
+                                    <>{stockcard[docId].classification}</>
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-6 px-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-2 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Product Category"
+                                >
+                                  <Grid
+                                    color={'#00000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-10 data-label">
+                                  {stockcard[docId].category}
+                                </div>
                               </div>
                             </div>
                           </div>
-                          <div className="col-6 px-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-2 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Product Category"
-                              >
-                                <Grid
-                                  color={'#00000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-10 data-label">
-                                {stockcard[docId].category }
+                          <div className="row mb-3">
+                            <div className="col-6 px-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-2 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Selling Price"
+                                >
+                                  <Pricetag
+                                    color={'#000000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-10 data-label">
+                                  &#8369; {(Math.round(stockcard[docId].p_price * 100) / 100).toFixed(2)}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-6 px-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-2 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Purchase Price"
+                                >
+                                  <Cart
+                                    className="me-2"
+                                    color={'#00000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-10 data-label">
+                                  &#8369; {(Math.round(stockcard[docId].s_price * 100) / 100).toFixed(2)}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="row mb-3">
-                          <div className="col-6 px-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-2 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Selling Price"
-                              >
-                                <Pricetag
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-10 data-label">
-                                &#8369; {(Math.round(stockcard[docId].p_price * 100) / 100).toFixed(2)}
+                          <div className="row mb-3">
+                            <div className="col-6 px-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Maximum Quantity"
+                                >
+                                  <CaretUp
+                                    color={'#000000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                  <Layers
+                                    color={'#000000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-9 data-label">
+                                  {stockcard[docId].max_qty === undefined || stockcard[docId].max_qty == 0 ?
+                                    <div style={{ fontStyle: 'italic', opacity: '0.8' }}>Not set</div>
+                                    :
+                                    <>{stockcard[docId].max_qty} units</>
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-6 px-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Minimum Quantity"
+                                >
+                                  <CaretDown
+                                    color={'#000000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                  <Layers
+                                    color={'#000000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-9 data-label">
+                                  {stockcard[docId].min_qty === undefined || stockcard[docId].min_qty == 0 ?
+                                    <div style={{ fontStyle: 'italic', opacity: '0.8' }}>Not set</div>
+                                    :
+                                    <>{stockcard[docId].min_qty} units</>
+                                  }
+                                </div>
                               </div>
                             </div>
                           </div>
-                          <div className="col-6 px-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-2 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Purchase Price"
-                              >
-                                <Cart
-                                  className="me-2"
-                                  color={'#00000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-10 data-label">
-                                &#8369; {(Math.round(stockcard[docId].s_price * 100) / 100).toFixed(2)}
+                          <hr className="my-1" />
+                          <div className="row mb-0" id="product-info-qty">
+                            <div className="col-3 p-1 d-flex align-items-center justify-content-center">
+                              <div className="row m-0 p-0">
+                                <h5 style={{ borderLeft: '8px solid #4973ff' }}>Stats:</h5>
                               </div>
                             </div>
-                          </div>
-                        </div>
-                        <div className="row mb-3">
-                          <div className="col-6 px-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Maximum Quantity"
-                              >
-                                <CaretUp
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                                <Layers
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-9 data-label">
-                                {stockcard[docId].max_qty  === undefined || stockcard[docId].max_qty == 0?
-                                  <div style={{fontStyle: 'italic', opacity: '0.8'}}>Not set</div>
-                                :
-                                  <>{stockcard[docId].max_qty} units</>
-                                }
+                            <div className="col-3 p-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Total Quantity"
+                                >
+                                  <Layers
+                                    color={'#0d6efd'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-9 data-label">
+                                  <strong>{stockcard[docId].qty} units</strong>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="col-6 px-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Minimum Quantity"
-                              >
-                                <CaretDown
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                                <Layers
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-9 data-label">
-                                {stockcard[docId].min_qty === undefined || stockcard[docId].min_qty == 0?
-                                  <div style={{fontStyle: 'italic', opacity: '0.8'}}>Not set</div>
-                                :
-                                  <>{stockcard[docId].min_qty} units</>
-                                }
+                            <div className="col-3 p-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Total Quantity In"
+                                >
+                                  <Enter
+                                    color={'#0d6efd'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-9 data-label">
+                                  {totalPurchase} units
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </div>
-                        <hr className="my-1" />
-                        <div className="row mb-0" id="product-info-qty">
-                          <div className="col-3 p-1 d-flex align-items-center justify-content-center">
-                            <div className="row m-0 p-0">
-                              <h5 style={{borderLeft: '8px solid #4973ff'}}>Stats:</h5>
-                            </div>
-                          </div>
-                          <div className="col-3 p-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Total Quantity"
-                              >
-                                <Layers
-                                  color={'#0d6efd'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-9 data-label">
-                                <strong>{stockcard[docId].qty} units</strong>
+                            <div className="col-3 p-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Total Quantity Out"
+                                >
+                                  <Exit
+                                    color={'#0d6efd'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-9 data-label">
+                                  {totalSales} units
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="col-3 p-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Total Quantity In"  
-                              >
-                                <Enter
-                                  color={'#0d6efd'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-9 data-label">
-                                {totalPurchase} units
-                              </div>
-                            </div>
-                          </div>
-                          <div className="col-3 p-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Total Quantity Out"
-                              >
-                              <Exit
-                                  color={'#0d6efd'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-9 data-label">
-                                {totalSales} units
-                              </div>
-                            </div>
-                          </div>
 
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="folder-style">
-                      <Tab.Container id="list-group-tabs-example" defaultActiveKey={1}>
-                        <Nav variant="pills" defaultActiveKey={1}>
-                          <Nav.Item>
-                            <Nav.Link eventKey={1}>
-                              Ledger
-                            </Nav.Link>
-                          </Nav.Item>
-                          <Nav.Item>
-                            <Nav.Link eventKey={0}>
+                      <div className="folder-style">
+                        <Tab.Container id="list-group-tabs-example" defaultActiveKey={1}>
+                          <Nav variant="pills" defaultActiveKey={1}>
+                            <Nav.Item>
+                              <Nav.Link eventKey={1}>
+                                Ledger
+                              </Nav.Link>
+                            </Nav.Item>
+                            <Nav.Item>
+                              <Nav.Link eventKey={0}>
                                 Lead Time
-                                <a  
+                                <a
                                   data-title="Lead time is the amount of days it takes for your supplier to fulfill your order"
                                   className="header-tooltip ms-1"
                                 >
-                                  
+
                                   <InformationCircle
                                     color={'#0d6efd'}
                                     height="20px"
                                     width="20px"
-                                    style={{verticalAlign: 'text-bottom'}}
+                                    style={{ verticalAlign: 'text-bottom' }}
                                   />
                                 </a>
-                            </Nav.Link>
-                          </Nav.Item>
-                        </Nav>
-                        <Tab.Content>
-                          <Tab.Pane eventKey={1}>
-                            <div className="row data-specs-add m-0">
-                              <div className='row m-0 p-0'>
-                                {filteredLedger === undefined?
-                                  <Spinner 
-                                    color1="#b0e4ff"
-                                    color2="#fff"
-                                    textColor="rgba(0,0,0, 0.5)"
-                                    className="w-25 h-25"
-                                  />
-                                :
-                                 <DisplayLedger/> 
-                                }
+                              </Nav.Link>
+                            </Nav.Item>
+                          </Nav>
+                          <Tab.Content>
+                            <Tab.Pane eventKey={1}>
+                              <div className="row data-specs-add m-0">
+                                <div className='row m-0 p-0'>
+                                  {filteredLedger === undefined ?
+                                    <Spinner
+                                      color1="#b0e4ff"
+                                      color2="#fff"
+                                      textColor="rgba(0,0,0, 0.5)"
+                                      className="w-25 h-25"
+                                    />
+                                    :
+                                    <DisplayLedger />
+                                  }
+                                </div>
                               </div>
-                            </div>
-                          </Tab.Pane>
-                          <Tab.Pane eventKey={0}>
-                            <div className="row data-specs-add m-0">
-                              <div className="row m-0 p-0">
-                                <DisplayPurchases/>
-                                
-                              </div>
+                            </Tab.Pane>
+                            <Tab.Pane eventKey={0}>
+                              <div className="row data-specs-add m-0">
+                                <div className="row m-0 p-0">
+                                  <DisplayPurchases />
+
+                                </div>
 
 
-                                  </div>
-                          </Tab.Pane>
-                        </Tab.Content>
-                      </Tab.Container>
+                              </div>
+                            </Tab.Pane>
+                          </Tab.Content>
+                        </Tab.Container>
+                      </div>
                     </div>
-                  </div>
-                </Tab.Pane>
+                  </Tab.Pane>
                 }
               </Tab.Content>
             </div>
