@@ -369,33 +369,34 @@ function NewPurchaseModal(props) {
                                 show={supplierModalShow}
                                 onHide={() => setSupplierModalShow(false)}
                             />
-                            <label>Supplier Name</label>
+                            <label>
+                                Supplier Name
+                                <span style={{color: '#b42525'}}> *</span>
+                            </label>
                             <div className="d-flex justify-content-center">
                                 <select 
+                                    required
                                     className="form-select shadow-none"
                                     value={itemSupplier}
                                     onChange={e => handleSupplierSelect(e.target.value)}
                                     >
-                                    <option
-                                        value="">
-                                        Select Supplier
-                                    </option>
+                                        {supplierCol.map((supplier) => {
+                                            return (
+                                                <option
+                                                    key={supplier.id}
+                                                    value={supplier.id}
+                                                >
+                                                    {supplier.supplier_name}
+                                                </option>
+                                            )
+                                        })}
+                                        
                                     <option
                                         value="add-supplier"
                                         className style={{fontStyle: 'italic'}}
                                     >
                                         Not on the list? Add a supplier
                                     </option>
-                                        {supplierCol.map((supplier) => {
-                                            return (
-                                                <option
-                                                    key={supplier.supplier_name}
-                                                    value={supplier.supplier_name}
-                                                >
-                                                    {supplier.supplier_name}
-                                                </option>
-                                            )
-                                        })}
                                 </select>
                             </div>
                         </div>
@@ -513,7 +514,7 @@ function NewPurchaseModal(props) {
                 <Button
                     className="btn btn-light float-start"
                     style={{ width: "6rem" }}
-                    disabled={items.length === 0 ? true : false}
+                    disabled={items.length === 0 && (itemSupplier == "" || itemSupplier == " " || itemSupplier == 0)}
                     onClick={() => { addRecord(varRef.purchDocNum) }}>
                     Save
                 </Button>

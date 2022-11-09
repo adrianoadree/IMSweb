@@ -7,6 +7,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrashCan, faTriangleExclamation, faSearch, faTruck, faFilter, faCog, faSave } from '@fortawesome/free-solid-svg-icons'
 import { Cube, Grid, Pricetag, Layers, Barcode as Barc, Cart, InformationCircle, CaretUp, Enter, Exit, CaretDown, GitBranch } from 'react-ionicons'
 import NewProductModal from '../components/NewProductModal';
+
+import RecordQuickView from "../components/RecordQuickView";
 import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc, where, getDocs } from 'firebase/firestore';
 import { ToastContainer, toast, Zoom } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -35,6 +37,8 @@ function StockcardPage({ isAuth }) {
   const [editShow, setEditShow] = useState(false); //show/hide edit modal
   const [modalShow, setModalShow] = useState(false); //show/hide new product modal
   const [modalShowDL, setModalShowDL] = useState(false); //show/hide new product modal
+  const [recordQuickViewModalShow, setRecordQuickViewModalShow] = useState(false);
+  const [recordToView, setRecordToView] = useState()
   const [stockcard, setStockcard] = useState(); // stockcardCollection variable
   const [allPurchases, setAllPurchases] = useState();
   const [docId, setDocId] = useState(); //document Id
@@ -72,7 +76,7 @@ function StockcardPage({ isAuth }) {
 
   //query documents from sales_record that contains docId
   useEffect(() => {
-    if(stockcard === undefined)
+    if(stockcard === undefined || stockcard.length == 0)
     {
 
     }
@@ -125,7 +129,7 @@ function StockcardPage({ isAuth }) {
       var o_date = new Date(order_date)
       o_date.setHours(0, 0, 0, 0)
   
-      return (t_date - o_date)
+      return (moment(t_date).diff(moment(o_date), "days"))
     }
   }
   function DetermineStockLevel(curr, min, max, product_id){
@@ -183,7 +187,7 @@ function StockcardPage({ isAuth }) {
 
   //query documents from sales_record that contains docId
   useEffect(() => {
-    if(stockcard === undefined)
+    if(stockcard === undefined || stockcard.length == 0)
     {
 
     }
@@ -329,32 +333,47 @@ function StockcardPage({ isAuth }) {
 
 
   useEffect(() => {
-    setLeadtimeAverage()
-    setLeadtimeMinimum()
-    setLeadtimeMaximum()
-    if (docId !== undefined) {
-      setLeadtimeAverage(stockcard[docId].analytics.leadtimeAverage)
-      setLeadtimeMinimum(stockcard[docId].analytics.leadtimeMinimum)
-      setLeadtimeMaximum(stockcard[docId].analytics.leadtimeMaximum)
+    if(stockcard === undefined || stockcard.length == 0)
+    {
+
+    }
+    else
+    {
+      setLeadtimeAverage()
+      setLeadtimeMinimum()
+      setLeadtimeMaximum()
+      if (docId !== undefined) {
+        setLeadtimeAverage(stockcard[docId].analytics.leadtimeAverage)
+        setLeadtimeMinimum(stockcard[docId].analytics.leadtimeMinimum)
+        setLeadtimeMaximum(stockcard[docId].analytics.leadtimeMaximum)
+      }
     }
   }, [docId])
 
   useEffect(() => {
     if (stockcard === undefined) {
       setIsFetched(false)
+      setKey("main")
     }
     else {
       setIsFetched(true)
-      if(collectionUpdateMethod == "add")
+      if(stockcard.length > 0)
       {
-        setDocId(stockcard.length-1)
-        setKey(stockcard[stockcard.length-1].id)
+        if(collectionUpdateMethod == "add")
+        {
+          setDocId(stockcard.length-1)
+          setKey(stockcard[stockcard.length-1].id)
+        }
+        else
+        {
+          setCollectionUpdateMethod("add")
+        }
       }
       else
       {
-        setCollectionUpdateMethod("add")
+        setDocId()
+        setKey("main")
       }
-      
     }
   }, [stockcard])
 
@@ -410,7 +429,7 @@ function StockcardPage({ isAuth }) {
     setFilterDateEnd(today)
   }, [productPurchases])
 
-  function DisplayLedger(props) {
+  function DisplayLedger(props) { 
     return (
       <div id="ledger">
         <div className="row m-0 px-0 d-flex justify-content-end">
@@ -582,8 +601,12 @@ function StockcardPage({ isAuth }) {
                 <>
                   {filteredLedger.map((transac)=>{
                     return(
-                      <tr key={transac.id} className={transac.isVoided?'voided-transaction':''}>
-                        <td className="tno">{transac.transaction_number}</td>
+                      <tr key={transac.id} className={'clickable' + (transac.isVoided?'voided-transaction':'')}
+                      onClick={()=>{setRecordToView(transac.id); setRecordQuickViewModalShow(true)}}>
+                        
+                        <td className="tno">
+                          {transac.transaction_number}
+                        </td>
                         <td className="td">{transac.transaction_date}</td>
                         <td className="ts">{transac.transaction_supplier === undefined?<>-</>:<>{transac.transaction_supplier}</>}</td>
                         <td className="tq">{transac.product_list[0].itemQuantity}</td>
@@ -758,9 +781,9 @@ function StockcardPage({ isAuth }) {
       updateDoc(doc(db, 'user', userProfileID), {
         categories: newCatergories(),
       });
-
       updateToast()
       props.onHide()
+      setCollectionUpdateMethod("update")
     }
 
     //update Toast
@@ -1087,7 +1110,7 @@ function StockcardPage({ isAuth }) {
           pauseOnHover
         />
         <Modal.Body >
-        {stockcard === undefined || docId === undefined ?
+        {(stockcard.length == 0 || stockcard === undefined) || docId === undefined ?
         <></>
         :
         <div className="px-3 py-2">
@@ -1321,6 +1344,7 @@ function StockcardPage({ isAuth }) {
       analytics_maxLeadtime: Number(newMaxLeadtime),
       analytics_minLeadtime: Number(newMinLeadtime)
     });
+    setCollectionUpdateMethod("update")
   }
   const updateLeadtimeToast = () => {
     toast.info('Leadtime Value Updated from the Database', {
@@ -1580,7 +1604,11 @@ function StockcardPage({ isAuth }) {
       />
       <Navigation
         page="/stockcard" />
-
+<RecordQuickView
+                show={recordQuickViewModalShow}
+                onHide={() => setRecordQuickViewModalShow(false)}
+                recordid={recordToView}
+            />
       <ToastContainer
         position="top-right"
         autoClose={1500}
@@ -1709,10 +1737,7 @@ function StockcardPage({ isAuth }) {
                         />
                       </div>
                     }
-                  </div>
-
-
-
+                    </div>
                 </Card.Body>
               </Card>
             </div>
@@ -1751,26 +1776,18 @@ function StockcardPage({ isAuth }) {
                             onClick={() => setModalShow(true)}>
                             <FontAwesomeIcon icon={faPlus} />
                           </Button>
-                          <EditProductModal
-                            show={editShow}
-                            onHide={() => setEditShow(false)}
-                          />
                           <Button
                             className="edit me-1"
                             disabled
                             data-title="Edit Product"
-                            onClick={() => {setEditingBarcode(false);setEditShow(true)}}>
+                            >
                             <FontAwesomeIcon icon={faEdit} />
                           </Button>
-                          <DeleteProductModal
-                            show={modalShowDL}
-                            onHide={() => setModalShowDL(false)}
-                          />
                           <Button
                             className="delete me-1"
                             disabled
                             data-title="Delete Product"
-                            onClick={() => { setModalShowDL(true) }}>
+                          >
                             <FontAwesomeIcon icon={faTrashCan} />
                           </Button>
                         </div>
@@ -1780,7 +1797,7 @@ function StockcardPage({ isAuth }) {
                       <div id="message-to-select">
                         <div className="blur-overlay">
                           <div className="d-flex align-items-center justify-content-center" style={{width: '100%', height: '100%'}}>
-                            <h5><strong>Select a product to get started</strong></h5>
+                            
                           </div>
                         </div>
                       </div>
@@ -1890,9 +1907,9 @@ function StockcardPage({ isAuth }) {
                             <div className="row m-0 p-0">
                               <a 
                                 className="col-4 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Maximum Quantity"
+                                data-title="Minimum Quantity"
                               >
-                                <CaretUp
+                                <CaretDown
                                   color={'#000000'}
                                   height="25px"
                                   width="25px"
@@ -1906,9 +1923,9 @@ function StockcardPage({ isAuth }) {
                             <div className="row m-0 p-0">
                               <a 
                                 className="col-4 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Minimum Quantity"
+                                data-title="Maximum Quantity"
                               >
-                                <CaretDown
+                                <CaretUp
                                   color={'#000000'}
                                   height="25px"
                                   width="25px"
@@ -1965,10 +1982,9 @@ function StockcardPage({ isAuth }) {
                     </div>
                   </div>
                 </Tab.Pane>
-                {stockcard === undefined || docId === undefined?
+                {(stockcard === undefined || stockcard.length == 0) || docId === undefined?
                   <></>
                 :
-                
                 <Tab.Pane eventKey={stockcard[docId].id}>
                   <div className='row py-1 m-0' id="product-contents">
                     <div className='row m-0 p-0'>
@@ -1991,6 +2007,14 @@ function StockcardPage({ isAuth }) {
                       </div>
                       <div className="col">
                         <div className="float-end">
+                          <EditProductModal
+                            show={editShow}
+                            onHide={() => setEditShow(false)}
+                          />
+                          <DeleteProductModal
+                            show={modalShowDL}
+                            onHide={() => setModalShowDL(false)}
+                          />
                           <Button
                             className="add me-1"
                             data-title="Add New Product"
@@ -2028,7 +2052,7 @@ function StockcardPage({ isAuth }) {
                               </div>
                             :
                               <div className="data-img mb-2 d-flex align-items-center justify-content-center">
-                                <img key={stockcard[docId].img}src={stockcard[docId].img} style={{width: '100%'}}/>
+                                <img key={stockcard[docId].img}src={stockcard[docId].img} style={{height: '100%', width: 'auto'}}/>
                               </div>
                             }
                           <a className="data-barcode">
@@ -2160,32 +2184,6 @@ function StockcardPage({ isAuth }) {
                             <div className="row m-0 p-0">
                               <a 
                                 className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Maximum Quantity"
-                              >
-                                <CaretUp
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                                <Layers
-                                  color={'#000000'}
-                                  height="25px"
-                                  width="25px"
-                                />
-                              </a>
-                              <div className="col-9 data-label">
-                                {stockcard[docId].max_qty  === undefined || stockcard[docId].max_qty == 0?
-                                  <div style={{fontStyle: 'italic', opacity: '0.8'}}>Not set</div>
-                                :
-                                  <>{stockcard[docId].max_qty} units</>
-                                }
-                              </div>
-                            </div>
-                          </div>
-                          <div className="col-6 px-1">
-                            <div className="row m-0 p-0">
-                              <a 
-                                className="col-3 data-icon d-flex align-items-center justify-content-center"
                                 data-title="Minimum Quantity"
                               >
                                 <CaretDown
@@ -2204,6 +2202,32 @@ function StockcardPage({ isAuth }) {
                                   <div style={{fontStyle: 'italic', opacity: '0.8'}}>Not set</div>
                                 :
                                   <>{stockcard[docId].min_qty} units</>
+                                }
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-6 px-1">
+                            <div className="row m-0 p-0">
+                              <a 
+                                className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                data-title="Maximum Quantity"
+                              >
+                                <CaretUp
+                                  color={'#000000'}
+                                  height="25px"
+                                  width="25px"
+                                />
+                                <Layers
+                                  color={'#000000'}
+                                  height="25px"
+                                  width="25px"
+                                />
+                              </a>
+                              <div className="col-9 data-label">
+                                {stockcard[docId].max_qty  === undefined || stockcard[docId].max_qty == 0?
+                                  <div style={{fontStyle: 'italic', opacity: '0.8'}}>Not set</div>
+                                :
+                                  <>{stockcard[docId].max_qty} units</>
                                 }
                               </div>
                             </div>
@@ -2335,12 +2359,6 @@ function StockcardPage({ isAuth }) {
           </div>
         </div>
       </Tab.Container >
-
-
-
-
-
-
     </div >
   );
 

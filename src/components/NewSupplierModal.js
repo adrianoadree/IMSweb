@@ -238,7 +238,7 @@ function NewSupplierModal(props) {
           className="btn btn-light float-start"
           disabled={disallowAddition}
           style={{ width: "6rem" }}
-          onClick={() => { addSupplier(varRef.supplierId) }}>
+          onClick={() => { addSupplier() }}>
           Save
         </Button>
       </Modal.Footer>

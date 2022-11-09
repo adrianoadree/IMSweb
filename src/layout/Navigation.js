@@ -110,6 +110,12 @@ const Navigation = (props) => {
               <></>
             :
               <Nav className="me-auto">
+                <LinkContainer to="/warehouse">
+                  <Nav.Link>Warehouse</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/stockcard">
+                  <Nav.Link>Stockcard</Nav.Link>
+                </LinkContainer>
                 <NavDropdown title="Records" id="collasible-nav-dropdown">
                   <LinkContainer to="/records">
                     <NavDropdown.Item>Transaction History</NavDropdown.Item>
@@ -119,22 +125,22 @@ const Navigation = (props) => {
                     <NavDropdown.Item>Supplier List</NavDropdown.Item>
                   </LinkContainer>
                 </NavDropdown>
-                <NavDropdown title="Inventory" id="collasible-nav-dropdown">
-                  <LinkContainer to="/inventory">
-                    <NavDropdown.Item>Inventory </NavDropdown.Item>
-                  </LinkContainer>
-                  <NavDropdown.Divider />
-                  <LinkContainer to="/stockcard">
-                    <NavDropdown.Item>Stockcard </NavDropdown.Item>
-                  </LinkContainer>
-                  <NavDropdown.Divider />
-                  <LinkContainer to="/warehouse">
-                    <NavDropdown.Item>Warehouse</NavDropdown.Item>
-                  </LinkContainer>
-                </NavDropdown>
                 <LinkContainer to="/itemforecasting">
                   <Nav.Link>Analytics</Nav.Link>
                 </LinkContainer>
+                <NavDropdown title="Tools" id="collasible-nav-dropdown">
+                  <LinkContainer to="">
+                    <NavDropdown.Item>Print Codes</NavDropdown.Item>
+                  </LinkContainer>
+                  <NavDropdown.Divider />
+                  <LinkContainer to="/home">
+                    <NavDropdown.Item>Generate Reports</NavDropdown.Item>
+                  </LinkContainer>
+                  <NavDropdown.Divider />
+                  <LinkContainer to="/home">
+                    <NavDropdown.Item></NavDropdown.Item>
+                  </LinkContainer>
+                </NavDropdown>
                 <LinkContainer to="/community">
                   <Nav.Link>Community</Nav.Link>
                 </LinkContainer>

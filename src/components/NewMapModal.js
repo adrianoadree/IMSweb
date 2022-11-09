@@ -17,7 +17,7 @@ function NewMapModal(props) {
   const masterdataDocRef = doc(db, "masterdata", "warehouse")
   const [cntr, setCntr] = useState(0);
   const { user } = UserAuth();//user credentials
-  const [warehouseID, setWarehouseID] = useState("WH004");
+  const [warehouseID, setWarehouseID] = useState();
   const [warehouseDoc, setWarehouseDoc] = useState("");
   const [col, setCol] = useState(2);
   const [row, setRow] = useState(2);
@@ -38,17 +38,6 @@ function NewMapModal(props) {
   useEffect(() => {
     setPrevDimension(prevWidth/col)
   })
-
-  useEffect(() => {
-    async function readWarehouseDoc() {
-      const warehouseRef = doc(db, "warehouse", warehouseID)
-      const docSnap = await getDoc(warehouseRef)
-      if (docSnap.exists()) {
-        setWarehouseDoc(docSnap.data());
-      }
-    }
-    readWarehouseDoc()
-  }, [warehouseID])
 
   function changeMode(evt, cityName) {
     // Declare all variables
@@ -76,10 +65,6 @@ function NewMapModal(props) {
 
   } 
 
-
-  onSnapshot(masterdataDocRef, (doc) => {
-    setCntr(doc.data().idCntr)
-  }, [])
 
   var format = "";
  
