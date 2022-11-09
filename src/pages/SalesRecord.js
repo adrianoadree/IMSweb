@@ -62,14 +62,22 @@ function SalesRecords({ isAuth }) {
     }
     else {
       setIsFetched(true)
-      if(collectionUpdateMethod == "add")
+      if(salesRecordCollection.length > 0)
       {
-        setDocId(0)
-        setKey(salesRecordCollection[0].id)
+        if(collectionUpdateMethod == "add")
+        {
+          setDocId(0)
+          setKey(salesRecordCollection[0].id)
+        }
+        else
+        {
+          setCollectionUpdateMethod("add")
+
+      }
       }
       else
       {
-        setCollectionUpdateMethod("add")
+        setKey("main")
       }
     }
   }, [salesRecordCollection])
@@ -99,19 +107,6 @@ function SalesRecords({ isAuth }) {
     }
 
   }, [userID])
-
-  useEffect(() => {
-    //fetch purchase_record spec Document
-    async function readSalesDoc() {
-      const salesRecord = doc(db, "sales_record", docId)
-      const docSnap = await getDoc(salesRecord)
-      if (docSnap.exists()) {
-        setSalesRecordDoc(docSnap.data());
-      }
-    }
-    readSalesDoc();
-
-  }, [docId])
 
 
   useEffect(() => {
@@ -481,6 +476,10 @@ function SalesRecords({ isAuth }) {
                         </div>
                         <div className="col">
                           <div className="float-end">
+                              <NewSalesModal
+                                show={modalShow}
+                                onHide={() => setModalShow(false)}
+                              />
                             <Button
                               className="add me-1"
                               data-title="Add New Purchase Record"
@@ -503,13 +502,7 @@ function SalesRecords({ isAuth }) {
                         <div id="message-to-select">
                           <div className="blur-overlay">
                             <div className="d-flex align-items-center justify-content-center" style={{width: '100%', height: '100%'}}>
-                              <div style={{width: '3em', height: '3em'}}>
-                                <Spinner
-                                  color1="red"
-                                  color2="#000"
-                                  textColor="rgba(0,0,0,0)"
-                                />
-                              </div>
+                              
                             </div>
                           </div>
                         </div>
@@ -608,10 +601,6 @@ function SalesRecords({ isAuth }) {
                           </div>
                           <div className="col-4">
                             <div className="float-end">
-                              <NewSalesModal
-                                show={modalShow}
-                                onHide={() => setModalShow(false)}
-                              />
                               <Button
                                 className="add me-1"
                                 data-title="Add New Sales Record"

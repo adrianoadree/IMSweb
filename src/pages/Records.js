@@ -32,6 +32,7 @@ function Records() {
   const [userID, setUserID] = useState("");
   const [key, setKey] = useState("main");//Tab controller
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState(); //purchase_record Collection
+  const [supplierCollection, setSupplierCollection] = useState(); //purchase_record Collection
   const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
   const [docId, setDocId] = useState() // doc id variable
   const [list, setList] = useState([
@@ -42,7 +43,7 @@ function Records() {
   const [queryList, setQueryList] = useState([]); //compound query access
   const [stockcardData, setStockcardData] = useState([{}]);
 
-  const [addProductModalShow, setAddProductModalShow] = useState(false); //add new sales record modal
+  const [newPurchaseModalShow, setNewPurchaseModalShow] = useState(false); //add new sales record modal
   const [productQuickViewModalShow, setProductQuickViewModalShow] = useState(false); //product quick view modal
   const [voidRecordModalShow, setVoidRecordModalShow] = useState(false); //product quick view modal
   
@@ -89,6 +90,28 @@ function Records() {
     }
   }, [userID])
 
+  useEffect(() => {
+    //read purchase_record collection
+    if (userID === undefined) {
+      const supplierCollectionRef = collection(db, "supplier")
+      const q = query(supplierCollectionRef, where("user", "==", "DONOTDELETE"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setSupplierCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+      const supplierCollectionRef = collection(db, "supplier")
+      const q = query(supplierCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setSupplierCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
+
   useEffect(()=>{
 
   }, [collectionUpdateMethod])
@@ -99,14 +122,17 @@ function Records() {
     }
     else {
       setIsFetched(true)
-      if(collectionUpdateMethod == "add")
+      if(purchaseRecordCollection.length > 0)
       {
-        setDocId(0)
-        setKey(purchaseRecordCollection[0].id)
-      }
-      else
-      {
-        setCollectionUpdateMethod("add")
+        if(collectionUpdateMethod == "add")
+        {
+          setDocId(0)
+          setKey(purchaseRecordCollection[0].id)
+        }
+        else
+        {
+          setCollectionUpdateMethod("add")
+        }
       }
     }
   }, [purchaseRecordCollection])
@@ -126,7 +152,6 @@ function Records() {
     //query stockcard document that contains, [queryList] datas
     async function queryStockcardData() {
       const stockcardRef = collection(db, "stockcard")
-
       if (queryList.length !== 0) {
         const q = await query(stockcardRef, where("__name__", "in", [...queryList]));
         const unsub = onSnapshot(q, (snapshot) =>
@@ -150,25 +175,33 @@ function Records() {
 
   useEffect(() => {
     //read list of product names in product list
-    async function fetchPurchDoc() {
-      if(docId === undefined)
-      {
+    if(docId === undefined || purchaseRecordCollection === undefined)
+    {
 
-      }
-      else
-      {
-        const unsub = await onSnapshot(doc(db, "purchase_record", purchaseRecordCollection[docId].id), (doc) => {
-          if (doc.data() != undefined) {
-            setList(doc.data().product_list);
-          }
-        });
-        return unsub;
-      }
     }
-    fetchPurchDoc()
+    else
+    {
+      setList(purchaseRecordCollection[docId].product_list)
+    }
   }, [docId])
 
-
+  const getSupplierInfo = (supplier_id) => {
+    var target_supplier
+    if(supplierCollection !== undefined)
+    {
+      supplierCollection.map((supp) => {
+        if(supp.id == supplier_id)
+        {
+          target_supplier = supp
+        }
+      })
+      return target_supplier
+    }
+    else
+    {
+      return {supplier_name: ""}
+    }
+  }
 
   function VoidRecordModal(props) {
     const [voidNotes, setVoidNotes] = useState("");
@@ -452,6 +485,10 @@ function Records() {
         activeKey={key}
         onSelect={(k) => setKey(k)}
       >
+      <NewPurchaseModal
+        show={newPurchaseModalShow}
+        onHide={() => setNewPurchaseModalShow(false)}
+      />
         <div id="contents" className="row">
           <div className="row py-4 px-5">
             <div className='sidebar'>
@@ -516,7 +553,11 @@ function Records() {
                                       <small>{purch.transaction_number}</small>
                                     </div>
                                     <div className="col-5">
+                                    {purch.transaction_supplier.startsWith("SU")?
+                                      <small>{getSupplierInfo(purch.transaction_supplier).supplier_name}</small>
+                                    :
                                       <small>{purch.transaction_supplier}</small>
+                                    }
                                     </div>
                                     <div className="col-4">
                                       <small>{moment(purch.transaction_date).format('ll')}</small>
@@ -585,7 +626,7 @@ function Records() {
                             <Button
                               className="add me-1"
                               data-title="Add New Purchase Record"
-                              onClick={() => setAddProductModalShow(true)}
+                              onClick={() => setNewPurchaseModalShow(true)}
                             >
                               <FontAwesomeIcon icon={faPlus} />
                             </Button>
@@ -593,7 +634,6 @@ function Records() {
                               disabled
                               className="delete me-1"
                               data-title="Void Purchase Record"
-                              onClick={() => { setVoidRecordModalShow(true) }}
                             >
                               <FontAwesomeIcon icon={faBan} />
                             </Button>
@@ -601,16 +641,10 @@ function Records() {
                         </div>
                       </div>
                       <div className="row p-1 data-specs m-0" id="record-info">
-                      <div id="message-to-select">
+                        <div id="message-to-select">
                           <div className="blur-overlay">
                             <div className="d-flex align-items-center justify-content-center" style={{width: '100%', height: '100%'}}>
-                            <div style={{width: '3em', height: '3em'}}>
-                              <Spinner
-                                color1="red"
-                                color2="#000"
-                                textColor="rgba(0,0,0,0)"
-                              />
-                            </div>
+                              
                             </div>
                           </div>
                         </div>
@@ -742,14 +776,10 @@ function Records() {
                           </div>
                           <div className="col-4">
                             <div className="float-end">
-                              <NewPurchaseModal
-                                show={addProductModalShow}
-                                onHide={() => setAddProductModalShow(false)}
-                              />
                               <Button
                                 className="add me-1"
                                 data-title="Add New Purchase Record"
-                                onClick={() => setAddProductModalShow(true)}
+                                onClick={() => setNewPurchaseModalShow(true)}
                               >
                                 <FontAwesomeIcon icon={faPlus} />
                               </Button>
@@ -803,7 +833,11 @@ function Records() {
                                     />
                                   </a>
                                   <div className="col-10 data-label">
-                                    {purchaseRecordCollection[docId].transaction_supplier}
+                                    {purchaseRecordCollection[docId].transaction_supplier.startsWith("SU")?
+                                      <>{getSupplierInfo(purchaseRecordCollection[docId].transaction_supplier).supplier_name}</>
+                                    :
+                                      <>{purchaseRecordCollection[docId].transaction_supplier}</>
+                                    }
                                   </div>
                                 </div>
                               </div>

@@ -22,6 +22,8 @@ function LandingPage() {
     const navigate = useNavigate();
 
     const [stockcard, setStockcard] = useState(); // stockcardCollection variable
+    const userCollectionRef = collection(db, "user");
+    const [userCollection, setUserCollection] = useState(); // stockcardCollection variable
     const [productQuickViewModalShow, setProductQuickViewModalShow] = useState(false);
     const [productToView, setProductToView] = useState()
     const [dateSelected, setDateSelected] = useState()
@@ -31,6 +33,7 @@ function LandingPage() {
     const [salesQuantitySorting, setSalesQuantitySorting] = useState("unsorted")
     const [sidebarHidden, setSidebarHidden] = useState(false)
     const [topProducts, setTopProducts] = useState()
+<<<<<<< HEAD
     const [prodNearROP, setProdNearROP] = useState()
 
 
@@ -48,6 +51,9 @@ function LandingPage() {
 
     }, [userID])
 
+=======
+    const [userProfile, setUserProfile] = useState({});
+>>>>>>> guchimark
 
     var curr_date = new Date(); // get current date
     curr_date.setDate(curr_date.getDate());
@@ -74,6 +80,10 @@ function LandingPage() {
         }
     },)
 
+    useEffect(()=>{
+        console.log(productsSold)
+    })
+
     useEffect(() => {
         if (user) {
             setUserID(user.uid)
@@ -83,6 +93,42 @@ function LandingPage() {
     useEffect(() => {
         console.log(topProducts)
     })
+
+    useEffect(() => {
+        if (userID === undefined) {
+          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+        
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+        }
+        else 
+        {
+          const userCollectionRef = collection(db, "user");
+          const q = query(userCollectionRef, where("user", "==", userID));
+        
+          const unsub = onSnapshot(q, (snapshot) =>
+            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+          );
+          return unsub;
+              
+        }
+      }, [userID])
+      
+      useEffect(() => {
+        if(userCollection === undefined)
+        {
+
+        }
+        else
+        {
+            userCollection.map((metadata) => {
+              setUserProfile(metadata)
+            });
+
+        }
+      }, [userCollection])
 
     const displayLeaderboard = () => {
         var tempProductSoldList = []
@@ -119,6 +165,7 @@ function LandingPage() {
                 }
             }
         })
+<<<<<<< HEAD
 
         stockcard.map((product) => {
             tempProductInfo = {
@@ -152,6 +199,45 @@ function LandingPage() {
         }
         else {
             setTopProducts(sorted_products_sold)
+=======
+        if(stockcard !== undefined)
+        {
+            stockcard.map((product) => {
+                tempProductInfo = {
+                    "id": "",
+                    "description": "",
+                    "img": "",
+                    "transaction": [],
+                    "qty": 0
+                }
+                if(tempProductSoldListId.indexOf(product.id) >= 0){
+                    tempProductInfo.id = tempProductSoldListId[tempProductSoldListId.indexOf(product.id)]
+                    tempProductInfo.description = product.description
+                    tempProductInfo.img = product.img
+                    tempProductInfo.transaction = tempProductSoldListTransac[tempProductSoldListId.indexOf(product.id)]
+                    tempProductInfo.qty = Number(tempProductSoldListQty[tempProductSoldListId.indexOf(product.id)])
+                    
+                tempProductSoldList.push(tempProductInfo)
+                }
+            })
+    
+            var tempSalesTotal = 0
+    
+            tempProductSoldList.map((product)=>{
+                tempSalesTotal = tempSalesTotal + product.qty
+            })
+            
+            var sorted_products_sold = [... tempProductSoldList]
+            sorted_products_sold.sort((prod1, prod2)=>{return prod1.qty < prod2.qty})
+            if(sorted_products_sold.length > 4)
+            {
+                setTopProducts(sorted_products_sold.splice(4,4))
+            }
+            else
+            {
+                setTopProducts(sorted_products_sold)
+            }
+>>>>>>> guchimark
         }
     }
 
@@ -169,10 +255,18 @@ function LandingPage() {
                         <div>{topProducts[0].description}</div>
                     </div>
                     <div className="d-flex align-items-center justify-content-start flex-column col-8 top-products-others">
+<<<<<<< HEAD
                         <div className="row w-100">
                             <div className="ranking-container">
                                 <div className="ranking">
                                     2
+=======
+                        <div className="row w-100 py-2">
+                                <div className="ranking-container">
+                                    <div className="ranking">
+                                        2
+                                    </div>
+>>>>>>> guchimark
                                 </div>
                             </div>
                             <div className="d-flex align-items-center justify-content-start col-12">
@@ -180,10 +274,18 @@ function LandingPage() {
                                 {topProducts[1].description}
                             </div>
                         </div>
+<<<<<<< HEAD
                         <div className="row w-100">
                             <div className="ranking-container">
                                 <div className="ranking">
                                     3
+=======
+                        <div className="row w-100 py-2">
+                                <div className="ranking-container">
+                                    <div className="ranking">
+                                        3
+                                    </div>
+>>>>>>> guchimark
                                 </div>
                             </div>
                             <div className="d-flex align-items-center justify-content-start col-12">
@@ -191,10 +293,18 @@ function LandingPage() {
                                 {topProducts[2].description}
                             </div>
                         </div>
+<<<<<<< HEAD
                         <div className="row w-100">
                             <div className="ranking-container">
                                 <div className="ranking">
                                     4
+=======
+                        <div className="row w-100 py-2">
+                                <div className="ranking-container">
+                                    <div className="ranking">
+                                        4
+                                    </div>
+>>>>>>> guchimark
                                 </div>
                             </div>
                             <div className="d-flex align-items-center justify-content-start col-12">
@@ -241,13 +351,20 @@ function LandingPage() {
                 </>
             )
         }
+<<<<<<< HEAD
         else if (topProducts.length == 0) {
             return (
                 <div>
                     <div className="d-flex align-items-center justify-content-center col-6">
                         <h4>No sales yet.</h4>
+=======
+        else if(topProducts.length == 0)
+        {
+            return(
+                    <div className="d-flex align-items-center justify-content-center col-12 p-5">
+                        <h4>No sales yet</h4>
+>>>>>>> guchimark
                     </div>
-                </div>
             )
         }
         else {
@@ -346,8 +463,13 @@ function LandingPage() {
         if (salesRecordCollection === undefined) {
 
         }
+<<<<<<< HEAD
         else {
             setDateSelected("today")
+=======
+        else
+        {
+>>>>>>> guchimark
             displayLeaderboard()
         }
     }, [salesRecordCollection])
@@ -995,6 +1117,13 @@ function LandingPage() {
                     <div className="data-contents p-3">
                         <Card className="sidebar-card">
                             <Card.Header className="py-3 text-center left-curve right-curve">
+                                {userProfile === undefined?
+                                <></>
+                                    :
+                                    <div className="py-2" style={{color: '#4172c1'}}>
+                                        <h2><strong>{userProfile.bname}</strong></h2>
+                                    </div>
+                                }
                                 <div id="summary-report-options" className="interrelated-options">
                                     <a
                                         className={dateSelected == "today" ? "start-option active" : "start-option"}

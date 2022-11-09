@@ -208,6 +208,7 @@ function NewProductModal(props) {
       classification: newProdClassification,
       category: newProdCategory,
       barcode: newBarcode,
+      qty: 0,
       p_price: checkIfEmpty(Number(newPriceP), true),
       s_price: checkIfEmpty(Number(newPriceS), true),
       min_qty: checkIfEmpty(Number(newMinQty), true),
