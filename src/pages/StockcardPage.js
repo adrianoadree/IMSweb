@@ -1304,6 +1304,8 @@ function StockcardPage({ isAuth }) {
   const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
   const [dateToOrder, setDateToOrder] = useState()
   const [dateReorderPoint, setDateReorderPoint] = useState()
+  const [daysDiffDateToOrder, setDaysDiffDateToOrder] = useState()
+
 
   useEffect(() => {
     if (docId !== undefined) {
@@ -1361,7 +1363,7 @@ function StockcardPage({ isAuth }) {
     y = Number(averageDailySales) * Number(newAverageLeadtime)
     z = Number(x - y)
 
-    setSafetyStock(z)
+    setSafetyStock(Math.round(z))
   }, [highestDailySales, averageDailySales, newMaxLeadtime, newAverageLeadtime, docId])
 
 
@@ -1408,7 +1410,7 @@ function StockcardPage({ isAuth }) {
       setDateReorderPoint(z)
     }
   }
-  
+
   useEffect(() => {
     computeDaysToReorderPoint()
   }, [daysROP, docId])
@@ -1429,6 +1431,24 @@ function StockcardPage({ isAuth }) {
     }
   }
 
+  function computeDaysDiffToOrder() {
+    let x = daysROP
+    let y = newAverageLeadtime
+    let z = 0
+    if (daysROP < 0) {
+      z = x - y
+    } else {
+      z = x + y
+    }
+
+    var num = Math.round(z)
+    setDaysDiffDateToOrder(num)
+  }
+
+  useEffect(() => {
+    computeDaysDiffToOrder()
+  }, [dateToOrder, docId])
+
   useEffect(() => {
     console.log("dateToOrder: ", dateToOrder)
     console.log("reorderPointDate: ", dateReorderPoint)
@@ -1448,6 +1468,7 @@ function StockcardPage({ isAuth }) {
       "analytics.safetyStock": Number(safetyStock),
       "analytics.reorderPoint": Number(reorderPoint),
       "analytics.daysROP": Number(daysROP),
+      "analytics.daysDiffDateToOrder": Number(daysDiffDateToOrder),
       "analytics.dateToOrder": dateToOrder,
       "analytics.dateReorderPoint": dateReorderPoint,
     });

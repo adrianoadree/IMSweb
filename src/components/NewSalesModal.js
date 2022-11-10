@@ -186,6 +186,7 @@ function NewSalesModal(props) {
                 safetyStock: Number(safetyStock),
                 reorderPoint: Number(reorderPoint),
                 daysROP: Number(daysROP),
+                daysDiffDateToOrder: Number(daysDiffDateToOrder),
                 dateToOrder: dateToOrder,
                 dateReorderPoint: dateReorderPoint
 
@@ -267,6 +268,7 @@ function NewSalesModal(props) {
                 "analytics.safetyStock": Number(items.safetyStock),
                 "analytics.reorderPoint": Number(items.reorderPoint),
                 "analytics.daysROP": Number(items.daysROP),
+                "analytics.daysDiffDateToOrder": Number(items.daysDiffDateToOrder),
                 "analytics.dateToOrder": items.dateToOrder,
                 "analytics.dateReorderPoint": items.dateReorderPoint
             });
@@ -323,6 +325,8 @@ function NewSalesModal(props) {
     const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
     const [dateToOrder, setDateToOrder] = useState()
     const [dateReorderPoint, setDateReorderPoint] = useState()
+    const [daysDiffDateToOrder, setDaysDiffDateToOrder] = useState()
+
 
 
     //query documents from sales_record that contains docId
@@ -409,7 +413,7 @@ function NewSalesModal(props) {
         x = totalSales
         y = dateDifference
         z = Number(totalSales / dateDifference)
-        setAverageDailySales(z)
+        setAverageDailySales(Math.round(z))
     }, [totalSales, dateDifference])
 
     //compute array of Daily Sales
@@ -501,7 +505,7 @@ function NewSalesModal(props) {
         y = Number(averageDailySales) * Number(averageLeadtime)
         z = Number(x - y)
 
-        setSafetyStock(z)
+        setSafetyStock(Math.round(z))
 
     }, [highestDailySales, averageDailySales, maxLeadtime, averageLeadtime, salesQuery, salesRecordCollection])
 
@@ -574,10 +578,28 @@ function NewSalesModal(props) {
     }, [dateReorderPoint, averageLeadtime, stockcardDoc])
 
 
-    useEffect(()=>{
-        console.log("dateToOrder: ",dateToOrder)
-        console.log("dateReorderPoint: ",dateReorderPoint)
-    },[dateToOrder, dateReorderPoint])
+    function computeDaysDiffToOrder() {
+        let x = daysROP
+        let y = averageLeadtime
+        let z = 0
+        if (daysROP <= 0) {
+            z = x - y
+        } else {
+            z = x + y
+        }
+        var num = Math.round(z)
+        setDaysDiffDateToOrder(num)
+    }
+
+    useEffect(() => {
+        computeDaysDiffToOrder()
+    }, [dateToOrder, stockcardDoc])
+
+
+    useEffect(() => {
+        console.log("dateToOrder: ", dateToOrder)
+        console.log("dateReorderPoint: ", dateReorderPoint)
+    }, [dateToOrder, dateReorderPoint])
 
 
     //search for min Date in array
