@@ -36,22 +36,6 @@ function LandingPage() {
     const [prodNearROP, setProdNearROP] = useState()
     const [userProfile, setUserProfile] = useState({});
 
-
-    //Read stock card collection from database
-    useEffect(() => {
-        if (userID !== undefined) {
-            const stockcardCollectionRef = collection(db, "stockcard")
-            const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.daysROP", "<=", 7), orderBy("analytics.daysROP", "desc"));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-
-    }, [userID])
-
-
     var curr_date = new Date(); // get current date
     curr_date.setDate(curr_date.getDate());
     curr_date.setHours(0, 0, 0, 0); // set current date's hours to zero to compare dates only
@@ -77,8 +61,8 @@ function LandingPage() {
         }
     },)
 
-    useEffect(()=>{
-        console.log(productsBought)
+    useEffect(() => {
+        console.log(productsSold)
     })
 
     useEffect(() => {
@@ -93,39 +77,36 @@ function LandingPage() {
 
     useEffect(() => {
         if (userID === undefined) {
-          const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
-        
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
+            const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
         }
-        else 
-        {
-          const userCollectionRef = collection(db, "user");
-          const q = query(userCollectionRef, where("user", "==", userID));
-        
-          const unsub = onSnapshot(q, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-              
-        }
-      }, [userID])
-      
-      useEffect(() => {
-        if(userCollection === undefined)
-        {
+        else {
+            const userCollectionRef = collection(db, "user");
+            const q = query(userCollectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
 
         }
-        else
-        {
+    }, [userID])
+
+    useEffect(() => {
+        if (userCollection === undefined) {
+
+        }
+        else {
             userCollection.map((metadata) => {
-              setUserProfile(metadata)
+                setUserProfile(metadata)
             });
 
         }
-      }, [userCollection])
+    }, [userCollection])
 
     const displayLeaderboard = () => {
         var tempProductSoldList = []
@@ -162,8 +143,7 @@ function LandingPage() {
                 }
             }
         })
-        if(stockcard !== undefined)
-        {
+        if (stockcard !== undefined) {
             stockcard.map((product) => {
                 tempProductInfo = {
                     "id": "",
@@ -172,20 +152,20 @@ function LandingPage() {
                     "transaction": [],
                     "qty": 0
                 }
-                if(tempProductSoldListId.indexOf(product.id) >= 0){
+                if (tempProductSoldListId.indexOf(product.id) >= 0) {
                     tempProductInfo.id = tempProductSoldListId[tempProductSoldListId.indexOf(product.id)]
                     tempProductInfo.description = product.description
                     tempProductInfo.img = product.img
                     tempProductInfo.transaction = tempProductSoldListTransac[tempProductSoldListId.indexOf(product.id)]
                     tempProductInfo.qty = Number(tempProductSoldListQty[tempProductSoldListId.indexOf(product.id)])
-                    
-                tempProductSoldList.push(tempProductInfo)
+
+                    tempProductSoldList.push(tempProductInfo)
                 }
             })
-    
+
             var tempSalesTotal = 0
-    
-            tempProductSoldList.map((product)=>{
+
+            tempProductSoldList.map((product) => {
                 tempSalesTotal = tempSalesTotal + product.qty
             })
             
@@ -959,12 +939,70 @@ function LandingPage() {
         navigate('/stockcard', { docId: 4 })
     }
 
+
+
+    //Read stock card collection from database
     useEffect(() => {
-        console.log(prodNearROP)
-    }, [prodNearROP])
-    useEffect(() => {
-        console.log(topProducts)
-    }, )
+        if (userID !== undefined) {
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.daysDiffDateToOrder", "<=", 7), orderBy("analytics.daysDiffDateToOrder", "asc"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
+
+
+    function Notification() {
+        return (
+            <ListGroup>
+                {prodNearROP !== undefined ?
+                    prodNearROP.map((prod) => {
+                        return (
+                            <ListGroup.Item key={prod.id}>
+                                <div className="row px-2">
+                                    <div className="col">
+                                        <div className="row">
+                                            <span><small>{prod.id.substring(0, 9)}</small> | <span style={{ color: '#4172c1' }}> <strong>{prod.description}</strong></span></span>
+                                        </div>
+                                    </div>
+                                    <div className="col ">
+                                        <div className="float-end">
+
+                                            {prod.analytics.daysDiffDateToOrder > 0 ?
+                                                <small><strong>{prod.analytics.daysDiffDateToOrder}</strong> day(s)<br /> before Restocking</small>
+                                                :
+                                                prod.analytics.daysDiffDateToOrder === 0 ?
+                                                    <small>Restock <strong>Today</strong></small>
+                                                    :
+                                                    <small><strong>{Math.abs(prod.analytics.daysDiffDateToOrder)}</strong> day(s)<br /> past Restocking</small>
+                                            }
+
+                                        </div>
+                                    </div>
+                                    <div className="row">
+                                        <small className="text-muted float-end">Date to Restock: {moment(prod.analytics.dateToOrder).format('LL')}</small>
+                                    </div>
+                                </div>
+                            </ListGroup.Item>
+                        )
+                    })
+                    :
+                    <Spinner
+                        color1="#b0e4ff"
+                        color2="#fff"
+                        textColor="rgba(0,0,0, 0.5)"
+                        className="w-100 h-100"
+                    />
+                }
+
+            </ListGroup>
+        )
+    }
+
+
     return (
         <div>
             <UserRouter
@@ -986,27 +1024,7 @@ function LandingPage() {
                                 <h5><strong>Notifications</strong></h5>
                             </Card.Header>
                             <Card.Body>
-                                <button
-                                    onClick={handleStockcardNavigation}
-                                >
-                                    click
-                                </button>
-                                <div className='row guide'>
-                                    {prodNearROP === undefined ?
-                                        <Spinner
-                                            color1="#b0e4ff"
-                                            color2="#fff"
-                                            textColor="rgba(0,0,0, 0.5)"
-                                            className="w-50 h-50 p-2"
-                                        />
-                                        :
-                                        <>
-                                            
-                                        </>
-                                    }
-                                </div>
-
-
+                                <Notification />
                             </Card.Body>
                         </Card>
                         <Card id="top-products" className="sidebar-card">
@@ -1054,10 +1072,10 @@ function LandingPage() {
                     <div className="data-contents p-3">
                         <Card className="sidebar-card">
                             <Card.Header className="py-3 text-center left-curve right-curve">
-                                {userProfile === undefined?
-                                <></>
+                                {userProfile === undefined ?
+                                    <></>
                                     :
-                                    <div className="py-2" style={{color: '#4172c1'}}>
+                                    <div className="py-2" style={{ color: '#4172c1' }}>
                                         <h2><strong>{userProfile.bname}</strong></h2>
                                     </div>
                                 }
@@ -1132,10 +1150,6 @@ function LandingPage() {
 
                             </Card.Body>
                         </Card>
-
-                        <div className="row">
-                            <h5>Products Near Reorderpoint</h5>
-                        </div>
                     </div>
                 </div>
             </div>

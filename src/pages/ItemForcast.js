@@ -328,104 +328,77 @@ function Itemforecast() {
                 maxLeadtime !== 0 ?
                     <>
                         <div>
-                            <Accordion defaultActiveKey="0" className="mt-2">
-                                <Accordion.Item eventKey="0">
-                                    <Accordion.Header><h6>Stock Level Projection Chart</h6></Accordion.Header>
-                                    <Accordion.Body>
-                                        <LineChart
-                                            width={600}
-                                            height={400}
-                                            data={data}
-                                            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                                        >
-                                            <XAxis dataKey="date">
-                                            </XAxis>
-                                            <YAxis label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }} />
-                                            <Tooltip />
-                                            <Legend />
-                                            <ReferenceLine y={stockcardDoc.analytics.reorderPoint}
-                                                label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
-                                                stroke="green" strokeDasharray="3 3" />
-                                            <ReferenceLine y={stockcardDoc.analytics.safetyStock}
-                                                label={{ value: 'SafetyStock', position: 'insideLeft', textAnchor: 'middle' }}
-                                                stroke="yellow" strokeDasharray="3 3" />
-                                            <Line type="monotone" dataKey="StockLevel" stroke="green"
-                                                dot={{ stroke: '#8884d8', strokeWidth: 1, r: 10, strokeDasharray: '' }}
-                                            />
-                                            <Line type="monotone" dataKey="ProjectedStockLevel" stroke="blue"
-                                                dot={{ stroke: '#blue', strokeWidth: 1, r: 10, strokeDasharray: '' }}
-                                            />
-                                        </LineChart>
-                                    </Accordion.Body>
-                                </Accordion.Item>
+                            <div className='row mt-3'>
 
-                            </Accordion>
+                                <LineChart
+                                    width={600}
+                                    height={400}
+                                    data={data}
+                                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                                >
+                                    <XAxis dataKey="date">
+                                    </XAxis>
+                                    <YAxis label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }} />
+                                    <Tooltip />
+                                    <Legend />
+                                    <ReferenceLine y={stockcardDoc.min_qty}
+                                        label={{ value: 'Minimum Quantity', position: 'insideRight', textAnchor: 'middle' }}
+                                        stroke="gray" strokeDasharray="3 3" />
 
-                            <Accordion defaultActiveKey="1">
-                                <Accordion.Item eventKey="1">
-                                    <Accordion.Header><h6>Inventory Projection Statistical Tools</h6></Accordion.Header>
-                                    <Accordion.Body>
+                                    <ReferenceLine y={stockcardDoc.max_qty}
+                                        label={{ value: 'Maximum Quantity', position: 'insideRight', textAnchor: 'middle' }}
+                                        stroke="gray" strokeDasharray="3 3" />
 
-                                        <div className='row'>
-                                            <div className='col-4'>
-                                                <OverlayTrigger
-                                                    placement="right"
-                                                    delay={{ show: 250, hide: 400 }}
-                                                    overlay={ROPToolTip}
-                                                >
-                                                    <h3>ReorderPoint: </h3>
-                                                </OverlayTrigger>
-                                            </div>
-                                            <div className='col-5'>
-                                                <h5>
-                                                    <span className="data-label">
-                                                        {stockcardDoc.analytics.reorderPoint} unit(s)
-                                                    </span>
-                                                </h5>
-                                            </div>
-                                        </div>
+                                    <ReferenceLine y={stockcardDoc.analytics.reorderPoint}
+                                        label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
+                                        stroke="#009933" strokeDasharray="3 3" />
+                                    <ReferenceLine y={stockcardDoc.analytics.safetyStock}
+                                        label={{ value: 'SafetyStock', position: 'insideLeft', textAnchor: 'middle' }}
+                                        stroke="#ff9900" strokeDasharray="3 3" />
+                                    <Line type="monotone" dataKey="StockLevel" stroke="#ff0000" 
 
-                                        <div className='row'>
+                                        dot={{ stroke: '#8884d8', strokeWidth: 1, r: 10, strokeDasharray: '' }}
+                                    />
+                                    <Line type="monotone" dataKey="ProjectedStockLevel" stroke="#0066ff"
+                                        dot={{ stroke: '#blue', strokeWidth: 1, r: 10, strokeDasharray: '' }}
+                                    />
+                                </LineChart>
+                            </div>
+                            <div className="row mt-3 px-4 py-2 bg-white">
+                                <div className="col">
+                                    <div className="row">
+                                        <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint: </strong></span>{stockcardDoc.analytics.reorderPoint} unit(s)</span>
+                                    </div>
+                                    <div className="row">
+                                        <span>| <span style={{ color: '#ff9900' }}> <strong>SafetyStock: </strong></span>{stockcardDoc.analytics.safetyStock} unit(s)</span>
+                                    </div>
+                                    <div className="row">
+                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Minimum Quantity: </strong></span>{stockcardDoc.min_qty} unit(s)</span>
+                                    </div>
+                                    <div className="row">
+                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Maximum Quantity: </strong></span>{stockcardDoc.max_qty} unit(s)</span>
+                                    </div>
+                                </div>
 
-                                            <div className='col-3'>
-                                                <OverlayTrigger
-                                                    placement="left"
-                                                    delay={{ show: 250, hide: 400 }}
-                                                    overlay={safetystockTooltip}
-                                                >
-                                                    <h5>Safety Stock: </h5>
-                                                </OverlayTrigger>
-                                            </div>
-                                            <div className='col-5'>
-                                                <h5>
-                                                    <span className="data-label">
-                                                        {stockcardDoc.analytics.safetyStock} unit(s)
-                                                    </span>
-                                                </h5>
-                                            </div>
+                                <div className="col">
 
-                                        </div>
+                                    <div className="row">
+                                        <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint Date: </strong></span>{moment(stockcardDoc.analytics.dateReorderPoint).format('LL')}</span>
+                                    </div>
+                                    <div className="row">
+                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Total Sales: </strong></span>{totalSales} unit(s)</span>
+                                    </div>
+                                    <div className="row">
+                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Highest Daily Sales: </strong></span>{stockcardDoc.analytics.highestDailySales} unit(s)</span>
+                                    </div>
+                                    <div className="row">
+                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Average Daily Sales: </strong></span>{stockcardDoc.analytics.averageDailySales} unit(s)</span>
+                                    </div>
+                                </div>
 
 
-                                        <hr />
-                                        <div className="row">
-                                            <div className="col-6">
+                            </div>
 
-                                                <h6>Total Sales: {totalSales} unit(s)</h6>
-
-
-                                                <h6>Average Daily Sales: {stockcardDoc.analytics.averageDailySales} unit(s)</h6>
-                                            </div>
-                                            <div className="col-6">
-                                                <h6>Average Leadtime: {stockcardDoc.analytics.leadtimeAverage} day(s)</h6>
-                                                <h6>Minimum Leadtime: {stockcardDoc.analytics.leadtimeMinimum} day(s)</h6>
-                                                <h6>Maximum Leadtime: {stockcardDoc.analytics.leadtimeMaximum} day(s)</h6>
-                                            </div>
-                                        </div>
-
-                                    </Accordion.Body>
-                                </Accordion.Item>
-                            </Accordion>
                         </div >
                     </>
 
@@ -738,7 +711,6 @@ function Itemforecast() {
     const [fillerDate2, setFillerDate2] = useState(new Date())
     const [fillerDate3, setFillerDate3] = useState(new Date())
     const [fillerDate4, setFillerDate4] = useState(new Date())
-    const [fillerDate5, setFillerDate5] = useState(new Date())
 
     today.setDate(today.getDate() + 14)
 
@@ -749,25 +721,21 @@ function Itemforecast() {
         let tempDate2 = new Date(q1Date)
         let tempDate3 = new Date(q1Date)
         let tempDate4 = new Date(q1Date)
-        let tempDate5 = new Date(q1Date)
 
         let tempf1 = new Date()
         let tempf2 = new Date()
         let tempf3 = new Date()
         let tempf4 = new Date()
-        let tempf5 = new Date()
 
         tempf1 = tempDate1.setDate(tempDate1.getDate() + 7)
         tempf2 = tempDate2.setDate(tempDate2.getDate() + 14)
         tempf3 = tempDate3.setDate(tempDate3.getDate() + 21)
         tempf4 = tempDate4.setDate(tempDate4.getDate() + 28)
-        tempf5 = tempDate5.setDate(tempDate5.getDate() + 35)
 
         setFillerDate1(tempf1)
         setFillerDate2(tempf2)
         setFillerDate3(tempf3)
         setFillerDate4(tempf4)
-        setFillerDate5(tempf5)
 
     }, [q1Date])
     //---------------------------------------------------------------------------
@@ -777,12 +745,10 @@ function Itemforecast() {
     const [fillerQuantity2, setFillerQuantity2] = useState(0)
     const [fillerQuantity3, setFillerQuantity3] = useState(0)
     const [fillerQuantity4, setFillerQuantity4] = useState(0)
-    const [fillerQuantity5, setFillerQuantity5] = useState(0)
     const [tempQuantity1, setTempQuantity1] = useState(0)
     const [tempQuantity2, setTempQuantity2] = useState(0)
     const [tempQuantity3, setTempQuantity3] = useState(0)
     const [tempQuantity4, setTempQuantity4] = useState(0)
-    const [tempQuantity5, setTempQuantity5] = useState(0)
 
 
     useEffect(() => {
@@ -790,7 +756,6 @@ function Itemforecast() {
         setTempQuantity2(q1Quantity)
         setTempQuantity3(q1Quantity)
         setTempQuantity4(q1Quantity)
-        setTempQuantity5(q1Quantity)
     }, [q1Quantity])
 
 
@@ -800,7 +765,6 @@ function Itemforecast() {
             setFillerQuantity2(Math.round(tempQuantity2 - (stockcardDoc.analytics.averageDailySales * 14)))
             setFillerQuantity3(Math.round(tempQuantity3 - (stockcardDoc.analytics.averageDailySales * 21)))
             setFillerQuantity4(Math.round(tempQuantity4 - (stockcardDoc.analytics.averageDailySales * 28)))
-            setFillerQuantity5(Math.round(tempQuantity5 - (stockcardDoc.analytics.averageDailySales * 35)))
         }
     }, [tempQuantity1])
 
@@ -847,11 +811,6 @@ function Itemforecast() {
         {
             date: moment(fillerDate4).format('ll'),
             ProjectedStockLevel: fillerQuantity4,
-        },
-
-        {
-            date: moment(fillerDate5).format('ll'),
-            ProjectedStockLevel: fillerQuantity5,
         },
 
 
@@ -968,7 +927,7 @@ function Itemforecast() {
                                                                 >
                                                                     <div className="row gx-0 sidebar-contents">
                                                                         <div className="col-4">
-                                                                            {stockcard.id}
+                                                                            {stockcard.id.substring(0, 9)}
                                                                         </div>
                                                                         <div className="col-8">
                                                                             {stockcard.description}
@@ -1041,26 +1000,10 @@ function Itemforecast() {
                                         </div>
 
 
-                                        <Accordion defaultActiveKey="1" className="mt-2">
-                                            <Accordion.Item eventKey="0">
-                                                <Accordion.Header><h6>Stock Level Projection Chart</h6></Accordion.Header>
-                                                <Accordion.Body>
-                                                    <Alert variant='primary' className='mt-2 text-center'>
-                                                        <strong> Select a Product to display Forecasting</strong>
-                                                    </Alert>
-                                                </Accordion.Body>
-                                            </Accordion.Item>
-                                        </Accordion>
-                                        <Accordion defaultActiveKey="0">
-                                            <Accordion.Item eventKey="1">
-                                                <Accordion.Header><h6>Inventory Projection Statistical Tools</h6></Accordion.Header>
-                                                <Accordion.Body>
-                                                    <Alert variant='primary' className='mt-2 text-center'>
-                                                        <strong> Select a Product to display Forecasting</strong>
-                                                    </Alert>
-                                                </Accordion.Body>
-                                            </Accordion.Item>
-                                        </Accordion>
+                                        <Alert variant='primary' className='mt-2 text-center'>
+                                            <strong> Select a Product to display Forecasting</strong>
+                                        </Alert>
+
                                     </div>
 
 

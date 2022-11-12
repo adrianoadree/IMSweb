@@ -145,7 +145,6 @@ function StockcardPage({ isAuth }) {
       t_date.setHours(0, 0, 0, 0)
       var o_date = new Date(order_date)
       o_date.setHours(0, 0, 0, 0)
-  
       return (moment(t_date).diff(moment(o_date), "days"))
     }
   }
@@ -342,12 +341,10 @@ function StockcardPage({ isAuth }) {
 
 
   useEffect(() => {
-    if(stockcard === undefined || stockcard.length == 0)
-    {
+    if (stockcard === undefined || stockcard.length == 0) {
 
     }
-    else
-    {
+    else {
       setLeadtimeAverage()
       setLeadtimeMinimum()
       setLeadtimeMaximum()
@@ -373,13 +370,11 @@ function StockcardPage({ isAuth }) {
           setDocId(stockcard.length-1)
           setKey(stockcard[stockcard.length-1].id)
         }
-        else
-        {
+        else {
           setCollectionUpdateMethod("add")
         }
       }
-      else
-      {
+      else {
         setDocId()
         setKey("main")
       }
@@ -438,7 +433,7 @@ function StockcardPage({ isAuth }) {
     setFilterDateEnd(today)
   }, [productPurchases])
 
-  function DisplayLedger(props) { 
+  function DisplayLedger(props) {
     return (
       <div id="ledger">
         <div className="row m-0 px-0 d-flex justify-content-end">
@@ -1188,7 +1183,6 @@ function StockcardPage({ isAuth }) {
                 if (showingLeadtimeOptions) {
                   setShowingLeadtimeOptions(false)
                   updateLeadtime(stockcard[docId].id)
-                  updateLeadtimeToast()
                 }
                 else {
                   setShowingLeadtimeOptions(true)
@@ -1276,7 +1270,7 @@ function StockcardPage({ isAuth }) {
                   <small>Average</small>
                   <h5><FontAwesomeIcon icon={faTruck} /></h5>
                   <small className="data-label">
-                    {leadtimeAverage} day(s)
+                    {(stockcard[docId].analytics.leadtimeAverage) / 2} day(s)
                   </small>
                 </div>
               </div>
@@ -1288,7 +1282,7 @@ function StockcardPage({ isAuth }) {
                   <small>Minimum</small>
                   <h5><FontAwesomeIcon icon={faTruck} /></h5>
                   <small className="data-label">
-                    {stockcard[docId].analytics.leadtimeMinumum} day(s)
+                    {stockcard[docId].analytics.leadtimeMinimum} day(s)
                   </small>
                 </div>
                 <div className="row m-0 px-0 pb-3 d-flex justify-content-center flex-column">
@@ -1317,35 +1311,69 @@ function StockcardPage({ isAuth }) {
 
   const [leadtimeModalShow, setLeadtimeModalShow] = useState(false);
 
-  const [newMinLeadtime, setNewMinLeadtime] = useState();
-  const [newMaxLeadtime, setNewMaxLeadtime] = useState();
+  const [newMinLeadtime, setNewMinLeadtime] = useState(0);
+  const [newMaxLeadtime, setNewMaxLeadtime] = useState(0);
   const [newAverageLeadtime, setNewAverageLeadtime] = useState(0);
 
+  const [currStockLvl, setCurrStockLvl] = useState(0)
   const [safetyStock, setSafetyStock] = useState(0); // safetyStock
   const [reorderPoint, setReorderPoint] = useState(); // ReorderPoint
-  const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
   const [highestDailySales, setHighestDailySales] = useState(0); //highest daily sales
   const [averageDailySales, setAverageDailySales] = useState(0); //average daily sales 
-  
-  useEffect(()=>{
-    if(stockcard !== undefined && docId !== undefined){
+  const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
+  const [dateToOrder, setDateToOrder] = useState()
+  const [dateReorderPoint, setDateReorderPoint] = useState()
+  const [daysDiffDateToOrder, setDaysDiffDateToOrder] = useState()
+
+
+
+  useEffect(() => {
+    if (docId !== undefined) {
+      setCurrStockLvl(stockcard[docId].qty)
+      setNewMaxLeadtime(stockcard[docId].analytics.leadtimeMaximum)
+      setNewMinLeadtime(stockcard[docId].analytics.leadtimeMinimum)
+      setAverageDailySales(stockcard[docId].analytics.averageDailySales)
+      setHighestDailySales(stockcard[docId].analytics.highestDailySales)
       setSafetyStock(stockcard[docId].analytics.safetyStock)
       setReorderPoint(stockcard[docId].analytics.reorderPoint)
       setDaysROP(stockcard[docId].analytics.daysROP)
-      setHighestDailySales(stockcard[docId].analytics.highestDailySales)
-      setAverageDailySales(stockcard[docId].analytics.averageDailySales)
     }
-  },[docId])
+  }, [docId])
 
-/*
+
   useEffect(() => {
+    if (docId !== undefined) {
+      console.log("stockcard[docId]: ", stockcard[docId])
+    }
+  }, [docId])
+
+
+  useEffect(() => {
+    if (docId === undefined) {
+
+    }
+    else {
+      setNewMaxLeadtime(stockcard[docId].analytics.leadtimeMaximum)
+      setNewMinLeadtime(stockcard[docId].analytics.leadtimeMinimum)
+    }
+  }, [docId])
+
+
+  //conputeAverageLeadtime
+  useEffect(() => {
+    computeAverageLeadtime()
+  }, [newMaxLeadtime, newMinLeadtime])
+
+  function computeAverageLeadtime() {
     let x = 0
     let y = 0
-    x = Number(newMinLeadtime) + Number(newMaxLeadtime)
+    x = Number(newMaxLeadtime) + Number(newMinLeadtime)
     y = Number(x / 2)
     setNewAverageLeadtime(y)
-  }, [newMinLeadtime, newMaxLeadtime])
+  }
 
+
+  //compute SafetyStock
   useEffect(() => {
 
     let x = 0
@@ -1355,19 +1383,117 @@ function StockcardPage({ isAuth }) {
     y = Number(averageDailySales) * Number(newAverageLeadtime)
     z = Number(x - y)
 
-    setSafetyStock(z)
-}, [highestDailySales, averageDailySales, newMaxLeadtime, newAverageLeadtime, stockcard[docId].id])
-*/
+    setSafetyStock(Math.round(z))
+  }, [highestDailySales, averageDailySales, newMaxLeadtime, newAverageLeadtime, docId])
+
+
+  //compute reoderpoint
+  //formula to calculate ROP = (average daily sales * leadtime in days) + safetystock
+  useEffect(() => {
+    setReorderPoint()
+    let x = 0
+    let y = 0
+    let z = 0
+
+    x = Number(averageDailySales * newAverageLeadtime)
+    y = x + safetyStock
+    z = Math.round(y)
+    setReorderPoint(z)
+  }, [safetyStock, averageDailySales, newAverageLeadtime])
+
+
+  //compute days before ROP
+  //formula to calculate Number of Days Before reaching ROP = ( Current Quantity of Product - Reorder Point ) / average daily usage
+  useEffect(() => {
+    setDaysROP()
+    let x = currStockLvl - reorderPoint
+    let y = averageDailySales
+    let a = (x / y)
+    let z = Math.round(a)
+    setDaysROP(z)
+  }, [averageDailySales, reorderPoint, currStockLvl, docId])
+
+
+
+  // Date of reorder point = date today + number of days before reorder point
+  function computeDaysToReorderPoint() {
+
+    setDateReorderPoint()
+    if (daysROP !== undefined) {
+      let tempDate = new Date()
+      let x
+      let y
+      y = Math.round(daysROP)
+      x = tempDate.setDate(tempDate.getDate() + y)
+      let z = new Date(x)
+      z = moment(z).format('YYYY-MM-DD')
+      setDateReorderPoint(z)
+    }
+  }
+
+  useEffect(() => {
+    computeDaysToReorderPoint()
+  }, [daysROP, docId])
+
+  //Date to order = date of reorder point - average Leadtime [ceiling value]
+  function computeDateToOrder() {
+    setDateToOrder()
+
+    if (dateReorderPoint !== undefined) {
+      let tempDate = new Date(dateReorderPoint)
+      let x
+      let y
+      y = Math.round(newAverageLeadtime)
+      x = tempDate.setDate(tempDate.getDate() - y)
+      let z = new Date(x)
+      z = moment(z).format('YYYY-MM-DD')
+      setDateToOrder(z)
+    }
+  }
+
+  function computeDaysDiffToOrder() {
+    let x = daysROP
+    let y = newAverageLeadtime
+    let z = 0
+    if (daysROP < 0) {
+      z = x - y
+    } else {
+      z = x + y
+    }
+
+    var num = Math.round(z)
+    setDaysDiffDateToOrder(num)
+  }
+
+  useEffect(() => {
+    computeDaysDiffToOrder()
+  }, [dateToOrder, docId])
+
+  useEffect(() => {
+    console.log("dateToOrder: ", dateToOrder)
+    console.log("reorderPointDate: ", dateReorderPoint)
+  }, [dateToOrder, dateReorderPoint])
+
+  useEffect(() => {
+    computeDateToOrder()
+  }, [dateReorderPoint, newAverageLeadtime, docId])
+
 
 
   const updateLeadtime = () => {
     updateDoc(doc(db, "stockcard", stockcard[docId].id), {
       "analytics.leadtimeMaximum": Number(newMaxLeadtime),
-      "analytics.leadtimeMinumum": Number(newMinLeadtime),
-      "analytics.leadtimeAverage": Number(newAverageLeadtime)
-
+      "analytics.leadtimeMinimum": Number(newMinLeadtime),
+      "analytics.leadtimeAverage": Number(newAverageLeadtime),
+      "analytics.safetyStock": Number(safetyStock),
+      "analytics.reorderPoint": Number(reorderPoint),
+      "analytics.daysROP": Number(daysROP),
+      "analytics.daysDiffDateToOrder": Number(daysDiffDateToOrder),
+      "analytics.dateToOrder": dateToOrder,
+      "analytics.dateReorderPoint": dateReorderPoint,
     });
     setCollectionUpdateMethod("update")
+    updateLeadtimeToast()
   }
   const updateLeadtimeToast = () => {
     toast.info('Leadtime Value Updated from the Database', {
@@ -1381,103 +1507,34 @@ function StockcardPage({ isAuth }) {
     });
   }
 
-  /*
+
+
+  //---start of editLeadtimeModal
+ 
   function EditLeadtimeModal(props) {
-    const [newMinLeadtime, setNewMinLeadtime] = useState(0);
-    const [newMaxLeadtime, setNewMaxLeadtime] = useState(0);
-    const [newAverageLeadtime, setNewAverageLeadtime] = useState(0);
-
-    
-    const [safetyStock, setSafetyStock] = useState(0); // safetyStock
-    const [reorderPoint, setReorderPoint] = useState(); // ReorderPoint
-    const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
-    const [highestDailySales, setHighestDailySales] = useState(0); //highest daily sales
-    const [averageDailySales, setAverageDailySales] = useState(0); //average daily sales 
-
+  
+  
+  
     const handleEditLeadtimeClose = () => setLeadtimeModalShow(false);
-
-    useEffect(()=>{
-      computeAverageLeadtime()
-    },[newMaxLeadtime, newMinLeadtime])
-
-    function computeAverageLeadtime(){
-      let x = 0
-      let y = 0
-      x = Number(newMaxLeadtime) + Number(newMinLeadtime)
-      y = Number(x/2)
-      setNewAverageLeadtime(y)
-    }
-
-    useEffect(()=>{
-      if(stockcard[docId].id!==undefined){
-        setSafetyStock(stockcard[docId].id.analytics.safetyStock)
-        setReorderPoint(stockcard[docId].id.analytics.reorderPoint)
-        setDaysROP(stockcard[docId].id.analytics.daysROP)
-        setHighestDailySales(stockcard[docId].id.analytics.highestDailySales)
-        setAverageDailySales(stockcard[docId].id.analytics.averageDailySales)
-      }
-    },[stockcard[docId].id])
-
-    //compute SafetyStock
+  
+  
     useEffect(() => {
-
-      let x = 0
-      let y = 0
-      let z = 0
-      x = Number(highestDailySales) * Number(newMaxLeadtime)
-      y = Number(averageDailySales) * Number(newAverageLeadtime)
-      z = Number(x - y)
-
-      setSafetyStock(z)
-  }, [highestDailySales, averageDailySales, newMaxLeadtime, newAverageLeadtime, stockcard[docId].id])
-
-
-    //compute reoderpoint
-    //formula to calculate ROP = (average daily sales * leadtime in days) + safetystock
-    useEffect(() => {
-      setReorderPoint()
-      let x = 0
-      let y = 0
-      let z = 0
-
-      x = Number(averageDailySales * newAverageLeadtime)
-      y = x + safetyStock
-      z = Math.round(y)
-      setReorderPoint(z)
-  }, [safetyStock, averageDailySales, newAverageLeadtime])
-
-
-    //compute days before ROP
-    //formula to calculate Number of Days Before reaching ROP = ( Current Quantity of Product - Reorder Point ) / average daily usage
-    useEffect(() => {
-      setDaysROP()
-      if (stockcard[docId].id !== undefined) {
-          let x = stockcard[docId].id.qty - reorderPoint
-          let y = averageDailySales
-          let a = (x / y)
-          let z = Math.round(a)
-          setDaysROP(z)
-      }
-  }, [averageDailySales, reorderPoint, stockcard[docId].id])
-
-
-    useEffect(()=>{
       console.log("newAverageLeadtime:", newAverageLeadtime)
-    },[newAverageLeadtime])
-    
-    useEffect(()=>{
+    }, [newAverageLeadtime])
+  
+    useEffect(() => {
       console.log("newMinLeadtime:", newMinLeadtime)
-    },[newMinLeadtime])
-
-    useEffect(()=>{
+    }, [newMinLeadtime])
+  
+    useEffect(() => {
       console.log("newMaxLeadtime:", newMaxLeadtime)
-    },[newMaxLeadtime])
-
-
-
+    }, [newMaxLeadtime])
+  
+  
+  
     //update Toast
-
-
+  
+  
     function updateLeadtime() {
       updateDoc(doc(db, "stockcard", docId), {
         "analytics.leadtimeMaximum": Number(newMaxLeadtime),
@@ -1487,11 +1544,12 @@ function StockcardPage({ isAuth }) {
         "analytics.reorderPoint": Number(reorderPoint),
         "analytics.daysROP": Number(daysROP)
       });
+      setCollectionUpdateMethod("update")
       updateLeadtimeToast()
       handleEditLeadtimeClose()
     }
-
-
+  
+  
     return (
       <Modal
         {...props}
@@ -1517,13 +1575,13 @@ function StockcardPage({ isAuth }) {
         </Modal.Header>
         <Modal.Body>
           <div className='row p-3'>
-
+  
             <div className='row text-center'>
               <h6><label>Enter Minimum and Maximum days of Product Leadtime</label></h6>
               <br />
               <hr />
               <br />
-
+  
               <div className='col-6'>
                 <label>Minimum Leadtime</label>
                 <Form.Control
@@ -1546,11 +1604,11 @@ function StockcardPage({ isAuth }) {
                   required
                 />
               </div>
-
-
+  
+  
             </div>
           </div>
-
+  
         </Modal.Body>
         <Modal.Footer>
           <Button
@@ -1563,8 +1621,8 @@ function StockcardPage({ isAuth }) {
       </Modal>
     );
   }
-  */
-
+ 
+  //---end of editLeadtimeModal
   //-----------------------------------------------------------------------------------------------
 
   const handleDocChange = (doc) => {
@@ -1616,11 +1674,11 @@ function StockcardPage({ isAuth }) {
       />
       <Navigation
         page="/stockcard" />
-<RecordQuickView
-                show={recordQuickViewModalShow}
-                onHide={() => setRecordQuickViewModalShow(false)}
-                recordid={recordToView}
-            />
+      <RecordQuickView
+        show={recordQuickViewModalShow}
+        onHide={() => setRecordQuickViewModalShow(false)}
+        recordid={recordToView}
+      />
       <ToastContainer
         position="top-right"
         autoClose={1500}
@@ -1749,7 +1807,7 @@ function StockcardPage({ isAuth }) {
                         />
                       </div>
                     }
-                    </div>
+                  </div>
                 </Card.Body>
               </Card>
             </div>
@@ -2196,32 +2254,6 @@ function StockcardPage({ isAuth }) {
                               <div className="row m-0 p-0">
                                 <a
                                   className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                  data-title="Maximum Quantity"
-                                >
-                                  <CaretUp
-                                    color={'#000000'}
-                                    height="25px"
-                                    width="25px"
-                                  />
-                                  <Layers
-                                    color={'#000000'}
-                                    height="25px"
-                                    width="25px"
-                                  />
-                                </a>
-                                <div className="col-9 data-label">
-                                  {stockcard[docId].max_qty === undefined || stockcard[docId].max_qty == 0 ?
-                                    <div style={{ fontStyle: 'italic', opacity: '0.8' }}>Not set</div>
-                                    :
-                                    <>{stockcard[docId].max_qty} units</>
-                                  }
-                                </div>
-                              </div>
-                            </div>
-                            <div className="col-6 px-1">
-                              <div className="row m-0 p-0">
-                                <a
-                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
                                   data-title="Minimum Quantity"
                                 >
                                   <CaretDown
@@ -2240,6 +2272,32 @@ function StockcardPage({ isAuth }) {
                                     <div style={{ fontStyle: 'italic', opacity: '0.8' }}>Not set</div>
                                     :
                                     <>{stockcard[docId].min_qty} units</>
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-6 px-1">
+                              <div className="row m-0 p-0">
+                                <a
+                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                  data-title="Maximum Quantity"
+                                >
+                                  <CaretUp
+                                    color={'#000000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                  <Layers
+                                    color={'#000000'}
+                                    height="25px"
+                                    width="25px"
+                                  />
+                                </a>
+                                <div className="col-9 data-label">
+                                  {stockcard[docId].max_qty === undefined || stockcard[docId].max_qty == 0 ?
+                                    <div style={{ fontStyle: 'italic', opacity: '0.8' }}>Not set</div>
+                                    :
+                                    <>{stockcard[docId].max_qty} units</>
                                   }
                                 </div>
                               </div>

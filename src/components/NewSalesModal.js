@@ -153,19 +153,18 @@ function NewSalesModal(props) {
         }
     }, [itemId])
 
-    useEffect(()=>{
-        if(props.onHide)
-        {
-          clearFields()
+    useEffect(() => {
+        if (props.onHide) {
+            clearFields()
         }
-      }, [props.onHide])
+    }, [props.onHide])
 
     const clearFields = () => {
         setNewDate(today)
         setProductIds([])
         setItems([]);
         setNewNote("");
-        updateQuantity()  
+        updateQuantity()
     }
 
     //----------------------Start of Dynamic form functions----------------------
@@ -186,7 +185,11 @@ function NewSalesModal(props) {
                 averageLeadtime: Number(averageLeadtime),
                 safetyStock: Number(safetyStock),
                 reorderPoint: Number(reorderPoint),
-                daysROP: Number(daysROP)
+                daysROP: Number(daysROP),
+                daysDiffDateToOrder: Number(daysDiffDateToOrder),
+                dateToOrder: dateToOrder,
+                dateReorderPoint: dateReorderPoint
+
             }
         ]);
         setItemId("IT999999");
@@ -197,7 +200,7 @@ function NewSalesModal(props) {
         const list = [...items]
         list.splice(index, 1)
         setItems(list)
-        const ids = [... productIds]
+        const ids = [...productIds]
         ids.splice(index, 1)
         setProductIds(ids)
     }
@@ -264,7 +267,10 @@ function NewSalesModal(props) {
                 "analytics.highestDailySales": Number(items.highestDailySales),
                 "analytics.safetyStock": Number(items.safetyStock),
                 "analytics.reorderPoint": Number(items.reorderPoint),
-                "analytics.daysROP": Number(items.daysROP)
+                "analytics.daysROP": Number(items.daysROP),
+                "analytics.daysDiffDateToOrder": Number(items.daysDiffDateToOrder),
+                "analytics.dateToOrder": items.dateToOrder,
+                "analytics.dateReorderPoint": items.dateReorderPoint
             });
 
         })
@@ -317,6 +323,10 @@ function NewSalesModal(props) {
     const [safetyStock, setSafetyStock] = useState(0); // safetyStock
     const [reorderPoint, setReorderPoint] = useState(); // ReorderPoint
     const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
+    const [dateToOrder, setDateToOrder] = useState()
+    const [dateReorderPoint, setDateReorderPoint] = useState()
+    const [daysDiffDateToOrder, setDaysDiffDateToOrder] = useState()
+
 
 
     //query documents from sales_record that contains docId
@@ -403,7 +413,7 @@ function NewSalesModal(props) {
         x = totalSales
         y = dateDifference
         z = Number(totalSales / dateDifference)
-        setAverageDailySales(z)
+        setAverageDailySales(Math.round(z))
     }, [totalSales, dateDifference])
 
     //compute array of Daily Sales
@@ -495,7 +505,7 @@ function NewSalesModal(props) {
         y = Number(averageDailySales) * Number(averageLeadtime)
         z = Number(x - y)
 
-        setSafetyStock(z)
+        setSafetyStock(Math.round(z))
 
     }, [highestDailySales, averageDailySales, maxLeadtime, averageLeadtime, salesQuery, salesRecordCollection])
 
@@ -510,7 +520,7 @@ function NewSalesModal(props) {
         let x = 0
         let y = 0
         let z = 0
- 
+
         x = Number(averageDailySales * averageLeadtime)
         y = x + safetyStock
         z = Math.round(y)
@@ -531,6 +541,65 @@ function NewSalesModal(props) {
     }, [averageDailySales, reorderPoint, stockcardDoc])
 
 
+    function computeDaysToReorderPoint() {
+        setDateReorderPoint()
+        if (daysROP !== undefined) {
+            let tempDate = new Date()
+            let x
+            let y
+            y = Math.round(daysROP)
+            x = tempDate.setDate(tempDate.getDate() + y)
+            let z = new Date(x)
+            z = moment(z).format('YYYY-MM-DD')
+            setDateReorderPoint(z)
+        }
+    }
+
+    useEffect(() => {
+        computeDaysToReorderPoint()
+    }, [daysROP, stockcardDoc])
+
+    function computeDateToOrder() {
+        setDateToOrder()
+        if (dateReorderPoint !== undefined) {
+            let tempDate = new Date(dateReorderPoint)
+            let x
+            let y
+            y = Math.round(averageLeadtime)
+            x = tempDate.setDate(tempDate.getDate() - y)
+            let z = new Date(x)
+            z = moment(z).format('YYYY-MM-DD')
+            setDateToOrder(z)
+        }
+    }
+
+    useEffect(() => {
+        computeDateToOrder()
+    }, [dateReorderPoint, averageLeadtime, stockcardDoc])
+
+
+    function computeDaysDiffToOrder() {
+        let x = daysROP
+        let y = averageLeadtime
+        let z = 0
+        if (daysROP <= 0) {
+            z = x - y
+        } else {
+            z = x + y
+        }
+        var num = Math.round(z)
+        setDaysDiffDateToOrder(num)
+    }
+
+    useEffect(() => {
+        computeDaysDiffToOrder()
+    }, [dateToOrder, stockcardDoc])
+
+
+    useEffect(() => {
+        console.log("dateToOrder: ", dateToOrder)
+        console.log("dateReorderPoint: ", dateReorderPoint)
+    }, [dateToOrder, dateReorderPoint])
 
 
     //search for min Date in array
@@ -599,8 +668,8 @@ function NewSalesModal(props) {
         let x = 0
         x = date1 - date2
         let TotalDays = Math.ceil(x / (1000 * 3600 * 24))
-        if(TotalDays===0){
-            TotalDays=1 
+        if (TotalDays === 0) {
+            TotalDays = 1
         }
         setDateDifference(TotalDays)
     }, [minDate, maxDate, newDate])
