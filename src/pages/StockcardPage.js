@@ -2331,7 +2331,7 @@ function StockcardPage({ isAuth }) {
                             <div className="row m-0 p-0">
                               <a 
                                 className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Total Quantity"
+                                data-title="Total Quantity In"
                               >
                                 <Enter
                                   color={'#0d6efd'}
@@ -2348,7 +2348,7 @@ function StockcardPage({ isAuth }) {
                             <div className="row m-0 p-0">
                               <a 
                                 className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                data-title="Total Quantity"
+                                data-title="Total Quantity Out"
                               >
                                 <Exit
                                   color={'#0d6efd'}
