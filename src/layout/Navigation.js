@@ -110,12 +110,6 @@ const Navigation = (props) => {
               <></>
             :
               <Nav className="me-auto">
-                <LinkContainer to="/warehouse">
-                  <Nav.Link>Warehouse</Nav.Link>
-                </LinkContainer>
-                <LinkContainer to="/stockcard">
-                  <Nav.Link>Stockcard</Nav.Link>
-                </LinkContainer>
                 <NavDropdown title="Records" id="collasible-nav-dropdown">
                   <LinkContainer to="/records">
                     <NavDropdown.Item>Transaction History</NavDropdown.Item>
@@ -125,11 +119,17 @@ const Navigation = (props) => {
                     <NavDropdown.Item>Supplier List</NavDropdown.Item>
                   </LinkContainer>
                 </NavDropdown>
+                <LinkContainer to="/stockcard">
+                  <Nav.Link>Stockcard</Nav.Link>
+                </LinkContainer>
+                <LinkContainer to="/warehouse">
+                  <Nav.Link>Warehouse</Nav.Link>
+                </LinkContainer>
                 <LinkContainer to="/itemforecasting">
                   <Nav.Link>Analytics</Nav.Link>
                 </LinkContainer>
                 <NavDropdown title="Tools" id="collasible-nav-dropdown">
-                  <LinkContainer to="">
+                  <LinkContainer to="/printbarcodes">
                     <NavDropdown.Item>Print Codes</NavDropdown.Item>
                   </LinkContainer>
                   <NavDropdown.Divider />

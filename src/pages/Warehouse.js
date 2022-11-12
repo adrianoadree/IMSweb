@@ -2,8 +2,8 @@ import React from 'react';
 import { Tab, Button, ListGroup, Modal, Card } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect, useRef, Component  } from 'react';
-import { db, st} from '../firebase-config';
-import { getDoc, collection, doc, deleteDoc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '../firebase-config';
+import { collection, doc, deleteDoc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrashCan, faPlus, faMap, faEdit, faArrowCircleRight, faDoorOpen, faDoorClosed} from '@fortawesome/free-solid-svg-icons'
 import { faMap as faMapO } from '@fortawesome/free-regular-svg-icons'
@@ -22,9 +22,7 @@ import { Spinner } from 'loading-animations-react';
 import  ProductQuickView  from '../components/ProductQuickView'
 
 
-function Warehouse({isAuth}) {
-
-  const [shown, setShown] = useState(true);
+function Warehouse(props) {
   
   const [productToView, setProductToView] = useState(["IT0000001"])
   const [modalShowWH, setModalShowWH] = useState(false);
@@ -33,65 +31,24 @@ function Warehouse({isAuth}) {
   const [modalShowVS, setModalShowVS] = useState(false);
   const [modalShowPQV, setModalShowPQV] = useState(false); //product quick view modal
   const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
-  const [productsInStorageWithInfo, setProductsInStorageWithInfo] = useState([])
-  const [idOfStorage, setIdOfStorage] = useState("");
-  const [remarksOfStorage, setRemarksOfStorage] = useState("");
-  const [typeOfStorage, setTypeOfStorage] = useState("");
-  const [productsOfStorage, setProductsOfStorage] = useState([]);
-  const [warehouseDoc, setWarehouseDoc] = useState([]);
+  const [cellSpecifications, setCellSpecifications] = useState({type:"",products:[]});
   const [warehouse, setWarehouse] = useState();
   const [whId, setWHId] = useState();
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
-  const [col, setCol] = useState();
-  const [row, setRow] = useState();
-  const [dimensions, setDimensions] = useState();
-  const [fontSize, setFontSize] = useState();
   const [editing, setEditing] = useState(false);
   const [zooming, setZooming] = useState(false);
   const [qrVisible, setQRVisible] = useState(false);
   const [cellIdVisible, setCellIdVisible] = useState(false);
-  const [viewingStorage, setViewingStorage] = useState(false);
   const [warehouseListVisible, setWarehouseListVisible] = useState(true);
   const [colIndex, setColIndex] = useState(0);
   const [rowIndex, setRowIndex] = useState(0);
   const [isStockcardFetched, setIsStockcardFetched] = useState();
   const [key, setKey] = useState('main');//Tab controller
-  const [warehouseCell, setWarehouseCell] = 
-      useState(
-        [
-          {
-            "A00": {
-              "products": []
-            },
-            "A01": {
-              "products": []
-            }
-          },
-          {
-            "B01": {
-              "products": []
-            },
-            "B02": {
-              "products": []
-            }
-          },
-        
-        ]
-      );
-
   const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("none")
 
   //element state updater
   useEffect(() => {
-    //compute for DOM dimensions for proportions
-    /*var mapContainerWidth = getComputedStyle(document.getElementById("warehouse-map"));// get warehouse-map dimensions
-    var mapWidth = document.getElementById("warehouse-map").clientWidth // get warehouse-map width
-    
-    mapWidth -= parseFloat(mapContainerWidth.paddingLeft) + parseFloat(mapContainerWidth.paddingRight); // subtract padding dimensions from width
-    */setDimensions(1250/col) //set space width
-    setFontSize(60/col) // set font size for space id's
-
     var allGridlines = document.querySelectorAll(".box-col"); // select all box-col for editing
     if (editing) {
       for(var i = 0; i < allGridlines.length; i++) {allGridlines[i].classList.remove('border-0');} // show editing gridlines
@@ -132,8 +89,6 @@ function Warehouse({isAuth}) {
       warehouse_list_visibility_toggle.setAttribute("data-title","Show");
       warehouse_list_footer.classList.add("warehouse-list-bar-hidden");
     }
-
-
   }, )
 
   useEffect(()=>{
@@ -146,8 +101,20 @@ function Warehouse({isAuth}) {
       setUserID(user.uid)
     }
   }, [{ user }])
-  const handleStorageViewing = () => {
-    
+
+  const getMapWidth = () => {
+    //compute for DOM dimensions for proportions
+    var warehouse_map = document.getElementById("warehouse-map")
+    if (
+      typeof warehouse_map === 'object' &&
+      !Array.isArray(warehouse_map) &&
+      warehouse_map !== null
+    ) {
+    var mapContainerWidth = getComputedStyle(warehouse_map);// get warehouse-map dimensions
+    var mapWidth = warehouse_map.clientWidth // get warehouse-map width
+    mapWidth -= parseFloat(mapContainerWidth.paddingLeft) + parseFloat(mapContainerWidth.paddingRight); // subtract padding dimensions from width
+    return mapWidth
+    }
   }
 
   const getProductInfo = (product_id) => {
@@ -238,7 +205,7 @@ function Warehouse({isAuth}) {
           setWHId(warehouse.length-1)
           setKey(warehouse[warehouse.length-1].id)
         }
-        else
+        else if(collectionUpdateMethod == "none")
         {
           setWHId(0)
           setKey(warehouse[0].id)
@@ -269,19 +236,6 @@ function Warehouse({isAuth}) {
       setIsStockcardFetched(true)
     }
   }, [stockcard])
-  
-  // get warehouse cell specification
-  useEffect(() => {
-    if(warehouse == undefined) {
-        // do nothing
-    }
-    else
-    {
-      setCol(warehouse[whId].col) // assign cell size 
-      setRow(warehouse[whId].row)
-      setWarehouseCell(warehouse[whId].cells) // get warehouse cells
-    }
-  }, [whId])
 
    const deleteToast = () => {
     toast.error('Warehouse Deletion Successful', {
@@ -293,8 +247,56 @@ function Warehouse({isAuth}) {
       draggable: true,
     });
   } 
+
+  function addPadding(num) {
+    var padded = num + "";
+    while(padded.length < 2) {padded = "0" + padded;}
+    return padded;
+  }
  
-  
+  const addRow = async (w_cells, w_row, w_col) => {
+    var tempArray = w_cells
+    var background = tempArray[0][0].color
+    var tempCol = {};
+    var tempRow = []
+    for(var j = 0; j < w_col; j++){ 
+      var obj = {
+        products: [],
+        isStorage: false,
+        color: background
+      };
+      obj.id = warehouse[whId].id.substring(0, 4) + '-' + (tempArray.length + 10).toString(36).toUpperCase() + addPadding(Number(j+1));
+      tempCol[j] = obj;
+    }
+    tempArray.push(tempCol);
+    const getMap = doc(db, 'warehouse', warehouse[whId].id);
+    await updateDoc(getMap,{
+      cells: tempArray,
+      row: Number(w_row + 1)
+    });
+  setCollectionUpdateMethod("update")
+  }
+
+  const addColumn = async (w_cells, w_row, w_col) => {
+    var tempArray = w_cells
+    var background = tempArray[0][0].color
+    for(var i = 0; i < w_row; i++){ 
+      var obj = {
+        products: [],
+        isStorage: false,
+        color: background
+      };
+      obj.id = warehouse[whId].id.substring(0, 4) + '-' + (i + 10).toString(36).toUpperCase() + addPadding(Number(w_col+1));
+      tempArray[i][w_col] = obj
+    }
+    const getMap = doc(db, 'warehouse', warehouse[whId].id);
+    await updateDoc(getMap,{
+      cells: tempArray,
+      col: Number(w_col + 1)
+    });
+  setCollectionUpdateMethod("update")
+  }
+
   const deleteWarehouse = async (id) => {
     const warehouseDoc = doc(db, "warehouse", id)
     await deleteDoc(warehouseDoc);
@@ -373,7 +375,7 @@ function Warehouse({isAuth}) {
     else
     {
       stockcard.map((product)=>{
-        if(productsOfStorage.indexOf(product.id) >= 0)
+        if(cellSpecifications.products.indexOf(product.id) >= 0)
           tempStockcardList.push(product)
       })
     }
@@ -381,7 +383,7 @@ function Warehouse({isAuth}) {
     var rowArray = []
     var colArray = []
     
-    if(typeOfStorage == "shelf")
+    if(cellSpecifications.type == "shelf")
     {
       while (tempStockcardList.length < 32) {
         var stockcardTempObj={
@@ -410,8 +412,9 @@ function Warehouse({isAuth}) {
         }
       }
     }
+    console.log()
 
-    if(typeOfStorage == "freezer")
+    if(cellSpecifications.type == "freezer")
     {
       while (tempStockcardList.length < 16) {
         var stockcardTempObj={
@@ -441,12 +444,43 @@ function Warehouse({isAuth}) {
       }
     }
 
+    if(cellSpecifications.type == "pallet")
+    {
+      while (tempStockcardList.length < 24) {
+        var stockcardTempObj={
+          "id":" ",
+          "qty": "",
+          "description": " ",
+          "img": ""
+        }
+        tempStockcardList.push(stockcardTempObj)
+      }
+  
+      while (tempStockcardList.length % 6 != 0) {
+        var stockcardTempObj={
+          "id":" ",
+          "qty": "",
+          "description": " "
+        }
+        tempStockcardList.push(stockcardTempObj)
+      }
+  
+      for(var i = 0; i < tempStockcardList.length; i++) {
+        colArray.unshift(tempStockcardList[i])
+        if((i + 1) % 6 == 0) {
+          rowArray.unshift(colArray)
+          colArray = []
+        }
+      }
+    }
+    
+
     const modalSize = (storage_type) => {
       if(storage_type == "shelf")
       {
         return "lg"
       }
-      else if(storage_type == "freezer")
+      else if(storage_type == "freezer" || storage_type == "pallet")
       {
         return "md"
       }
@@ -455,7 +489,7 @@ function Warehouse({isAuth}) {
     return (
       <Modal
         {...props}
-        size={modalSize(typeOfStorage)}
+        size={modalSize(cellSpecifications.type)}
         aria-labelledby="contained-modal-title-vcenter"
         centered
         className="IMS-modal view-storage">
@@ -471,12 +505,12 @@ function Warehouse({isAuth}) {
         </div>
         <Modal.Body>
           <div id="view-storage-container" className="d-flex align-items-center justify-content-center">
-            <div id="storage-in-view" className="w-100 h-100" style={{width: (typeOfStorage == "freezer"? '300px !important':'')}}>
+            <div id="storage-in-view" className="w-100 h-100" style={{width: (cellSpecifications.type == "freezer"? '300px !important':'')}}>
             {isFetched?
               <div className='row py-3 px-4'>
                 <div className="row my-2 mx-0">
                   <div className='col-12 p-0' style={{lineHeight: '0'}}>
-                    {typeOfStorage == "shelf"?
+                    {cellSpecifications.type == "shelf"?
                       <>
                       {rowArray.map((products) => {
                         return(
@@ -501,7 +535,7 @@ function Warehouse({isAuth}) {
                                           <div className="badge">
                                             <div className="circle-small shadow-small yellow black-text condensed-text d-flex align-items-center justify-content-center">
                                               <div>
-                                            <strong>{item.qty} </strong> 
+                                                <strong>{item.qty} </strong> 
                                               </div>
                                             </div>
                                           </div>
@@ -539,7 +573,7 @@ function Warehouse({isAuth}) {
                     :
                       <></>
                     }
-                    {typeOfStorage == "freezer"?
+                    {cellSpecifications.type == "freezer"?
                       <>
                       {rowArray.map((products, index) => {
                         return(
@@ -557,22 +591,22 @@ function Warehouse({isAuth}) {
                                     {item.id != " "?
                                       
                                           <div 
-                                            className="storage-item w-100 h-100"
+                                            className="storage-item w-100 h-100 p-0"
                                             key={item.id}
                                           >
+                                            <button 
+                                          className="storage-item-img-container m-0 w-100 d-flex align-items-center justify-content-center"
+                                          onClick={()=>{setProductToView(item.id); setModalShowPQV(true)}}
+                                        >
                                             <div className="badge-container">
                                               <div className="badge">
-                                                <div className="circle-small blue d-flex align-items-center justify-content-center">
-                                                  <div>
-                                                    {item.qty}  
-                                                  </div>
-                                                </div>
+                                              <div className="circle-small shadow-small yellow black-text condensed-text d-flex align-items-center justify-content-center">
+                                              <div>
+                                                <strong>{item.qty} </strong> 
                                               </div>
                                             </div>
-                                            <button 
-                                              className="storage-item-img-container m-0 p-0 w-100 d-flex align-items-center justify-content-center"
-                                              onClick={()=>{setProductToView(item.id); setModalShowPQV(true)}}
-                                            >
+                                              </div>
+                                            </div>
                                               {item.img == " " || item.img == ""?
                                                 <div className="scroll-text-horizontally storage-item-no-image" style={{margin: '0.2em'}}>{item.description}</div>
                                               :
@@ -606,7 +640,68 @@ function Warehouse({isAuth}) {
                     :
                       <></>
                     }
-                  <div className={'col-12 p-0 ' + typeOfStorage +'-bottom'}></div>
+                    {cellSpecifications.type == "pallet"?
+                      <>
+                      {rowArray.map((products, index) => {
+                        return(
+                          <>
+                          <div className="col-12 p-0 m-0 w-100" style={{height: '100px'}}>
+                                        <div className={"d-flex justify-content-center flex-row align-items-center p-3 h-100" + (index == rowArray.length-1?" pallet-center":"")}>
+                              {products.map((item)=>{
+                                return (
+                                  <>
+                                    {item.id != " "?
+                                          <div 
+                                            className="storage-item w-100 h-100 p-0"
+                                            key={item.id}
+                                          >
+                                            <button 
+                                          className="storage-item-img-container m-0 w-100 d-flex align-items-center justify-content-center"
+                                          onClick={()=>{setProductToView(item.id); setModalShowPQV(true)}}
+                                        >
+                                            <div className="badge-container">
+                                              <div className="badge">
+                                              <div className="circle-small shadow-small yellow black-text condensed-text d-flex align-items-center justify-content-center">
+                                              <div>
+                                                <strong>{item.qty} </strong> 
+                                              </div>
+                                            </div>
+                                              </div>
+                                            </div>
+                                              {item.img == " " || item.img == ""?
+                                                <div className="scroll-text-horizontally storage-item-no-image" style={{margin: '0.2em'}}>{item.description}</div>
+                                              :
+                                              <img src={item.img} style={{height: '100%', width: 'auto'}}/>
+                                              }
+                                            </button>
+                                          </div>
+                                    :
+                                      <div 
+                                        className="storage-item-empty w-100 h-100"
+                                        key={item.id}
+                                      >
+                                        <button 
+                                          className="storage-item-img-container m-0 p-0 w-100 d-flex align-items-center justify-content-center"
+                                          style={{background: 'none !important'}}
+                                        >
+                                        </button>
+                                      </div>
+                                    }
+                                    
+                                  </>
+                                )
+                              })}
+                              
+                              </div>
+                                      </div>
+                          </>
+                        )
+                      })}
+                      </>
+                    :
+                      <></>
+                    }
+                  <div className={'col-12 p-0 ' + cellSpecifications.type +'-bottom'}></div>
                   </div>
                 </div>
               </div>
@@ -634,7 +729,7 @@ function Warehouse({isAuth}) {
     const [cellRemarks, setCellRemarks] = useState(" ");
 
     useEffect(()=>{
-      if(warehouseDoc === undefined) {
+      if(warehouse === undefined) {
       }
       else
       {
@@ -1061,12 +1156,8 @@ function Warehouse({isAuth}) {
                                           className="w-100 h-100 d-flex align-items-center justify-content-center"
                                           data-title="hey"
                                           onClick={()=>{
-                                            setIdOfStorage(content[k].id);
-                                            setRemarksOfStorage(content[k].id);
-                                            setProductsOfStorage(content[[k]].products);
-                                            setTypeOfStorage(content[k].type);
+                                            setCellSpecifications(content[k]);
                                             setModalShowVS(true)
-                                            setViewingStorage(true)
                                           }}
                                         >
                                           <FontAwesomeIcon icon={faDoorOpen}/>
@@ -1119,7 +1210,7 @@ function Warehouse({isAuth}) {
                             
                           </div>
                         </div>
-                        <div className={'box-col ' + content[k].color} style ={{width: dimensions + 'px', height: dimensions + 'px'}}
+                        <div className={'box-col ' + content[k].color} style ={{width: (getMapWidth()/warehouse[whId].col) + 'px', height: (getMapWidth()/warehouse[whId].col) + 'px'}}
                         key={'col' + index + '-' + k}
                         >
                           {content[k].isStorage?
@@ -1127,7 +1218,7 @@ function Warehouse({isAuth}) {
                                
                               
                               
-                              <div className="cell-info" style={{fontSize: fontSize + 'pt'}}>
+                              <div className="cell-info" style={{fontSize: (60/warehouse[whId].col) + 'pt'}}>
                                 <span className="cell-id d-none">{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</span>
                                 <div className="qr-code d-flex justify-content-center d-none">
                                   <QRCode
@@ -1139,7 +1230,7 @@ function Warehouse({isAuth}) {
                             </div>
                           :
                             <>
-                            <div className="cell-info" style={{fontSize: fontSize + 'pt'}}>
+                            <div className="cell-info" style={{fontSize: (60/warehouse[whId].col) + 'pt'}}>
                               <span className="cell-id d-none">{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</span>
                             </div>      
                               {content[k].products.map((val, k) => {
@@ -1153,12 +1244,58 @@ function Warehouse({isAuth}) {
                         </div>
                       </a>
                     </div>
+                    {index == warehouse[whId].row-1?
+                      <></>
+                    :
+                      <></>
+                    }
                   </>   
                 ); 
               })}
+              {index == 0?
+              <div 
+                id="add-column-container" 
+                style ={{height: ((getMapWidth()/warehouse[whId].col) + 10) + 'px'}}
+              >
+                <div id="add-column-button">
+                  <div className="d-flex h-100 align-items-center justify-content-center flex-column">
+                    
+                    <button
+                      id="add-column-icon"
+                      classname="plain-button"
+                      onClick={(show)=>addColumn(warehouse[whId].cells, warehouse[whId].row, warehouse[whId].col)}
+                    >
+                      <FontAwesomeIcon icon={faPlus}/>
+                    </button>
+                    
+                    <div id="add-column-line">
+                  </div>
+                  </div>
+                </div>
+              </div>
+              :
+              <></>
+              }
             </div>  
           );
         })}
+        
+        <div id="add-row-container" style ={{width: ((getMapWidth()/warehouse[whId].col) + 10) + 'px'}}>
+          <div id="add-row-button">
+            <div className="d-flex w-100 align-items-center justify-content-center flex-row">
+            <button 
+              id="add-row-icon" 
+              className="plain-button"
+              onClick={(show)=>addRow(warehouse[whId].cells, warehouse[whId].row, warehouse[whId].col)}
+            >
+                <FontAwesomeIcon icon={faPlus}/>
+            </button>
+            <div id="add-row-line">
+                
+            </div>
+            </div>
+          </div>
+        </div>
       </>
     );
   }
@@ -1403,13 +1540,9 @@ return (
           </div>
           <Tab.Content
             className="px-0">
-              {(warehouse === undefined || warehouse.length == 0) || warehouse.length == 0?
+              {(warehouse === undefined || warehouse.length == 0) || whId === undefined?
                 <></>
               :
-                <>
-                {col === undefined || row === undefined || dimensions === undefined?
-                <></>
-                :
                 <Tab.Pane eventKey={warehouse[whId].id}>
                   <div className="data-contents horizontal">
                     <div id="warehouse-info">
@@ -1529,8 +1662,6 @@ return (
                     </div>
                   </div>
                 </Tab.Pane>
-                }
-                </>
               } 
           </Tab.Content>
         </div>

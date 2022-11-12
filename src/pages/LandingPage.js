@@ -78,7 +78,7 @@ function LandingPage() {
     },)
 
     useEffect(()=>{
-        console.log(productsSold)
+        console.log(productsBought)
     })
 
     useEffect(() => {
@@ -191,19 +191,12 @@ function LandingPage() {
             
             var sorted_products_sold = [... tempProductSoldList]
             sorted_products_sold.sort((prod1, prod2)=>{return prod1.qty < prod2.qty})
-            if(sorted_products_sold.length > 4)
-            {
-                setTopProducts(sorted_products_sold.splice(4,4))
-            }
-            else
-            {
-                setTopProducts(sorted_products_sold)
-            }
+            setTopProducts(sorted_products_sold)
         }
     }
 
     function DisplayTopProducts(props) {
-        if (topProducts.length === 4) {
+        if (topProducts.length >= 4) {
             return (
                 <>
                     <div id="top-products-first" className="d-flex align-items-center justify-content-center flex-column col-4">
@@ -506,7 +499,10 @@ function LandingPage() {
                         else {
                             tempProductBoughtListId.push(product.itemId)
                             tempProductBoughtListQty.push(product.itemQuantity)
-                            tempProductBoughtListTransacItem.push(purch.id)
+                            if(tempProductBoughtListTransacItem.indexOf(purch.id) == -1)
+                            {
+                                tempProductBoughtListTransacItem.push(purch.id)
+                            }
                             tempProductBoughtListTransac.push(tempProductBoughtListTransacItem)
                         }
                     })
@@ -564,17 +560,32 @@ function LandingPage() {
         salesRecordCollection.map((sale) => {
             record_date = new Date(sale.transaction_date)
             record_date.setHours(0, 0, 0, 0)
+            tempProductSoldListTransacItem = []
             if (!sale.isVoided) {
                 if ((record_date.getTime() >= date_start.getTime() && record_date.getTime() <= date_end.getTime())) {
                     sale.product_list.map((product) => {
                         if (tempProductSoldListId.indexOf(product.itemId) >= 0) {
                             tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] = tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] + product.itemQuantity
-                            tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].push(sale.id)
+                            for(var i = 0; i < tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].length; i++)
+                            {
+                                if(tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)][i] == sale.id)
+                                {
+
+                                }
+                                else
+                                {
+
+                                    tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].push(sale.id)
+                                }
+                            }
                         }
                         else {
                             tempProductSoldListId.push(product.itemId)
                             tempProductSoldListQty.push(product.itemQuantity)
-                            tempProductSoldListTransacItem.push(sale.id)
+                            if(tempProductSoldListTransacItem.indexOf(sale.id) == -1)
+                            {
+                                tempProductSoldListTransacItem.push(sale.id)
+                            }
                             tempProductSoldListTransac.push(tempProductSoldListTransacItem)
                         }
                     })
@@ -951,7 +962,9 @@ function LandingPage() {
     useEffect(() => {
         console.log(prodNearROP)
     }, [prodNearROP])
-
+    useEffect(() => {
+        console.log(topProducts)
+    }, )
     return (
         <div>
             <UserRouter

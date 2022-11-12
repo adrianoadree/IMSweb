@@ -11,21 +11,21 @@ import { Spinner } from 'loading-animations-react';
 function RecordQuickView(props) {
   const { user } = UserAuth();
   const [userID, setUserID] = useState("");
-  const [recordDoc, setRecordDoc] = useState(); //stockcard Document variable
-  const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
-  const [userProfile, setUserProfile] = useState({});
-  const userCollectionRef = collection(db, "user");
-  const [supplierCollection, setSupplierCollection] = useState(); //purchase_record Collection
-  const [userCollection, setUserCollection] = useState(); // stockcardCollection variable
-  const [totalAmount, setTotalAmount] = useState(0)
+  const [recordDoc, setRecordDoc] = useState(); //transaction document variable
+  const [isFetched, setIsFetched] = useState(false); //listener for when collection is retrieved
+  const userCollectionRef = collection(db, "user"); //user collection database reference variable
+  const [userCollection, setUserCollection] = useState(); // user collection  variable
+  const [userProfile, setUserProfile] = useState({}); //user profile document variable
+  const [supplierCollection, setSupplierCollection] = useState(); //supplier collection  variable
 
-    useEffect(() => {
-      if (user) {
-          setUserID(user.uid)
-      }
+  useEffect(() => {
+    if (user) {
+      setUserID(user.uid)
+    }
   }, [{ user }])
 
   useEffect(() => {
+    //read user collection
     if (userID === undefined) {
       const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
     
@@ -48,7 +48,7 @@ function RecordQuickView(props) {
   }, [userID])
 
   useEffect(() => {
-    //read purchase_record collection
+    //read supplier collection
     if (userID === undefined) {
       const supplierCollectionRef = collection(db, "supplier")
       const q = query(supplierCollectionRef, where("user", "==", "DONOTDELETE"));
@@ -70,124 +70,135 @@ function RecordQuickView(props) {
   }, [userID])
   
   useEffect(() => {
+    //set user profile
     if(userCollection === undefined)
     {
 
     }
     else
     {
-        userCollection.map((metadata) => {
-          setUserProfile(metadata)
-        });
-
+      userCollection.map((metadata) => {
+        setUserProfile(metadata)
+      });
     }
   }, [userCollection])
 
-    useEffect(() => {
-        async function readPurchaseRecordDoc() {
-          const purchaseRecordRef = doc(db, "purchase_record", props.recordid)
-          const docSnap = await getDoc(purchaseRecordRef)
-          if (docSnap.exists()) {
-            setRecordDoc({ ...docSnap.data(), id: docSnap.id });
-          }
-        }
-        async function readSalesRecordDoc() {
-          const salesRecordRef = doc(db, "sales_record", props.recordid)
-          const docSnap = await getDoc(salesRecordRef)
-          if (docSnap.exists()) {
-            setRecordDoc({ ...docSnap.data(), id: docSnap.id });
-          }
-        }
-        if(props.recordid === undefined) {
-        
-        }
-        else
-        {
-          if(props.recordid.startsWith("PR"))
-          {
-            readPurchaseRecordDoc()
-          }
-          else
-          {
-            readSalesRecordDoc()
-          }
-        }
-    }, [props.recordid])
-
-    const findTotal = (product_list, type) => {
-      var total = 0
-      if(type == "P")
-      {
-        product_list.map((product)=>{
-          total = total + (product.itemQuantity * product.itemPPrice)
-        })
+  
+  useEffect(() => {
+    async function readPurchaseRecordDoc() {
+      const purchaseRecordRef = doc(db, "purchase_record", props.recordid)
+      const docSnap = await getDoc(purchaseRecordRef)
+      if (docSnap.exists()) {
+        setRecordDoc({ ...docSnap.data(), id: docSnap.id });
       }
-      else
-      {
-        product_list.map((product)=>{
-          total = total + (product.itemQuantity * product.itemSPrice)
-        })
-      }
-      return total
     }
-
-    useEffect(()=>{
-      if(recordDoc === undefined) {
-        setIsFetched(false)
+    async function readSalesRecordDoc() {
+      const salesRecordRef = doc(db, "sales_record", props.recordid)
+      const docSnap = await getDoc(salesRecordRef)
+      if (docSnap.exists()) {
+        setRecordDoc({ ...docSnap.data(), id: docSnap.id });
+      }
+    }
+    if(props.recordid === undefined) {
+    
+    }
+    else
+    {
+      if(props.recordid.startsWith("PR"))
+      {
+        readPurchaseRecordDoc() //for purchase record
       }
       else
       {
-        setIsFetched(true)
+        readSalesRecordDoc() // for sales record
       }
-    }, [recordDoc])
+    }
+  }, [props.recordid])
 
-    const getSupplierInfo = (supplier_id) => {
-      var target_supplier
-      if(supplierCollection !== undefined)
+  useEffect(()=>{
+    if(recordDoc === undefined) {
+      setIsFetched(false)
+    }
+    else
     {
-      supplierCollection.map((supp) => {
-        if(supp.id == supplier_id)
-        {
-          target_supplier = supp
-        }
-      })
-      return target_supplier
+      setIsFetched(true)
+    }
+  }, [recordDoc])
+
+  const getSupplierInfo = (supplier_id) => {
+    var target_supplier
+    if(supplierCollection !== undefined)
+    {
+    supplierCollection.map((supp) => {
+      if(supp.id == supplier_id)
+      {
+        target_supplier = supp
+      }
+    })
+    return target_supplier
     }
     else
     {
       return {supplier_name: "", supplier_emailaddress: "", supplier_address: "", supplier_mobileNum: "", supplier_telNum: ""}
     }
-    }
+  }
 
-    const checkIfEmpty = (info_string) => {
-      if(info_string === undefined || info_string == "" || info_string == " " || info_string == 0)
-      {
-        return true
-      }
-      else
-      {
-        return false
-      }
+  const expandProductList = (product_list) => {
+    var temp_product_list = product_list
+    while(temp_product_list.length < 5) {
+      temp_product_list.push(
+        {
+          itemQuantity: 0,
+          itemName: "|",
+          itemSPrice: 0,
+          itemPPrice: 0,
+        }
+      )
     }
-    return (
-        <Modal
-            {...props}
-            size="xl"
-            aria-labelledby="contained-modal-title-vcenter"
-            centered
-            fullscreen="xl-down"
-            className="IMS-modal"
-            id="record-quick-view-modal"
+    return temp_product_list;
+  }
+
+  const findTotal = (product_list, type) => {
+    var total = 0
+    if(type == "P")
+    {
+      product_list.map((product)=>{
+        total = total + (product.itemQuantity * product.itemPPrice)
+      })
+    }
+    else
+    {
+      product_list.map((product)=>{
+        total = total + (product.itemQuantity * product.itemSPrice)
+      })
+    }
+    return total
+  }
+
+  const checkIfEmpty = (info_string) => {
+    return (info_string === undefined || info_string == "" || info_string == " " || info_string == 0)
+  }
+    
+  return (
+    <Modal
+      {...props}
+      size="xl"
+      aria-labelledby="contained-modal-title-vcenter"
+      centered
+      id="record-quick-view-modal"
+      fullscreen="xl-down"
+      className="IMS-modal"
+    >
+      {recordDoc === undefined?
+        <></> 
+      : 
+        <Modal.Body
+          className="d-flex justify-content-center"
         >
-          {recordDoc === undefined?
-            <></> 
-          : 
-            <Modal.Body
-            className="d-flex justify-content-center">
-            {isFetched?
+          {isFetched?
             <div id="record-receipt" className="p-4">
               <div className="business-information">
-                <div className="row p-0 m-0 w-100 h-100 d-flex align-items-center justify-content-center text-center">
+                <div className="p-0 m-0 w-100 h-100 d-flex align-items-center justify-content-center text-center flex-column">
                   {recordDoc.id.startsWith("PR")?
                     <>
                       {recordDoc.transaction_supplier.startsWith("SU")?
@@ -213,7 +224,7 @@ function RecordQuickView(props) {
                           </small>
                         </>
                       :
-                      <h3 className="stretched-heading">{recordDoc.transaction_supplier}</h3>
+                        <h3 className="stretched-heading">{recordDoc.transaction_supplier}</h3>
                       }
                     </>
                   :
@@ -226,19 +237,51 @@ function RecordQuickView(props) {
                 </div>
               </div>
               <div className="receipt-metadata">
-                <div className="row p-0 m-0 w-100 h-100 d-flex align-items-center justify-content-between text-center">
+                <div className="p-0 m-0 w-100 h-100 d-flex align-items-center justify-content-between text-center">
                   <h3 className="heading">OFFICIAL RECEIPT</h3>
                   <h3 id="record-id">No. <span>{recordDoc.id.substring(2, 7)}</span></h3>
                 </div>
               </div>
               <div className="receipt-contents">
-                <div className="recipient">
-                  <div >
-                    <small className="row p-0 m-0 w-100 h-100 d-flex align-items-center justify-content-between">
-                      <span>Deliver To:</span>
-                      <span>Date:</span>
-                    </small>
-                    <small></small>
+                <div className="recipient p-1">
+                  <div className="row p-0 m-0 w-100 d-flex align-items-center justify-content-between">
+                    <div className="col-9 p-0 m-0 d-flex align-items-baseline justify-content-between pe-2">
+                      <div className="col-2">
+                        <small>Deliver To:</small>
+                       </div>
+                       <div className="col-10">
+                        <div className=" w-100 field-underline">
+                          {recordDoc.id.startsWith("PR")?
+                            <h5>{userProfile.bname.toUpperCase()}</h5>
+                          :
+                          <>
+                            <h5>Customer</h5>
+                          </>
+                          }
+
+                        </div>
+                      </div>
+                     </div>
+                    <div className="col-3 p-0 m-0 d-flex align-items-baseline justify-content-between ps-2">
+                      <div className="col-3">
+                        <small>Date:</small>
+                      </div>
+                      <div className="col-9">
+                        <div className=" w-100 field-underline">
+                          <h5>{recordDoc.transaction_date}</h5>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="row p-0 m-0 w-100 d-flex align-items-center justify-content-between">
+                    <div className="col-9 p-0 m-0 d-flex align-items-baseline justify-content-between pe-2">
+                      <div className="col-2">
+                        <small>Address:</small>
+                       </div>
+                       <div className="col-10">
+                        <div className=" w-100 field-underline"></div>
+                      </div>
+                     </div>
                   </div>
                 </div>
                 <div className="breakdown">
@@ -254,9 +297,10 @@ function RecordQuickView(props) {
                       </tr>
                     </thead>
                     <tbody>
-                      {recordDoc.product_list.map((item) => {
+                      {expandProductList(recordDoc.product_list).map((item) => {
                         return(
-                          <tr>
+                          <tr
+                            className={item.itemName == "|"?"empty-product-list":""}>
                             <td className="qty">{item.itemQuantity} units</td>
                             <td className="desc">{item.itemName}</td>
                             <td className="price">
@@ -276,21 +320,62 @@ function RecordQuickView(props) {
                         })}
                     </tbody>
                     <tfoot>
-                        <tr>
-                          Total
-                        </tr>
-                        <th colSpan={3}>
-                        {recordDoc.id.startsWith("PR")?
-                        <>{findTotal(recordDoc.product_list, "P")}</>
-                        :
-                        <>{findTotal(recordDoc.product_list, "S")}</>
-                        }
-                        </th>
+                      <tr>
+                        <td className="qty"></td>
+                        <td className="desc"></td>
+                        <td className="price">
+                          <strong>Total</strong>
+                        </td>
+                        <td className="amnt">
+                          <div className="d-flex justify-content-between align-items-center">
+                            <div>&#8369;</div>
+                            <div>
+                              {recordDoc.id.startsWith("PR")?
+                                <>{(Math.round((findTotal(recordDoc.product_list, "P")) * 100) / 100).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</>
+                              :
+                                <>{(Math.round((findTotal(recordDoc.product_list, "S")) * 100) / 100).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}</>
+                              }
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
                     </tfoot>
                   </Table>
                 </div>
               </div>
               <div className="receipt-footer">
+                <div className="row p-0 m-0 d-flex justify-content-center align-items-center">
+                  <div className="col-8 p-0 m-0 d-flex align-items-baseline justify-content-between pe-2">
+                    <div className="col-1">
+                      <small>Notes: </small>
+                    </div>
+                    <div className="col-11">
+                      <div className=" w-100 field-underline">
+                      {recordDoc.transaction_note}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-4 p-0 m-0 d-flex align-items-baseline justify-content-between pe-2">
+                    <div className="col-3">
+                      <small>Ordered: </small>
+                    </div>
+                    <div className="col-9">
+                      <div className=" w-100 field-underline">
+                      {recordDoc.id.startsWith("PR")?
+                        <>
+                          {recordDoc.order_date === undefined || recordDoc.order_date == "" || recordDoc.order_date == " "?
+                            <></>
+                          :
+                          <>{recordDoc.order_date}</>
+                          }
+                        </>
+                      :
+                        <>N/A</>
+                      }
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             :

@@ -885,17 +885,17 @@ function Records() {
                               />
                               {list.map((prod, index) => (
 
-                                <tr key={index}>
+                                <tr 
+                                  key={index}
+                                  className="clickable"
+                                  onClick={()=>{setProductToView(prod.itemId); setProductQuickViewModalShow(true)}}
+                                >
                                   <td className='ic pt-entry px-3' key={prod.itemId}>
                                     {prod.itemId === undefined?
                                       <></>
                                     :
                                       <>
-                                        <button
-                                          onClick={()=>{setProductToView(prod.itemId); setProductQuickViewModalShow(true)}}
-                                        >
                                           {prod.itemId.substring(0,9)}
-                                        </button>
                                       </>
                                     }
                                   </td>

@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './custom.css';
 import { AuthContextProvider } from './context/AuthContext';
+import './JsBarcode.all.min.js';
 
 //pages
 import Analytics from './pages/Analytics';
@@ -22,6 +23,8 @@ import UserRouter from './pages/UserRouter';
 import VerificationMessage from './pages/VerificationMessage';
 import ModRouter from './pages/ModRouter';
 import ManageUsers from './pages/ManageUsers';
+import PrintBarcodes from './pages/PrintBarcodes';
+import PrintQRCodes from './pages/PrintQRCodes';
 
 
 
@@ -54,6 +57,8 @@ function App() {
           <Route path='/accountmanagement' element={<Protected><AccountManagement /></Protected>} />
           <Route path='/mod' element={<Protected><ModRouter /></Protected>} />
           <Route path='/manageusers' element={<Protected><ManageUsers /></Protected>} />
+          <Route path='/printbarcodes' element={<Protected><PrintBarcodes /></Protected>} />
+          <Route path='/printqrcodes' element={<Protected><PrintQRCodes /></Protected>} />
           <Route path='/analytics' element={<Analytics />} />
         </Routes>
       </AuthContextProvider>
