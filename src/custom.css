@@ -509,7 +509,7 @@ li:hover{
 .sidebar-card .card-body .list-group-flush .list-group-item:hover .sidebar-contents .col-5,
 .sidebar-card .card-body .list-group-flush .list-group-item:hover .sidebar-contents .col-6,
 .sidebar-card .card-body .list-group-flush .list-group-item:hover .sidebar-contents .col-2,
-.sidebar-card .card-body .list-group-flush .list-group-item:hover .sidebar-contents .col-7
+.sidebar-card .card-body .list-group-flush .list-group-item:hover .sidebar-contents .col-7,
 .sidebar-card .card-body .list-group-flush .list-group-item:hover .sidebar-contents .col-12 {
 	background-color: #e7fff1;
 }
@@ -1276,6 +1276,7 @@ a.header-tooltip[data-title]:before {
 	border-bottom-left-radius: 5px;
 	border-bottom-right-radius: 5px;
 	padding: 1em;
+	padding-top: calc(1em + 18px);
 	border-top: none;
 }
 
@@ -3482,4 +3483,9 @@ table.scrollable-table.receipt-table th.qty  {
 	height: 100% !important;
 	width: 3px;
 	background-color: #7aafe2;
+}
+
+h3 .form-control {
+	font-size: calc(1rem + .6vw);
+	font-weight: bold;
 }

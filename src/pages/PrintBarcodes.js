@@ -1,55 +1,50 @@
-import RPersoneact from 'react';
-import { Tab, Table, Card, Button, Modal, Form, Alert, Nav } from 'react-bootstrap';
-import Navigation from '../layout/Navigation';
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../firebase-config';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faTriangleExclamation, faSearch } from '@fortawesome/free-solid-svg-icons'
-import { Person, Location, PhonePortrait, Layers, Mail, Call, InformationCircle } from 'react-ionicons'
-import NewSupplierModal from '../components/NewSupplierModal';
-import { useNavigate } from 'react-router-dom';
-import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc, where } from 'firebase/firestore';
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import UserRouter from '../pages/UserRouter'
-import { UserAuth } from '../context/AuthContext'
-import { Spinner } from 'loading-animations-react';
-import html2canvas from 'html2canvas';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+
+import { UserAuth } from '../context/AuthContext';
+import UserRouter from '../pages/UserRouter';
+import Navigation from '../layout/Navigation';
+
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'
+import html2canvas from 'html2canvas';
 import Barcode from 'react-jsbarcode'
-import toImg from 'react-svg-to-image';
+import moment from "moment";
 
 
-
+import { Tab, Table, Card, Button, Nav } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFileDownload } from '@fortawesome/free-solid-svg-icons';
+import { Spinner } from 'loading-animations-react';
 
 function PrintBarcodes() {
 
   //---------------------VARIABLES---------------------
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
-  const [userCollection, setUserCollection] = useState([]);// userCollection variable
-  const userCollectionRef = collection(db, "user")// user collection
-  const [categorySuggestions, setCategorySuggestions] = useState([])
-  const [stockcardCollection, setStockcardCollection] = useState(); //supplier Collection
-  const [classification, setClassification] = useState("All")
-  const [category, setCategory] = useState("All")
-  const [itemList, setItemList] = useState()
-  const pdfRef = useRef(null);
-  const tableRef = useRef(null);
+  const [userCollection, setUserCollection] = useState([]);// user collection variable
+  const userCollectionRef = collection(db, "user")// user collection reference
+  const [categorySuggestions, setCategorySuggestions] = useState([])// categories made by user
+  const [stockcardCollection, setStockcardCollection] = useState(); // stockcard Collection
+  const [classification, setClassification] = useState("All")//classification filter
+  const [category, setCategory] = useState("All")// category filter
+  const [itemList, setItemList] = useState()// product list that satisfied filters
+  const JsBarcode = require('jsbarcode');
+  var curr_date = new Date(); // get current date
+  curr_date.setDate(curr_date.getDate());
+  curr_date.setHours(0, 0, 0, 0); // set current date's hours to zero to compare dates only
+  var today = curr_date
 
-
-
-  //---------------------FUNCTIONS---------------------
-
-
+  // get user id
   useEffect(() => {
     if (user) {
       setUserID(user.uid)
     }
   }, [{ user }])
 
+  // fetch user collection
   useEffect(() => {
     if (userID === undefined) {
       const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
@@ -70,6 +65,7 @@ function PrintBarcodes() {
     }
   }, [userID])
 
+  // fetch user-made categories
   useEffect(() => {
     userCollection.map((metadata) => {
         setCategorySuggestions(metadata.categories)
@@ -77,7 +73,7 @@ function PrintBarcodes() {
     });
   }, [userCollection])
 
-  //Read stockcard collection from database
+  // fetch stockcard collection
   useEffect(() => {
     if (userID !== undefined) {
       const stockcardCollectionRef = collection(db, "stockcard")
@@ -90,7 +86,7 @@ function PrintBarcodes() {
     }
   }, [userID])
 
-
+  // initializr product list
   useEffect(() => {
     if(stockcardCollection === undefined)
     {
@@ -102,6 +98,31 @@ function PrintBarcodes() {
     }
   }, [stockcardCollection])
 
+  // filter change listeners
+  useEffect(() => {
+    if(stockcardCollection === undefined)
+    {
+
+    }
+    else
+    {
+      handleFilterChange()
+    }
+  }, [category])
+
+  useEffect(() => {
+    if(stockcardCollection === undefined)
+    {
+
+    }
+    else
+    {
+      handleFilterChange()
+    }
+  }, [classification])
+
+  
+  // update item list according to filter
   const handleFilterChange = () => {
     var temp_item_list = []
     if(classification == "All" && category != "All")
@@ -139,72 +160,70 @@ function PrintBarcodes() {
     setItemList(temp_item_list)
   }
 
-  useEffect(() => {
-    if(stockcardCollection === undefined)
-    {
-
-    }
-    else
-    {
-      handleFilterChange()
-    }
-  }, [category])
-
-  useEffect(() => {
-    if(stockcardCollection === undefined)
-    {
-
-    }
-    else
-    {
-      handleFilterChange()
-    }
-  }, [classification])
-
-
+  // generate pdf of barcodes
   const generatePDF = () => {
-    var element = document.getElementById('generated-result');
-    /*html2canvas(element).then(function(canvas) {
-      var imgData = canvas.toDataURL(
-          'image/png');              
-      var doc = new jsPDF('p', 'mm');
-      doc.addImage(imgData, 'PNG', 10, 10);
-      doc.save('sample-file.pdf');
-    });
-    const content = pdfRef.current;
-        const doc = new jsPDF('p', 'pt', 'a4');
-        doc.html(content, {
-            callback: function (doc) {
-                doc.save('sample.pdf');
-            },
-            width: 1,
-        windowWidth: 1
-    });*/
-    var doc = new jsPDF()
-    doc.text(7, 15, "Overflow 'ellipsize' (default)");
-  doc.autoTable({
-    html: "#product-table",
-    bodyStyles: {minCellHeight: 15},
-    didDrawCell: function(data) {
-    if (data.column.index === 3 && data.cell.section === 'body') {
-       var td = data.cell.raw;
-       var canvas = td.getElementsByTagName('svg')[0]
-       console.log(canvas.outerHTML)
-       var img = new Image()
-       var serializer = new XMLSerializer()
-       var svgStr = serializer.serializeToString(canvas);
-
-        img.src = 'data:image/svg+xml;base64,'+window.btoa(svgStr);
-       console.log(img.src)
-       var dim = data.cell.height - data.cell.padding('vertical');
-       var textPos = data.cell;
-       doc.addImage('data:image/jpeg;base64,'+window.btoa(svgStr), textPos.x, textPos.y, dim, dim);
+    // create barcodes in DOM (as containers so it can be rendered)
+    for(var i = 0; i < itemList.length; i++)
+    {
+      var element = "#" + itemList[i].id.substring(0,9)
+      JsBarcode(element, itemList[i].barcode)
     }
-  }
-});
-  doc.save('table.pdf')
-  }
+    // form table title
+    var element = document.getElementById('generated-result');
+    var clsn = classification.toUpperCase()
+    var cgry= category.toUpperCase()
+    var cgry_preword = ""
+    var cgry_postword = ""
+    if(category == "All")
+    {
+      cgry_preword = "in "
+      cgry_postword = " categories"
+    }
+    else
+    {
+      cgry_preword = "in the "
+      cgry_postword = " category"
+    }
 
+    // create document
+    var doc = new jsPDF()
+    doc.setFontSize(10);
+    doc.text(15, 15, "Listing " + clsn + " products " + cgry_preword + cgry + cgry_postword);
+    doc.autoTable({
+      html: "#product-table",
+      theme: "grid",
+      startY: 20,
+      headStyles: {
+        fillColor: "#fff",
+        textColor: "#000",
+        lineColor: "#000",
+        lineWidth: 0.1
+      },
+      bodyStyles: {
+        minCellHeight: 30,
+        lineColor: "#000"
+      },
+      columnStyles: {
+        0: {cellWidth: 25},
+        1: {cellWidth: 110},
+        2: {cellWidth: 10},
+        3: {cellWidth: 40},
+      },
+      didDrawCell: function(data) {
+      if (data.column.index === 3 && data.cell.section === 'body') {
+        var td = data.cell.raw;
+        var img = td.getElementsByClassName('barcode')[0]
+        var dim = data.cell.height - data.cell.padding('vertical');
+        var textPos = data.cell;
+        doc.addImage(img.src, textPos.x + 2, textPos.y + 1, 35, 20);
+      }
+      }
+    });
+    // specify file name
+    var filename = "barcodes_" + moment(today).format('MMDDYY') + "_" + classification.toLowerCase() + "-" + category.toLocaleLowerCase() + ".pdf"
+    // make doc downloadable
+    doc.save(filename)
+  }
   return (
     <div>
       <UserRouter
@@ -285,66 +304,76 @@ function PrintBarcodes() {
                         </div>
                       </div>
                     </div>
-                    <div  ref={pdfRef} id="generated-result" className="row py-1 m-0">
-                      <div className="row px-0 py-2 m-0 justify-content-center">
-                        <div className="text-center">Listing <strong>{classification.toUpperCase()}</strong> products {category == "All"?<>in <strong>ALL</strong> categories</>:<>in the <strong>{category.toUpperCase()}</strong> category.</>}</div>
+                    <div id="generated-result" className="row py-1 m-0">
+                      <div className="row px-0 py-2 m-0 justify-content-center align-items-center">
+                        <div className="col-11">
+                          <h5 className="text-center">Listing <strong>{classification.toUpperCase()}</strong> products {category == "All"?<>in <strong>ALL</strong> categories</>:<>in the <strong>{category.toUpperCase()}</strong> category.</>}</h5>
+                        </div>
+                        <div className="col-1">
+                        
+                          <Button
+                            className="edit"
+                            onClick={()=>{generatePDF()}}
+                            data-title="Download PDF version"
+                            disabled={itemList === undefined || itemList.length == 0}
+                          >
+                            <FontAwesomeIcon icon={faFileDownload}/>
+                          </Button>
+                        </div>
                       </div>
                       {itemList === undefined?
-                        <Spinner
-                          color1="#b0e4ff"
-                          color2="#fff"
-                          textColor="rgba(0,0,0, 0.5)"
-                          className="w-50 h-50"
-                        />
+                        <div className="row p-5 m-0 justify-content-center align-items-center" style={{height: "300px"}}>
+                          <Spinner
+                            color1="#b0e4ff"
+                            color2="#fff"
+                            textColor="rgba(0,0,0, 0.5)"
+                            className="w-25 h-25"
+                          />
+                        </div>
                       :
-                        <>
-                          {itemList.length == 0?
-                            <div className="row px-0 py-2 m-0 justify-content-center">
-                              <div className="text-center">0 products</div>
-                            </div>
-                          :
-                            <Table ref={tableRef} id="product-table">
-                              <thead>
-                                <tr>
-                                  <td>Item Code</td>
-                                  <td>Description</td>
-                                  <td>Qty</td>
-                                  <td>Barcode</td>
-                                </tr>
-                              </thead>
-                              <tbody>
-                              {itemList.map((item, index)=>{
-                                return(
-                                  <tr>
-                                    <td>{item.id.substring(0,9)}</td>
-                                    <td>{item.description}</td>
-                                    <td>{item.qty}</td>
-                                    <td>
-                                      <Barcode
-                                        id={'barcode-' + index}
-                                        title={item.barcode}
-                                        className='barcode'
-                                        format="EAN13"
-                                        value={item.barcode}
-                                        color="#c6d4ea"
-                                      />
-                                    </td>
-                                  </tr>
-                                )
-                              })}
-                              </tbody>
-                            </Table>
-                          }
-                        </>
+                        <Table id="product-table">
+                          <thead>
+                            <tr>
+                              <td>Item Code</td>
+                              <td>Description</td>
+                              <td>Qty</td>
+                              <td>Barcode</td>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {itemList.length == 0?
+                              <tr>
+                                <td colSpan={4}>
+                                  <div className="row px-0 py-2 m-0 justify-content-center" style={{minHeight: "300px"}}>
+                                    <div className="text-center">0 products</div>
+                                  </div>
+                                </td>
+                              </tr>
+                            :
+                              <>
+                                {itemList.map((item, index)=>{
+                                  return(
+                                    <tr>
+                                      <td>{item.id.substring(0,9)}</td>
+                                      <td>{item.description}</td>
+                                      <td>{item.qty}</td>
+                                      <td>
+                                        <img className="barcode" id={item.id.substring(0,9)} value={item.barcode} style={{display: 'none'}}/>
+                                        <Barcode
+                                          format="EAN13"
+                                          value={item.barcode}
+                                          color="#000"
+                                        />
+                                      </td>
+                                      </tr>
+                                  )
+                                })}
+                              </>
+                              }
+                          </tbody>
+                        </Table>
                       }
                     </div>
-                    <Button
-                      onClick={()=>{generatePDF()}}
-                    >
-                      Generate PDF
-                    </Button>
-                    
-                    <embed src="" width="800px" height="2100px" />
                   </div>
                 </Tab.Pane>
               </Tab.Content>

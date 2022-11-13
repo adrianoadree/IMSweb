@@ -1,18 +1,18 @@
 import React from 'react';
-import { Tab, Button, ListGroup, Modal, Card } from 'react-bootstrap';
+import { Tab, Button, ListGroup, Modal, Card, Table } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect, useRef, Component  } from 'react';
 import { db } from '../firebase-config';
 import { collection, doc, deleteDoc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashCan, faPlus, faMap, faEdit, faArrowCircleRight, faDoorOpen, faDoorClosed} from '@fortawesome/free-solid-svg-icons'
+import { faTrashCan, faPlus, faMap, faEdit, faArrowCircleRight, faDoorOpen, faDoorClosed, faSave } from '@fortawesome/free-solid-svg-icons'
 import { faMap as faMapO } from '@fortawesome/free-regular-svg-icons'
 import QRCode from "react-qr-code";
 import { Create, Text, QrCode as QR, SearchOutline} from 'react-ionicons'
 import { CaretDown, CaretUp } from 'react-ionicons'
 import NewWarehouseModal from '../components/NewWarehouseModal';
 import NewMapModal from '../components/NewMapModal';
-import { toast, } from "react-toastify";
+import { ToastContainer, toast, Zoom } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
@@ -30,13 +30,15 @@ function Warehouse(props) {
   const [modalShowAP, setModalShowAP] = useState(false);
   const [modalShowVS, setModalShowVS] = useState(false);
   const [modalShowPQV, setModalShowPQV] = useState(false); //product quick view modal
+  const [deleteWarehouseModalShow, setDeleteWarehouseModalShow] = useState(false)
+  const [editingWarehouse, setEditingWarehouse] = useState(false);
   const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
   const [cellSpecifications, setCellSpecifications] = useState({type:"",products:[]});
   const [warehouse, setWarehouse] = useState();
   const [whId, setWHId] = useState();
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
-  const [editing, setEditing] = useState(false);
+  const [editingMap, setEditingMap] = useState(false);
   const [zooming, setZooming] = useState(false);
   const [qrVisible, setQRVisible] = useState(false);
   const [cellIdVisible, setCellIdVisible] = useState(false);
@@ -45,12 +47,17 @@ function Warehouse(props) {
   const [rowIndex, setRowIndex] = useState(0);
   const [isStockcardFetched, setIsStockcardFetched] = useState();
   const [key, setKey] = useState('main');//Tab controller
-  const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("none")
+  const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("add")
+  const [newWarehouseName, setNewWarehouseName] = useState("")
+  const [newWarehouseAddress, setNewWarehouseAddress] = useState("")
+  const [newWarehouseNotes, setNewWarehouseNotes] = useState("")
+  const [openStorageHovered, setOpenStorageHovered] = useState(false)
+  const [closeStorageHovered, setCloseStorageHovered] = useState(false)
 
   //element state updater
   useEffect(() => {
     var allGridlines = document.querySelectorAll(".box-col"); // select all box-col for editing
-    if (editing) {
+    if (editingMap) {
       for(var i = 0; i < allGridlines.length; i++) {allGridlines[i].classList.remove('border-0');} // show editing gridlines
     }
     else
@@ -196,16 +203,16 @@ function Warehouse(props) {
       setIsFetched(true)
       if(warehouse.length > 0)
       {
-        if(collectionUpdateMethod == "update")
-        {
-          setCollectionUpdateMethod("add")
-        }
-        else if(collectionUpdateMethod == "add")
+        if(collectionUpdateMethod == "add")
         {
           setWHId(warehouse.length-1)
           setKey(warehouse[warehouse.length-1].id)
         }
-        else if(collectionUpdateMethod == "none")
+        else if(collectionUpdateMethod == "update")
+        {
+          setCollectionUpdateMethod("add")
+        }
+        else  
         {
           setWHId(0)
           setKey(warehouse[0].id)
@@ -213,6 +220,7 @@ function Warehouse(props) {
       }
       else
       {
+        setWHId()
         setKey("main")
       }
     }
@@ -226,6 +234,19 @@ function Warehouse(props) {
       }
     })
   }
+
+  useEffect(() => {
+    if(warehouse === undefined || whId == undefined)
+    {
+
+    }
+    else
+    {
+      setNewWarehouseName(warehouse[whId].wh_name)
+      setNewWarehouseAddress(warehouse[whId].address)
+      setNewWarehouseNotes(warehouse[whId].wh_notes)
+    }
+  }, [whId])
 
   useEffect(()=>{
     if(stockcard === undefined) {
@@ -297,11 +318,6 @@ function Warehouse(props) {
   setCollectionUpdateMethod("update")
   }
 
-  const deleteWarehouse = async (id) => {
-    const warehouseDoc = doc(db, "warehouse", id)
-    await deleteDoc(warehouseDoc);
-    deleteToast();
-  }
 
   /*           Storage Functionalities           */
 
@@ -365,6 +381,151 @@ function Warehouse(props) {
     setCollectionUpdateMethod("update")
   }
 
+  const checkIfPooled = (warehouse_cells) => {
+    console.log(warehouse_cells)
+    for(var i = 0; i < warehouse_cells.length; i++)
+    {
+      console.log(warehouse_cells[i])
+      for(var j = 0; j < Object.keys(warehouse_cells[i]).length; j++)
+      {
+        console.log(warehouse_cells[i][j])
+        if(warehouse_cells[i][j].products.length > 0)
+        {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  const editWarehouse = () => {
+    updateDoc(doc(db, "warehouse", warehouse[whId].id), {
+      wh_name: newWarehouseName,
+      address: newWarehouseAddress,
+      wh_notes: newWarehouseNotes
+    });
+    setCollectionUpdateMethod("update")
+    updateWarehouseToast()
+  }
+
+  const updateWarehouseToast = () => {
+    toast.info(warehouse[whId].id.substring(0, 4) + " edited", {
+      position: "top-right",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+    });
+  }
+
+  function DeleteWarehouseModal(props) {
+
+    //delete row 
+    const deleteWarehouse = async () => {
+      const warehouseDoc = doc(db, "warehouse", warehouse[whId].id)
+      deleteToast();
+      await deleteDoc(warehouseDoc);
+      setKey('main')
+      props.onHide()
+      setCollectionUpdateMethod("delete")
+    }
+
+    //delete Toast
+    const deleteToast = () => {
+      toast.error('Warehouse DELETED from the Database', {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+
+    return (
+      <Modal
+        {...props}
+        size="md"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+        className="IMS-modal warning"
+      >
+        <ToastContainer
+          position="top-right"
+          autoClose={3500}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+        <Modal.Body >
+        {(warehouse.length == 0 || warehouse=== undefined) || whId === undefined ?
+        <></>
+        :
+        <div className="px-3 py-2">
+          <div className="module-header mb-4">
+            <h3 className="text-center">Deleting {warehouse === undefined || whId === undefined ?<></>:<>{warehouse[whId].id.substring(0,4)}</>}</h3>
+          </div>
+          <div className="row m-0 p-0 mb-3">
+            <div className="col-12 px-3 text-center">
+              <strong>
+                Are you sure you want to delete
+                <br />
+                <span style={{color: '#b42525'}}>{warehouse[whId].wh_name}?</span>
+              </strong>
+            </div>
+          </div>
+          <div className="row m-0 p-0">
+                <div className="col-12 px-3 d-flex justify-content-center">
+                  <Table size="sm">
+                    <tbody>
+                      <tr>
+                        <td>Warehouse Name</td>
+                        <td>{warehouse[whId].wh_name}</td>
+                      </tr>
+                      <tr>
+                        <td>Address</td>
+                        <td>{warehouse[whId].address}</td>
+                      </tr>
+                      <tr>
+                        <td>Notes</td>
+                        <td>{warehouse[whId].wh_notes}</td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                </div>
+              </div>
+        </div>
+        }
+        </Modal.Body>
+        <Modal.Footer
+          className="d-flex justify-content-center"
+        >
+          <Button
+            className="btn btn-light"
+            style={{ width: "6rem" }}
+            onClick={() => props.onHide()}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="btn btn-danger float-start"
+            style={{ width: "10rem" }}
+            onClick={() => { deleteWarehouse() }}
+          >
+            Delete Warehouse
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+    )
+  }
 
   function ViewStorage(props) {
     var tempStockcardList = [];
@@ -412,7 +573,6 @@ function Warehouse(props) {
         }
       }
     }
-    console.log()
 
     if(cellSpecifications.type == "freezer")
     {
@@ -498,8 +658,14 @@ function Warehouse(props) {
         <button
           className="px-1 py-2"
           onClick={()=>{props.onHide()}}
+          onMouseEnter={()=>{setCloseStorageHovered(true)}}
+          onMouseLeave={()=>{setCloseStorageHovered(false)}}
         >
-          <FontAwesomeIcon icon={faDoorClosed}/>
+          {closeStorageHovered?
+            <FontAwesomeIcon icon={faDoorClosed}/>
+          :
+            <FontAwesomeIcon icon={faDoorOpen}/>
+          }
         </button>
           </div>
         </div>
@@ -768,7 +934,7 @@ function Warehouse(props) {
   const placeProducts = async () => {
     var tempCell = warehouse[whId].cells;
     tempCell[rowIndex][colIndex].products = productsInStorage
-    tempCell[rowIndex][colIndex].id = cellId
+    tempCell[rowIndex][colIndex].alias = cellId
     tempCell[rowIndex][colIndex].remarks = cellRemarks
     const getWarehouse = doc(db, 'warehouse', warehouse[whId].id);
     
@@ -776,6 +942,7 @@ function Warehouse(props) {
       cells: tempCell
     });
     props.onHide()
+    setCollectionUpdateMethod("update")
   }
 
     return (
@@ -985,7 +1152,7 @@ function Warehouse(props) {
                         <div className="box-call-to-action"
                           key={'ca' + index + '-' + k}>
                           <div className="box-ca-container">
-                            {editing?
+                            {editingMap?
                               <>
                                 <div className="color-changer d-flex justify-content-center align-items-center mb-2">
                                   <div className="color-swatch d-flex justify-content-center">
@@ -1159,8 +1326,14 @@ function Warehouse(props) {
                                             setCellSpecifications(content[k]);
                                             setModalShowVS(true)
                                           }}
+                                          onMouseEnter={()=>{setOpenStorageHovered(true)}}
+                                          onMouseLeave={()=>{setOpenStorageHovered(false)}}
                                         >
-                                          <FontAwesomeIcon icon={faDoorOpen}/>
+                                          {openStorageHovered?
+                                            <FontAwesomeIcon icon={faDoorOpen}/>
+                                          :
+                                            <FontAwesomeIcon icon={faDoorClosed}/>
+                                          }
                                         </button>
                                         </div>
                                         {content[k].products.map((prod_id) => {
@@ -1215,11 +1388,14 @@ function Warehouse(props) {
                         >
                           {content[k].isStorage?
                             <div className={'storage ' + content[k].type + ' ' + content[k].orientation}>
-                               
-                              
-                              
                               <div className="cell-info" style={{fontSize: (60/warehouse[whId].col) + 'pt'}}>
-                                <span className="cell-id d-none">{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</span>
+                                <span className="cell-id d-none">
+                                  {content[k].alias === undefined || content[k].alias == "" || content[k].alias == ""?
+                                    <>{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</>
+                                  :
+                                    <>{content[k].alias}</>
+                                  }
+                                </span>
                                 <div className="qr-code d-flex justify-content-center d-none">
                                   <QRCode
                                     value={content[k].id}
@@ -1229,17 +1405,9 @@ function Warehouse(props) {
                               </div>
                             </div>
                           :
-                            <>
                             <div className="cell-info" style={{fontSize: (60/warehouse[whId].col) + 'pt'}}>
                               <span className="cell-id d-none">{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</span>
-                            </div>      
-                              {content[k].products.map((val, k) => {
-                                return(
-                                  <div>
-                                  </div>
-                                  )
-                              })}
-                            </>
+                            </div>
                           }
                         </div>
                       </a>
@@ -1308,6 +1476,10 @@ return (
     <Navigation 
       page='/warehouse'
     />
+    <ToastContainer
+          newestOnTop={false}
+          pauseOnFocusLoss
+        />
     <ViewStorage
       show={modalShowVS}
       onHide={() => setModalShowVS(false)}
@@ -1436,9 +1608,9 @@ return (
                   >
                     <input 
                       type="checkbox"
-                      defaultChecked={editing}
+                      defaultChecked={editingMap}
                       disabled={zooming}
-                      onClick={()=>{editing?setEditing(false):setEditing(true)}}
+                      onClick={()=>{editingMap?setEditingMap(false):setEditingMap(true)}}
                     />
                     <span className="vertical-slider round"></span>
                   </label>
@@ -1495,14 +1667,14 @@ return (
                     />
                   </span>
                   <label
-                      className={'vertical-switch '+ (editing?'no-click':'')}
+                      className={'vertical-switch '+ (editingMap?'no-click':'')}
                       data-title="Toggle Zooming"
                   > 
                     <input
-                      className={(editing?'no-click':'')} 
+                      className={(editingMap?'no-click':'')} 
                       type="checkbox"
                       defaultChecked={zooming}
-                      onClick={()=>{if(zooming){setZooming(false); setEditing(false)}else{setZooming(true)}}}
+                      onClick={()=>{if(zooming){setZooming(false); setEditingMap(false)}else{setZooming(true)}}}
                     />
                       <span className="vertical-slider round"></span>
                    </label>
@@ -1547,38 +1719,97 @@ return (
                   <div className="data-contents horizontal">
                     <div id="warehouse-info">
                       <div className="row d-flex align-items-center">
-                        <div className="col-4">
-                          <h3><strong>{warehouse[whId].wh_name}</strong></h3>
-                        </div>
-                        <div className="col-4">
-                          <div className="d-inline-block me-2">
-                            <strong>Address:</strong>
+                        <div className="col-11">
+                          {editingWarehouse?
+                          <div className="row">
+                            <div className="col-5 px-1 d-flex align-items-center justify-content-start">
+                              <h3><strong>
+                              <input
+                                type="text"
+                                className="form-control shadow-none"
+                                value={newWarehouseName}
+                                onChange={(e)=>{setNewWarehouseName(e.target.value)}}
+                              />
+                              </strong></h3>
+                            </div>
+                            <div className="col-4 px-1 d-flex align-items-center justify-content-center">
+                              <div className="me-2">
+                                <strong>Address:</strong>
+                              </div>
+                              <input
+                                type="text"
+                                className="form-control shadow-none"
+                                value={newWarehouseAddress}
+                                onChange={(e)=>{setNewWarehouseAddress(e.target.value)}}
+                              />
+                            </div>
+                            <div className="col-3 px-1 d-flex align-items-center justify-content-center">
+                              <div className="me-2">
+                                <strong>Notes:</strong>
+                              </div>
+                              <input
+                                type="text"
+                                className="form-control shadow-none"
+                                value={newWarehouseNotes}
+                                onChange={(e)=>{setNewWarehouseNotes(e.target.value)}}
+                              />
+                            </div>
                           </div>
-                          <div className="d-inline-block">
-                              {warehouse[whId].address}
+                          :
+                          <div className="row">
+                            <div className="col-5 px-1 d-flex align-items-center justify-content-start">
+                              <h3><strong>{warehouse[whId].wh_name}</strong></h3>
+                            </div>
+                            <div className="col-4 px-1 d-flex align-items-center justify-content-center">
+                              <div className="me-2">
+                                <strong>Address:</strong>
+                              </div>
+                              <div className="d-inline-block">
+                                  {warehouse[whId].address}
+                              </div>
+                            </div>
+                            <div className="col-3 px-1 d-flex align-items-center justify-content-center">
+                              <div className="me-2">
+                                <strong>Notes:</strong>
+                              </div>
+                              <div className="d-inline-block">
+                                  {warehouse[whId].wh_notes}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div className="col-3">
-                          <div className="d-inline-block me-2">
-                            <strong>Notes:</strong>
-                          </div>
-                          <div className="d-inline-block">
-                              {warehouse[whId].wh_notes}
-                          </div>
+                          }
                         </div>
                         <div className="col-1 d-flex align-items-center">
+                          <DeleteWarehouseModal
+                            show={deleteWarehouseModalShow}
+                            onHide={() => { setDeleteWarehouseModalShow(false) }}
+                          />
                           <Button
-                            className="delete me-1"
-                            data-title="Delete Warehouse"
-                            onClick={() => { deleteWarehouse(warehouse[whId].id) }}
+                            className={warehouse[whId].cells.length > 0 ? "delete disabled-conditionally me-1" : "delete me-1"}
+                            data-title={warehouse[whId].cells.length > 0 ? "Warehouse already pooled" : "Delete Warehouse"}
+                            disabled={checkIfPooled(warehouse[whId].cells)}
+                            onClick={()=>{setDeleteWarehouseModalShow(true)}}
                           >
                             <FontAwesomeIcon icon={faTrashCan} />
                           </Button>
                           <Button
                             className="edit me-1"
-                            data-title="Edit Warehouse"
+                            data-title={editingWarehouse?"Save Changes":"Edit Warehouse"}
+                            onClick={()=>{
+                              if (editingWarehouse) {
+                                setEditingWarehouse(false)
+                                editWarehouse(warehouse[whId].id)
+                              }
+                              else {
+                                setEditingWarehouse(true)
+                              }
+                            }}
                           >
-                            <FontAwesomeIcon icon={faEdit} />
+                            {editingWarehouse?
+                              <FontAwesomeIcon icon={faSave} />
+                            :
+                              <FontAwesomeIcon icon={faEdit} />
+                            }
                           </Button>
                         </div>
                       </div>

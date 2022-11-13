@@ -2,7 +2,6 @@ import { Route, Routes } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './custom.css';
 import { AuthContextProvider } from './context/AuthContext';
-import './JsBarcode.all.min.js';
 
 //pages
 import Analytics from './pages/Analytics';

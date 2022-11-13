@@ -9,15 +9,16 @@ import { UserAuth } from '../context/AuthContext'
 import UserRouter from '../pages/UserRouter'
 import Navigation from "../layout/Navigation";
 
+import moment from "moment";
+
 import { Modal, Tab, ListGroup, Card, Table, Button, Nav, FormControl, InputGroup } from "react-bootstrap";
 import { faPlus, faPesoSign, faSearch, faBan } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Create, Calendar, InformationCircle, Person } from 'react-ionicons'
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import { Spinner, Spinner as Spinner2 } from 'loading-animations-react';
-import moment from "moment";
+
 
 import NewPurchaseModal from "../components/NewPurchaseModal";
 import  ProductQuickView  from '../components/ProductQuickView'

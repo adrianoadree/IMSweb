@@ -1137,6 +1137,38 @@ function StockcardPage({ isAuth }) {
               </strong>
             </div>
           </div>
+          <div className="row m-0 p-0">
+                <div className="col-12 px-3 d-flex justify-content-center">
+                  <Table size="sm">
+                    <tbody>
+                      <tr>
+                        <td>Description</td>
+                        <td>{stockcard[docId].description}</td>
+                      </tr>
+                      <tr>
+                        <td>Classification</td>
+                        <td>{stockcard[docId].classification}</td>
+                      </tr>
+                      <tr>
+                        <td>Category</td>
+                        <td>{stockcard[docId].category}</td>
+                      </tr>
+                      <tr>
+                        <td>Classification</td>
+                        <td>{stockcard[docId].barcode}</td>
+                      </tr>
+                      <tr>
+                        <td>Minimum Quantity</td>
+                        <td>{stockcard[docId].min_qty}</td>
+                      </tr>
+                      <tr>
+                        <td>Maximum Quantity</td>
+                        <td>{stockcard[docId].max_qty}</td>
+                      </tr>
+                    </tbody>
+                  </Table>
+                </div>
+              </div>
         </div>
         }
         </Modal.Body>
@@ -1163,8 +1195,6 @@ function StockcardPage({ isAuth }) {
 
     )
   }
-
-
 
   function DisplayPurchases(props) {
     return (
@@ -1741,7 +1771,7 @@ function StockcardPage({ isAuth }) {
                       Qty
                     </div>
                   </div>
-                  <div className='scrollbar' style={{ height: '415px' }}>
+                  <div className='scrollbar' style={{ height: '380px' }}>
                     {isFetched ?
                       <>
                         {stockcard.length === 0 ?
