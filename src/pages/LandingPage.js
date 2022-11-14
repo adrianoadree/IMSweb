@@ -944,36 +944,41 @@ function LandingPage() {
         return (
             <ListGroup>
                 {prodNearROP !== undefined ?
-                    prodNearROP.map((prod) => {
-                        return (
-                            <ListGroup.Item key={prod.id}>
-                                <div className="row px-2">
-                                    <div className="col">
-                                        <div className="row">
-                                            <span><small>{prod.id.substring(0, 9)}</small> | <span style={{ color: '#4172c1' }}> <strong>{prod.description}</strong></span></span>
+                    prodNearROP.length !== 0 ?
+                        prodNearROP.map((prod) => {
+                            return (
+                                <ListGroup.Item key={prod.id}>
+                                    <div className="row px-2">
+                                        <div className="col">
+                                            <div className="row">
+                                                <span><small>{prod.id.substring(0, 9)}</small> | <span style={{ color: '#4172c1' }}> <strong>{prod.description}</strong></span></span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="col ">
-                                        <div className="float-end">
+                                        <div className="col ">
+                                            <div className="float-end">
 
-                                            {prod.analytics.daysDiffDateToOrder > 0 ?
-                                                <small><strong>{prod.analytics.daysDiffDateToOrder}</strong> day(s)<br /> before Restocking</small>
-                                                :
-                                                prod.analytics.daysDiffDateToOrder === 0 ?
-                                                    <small>Restock <strong>Today</strong></small>
+                                                {prod.analytics.daysDiffDateToOrder > 0 ?
+                                                    <small><strong>{prod.analytics.daysDiffDateToOrder}</strong> day(s)<br /> before Restocking</small>
                                                     :
-                                                    <small><strong>{Math.abs(prod.analytics.daysDiffDateToOrder)}</strong> day(s)<br /> past Restocking</small>
-                                            }
+                                                    prod.analytics.daysDiffDateToOrder === 0 ?
+                                                        <small>Restock <strong>Today</strong></small>
+                                                        :
+                                                        <small><strong>{Math.abs(prod.analytics.daysDiffDateToOrder)}</strong> day(s)<br /> past Restocking</small>
+                                                }
 
+                                            </div>
+                                        </div>
+                                        <div className="row">
+                                            <small className="text-muted float-end">Date to Restock: {moment(prod.analytics.dateToOrder).format('LL')}</small>
                                         </div>
                                     </div>
-                                    <div className="row">
-                                        <small className="text-muted float-end">Date to Restock: {moment(prod.analytics.dateToOrder).format('LL')}</small>
-                                    </div>
-                                </div>
-                            </ListGroup.Item>
-                        )
-                    })
+                                </ListGroup.Item>
+                            )
+                        })
+                        :
+                        <div className="full-column text-center">
+                            No Product near Restocking
+                        </div>                        
                     :
                     <Spinner
                         color1="#b0e4ff"
