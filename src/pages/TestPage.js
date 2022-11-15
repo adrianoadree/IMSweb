@@ -35,7 +35,617 @@ function TestPage() {
     const [salesRecordCollection, setSalesRecordCollection] = useState([]); // sales_record collection
     const [filteredResults, setFilteredResults] = useState([])
     const [forecastingBoolean, setForecastingBoolean] = useState(false)
+    const [whTemplates, setWhTemplates] = useState(
+        [
+            {
+              description: "Convenience Store",
+              specs: "5x5 | 25 spaces",
+              img: "https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fwarehouse_templates%2Fconvenience-store.png?alt=media&token=0dc2c3e5-2f3e-43bd-bbbd-4396cf9f9394",
+              contents: 
+              [
+                {
+                  "0": {
+                    "color": "pattern-white-tile",
+                    "isStorage": false,
+                    "products": [],
+                    "id": "WH06-A01"
+                  },
+                  "1": {
+                    "id": "WH06-A02",
+                    "isStorage": false,
+                    "products": [],
+                    "color": "pattern-white-tile"
+                  },
+                  "2": {
+                    "products": [],
+                    "id": "WH06-A03",
+                    "color": "pattern-white-tile",
+                    "isStorage": false
+                  },
+                  "3": {
+                    "color": "pattern-white-tile",
+                    "id": "WH06-A04",
+                    "products": [],
+                    "isStorage": false
+                  },
+                  "4": {
+                    "id": "WH06-A05",
+                    "color": "pattern-white-tile",
+                    "isStorage": false,
+                    "products": []
+                  }
+                },
+                {
+                  "0": {
+                    "id": "WH06-B01",
+                    "type": "shelf",
+                    "orientation": "flip-left",
+                    "products": [],
+                    "remarks": " ",
+                    "isStorage": true,
+                    "color": "pattern-white-tile"
+                  },
+                  "1": {
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-B02",
+                    "products": []
+                  },
+                  "2": {
+                    "color": "pattern-white-tile",
+                    "id": "WH06-B03",
+                    "remarks": " ",
+                    "isStorage": true,
+                    "type": "pallet",
+                    "products": [],
+                    "orientation": "flip-top"
+                  },
+                  "3": {
+                    "products": [],
+                    "id": "WH06-B04",
+                    "type": "pallet",
+                    "color": "pattern-white-tile",
+                    "isStorage": false,
+                    "orientation": "flip-top",
+                    "remarks": ""
+                  },
+                  "4": {
+                    "type": "shelf",
+                    "isStorage": true,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-B05",
+                    "products": [],
+                    "orientation": "flip-right",
+                    "remarks": " "
+                  }
+                },
+                {
+                  "0": {
+                    "isStorage": true,
+                    "products": [],
+                    "id": "WH06-C01",
+                    "remarks": " ",
+                    "color": "pattern-white-tile",
+                    "orientation": "flip-left",
+                    "type": "shelf"
+                  },
+                  "1": {
+                    "products": [],
+                    "color": "pattern-white-tile",
+                    "isStorage": false,
+                    "id": "WH06-C02"
+                  },
+                  "2": {
+                    "remarks": "",
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "type": "pallet",
+                    "id": "WH06-C03",
+                    "products": [],
+                    "orientation": "flip-top"
+                  },
+                  "3": {
+                    "type": "pallet",
+                    "isStorage": false,
+                    "id": "WH06-C04",
+                    "products": [],
+                    "color": "pattern-white-tile",
+                    "remarks": "",
+                    "orientation": "flip-top"
+                  },
+                  "4": {
+                    "type": "shelf",
+                    "isStorage": true,
+                    "color": "pattern-white-tile",
+                    "products": [],
+                    "id": "WH06-C05",
+                    "orientation": "flip-right",
+                    "remarks": " "
+                  }
+                },
+                {
+                  "0": {
+                    "id": "WH06-D01",
+                    "orientation": "flip-left",
+                    "isStorage": true,
+                    "products": [],
+                    "color": "pattern-white-tile",
+                    "remarks": " ",
+                    "type": "shelf"
+                  },
+                  "1": {
+                    "isStorage": false,
+                    "id": "WH06-D02",
+                    "color": "pattern-white-tile",
+                    "products": []
+                  },
+                  "2": {
+                    "remarks": " ",
+                    "isStorage": true,
+                    "products": [],
+                    "orientation": "flip-top",
+                    "color": "pattern-white-tile",
+                    "type": "pallet",
+                    "id": "WH06-D03"
+                  },
+                  "3": {
+                    "products": [],
+                    "id": "WH06-D04",
+                    "color": "pattern-white-tile",
+                    "type": "pallet",
+                    "remarks": "",
+                    "orientation": "flip-top",
+                    "isStorage": false
+                  },
+                  "4": {
+                    "products": [],
+                    "id": "WH06-D05",
+                    "color": "pattern-white-tile",
+                    "remarks": " ",
+                    "orientation": "flip-right",
+                    "isStorage": true,
+                    "type": "shelf"
+                  }
+                },
+                {
+                  "0": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-E01"
+                  },
+                  "1": {
+                    "products": [],
+                    "color": "pattern-white-tile",
+                    "isStorage": false,
+                    "id": "WH06-E02"
+                  },
+                  "2": {
+                    "id": "WH06-E03",
+                    "color": "pattern-white-tile",
+                    "isStorage": false,
+                    "products": []
+                  },
+                  "3": {
+                    "isStorage": false,
+                    "id": "WH06-E04",
+                    "color": "pattern-white-tile",
+                    "products": []
+                  },
+                  "4": {
+                    "products": [],
+                    "color": "pattern-white-tile",
+                    "isStorage": false,
+                    "id": "WH06-E05"
+                  }
+                }
+              ]
+            },
+            {
+              description: "Meat Shop",
+              specs: "3x6 | 18 Spaces",
+              img: "https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fwarehouse_templates%2Fmeatshop.png?alt=media&token=6ff5f67b-3042-4774-9a5a-04e47560f38c",
+              contents: 
+              [
+                {
+                  "0": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-A01",
+                    "type": "freezer",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "1": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-A02",
+                    "type": "freezer",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "2": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-A03",
+                    "type": "freezer",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "3": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-A04",
+                    "type": "freezer",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "4": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-A05"
+                  },
+                  "5": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-A06"
+                  }
+                },
+                {
+                  "0": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-B01"
+                  },
+                  "1": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-B02"
+                  },
+                  "2": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-B03"
+                  },
+                  "3": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-B04"
+                  },
+                  "4": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-B05"
+                  },
+                  "5": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-B06"
+                  }
+                },
+                {
+                  "0": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-C01",
+                    "type": "shelf",
+                    "orientation": "flip-bottom",
+                    "remarks": " "
+                  },
+                  "1": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-C02",
+                    "type": "shelf",
+                    "orientation": "flip-bottom",
+                    "remarks": " "
+                  },
+                  "2": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-C03"
+                  },
+                  "3": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-white-tile",
+                    "id": "WH06-C04"
+                  },
+                  "4": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-none",
+                    "id": "WH06-C05"
+                  },
+                  "5": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-none",
+                    "id": "WH06-C06"
+                  }
+                }
+              ]
+            },
+            {
+              description: "Wholesaler",
+              specs: "5X7 | 35 Spaces",
+              img: "https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fwarehouse_templates%2Fwholesaler.png?alt=media&token=3915a570-7dc3-458b-b87c-4865ec03d793",
+              contents:
+              [
+                {
+                  "0": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-A01"
+                  },
+                  "1": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-A02"
+                  },
+                  "2": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-A03"
+                  },
+                  "3": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-A04"
+                  },
+                  "4": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-A05"
+                  },
+                  "5": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-A06"
+                  },
+                  "6": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-A07"
+                  }
+                },
+                {
+                  "0": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-B01"
+                  },
+                  "1": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-B02",
+                    "type": "pallet",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "2": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-B03"
+                  },
+                  "3": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-B04",
+                    "type": "pallet",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "4": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-B05"
+                  },
+                  "5": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-B06",
+                    "type": "pallet",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "6": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-B07"
+                  }
+                },
+                {
+                  "0": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-C01"
+                  },
+                  "1": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-C02",
+                    "type": "pallet",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "2": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-C03"
+                  },
+                  "3": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-C04",
+                    "type": "pallet",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "4": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-C05"
+                  },
+                  "5": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-C06",
+                    "type": "pallet",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "6": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-C07"
+                  }
+                },
+                {
+                  "0": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-D01"
+                  },
+                  "1": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-D02",
+                    "type": "pallet",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "2": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-D03"
+                  },
+                  "3": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-D04",
+                    "type": "pallet",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "4": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-D05"
+                  },
+                  "5": {
+                    "products": [],
+                    "isStorage": true,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-D06",
+                    "type": "pallet",
+                    "orientation": "flip-top",
+                    "remarks": " "
+                  },
+                  "6": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-D07"
+                  }
+                },
+                {
+                  "0": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-E01"
+                  },
+                  "1": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-E02"
+                  },
+                  "2": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-E03"
+                  },
+                  "3": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-E04"
+                  },
+                  "4": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-E05"
+                  },
+                  "5": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-E06"
+                  },
+                  "6": {
+                    "products": [],
+                    "isStorage": false,
+                    "color": "pattern-smooth-concrete",
+                    "id": "WH06-E07"
+                  }
+                }
+              ]
+            }
+          ]
+    )
 
+    const addTemplates = async () => {
+        const dox = doc(db, 'masterdata', "warehouse");
+        await updateDoc(dox,{
+            templates: whTemplates,
+            
+    });
+    }
     //ANALYTICS Datas
     const [totalSales, setTotalSales] = useState(0); // total sales
     const [minLeadtime, setMinLeadtime] = useState()
@@ -872,6 +1482,10 @@ function TestPage() {
             <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
                 <div id="contents" className="row">
                     <div className="row py-4 px-5">
+                        <button
+                        onClick={()=>{addTemplates()}}>
+                            hi
+                        </button>
                         <div className="sidebar">
                             <Card className='sidebar-card' style={{ height: "550px" }}>
                                 <Card.Header>

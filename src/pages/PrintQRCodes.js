@@ -33,17 +33,16 @@ function PrintQRCodes() {
   //---------------------VARIABLES---------------------
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
+  const [userCollection, setUserCollection] = useState([]);// user collection variable
+  const userCollectionRef = collection(db, "user")// user collection reference
+  const [userProfile, setUserProfile] = useState({categories: []})// categories made by user
   const [warehouseCollection, setWarehouseCollection] = useState([]); //supplier Collection
   const [warehouseChosenId, setWarehouseChosenId] = useState()
   const [warehouseChosen, setWarehouseChosen] = useState({})
   const [warehouseStorages, setWarehouseStorages] = useState()
-  const tableRef = useRef(null);
   const [stockcardCollection, setStockcardCollection] = useState(); //supplier Collection
-  const QRBarcode = require('qrcode');
-  const JsBarcode = require('jsbarcode');
   var curr_date = new Date(); // get current date
   curr_date.setDate(curr_date.getDate());
-  curr_date.setHours(0, 0, 0, 0); // set current date's hours to zero to compare dates only
   var today = curr_date
 
 
@@ -71,6 +70,33 @@ function PrintQRCodes() {
       setUserID(user.uid)
     }
   }, [{ user }])
+  // fetch user collection
+  useEffect(() => {
+    if (userID === undefined) {
+      const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+      const q = query(userCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+
+    }
+  }, [userID])
+
+  // fetch user-made categories
+  useEffect(() => {
+    userCollection.map((metadata) => {
+        setUserProfile(metadata)
+    });
+  }, [userCollection])
 
   const getProductInfo = (product_id) => {
     var tempProd = {}
@@ -166,12 +192,26 @@ function PrintQRCodes() {
 
     // create document
     var doc = new jsPDF()
+    var pageHeight =  doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+    var pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+    doc.setFont('Times-Bold', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(40);
+    doc.text(userProfile.bname, pageWidth/2, 15, {align: 'center'})
     doc.setFontSize(10);
-    doc.text(15, 15, "Listing all storages from " + warehouseChosen.wh_name);
+    doc.text(userProfile.baddress, pageWidth/2, 20, {align: 'center'})
+    doc.setFont('Helvetica', 'normal')
+    doc.setFontSize(8);
+    var printDateString = "Generated: " + moment(today).format("MM-DD-YYYY @ hh:mm:ss A")
+    doc.text(printDateString, pageWidth - 15, 30, {align: 'right'})
+    doc.setFontSize(10);
+    doc.text(15, 30, "Listing all storages from " + warehouseChosen.wh_name);
     doc.autoTable({
       html: "#storage-table",
       theme: "grid",
       startY: 20,
+      startY: 35,
+      margin: {left: 15},
       headStyles: {
         fillColor: "#fff",
         textColor: "#000",
@@ -188,6 +228,10 @@ function PrintQRCodes() {
         2: {cellWidth: 35},
         3: {cellWidth: 60},
         4: {cellWidth: 45},
+      },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text("" + doc.internal.getNumberOfPages(), pageWidth/2, pageHeight - 10, {align: 'center'});
       },
       didDrawCell: function(data) {
       if (data.column.index === 4 && data.cell.section === 'body') {

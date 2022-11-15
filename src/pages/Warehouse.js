@@ -1,11 +1,11 @@
 import React from 'react';
-import { Tab, Button, ListGroup, Modal, Card, Table } from 'react-bootstrap';
+import { Tab, Button, ListGroup, Modal, Card, Table,FormControl,InputGroup} from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect, useRef, Component  } from 'react';
 import { db } from '../firebase-config';
-import { collection, doc, deleteDoc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, doc, deleteDoc, updateDoc, onSnapshot, query, where, getDoc } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashCan, faPlus, faMap, faEdit, faArrowCircleRight, faDoorOpen, faDoorClosed, faSave } from '@fortawesome/free-solid-svg-icons'
+import { faTrashCan, faPlus, faMap, faEdit, faArrowCircleRight, faDoorOpen, faDoorClosed, faSave, faGears,faSearch } from '@fortawesome/free-solid-svg-icons'
 import { faMap as faMapO } from '@fortawesome/free-regular-svg-icons'
 import QRCode from "react-qr-code";
 import { Create, Text, QrCode as QR, SearchOutline} from 'react-ionicons'
@@ -53,6 +53,9 @@ function Warehouse(props) {
   const [newWarehouseNotes, setNewWarehouseNotes] = useState("")
   const [openStorageHovered, setOpenStorageHovered] = useState(false)
   const [closeStorageHovered, setCloseStorageHovered] = useState(false)
+  const [warehouseTemplates, setWarehouseTemplates] = useState([])
+  const [isTemplateChosen, setIsTemplateChosen]= useState(false)
+  const [templateChosen, setTemplateChosen] = useState({})
 
   //element state updater
   useEffect(() => {
@@ -98,10 +101,31 @@ function Warehouse(props) {
     }
   }, )
 
+  useEffect(() => { 
+    async function getTemplatesDoc() {
+      const warehouseSystemData = doc(db, "masterdata", "warehouse")
+      const docSnap = await getDoc(warehouseSystemData)
+      if (docSnap.exists()) {
+        setWarehouseTemplates(docSnap.data().templates);
+      }
+    }
+    getTemplatesDoc()
+  },[])
   useEffect(()=>{
+    if(warehouse === undefined || whId === undefined)
+    {
+
+    }
+    else
+    {
+
+    }
 
   }, [whId])
 
+  useEffect(() => {
+    console.log()
+  },[warehouseTemplates])
   //set user ID
   useEffect(() => {
     if (user) {
@@ -180,18 +204,6 @@ function Warehouse(props) {
       return unsub;
     }
   }, [userID])
-
-  // get warehouse docs
-  /*useEffect(() => {
-    async function readWarehouseDoc() {
-      const warehouseRef = doc(db, "warehouse", whId)
-      const docSnap = await getDoc(warehouseRef)
-      if (docSnap.exists()) {
-        setWarehouseDoc(docSnap.data());
-      }
-    }
-    readWarehouseDoc()
-  }, [whId])*/
   
   // check if data has been fetched
   useEffect(()=>{
@@ -208,14 +220,18 @@ function Warehouse(props) {
           setWHId(warehouse.length-1)
           setKey(warehouse[warehouse.length-1].id)
         }
+        /*
         else if(collectionUpdateMethod == "update")
         {
           setCollectionUpdateMethod("add")
-        }
+        }*/
         else  
         {
+          /*
           setWHId(0)
           setKey(warehouse[0].id)
+          */
+          setCollectionUpdateMethod("add")
         }
       }
       else
@@ -257,17 +273,6 @@ function Warehouse(props) {
       setIsStockcardFetched(true)
     }
   }, [stockcard])
-
-   const deleteToast = () => {
-    toast.error('Warehouse Deletion Successful', {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-    });
-  } 
 
   function addPadding(num) {
     var padded = num + "";
@@ -385,7 +390,6 @@ function Warehouse(props) {
     console.log(warehouse_cells)
     for(var i = 0; i < warehouse_cells.length; i++)
     {
-      console.log(warehouse_cells[i])
       for(var j = 0; j < Object.keys(warehouse_cells[i]).length; j++)
       {
         console.log(warehouse_cells[i][j])
@@ -418,6 +422,341 @@ function Warehouse(props) {
       draggable: true,
       progress: undefined,
     });
+  }
+
+  function DisplayMap(){
+    return (
+      <>
+        {warehouse[whId].cells.map((content,index) => {
+          return(
+            <div className="box-row d-flex align-items-center">    
+              {Object.keys(content).map((k) => {
+                return (
+                  <>
+                    <div
+                      draggable
+                    >
+                      <a 
+                        className="box d-flex align-items-center justify-content-center"
+                        key={'row' + index + '-' + k}
+                      >
+                        <div className="box-call-to-action"
+                          key={'ca' + index + '-' + k}>
+                          <div className="box-ca-container">
+                            {editingMap?
+                              <>
+                                <div className="color-changer d-flex justify-content-center align-items-center mb-2">
+                                  <div className="color-swatch d-flex justify-content-center">
+                                    <button className="color pattern-none"
+                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-none")}}
+                                    >
+                                    </button>
+                                    <button className="color pattern-smooth-concrete"
+                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-smooth-concrete") }}
+                                    >
+                                    </button>
+                                    <button className="color pattern-rough-concrete"
+                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-rough-concrete")}}
+                                    >
+                                    </button>
+                                    <button className="color pattern-dark-wood"
+                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-dark-wood")}}
+                                    >
+                                    </button>
+                                    <button className="color pattern-light-wood"
+                                      style={{}}
+                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-light-wood")}}
+                                    >
+                                    </button>
+                                    <button className="color pattern-white-tile"
+                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-white-tile")}}
+                                    >
+                                    </button>
+                                    <button className="color pattern-cobblestone"
+                                      style={{}}
+                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-cobblestone")}}
+                                    >
+                                    </button>
+                                  </div>
+                                </div>
+                                {content[k].isStorage?
+                                <>
+                                  <div className="d-flex flex-row mb-2">
+                                    <button className="box-call-to-action-button me-5"
+                                      onClick={()=>{setRowIndex(index);setColIndex(k);setModalShowAP(true)}}
+                                    >
+                                      Edit Products
+                                    </button>
+                                    <div className="storage-options">
+                                      <button
+                                        className="box-call-to-action-button "
+                                        value="delete"
+                                        onClick={(show)=>deStorage(warehouse[whId].cells, index, k)}
+                                      >
+                                        Clear
+                                      </button>
+                                    </div>
+                                  </div>
+                                    <div className="storage-options d-flex flex-row mb-2">
+                                      <button
+                                        className="box-call-to-action-button no-click"
+                                        value="context-sm"
+                                      >Edit:</button>
+                                      <button
+                                        className="box-call-to-action-button with-icon"
+                                        data-title="Pallet"
+                                        onClick={()=>changeStorage(warehouse[whId].cells, index, k, 'pallet')}
+                                      >
+                                        <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-palet.png?alt=media&token=8c2de023-30de-4f00-8d2b-453a25ae823f")'}}></div>
+                                      </button>
+                                      <button
+                                        className="box-call-to-action-button with-icon"
+                                        data-title="Shelf"
+                                        onClick={()=>changeStorage(warehouse[whId].cells, index, k, 'shelf')}
+                                      >
+                                        <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-shelf.png?alt=media&token=167f685a-d810-4fe4-a90e-a5cd2168647c")'}}></div>
+                                      </button>
+                                      <button
+                                        className="box-call-to-action-button with-icon"
+                                        onClick={()=>changeStorage(warehouse[whId].cells, index, k, 'freezer')}
+                                      >
+                                        <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-freezer.png?alt=media&token=83f133ae-7159-4c4c-8d14-bd61f35ef8ed")'}}></div>
+                                        </button>
+                                    </div>
+                                    <div className="storage-options d-flex flex-row mb-2">
+                                      <button
+                                        className="box-call-to-action-button no-click"
+                                        value="context-sm"
+                                      >Flip:</button>
+                                      <button
+                                        className="box-call-to-action-button with-icon"
+                                        onClick={()=>flipStorage(warehouse[whId].cells, index, k, 'flip-top')}
+                                      >
+                                        <div 
+                                          className="flip-top"
+                                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
+                                        ></div>
+                                      </button>
+                                      <button
+                                        className="box-call-to-action-button with-icon"
+                                        onClick={()=>flipStorage(warehouse[whId].cells, index, k, 'flip-left')}
+                                      >
+                                        <div 
+                                          className="flip-left"
+                                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
+                                        ></div>
+                                      </button>
+                                      <button
+                                        className="box-call-to-action-button with-icon"
+                                        onClick={()=>flipStorage(warehouse[whId].cells, index, k, 'flip-right')}
+                                      >
+                                        <div 
+                                          className="flip-right"
+                                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
+                                        ></div>
+                                      </button>
+                                      <button
+                                        className="box-call-to-action-button with-icon"
+                                        onClick={()=>flipStorage(warehouse[whId].cells, index, k, 'flip-bottom')}
+                                      >
+                                        <div 
+                                          className="flip-bottom"
+                                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
+                                        ></div>
+                                      </button>
+                                    </div>
+                                  </>
+                                :
+                                  <>
+                                    <div className="storage-options d-flex flex-row">
+                                      <button
+                                        className="box-call-to-action-button no-click"
+                                        value="context"
+                                      >Place a:</button>
+                                      <button
+                                        className="box-call-to-action-button"
+                                        onClick={()=>toStorage(warehouse[whId].cells, index, k, "pallet")}>Pallet</button>
+                                      <button
+                                        className="box-call-to-action-button"
+                                        onClick={()=>toStorage(warehouse[whId].cells, index, k, "shelf")}>Shelf</button>
+                                      <button
+                                        className="box-call-to-action-button"
+                                        onClick={()=>toStorage(warehouse[whId].cells, index, k, "freezer")}>Freezer</button>
+                                    </div>
+                                  </>
+                                }
+                              </>
+                            :
+                            <>
+                              {content[k].isStorage?
+                                <div className="product-list">
+                                {content[k].products.length == 0?
+                                  <div className="storage-empty d-flex justify-content-center align-items-center">
+                                    <div className="">
+                                      <h6><strong>Storage is empty</strong></h6>
+                                    </div>
+                                  </div>
+                                :
+                                  <>
+                                    {content[k].products === undefined?
+                                      <></>
+                                    :
+                                      <div className="px-0">
+                                        {content[k].products === undefined || content[k].products.length == 0 ?
+                                          <></>
+                                        :
+                                        <div className="d-flex align-items-center justify-content-center" style={{height: '6em', width: 'fit-content'}}> 
+                                          <div
+                                            className="storage-actions"
+                                            style={{height: '100%', width:'auto'}}
+                                          >
+                                        <button
+                                          className="w-100 h-100 d-flex align-items-center justify-content-center"
+                                          data-title="hey"
+                                          onClick={()=>{
+                                            setCellSpecifications(content[k]);
+                                            setModalShowVS(true)
+                                          }}
+                                          onMouseEnter={()=>{setOpenStorageHovered(true)}}
+                                          onMouseLeave={()=>{setOpenStorageHovered(false)}}
+                                        >
+                                          {openStorageHovered?
+                                            <FontAwesomeIcon icon={faDoorOpen}/>
+                                          :
+                                            <FontAwesomeIcon icon={faDoorClosed}/>
+                                          }
+                                        </button>
+                                        </div>
+                                        {content[k].products.map((prod_id) => {
+                                          return(
+                                          <div 
+                                            className="storage-item w-100 h-100 p-0"
+                                            style={{height: '100%', width:'auto', aspectRatio: '1 / 1'}}
+                                            key={prod_id.id}
+                                          >
+                                            <button 
+                                              className="storage-item-img-container m-0 w-100 d-flex align-items-center justify-content-center"
+                                              onClick={()=>{setProductToView(getProductInfo(prod_id).id); setModalShowPQV(true)}}
+                                            >
+                                            <div className="badge-container">
+                                              <div className="badge">
+                                                <div className="circle-small shadow-small yellow black-text condensed-text d-flex align-items-center justify-content-center">
+                                                  <div>
+                                                    <strong>{getProductInfo(prod_id).qty} </strong> 
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                              <div className="storage-item-img">
+                                                {getProductInfo(prod_id).img == " " || getProductInfo(prod_id).img == ""?
+                                                  <div className="scroll-text-horizontally storage-item-no-image" style={{margin: '0.2em'}}>{getProductInfo(prod_id).description}</div>
+                                                :
+                                                <img src={getProductInfo(prod_id).img} style={{height: '100%', width: 'auto'}}/>
+                                                }
+                                              </div>
+                                            </button>
+                                          </div>
+                                            )
+                                        })}
+                                        </div>
+                                        }
+                                      </div>
+                                    }
+                                  </>
+                                }
+                                </div>
+                              :
+                                <></>
+                              }
+                            </>
+                            
+                            }
+                            
+                          </div>
+                        </div>
+                        <div className={'box-col ' + content[k].color} style ={{width: (getMapWidth()/warehouse[whId].col) + 'px', height: (getMapWidth()/warehouse[whId].col) + 'px'}}
+                        key={'col' + index + '-' + k}
+                        >
+                          {content[k].isStorage?
+                            <div className={'storage ' + content[k].type + ' ' + content[k].orientation}>
+                              <div className="cell-info" style={{fontSize: (60/warehouse[whId].col) + 'pt'}}>
+                                <span className="cell-id d-none">
+                                  {content[k].alias === undefined || content[k].alias == "" || content[k].alias == ""?
+                                    <>{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</>
+                                  :
+                                    <>{content[k].alias}</>
+                                  }
+                                </span>
+                                <div className="qr-code d-flex justify-content-center d-none">
+                                  <QRCode
+                                    value={content[k].id}
+                                    size={50}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          :
+                            <div className="cell-info" style={{fontSize: (60/warehouse[whId].col) + 'pt'}}>
+                              <span className="cell-id d-none">{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</span>
+                            </div>
+                          }
+                        </div>
+                      </a>
+                    </div>
+                    {index == warehouse[whId].row-1?
+                      <></>
+                    :
+                      <></>
+                    }
+                  </>   
+                ); 
+              })}
+              {index == 0?
+              <div 
+                id="add-column-container" 
+                style ={{height: ((getMapWidth()/warehouse[whId].col) + 10) + 'px'}}
+              >
+                <div id="add-column-button">
+                  <div className="d-flex h-100 align-items-center justify-content-center flex-column">
+                    
+                    <button
+                      id="add-column-icon"
+                      classname="plain-button"
+                      onClick={(show)=>addColumn(warehouse[whId].cells, warehouse[whId].row, warehouse[whId].col)}
+                    >
+                      <FontAwesomeIcon icon={faPlus}/>
+                    </button>
+                    
+                    <div id="add-column-line">
+                  </div>
+                  </div>
+                </div>
+              </div>
+              :
+              <></>
+              }
+            </div>  
+          );
+        })}
+        
+        <div id="add-row-container" style ={{width: ((getMapWidth()/warehouse[whId].col) + 10) + 'px'}}>
+          <div id="add-row-button">
+            <div className="d-flex w-100 align-items-center justify-content-center flex-row">
+            <button 
+              id="add-row-icon" 
+              className="plain-button"
+              onClick={(show)=>addRow(warehouse[whId].cells, warehouse[whId].row, warehouse[whId].col)}
+            >
+                <FontAwesomeIcon icon={faPlus}/>
+            </button>
+            <div id="add-row-line">
+                
+            </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
   }
 
   function DeleteWarehouseModal(props) {
@@ -527,6 +866,419 @@ function Warehouse(props) {
     )
   }
 
+  function DisplayTemplates(props) {
+    return(
+      <div>
+        {warehouseTemplates === undefined?
+        <></>
+        :
+        <div id="warehouse-templates-collection">
+          <div className="row">
+            <div className="col-3 p-4 d-flex align-items-center justify-content-center">
+              <Card 
+                className="warehouse-template"
+                onClick={()=>{setIsTemplateChosen(false); setTemplateChosen([]); setModalShowMap(true)}}
+              >
+                <div className="w-100 h-100 d-flex align-items-center justify-content-center p-2 flex-column">
+
+                  <h1>
+                    <div className="warehouse-template-icon-container mb-4">
+                      <FontAwesomeIcon icon={faGears}/>
+                    </div>
+                  </h1>
+                  <h4 className="mb-5">
+                    <strong>Custom</strong>
+                  </h4>
+                  <h6 className="px-4">
+                    Make the map yourself! Specify the number of spaces to work with and style the floor the way you want.
+                  </h6>
+                </div>
+              </Card>
+            </div>
+          {warehouseTemplates.map((template)=>{
+            return(
+              <div className="col-3 p-4 d-flex align-items-center justify-content-center">
+              <Card 
+                className="warehouse-template"
+                onClick={()=>{setIsTemplateChosen(true); setTemplateChosen(template); setModalShowMap(true)}}
+              >
+                <div className="warehouse-template-thumb">
+                  <div className="w-100 h-100 d-flex align-items-center justify-content-center p-2">
+                    <img className="m-2" src={template.img} />
+                  </div>
+                </div>
+                <div className="warehouse-template-info">
+                  <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-1">
+                    <h4 className="mb-3">
+                      <strong>{template.name}</strong>
+                    </h4>
+                    <small className="px-2 mb-1">{template.description}</small>
+                    <small className="text-muted">{template.specs}</small>
+                  </div>
+                </div>
+              </Card>
+              </div>
+            )
+          })}
+          </div>
+        </div>
+        }
+      </div>
+    )
+  }
+  
+  function WarehouseMapAddProductModal(props) {
+    const [productsInStorage, setProductsInStorage] = useState([]);
+    const [cellId, setCellId] = useState("");
+    const [cellType, setCellType] = useState("");
+    const [cellRemarks, setCellRemarks] = useState(" ");
+
+    const [outStorageSearchValue, setOutStorageSearchValue] = useState('');    // the value of the search field 
+    const [outStorageSearchResult, setOutStorageSearchResult] = useState([]);    // the search result
+    const [inStorageSearchValue, setInStorageSearchValue] = useState('');    // the value of the search field 
+    const [inStorageSearchResult, setInStorageSearchResult] = useState([]);    // the search result
+
+    useEffect(() => {
+      setOutStorageSearchResult(stockcard)
+      setInStorageSearchResult(stockcard)
+    }, [stockcard])
+
+    useEffect(()=>{
+      if(warehouse === undefined) {
+      }
+      else
+      {
+        setProductsInStorage(warehouse[whId].cells[rowIndex][colIndex].products)
+        setCellId(warehouse[whId].cells[rowIndex][colIndex].id)
+        setCellRemarks(warehouse[whId].cells[rowIndex][colIndex].remarks)
+        setCellType(warehouse[whId].cells[rowIndex][colIndex].type)
+      }
+    }, [warehouse[whId]])
+
+    const filterInStorage = (e) => {
+      const keyword = e.target.value;
+
+      if (keyword !== '') {
+        const results = stockcard.filter((stockcard) => {
+          return stockcard.id.toLowerCase().includes(keyword.toLowerCase()) || stockcard.description.toLowerCase().includes(keyword.toLowerCase())
+          // Use the toLowerCase() method to make it case-insensitive
+        });
+        setInStorageSearchResult(results);
+      } else {
+        setInStorageSearchResult(stockcard);
+        // If the text field is empty, show all users
+      }
+
+      setInStorageSearchValue(keyword);
+    };
+
+    const filterOutStorage = (e) => {
+      const keyword = e.target.value;
+
+      if (keyword !== '') {
+        const results = stockcard.filter((stockcard) => {
+          return stockcard.id.toLowerCase().includes(keyword.toLowerCase()) || stockcard.description.toLowerCase().includes(keyword.toLowerCase())
+          // Use the toLowerCase() method to make it case-insensitive
+        });
+        setOutStorageSearchResult(results);
+      } else {
+        setOutStorageSearchResult(stockcard);
+        // If the text field is empty, show all users
+      }
+
+      setOutStorageSearchValue(keyword);
+    };
+
+    const handleProductSelect = (product) => {
+      let productIndex = productsInStorage.indexOf(product)
+      var currentSelectedProduct = document.getElementById(product);
+      
+      if(currentSelectedProduct.classList.contains("product-selected")) 
+      {
+        currentSelectedProduct.classList.remove("product-selected")
+      }
+      else
+      {
+        currentSelectedProduct.classList.add("product-selected")
+      }
+      if(productIndex >= 0) {
+        setProductsInStorage([
+          ...productsInStorage.slice(0, productIndex),
+          ...productsInStorage.slice(productIndex + 1, productsInStorage.length)
+        ]);
+      }
+      else
+      {
+        setProductsInStorage([... productsInStorage, product])
+      }
+    }
+
+    const placeProducts = async () => {
+      var tempCell = warehouse[whId].cells;
+      tempCell[rowIndex][colIndex].products = productsInStorage
+      tempCell[rowIndex][colIndex].alias = cellId
+      tempCell[rowIndex][colIndex].remarks = cellRemarks
+      const getWarehouse = doc(db, 'warehouse', warehouse[whId].id);
+      
+      await updateDoc(getWarehouse,{
+        cells: tempCell
+      });
+      props.onHide()
+      setCollectionUpdateMethod("update")
+    }
+
+    return (
+      <Modal
+        {...props}
+        size="xl"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+        className="IMS-modal"
+      >
+        <Modal.Body
+          className="d-flex justify-content-center"
+        >
+          <div className="px-3 py-2 w-100">
+            <div className="module-header mb-4">
+              <h3 className="text-center">Editing {cellId}</h3>
+            </div>
+            <div className="row my-2 mb-3">
+              <div className="col-4 ps-4">
+                <label>Rename Space ID</label>
+                <input type="text"
+                  value={cellId}
+                  className="form-control shadow-none"
+                  onChange={(event) => { setCellId(event.target.value); }}
+                />
+              </div>
+              <div className="col-8 ps-4">
+                <label>Add Notes</label>
+                <input type="text"
+                  value={cellRemarks}
+                  className="form-control shadow-none"
+                  onChange={(event) => { setCellRemarks(event.target.value); }}
+                />
+              </div>
+            </div>
+            <div className="row my-2 mb-3">
+              {isStockcardFetched?
+                <div id="product-adding-stage">
+                  <div className="row h-100">
+                    <div className="col-5 p-0 h-100 ">
+                      <div className="product-adding-stage-active h-100 ">
+                        <div className="product-adding-stage-header">
+                          Products in Stockcard
+                        </div>
+                      <div className="products-container">
+                        <div className="products-container-header">
+                          <div className="row">
+                            <InputGroup id="fc-search">
+                              <InputGroup.Text>
+                                <FontAwesomeIcon icon={faSearch} />
+                              </InputGroup.Text>
+                              <FormControl
+                                type="search"
+                                value={outStorageSearchValue}
+                                onChange={filterOutStorage}
+                                className="input"
+                                placeholder="IT000013, Rexona Pink 3mL (1pc)"
+                              />
+                            </InputGroup>
+                            <p className="product-adding-stage-tip">Click a product to <span style={{color: '#629ce3c3'}}>add</span> to the storage</p>
+                          </div>
+                        </div>
+                        <div className="products-container-body">
+                          <div className="row" style={{overflowY:"scroll"}}>
+                            {stockcard === undefined?<></>:<>
+                              {outStorageSearchResult && outStorageSearchResult.length > 0 ? (
+                                outStorageSearchResult.map((stockcard) => (
+                                  <>
+                                    {productsInStorage === undefined? <>
+                                      <Spinner 
+                                        color1="#b0e4ff"
+                                        color2="#fff"
+                                        textColor="rgba(0,0,0, 0.5)"
+                                        className="w-25 h-25"
+                                      /></>
+                                    :
+                                      <>
+                                        {productsInStorage.indexOf(stockcard.id) == -1?
+                                          <div className="col-6 p-1">
+                                            <button
+                                              className={"product-inselection" + (stockcard.qty == 0?" product-not-used":"")}
+                                              id={stockcard.id}
+                                              key={stockcard.id}
+                                              onClick={() => { handleProductSelect(stockcard.id)}}
+                                              style={{border: '0', background: 'none'}}
+                                            >
+                                              <Card>
+                                                <Card.Body>
+                                                  <strong>{stockcard.description}</strong>
+                                                  <div className="row specification" style={{margin: '0 auto'}}>
+                                                    <div className="col-8 p-0 p-0">
+                                                      <p className="code">{stockcard.id.substring(0, 9)}</p>
+                                                    </div>
+                                                    <div className="col-4 p-0 p-0">
+                                                      <p className="qty">QTY: {stockcard.qty}</p>
+                                                    </div>
+                                                  </div>
+                                                </Card.Body>
+                                              </Card>
+                                            </button>
+                                          </div>
+                                        :
+                                          <></>
+                                        }
+                                      </>
+                                    }
+                                  </>
+                                ))
+                                ) : (
+                                <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
+                                  <h5>
+                                    <strong className="d-flex align-items-center justify-content-center flex-column">
+                                      No product matched:
+                                      <br />
+                                      <span style={{ color: '#0d6efd' }}>{outStorageSearchValue}</span>
+                                    </strong>
+                                  </h5>
+                                </div>
+                              )}
+                              </>
+                            }
+                          </div>
+                        </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-2 h-100 d-flex align-items-center justify-content-center">
+                  <div className={'storage ' + cellType} style={{height: '100px', width: '100px'}}>
+                    <div className="w-100 h-100 position-relative d-inline-block d-flex align-items-center">
+                      <div className="position-absolute" style={{color: 'rgb(9, 255, 0)', lineHeight: '0', fontSize: '1.5rem', left: '-0.5em', backgroundColor: '#fff', padding: '0.25em', borderRadius: '50%'}}>
+                        <div><FontAwesomeIcon icon={faArrowCircleRight} /></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                <div className="col-5 h-100 p-0">
+                  <div className="product-adding-stage-active instorage h-100">
+                    <div className="product-adding-stage-header">
+                      Products in this Storage
+                    </div>
+                    <div className="products-container">
+                      <div className="row">
+                        <InputGroup id="fc-search">
+                            <InputGroup.Text>
+                              <FontAwesomeIcon icon={faSearch} />
+                            </InputGroup.Text>
+                            <FormControl
+                              type="search"
+                              value={inStorageSearchValue}
+                              onChange={filterInStorage}
+                              className="input"
+                              placeholder="IT000013, Rexona Pink 3mL (1pc)"
+                            />
+                          </InputGroup>
+                        <p className="product-adding-stage-tip">Click a product to <span style={{color: '#e36262c3'}}>remove</span> from the storage</p>
+                      </div>
+                      <div className="row" style={{overflowY:"scroll"}}>
+                        {stockcard === undefined?<></>:<>
+                            {inStorageSearchResult && inStorageSearchResult.length > 0 ? (
+                              inStorageSearchResult.map((stockcard) => (
+                                <>
+                                  {productsInStorage === undefined? <>
+                                    <Spinner 
+                                      color1="#b0e4ff"
+                                      color2="#fff"
+                                      textColor="rgba(0,0,0, 0.5)"
+                                      className="w-25 h-25"
+                                    /></>
+                                  :
+                                    <>
+                                      {productsInStorage.indexOf(stockcard.id) >= 0?
+                                        <div className="col-6 p-0">
+                                          <button
+                                            className={"product-inselection" + (stockcard.qty == 0?" product-not-used":"")}
+                                            id={stockcard.id}
+                                            key={stockcard.id}
+                                            onClick={() => { handleProductSelect(stockcard.id)}}
+                                            style={{border: '0', background: 'none'}}
+                                          >
+                                            <Card>
+                                              <Card.Body>
+                                                <strong>{stockcard.description}</strong>
+                                                <div className="row specification" style={{margin: '0 auto'}}>
+                                                  <div className="col-8 p-0 p-0">
+                                                    <p className="code">{stockcard.id.substring(0, 9)}</p>
+                                                  </div>
+                                                  <div className="col-4 p-0 p-0">
+                                                    <p className="qty">QTY: {stockcard.qty}</p>
+                                                  </div>
+                                                </div>
+                                              </Card.Body>
+                                            </Card>
+                                          </button>
+                                        </div>
+                                      :
+                                        <></>
+                                      }
+                                    </>
+                                  }
+                                </>
+                              ))
+                              ) : (
+                              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
+                                <h5>
+                                  <strong className="d-flex align-items-center justify-content-center flex-column">
+                                    No product matched:
+                                    <br />
+                                    <span style={{ color: '#0d6efd' }}>{inStorageSearchValue}</span>
+                                  </strong>
+                                </h5>
+                              </div>
+                            )}
+                            </>
+                          }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+                </div>
+              :
+                <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                  <Spinner 
+                    color1="#b0e4ff"
+                    color2="#fff"
+                    textColor="rgba(0,0,0, 0.5)"
+                    className="w-25 h-25"
+                  />
+                </div>
+              }
+            </div>
+          </div>
+        </Modal.Body>
+        <Modal.Footer
+          className="d-flex justify-content-center"
+        >
+          <Button
+            className="btn btn-danger"
+            style={{ width: "6rem" }}
+            onClick={() => props.onHide()}
+         >
+          Cancel
+          </Button>
+          <Button
+            className="btn btn-light float-start"
+            style={{ width: "6rem" }}
+            onClick={() => placeProducts()}
+          >
+          Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    );
+  }
   function ViewStorage(props) {
     var tempStockcardList = [];
     if(stockcard === undefined) 
@@ -888,585 +1640,7 @@ function Warehouse(props) {
     );
   }
 
-  function WarehouseMapAddProductModal(props) {
-    const [productsInStorage, setProductsInStorage] = useState([]);
-    const [cellId, setCellId] = useState("");
-    const [cellType, setCellType] = useState("");
-    const [cellRemarks, setCellRemarks] = useState(" ");
 
-    useEffect(()=>{
-      if(warehouse === undefined) {
-      }
-      else
-      {
-        setProductsInStorage(warehouse[whId].cells[rowIndex][colIndex].products)
-        setCellId(warehouse[whId].cells[rowIndex][colIndex].id)
-        setCellRemarks(warehouse[whId].cells[rowIndex][colIndex].remarks)
-        setCellType(warehouse[whId].cells[rowIndex][colIndex].type)
-      }
-    }, [warehouse[whId]])
-
-    
-    const handleProductSelect = (product) => {
-      let productIndex = productsInStorage.indexOf(product)
-      var currentSelectedProduct = document.getElementById(product);
-      
-      if(currentSelectedProduct.classList.contains("product-selected")) 
-      {
-        currentSelectedProduct.classList.remove("product-selected")
-      }
-      else
-      {
-        currentSelectedProduct.classList.add("product-selected")
-      }
-      if(productIndex >= 0) {
-        setProductsInStorage([
-          ...productsInStorage.slice(0, productIndex),
-          ...productsInStorage.slice(productIndex + 1, productsInStorage.length)
-        ]);
-      }
-      else
-      {
-        setProductsInStorage([... productsInStorage, product])
-    }
-  }
-
-  const placeProducts = async () => {
-    var tempCell = warehouse[whId].cells;
-    tempCell[rowIndex][colIndex].products = productsInStorage
-    tempCell[rowIndex][colIndex].alias = cellId
-    tempCell[rowIndex][colIndex].remarks = cellRemarks
-    const getWarehouse = doc(db, 'warehouse', warehouse[whId].id);
-    
-    await updateDoc(getWarehouse,{
-      cells: tempCell
-    });
-    props.onHide()
-    setCollectionUpdateMethod("update")
-  }
-
-    return (
-        <Modal
-            {...props}
-            size="xl"
-            aria-labelledby="contained-modal-title-vcenter"
-            centered
-            className="IMS-modal"
-        >
-            <Modal.Body
-            className="d-flex justify-content-center">
-              <div className="px-3 py-2 w-100">
-                <div className="module-header mb-4">
-                  <h3 className="text-center">Editing {cellId}</h3>
-                </div>
-                <div className="row my-2 mb-3">
-                  <div className="col-4 ps-4">
-                    <label>Rename Space ID</label>
-                    <input type="text"
-                      value={cellId}
-                      className="form-control shadow-none"
-                      onChange={(event) => { setCellId(event.target.value); }}
-                    />
-                  </div>
-                  <div className="col-8 ps-4">
-                    <label>Add Notes</label>
-                    <input type="text"
-                      value={cellRemarks}
-                      className="form-control shadow-none"
-                      onChange={(event) => { setCellRemarks(event.target.value); }}
-                    />
-                  </div>
-                </div>
-                <div className="row my-2 mb-3">
-                  {isStockcardFetched?
-                    <div id="product-adding-stage">
-                      <div className="row h-100">
-                        <div className="col-5 p-0 h-100 ">
-                          <div className="product-adding-stage-active h-100 ">
-                            <div className="product-adding-stage-header">
-                              Products in Stockcard
-                            </div>
-                            <div className="products-container">
-                              <div className="row">
-                              <p className="product-adding-stage-tip">Click a product to <span style={{color: '#629ce3c3'}}>add</span> to the storage</p>
-                              </div>
-                              <div className="row">
-                                {stockcard.map((stockcard, index) => {
-                                  return (
-                                    <>
-                                    {productsInStorage === undefined? <>
-                                    <Spinner 
-                                      color1="#b0e4ff"
-                                      color2="#fff"
-                                      textColor="rgba(0,0,0, 0.5)"
-                                      className="w-25 h-25"
-                                    /></>:<>
-                                      {stockcard === undefined?<></>:<>
-                                        {productsInStorage.indexOf(stockcard.id) == -1?
-                                          <div className="col-6 p-0">
-                                            <button
-                                              className={"product-inselection" + (stockcard.qty == 0?" product-not-used":"")}
-                                              id={stockcard.id}
-                                              key={stockcard.id}
-                                              onClick={() => { handleProductSelect(stockcard.id)}}
-                                              style={{border: '0', background: 'none'}}
-                                            >
-                                              <Card>
-                                                <Card.Body>
-                                                  <strong>{stockcard.description}</strong>
-                                                  <div className="row specification" style={{margin: '0 auto'}}>
-                                                    <div className="col-8 p-0 p-0">
-                                                      <p className="code">{stockcard.id.substring(0, 9)}</p>
-                                                    </div>
-                                                    <div className="col-4 p-0 p-0">
-                                                    <p className="qty">QTY: {stockcard.qty}</p>
-                                                    </div>
-                                                  </div>
-                                                  
-                                                  
-                                                </Card.Body>
-                                              </Card>
-                                            </button>
-                                          </div>
-                                      
-                                        :<></>}
-                                      </>}
-                                    </>}
-                                  </>)})}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-2 h-100 d-flex align-items-center justify-content-center">
-                          <div className={'storage ' + cellType} style={{height: '100px', width: '100px'}}>
-                            <div className="w-100 h-100 position-relative d-inline-block d-flex align-items-center">
-                              <div className="position-absolute" style={{color: 'rgb(9, 255, 0)', lineHeight: '0', fontSize: '1.5rem', left: '-0.5em', backgroundColor: '#fff', padding: '0.25em', borderRadius: '50%'}}>
-                                <div><FontAwesomeIcon icon={faArrowCircleRight} /></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="col-5 h-100 p-0">
-                        <div className="product-adding-stage-active instorage h-100">
-                            <div className="product-adding-stage-header">
-                              Products in this Storage
-                            </div>
-                            <div className="products-container">
-                            <div className="row">
-                              <p className="product-adding-stage-tip">Click a product to <span style={{color: '#e36262c3'}}>remove</span> from the storage</p>
-                              </div>
-                              <div className="row">
-                                {stockcard.map((stockcard, index) => {
-                                  return (
-                                    <>
-                                    {productsInStorage === undefined?<></>:<>
-                                      {stockcard === undefined?<></>:<>
-                                        {productsInStorage.indexOf(stockcard.id) >= 0?
-                                          <div className="col-6 p-0">
-                                            <button
-                                              className="product-inselection"
-                                              id={stockcard.id}
-                                              key={stockcard.id}
-                                              onClick={() => { handleProductSelect(stockcard.id)}}
-                                              
-                                            >
-                                              <Card
-                                              >
-                                                <Card.Body>
-                                                  <strong>{stockcard.description}</strong>
-                                                  <div className="row specification" style={{margin: '0 auto'}}>
-                                                    <div className="col-8 p-0 p-0">
-                                                      <p className="code">{stockcard.id.substring(0, 9)}</p>
-                                                    </div>
-                                                    <div className="col-4 p-0 p-0">
-                                                    <p className="qty">QTY: {stockcard.qty}</p>
-                                                    </div>
-                                                  </div>
-                                                </Card.Body>
-                                              </Card>
-                                            </button>
-                                          </div>
-                                      
-                                        :<></>}
-                                      </>}
-                                    </>}
-                                  </>)})}
-                              </div>
-                            </div>
-                          </div>
-                      </div>
-                    </div>
-                      
-                    </div>
-                  :
-                    <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                      <Spinner 
-                      color1="#b0e4ff"
-                      color2="#fff"
-                      textColor="rgba(0,0,0, 0.5)"
-                      className="w-25 h-25"
-                      />
-                    </div>
-                  }
-                </div>
-                </div>
-            </Modal.Body>
-            <Modal.Footer
-        className="d-flex justify-content-center"
-      >
-         <Button
-         className="btn btn-danger"
-         style={{ width: "6rem" }}
-         onClick={() => props.onHide()}
-         >
-          Cancel
-        </Button>
-        <Button
-          className="btn btn-light float-start"
-          style={{ width: "6rem" }}
-          onClick={() => placeProducts()}
-          >
-          Save
-        </Button>
-      </Modal.Footer>
-      </Modal>
-    );
-  }
-
-  function DisplayMap(){
-    return (
-      <>
-        {warehouse[whId].cells.map((content,index) => {
-          return(
-            <div className="box-row d-flex align-items-center">    
-              {Object.keys(content).map((k) => {
-                return (
-                  <>
-                    <div
-                      draggable
-                    >
-                      <a 
-                        className="box d-flex align-items-center justify-content-center"
-                        key={'row' + index + '-' + k}
-                      >
-                        <div className="box-call-to-action"
-                          key={'ca' + index + '-' + k}>
-                          <div className="box-ca-container">
-                            {editingMap?
-                              <>
-                                <div className="color-changer d-flex justify-content-center align-items-center mb-2">
-                                  <div className="color-swatch d-flex justify-content-center">
-                                    <button className="color pattern-none"
-                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-none")}}
-                                    >
-                                    </button>
-                                    <button className="color pattern-smooth-concrete"
-                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-smooth-concrete") }}
-                                    >
-                                    </button>
-                                    <button className="color pattern-rough-concrete"
-                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-rough-concrete")}}
-                                    >
-                                    </button>
-                                    <button className="color pattern-dark-wood"
-                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-dark-wood")}}
-                                    >
-                                    </button>
-                                    <button className="color pattern-light-wood"
-                                      style={{}}
-                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-light-wood")}}
-                                    >
-                                    </button>
-                                    <button className="color pattern-white-tile"
-                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-white-tile")}}
-                                    >
-                                    </button>
-                                    <button className="color pattern-cobblestone"
-                                      style={{}}
-                                      onClick={()=>{changeColor(warehouse[whId].cells, index, k, "pattern-cobblestone")}}
-                                    >
-                                    </button>
-                                  </div>
-                                </div>
-                                {content[k].isStorage?
-                                <>
-                                  <div className="d-flex flex-row mb-2">
-                                    <button className="box-call-to-action-button me-5"
-                                      onClick={()=>{setRowIndex(index);setColIndex(k);setModalShowAP(true)}}
-                                    >
-                                      Edit Products
-                                    </button>
-                                    <div className="storage-options">
-                                      <button
-                                        className="box-call-to-action-button "
-                                        value="delete"
-                                        onClick={(show)=>deStorage(warehouse[whId].cells, index, k)}
-                                      >
-                                        Clear
-                                      </button>
-                                    </div>
-                                  </div>
-                                    <div className="storage-options d-flex flex-row mb-2">
-                                      <button
-                                        className="box-call-to-action-button no-click"
-                                        value="context-sm"
-                                      >Edit:</button>
-                                      <button
-                                        className="box-call-to-action-button with-icon"
-                                        data-title="Pallet"
-                                        onClick={()=>changeStorage(warehouse[whId].cells, index, k, 'pallet')}
-                                      >
-                                        <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-palet.png?alt=media&token=8c2de023-30de-4f00-8d2b-453a25ae823f")'}}></div>
-                                      </button>
-                                      <button
-                                        className="box-call-to-action-button with-icon"
-                                        data-title="Shelf"
-                                        onClick={()=>changeStorage(warehouse[whId].cells, index, k, 'shelf')}
-                                      >
-                                        <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-shelf.png?alt=media&token=167f685a-d810-4fe4-a90e-a5cd2168647c")'}}></div>
-                                      </button>
-                                      <button
-                                        className="box-call-to-action-button with-icon"
-                                        onClick={()=>changeStorage(warehouse[whId].cells, index, k, 'freezer')}
-                                      >
-                                        <div style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-freezer.png?alt=media&token=83f133ae-7159-4c4c-8d14-bd61f35ef8ed")'}}></div>
-                                        </button>
-                                    </div>
-                                    <div className="storage-options d-flex flex-row mb-2">
-                                      <button
-                                        className="box-call-to-action-button no-click"
-                                        value="context-sm"
-                                      >Flip:</button>
-                                      <button
-                                        className="box-call-to-action-button with-icon"
-                                        onClick={()=>flipStorage(warehouse[whId].cells, index, k, 'flip-top')}
-                                      >
-                                        <div 
-                                          className="flip-top"
-                                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
-                                        ></div>
-                                      </button>
-                                      <button
-                                        className="box-call-to-action-button with-icon"
-                                        onClick={()=>flipStorage(warehouse[whId].cells, index, k, 'flip-left')}
-                                      >
-                                        <div 
-                                          className="flip-left"
-                                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
-                                        ></div>
-                                      </button>
-                                      <button
-                                        className="box-call-to-action-button with-icon"
-                                        onClick={()=>flipStorage(warehouse[whId].cells, index, k, 'flip-right')}
-                                      >
-                                        <div 
-                                          className="flip-right"
-                                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
-                                        ></div>
-                                      </button>
-                                      <button
-                                        className="box-call-to-action-button with-icon"
-                                        onClick={()=>flipStorage(warehouse[whId].cells, index, k, 'flip-bottom')}
-                                      >
-                                        <div 
-                                          className="flip-bottom"
-                                          style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Ficon-flip.png?alt=media&token=a17e485b-73c2-4b9d-b0e4-3b887631127f")'}}
-                                        ></div>
-                                      </button>
-                                    </div>
-                                  </>
-                                :
-                                  <>
-                                    <div className="storage-options d-flex flex-row">
-                                      <button
-                                        className="box-call-to-action-button no-click"
-                                        value="context"
-                                      >Place a:</button>
-                                      <button
-                                        className="box-call-to-action-button"
-                                        onClick={()=>toStorage(warehouse[whId].cells, index, k, "pallet")}>Pallet</button>
-                                      <button
-                                        className="box-call-to-action-button"
-                                        onClick={()=>toStorage(warehouse[whId].cells, index, k, "shelf")}>Shelf</button>
-                                      <button
-                                        className="box-call-to-action-button"
-                                        onClick={()=>toStorage(warehouse[whId].cells, index, k, "freezer")}>Freezer</button>
-                                    </div>
-                                  </>
-                                }
-                              </>
-                            :
-                            <>
-                              {content[k].isStorage?
-                                <div className="product-list">
-                                {content[k].products.length == 0?
-                                  <div className="storage-empty d-flex justify-content-center align-items-center">
-                                    <div className="">
-                                      <h6><strong>Storage is empty</strong></h6>
-                                    </div>
-                                  </div>
-                                :
-                                  <>
-                                    {content[k].products === undefined?
-                                      <></>
-                                    :
-                                      <div className="px-0">
-                                        {content[k].products === undefined || content[k].products.length == 0 ?
-                                          <></>
-                                        :
-                                        <div className="d-flex align-items-center justify-content-center" style={{height: '6em', width: 'fit-content'}}> 
-                                          <div
-                                            className="storage-actions"
-                                            style={{height: '100%', width:'auto'}}
-                                          >
-                                        <button
-                                          className="w-100 h-100 d-flex align-items-center justify-content-center"
-                                          data-title="hey"
-                                          onClick={()=>{
-                                            setCellSpecifications(content[k]);
-                                            setModalShowVS(true)
-                                          }}
-                                          onMouseEnter={()=>{setOpenStorageHovered(true)}}
-                                          onMouseLeave={()=>{setOpenStorageHovered(false)}}
-                                        >
-                                          {openStorageHovered?
-                                            <FontAwesomeIcon icon={faDoorOpen}/>
-                                          :
-                                            <FontAwesomeIcon icon={faDoorClosed}/>
-                                          }
-                                        </button>
-                                        </div>
-                                        {content[k].products.map((prod_id) => {
-                                          return(
-                                          <div 
-                                            className="storage-item w-100 h-100 p-0"
-                                            style={{height: '100%', width:'auto', aspectRatio: '1 / 1'}}
-                                            key={prod_id.id}
-                                          >
-                                            <button 
-                                              className="storage-item-img-container m-0 w-100 d-flex align-items-center justify-content-center"
-                                              onClick={()=>{setProductToView(getProductInfo(prod_id).id); setModalShowPQV(true)}}
-                                            >
-                                            <div className="badge-container">
-                                              <div className="badge">
-                                                <div className="circle-small shadow-small yellow black-text condensed-text d-flex align-items-center justify-content-center">
-                                                  <div>
-                                                    <strong>{getProductInfo(prod_id).qty} </strong> 
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            </div>
-                                              <div className="storage-item-img">
-                                                {getProductInfo(prod_id).img == " " || getProductInfo(prod_id).img == ""?
-                                                  <div className="scroll-text-horizontally storage-item-no-image" style={{margin: '0.2em'}}>{getProductInfo(prod_id).description}</div>
-                                                :
-                                                <img src={getProductInfo(prod_id).img} style={{height: '100%', width: 'auto'}}/>
-                                                }
-                                              </div>
-                                            </button>
-                                          </div>
-                                            )
-                                        })}
-                                        </div>
-                                        }
-                                      </div>
-                                    }
-                                  </>
-                                }
-                                </div>
-                              :
-                                <></>
-                              }
-                            </>
-                            
-                            }
-                            
-                          </div>
-                        </div>
-                        <div className={'box-col ' + content[k].color} style ={{width: (getMapWidth()/warehouse[whId].col) + 'px', height: (getMapWidth()/warehouse[whId].col) + 'px'}}
-                        key={'col' + index + '-' + k}
-                        >
-                          {content[k].isStorage?
-                            <div className={'storage ' + content[k].type + ' ' + content[k].orientation}>
-                              <div className="cell-info" style={{fontSize: (60/warehouse[whId].col) + 'pt'}}>
-                                <span className="cell-id d-none">
-                                  {content[k].alias === undefined || content[k].alias == "" || content[k].alias == ""?
-                                    <>{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</>
-                                  :
-                                    <>{content[k].alias}</>
-                                  }
-                                </span>
-                                <div className="qr-code d-flex justify-content-center d-none">
-                                  <QRCode
-                                    value={content[k].id}
-                                    size={50}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                          :
-                            <div className="cell-info" style={{fontSize: (60/warehouse[whId].col) + 'pt'}}>
-                              <span className="cell-id d-none">{content[k].id.substring(content[k].id.length-3, content[k].id.length)}</span>
-                            </div>
-                          }
-                        </div>
-                      </a>
-                    </div>
-                    {index == warehouse[whId].row-1?
-                      <></>
-                    :
-                      <></>
-                    }
-                  </>   
-                ); 
-              })}
-              {index == 0?
-              <div 
-                id="add-column-container" 
-                style ={{height: ((getMapWidth()/warehouse[whId].col) + 10) + 'px'}}
-              >
-                <div id="add-column-button">
-                  <div className="d-flex h-100 align-items-center justify-content-center flex-column">
-                    
-                    <button
-                      id="add-column-icon"
-                      classname="plain-button"
-                      onClick={(show)=>addColumn(warehouse[whId].cells, warehouse[whId].row, warehouse[whId].col)}
-                    >
-                      <FontAwesomeIcon icon={faPlus}/>
-                    </button>
-                    
-                    <div id="add-column-line">
-                  </div>
-                  </div>
-                </div>
-              </div>
-              :
-              <></>
-              }
-            </div>  
-          );
-        })}
-        
-        <div id="add-row-container" style ={{width: ((getMapWidth()/warehouse[whId].col) + 10) + 'px'}}>
-          <div id="add-row-button">
-            <div className="d-flex w-100 align-items-center justify-content-center flex-row">
-            <button 
-              id="add-row-icon" 
-              className="plain-button"
-              onClick={(show)=>addRow(warehouse[whId].cells, warehouse[whId].row, warehouse[whId].col)}
-            >
-                <FontAwesomeIcon icon={faPlus}/>
-            </button>
-            <div id="add-row-line">
-                
-            </div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
 
 return (
  <div>
@@ -1871,18 +2045,15 @@ return (
                                 show={modalShowMap}
                                 onHide={() => setModalShowMap(false)}
                                 id={warehouse === undefined?"WH01":warehouse[whId].id}
+                                istemplate={isTemplateChosen}
+                                template={templateChosen}
                               />
                               <div>
                                 <div className="text-center">
-                                  <h4>Warehouse Map Not Initialized</h4>
+                                  <h5 className="py-2">Seems like you haven't set-up your warehouse map yet.</h5>
+                                  <h4 className="py-3" style={{fontWeight: "600", color: '#4172c1'}}>Start now by choosing from the templates below or customizing your own.</h4>
+                                  <DisplayTemplates/>
                                   <br />
-                                  <Button
-                                    className="btn btn-primary"
-                                    style={{ width: "150px" }}
-                                    onClick={()=>setModalShowMap(true)}
-                                  >
-                                    Set Up Now
-                                  </Button>
                                 </div>
                               </div>
                             </>

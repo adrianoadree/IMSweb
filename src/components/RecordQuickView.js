@@ -224,7 +224,7 @@ function RecordQuickView(props) {
                           </small>
                         </>
                       :
-                        <h3 className="stretched-heading">{recordDoc.transaction_supplier}</h3>
+                        <h3 className="stretched-heading">{recordDoc.transaction_supplier.toUpperCase()}</h3>
                       }
                     </>
                   :

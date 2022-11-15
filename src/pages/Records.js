@@ -21,7 +21,7 @@ import { Spinner, Spinner as Spinner2 } from 'loading-animations-react';
 
 
 import NewPurchaseModal from "../components/NewPurchaseModal";
-import  ProductQuickView  from '../components/ProductQuickView'
+import  ProductQuickView  from '../components/ProductQuickView';
 
 
 
@@ -301,7 +301,7 @@ function Records() {
               </div>
               <div className="row m-0 p-0">
                 <div className="col-12 px-3 d-flex justify-content-center">
-                  <Table size="sm">
+                  <Table hover size="sm">
                     <tbody>
                       <tr>
                         <td>Date</td>

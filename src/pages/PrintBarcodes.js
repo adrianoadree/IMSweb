@@ -26,7 +26,7 @@ function PrintBarcodes() {
   const [userID, setUserID] = useState("");
   const [userCollection, setUserCollection] = useState([]);// user collection variable
   const userCollectionRef = collection(db, "user")// user collection reference
-  const [categorySuggestions, setCategorySuggestions] = useState([])// categories made by user
+  const [userProfile, setUserProfile] = useState({categories: []})// categories made by user
   const [stockcardCollection, setStockcardCollection] = useState(); // stockcard Collection
   const [classification, setClassification] = useState("All")//classification filter
   const [category, setCategory] = useState("All")// category filter
@@ -34,7 +34,6 @@ function PrintBarcodes() {
   const JsBarcode = require('jsbarcode');
   var curr_date = new Date(); // get current date
   curr_date.setDate(curr_date.getDate());
-  curr_date.setHours(0, 0, 0, 0); // set current date's hours to zero to compare dates only
   var today = curr_date
 
   // get user id
@@ -68,8 +67,7 @@ function PrintBarcodes() {
   // fetch user-made categories
   useEffect(() => {
     userCollection.map((metadata) => {
-        setCategorySuggestions(metadata.categories)
-        
+        setUserProfile(metadata)
     });
   }, [userCollection])
 
@@ -187,12 +185,25 @@ function PrintBarcodes() {
 
     // create document
     var doc = new jsPDF()
+    var pageHeight =  doc.internal.pageSize.height || doc.internal.pageSize.getHeight();
+    var pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth();
+    doc.setFont('Times-Bold', 'bold');
+    doc.setFontSize(20);
+    doc.setTextColor(40);
+    doc.text(userProfile.bname, pageWidth/2, 15, {align: 'center'})
     doc.setFontSize(10);
-    doc.text(15, 15, "Listing " + clsn + " products " + cgry_preword + cgry + cgry_postword);
+    doc.text(userProfile.baddress, pageWidth/2, 20, {align: 'center'})
+    doc.setFont('Helvetica', 'normal')
+    doc.setFontSize(8);
+    var printDateString = "Generated: " + moment(today).format("MM-DD-YYYY @ hh:mm:ss A")
+    doc.text(printDateString, pageWidth - 15, 30, {align: 'right'})
+    doc.setFontSize(10);
+    doc.text("Listing " + clsn + " products " + cgry_preword + cgry + cgry_postword, 15, 30, {align: 'left'});
     doc.autoTable({
       html: "#product-table",
       theme: "grid",
-      startY: 20,
+      startY: 35,
+      margin: {left: 15},
       headStyles: {
         fillColor: "#fff",
         textColor: "#000",
@@ -205,17 +216,22 @@ function PrintBarcodes() {
       },
       columnStyles: {
         0: {cellWidth: 25},
-        1: {cellWidth: 110},
+        1: {cellWidth: 105},
         2: {cellWidth: 10},
         3: {cellWidth: 40},
       },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text("" + doc.internal.getNumberOfPages(), pageWidth/2, pageHeight - 10, {align: 'center'});
+        
+      },
       didDrawCell: function(data) {
-      if (data.column.index === 3 && data.cell.section === 'body') {
-        var td = data.cell.raw;
-        var img = td.getElementsByClassName('barcode')[0]
-        var dim = data.cell.height - data.cell.padding('vertical');
-        var textPos = data.cell;
-        doc.addImage(img.src, textPos.x + 2, textPos.y + 1, 35, 20);
+        if (data.column.index === 3 && data.cell.section === 'body') {
+          var td = data.cell.raw;
+          var img = td.getElementsByClassName('barcode')[0]
+          var dim = data.cell.height - data.cell.padding('vertical');
+          var textPos = data.cell;
+          doc.addImage(img.src, textPos.x + 2, textPos.y + 1, 35, 20);
       }
       }
     });
@@ -263,7 +279,7 @@ function PrintBarcodes() {
                     </div>
                     <div className="row py-1 m-0">
                       <div className="row px-0 py-2 m-0">
-                        <div className="col-2">
+                        <div className="col-2 d-flex align-items-center">
                           Classification
                         </div>
                         <div className="col-10">
@@ -280,7 +296,7 @@ function PrintBarcodes() {
                         </div>
                       </div>
                       <div className="row px-0 py-2 m-0">
-                        <div className="col-2">
+                        <div className="col-2 d-flex align-items-center">
                           Category
                         </div>
                         <div className="col-10">
@@ -290,7 +306,7 @@ function PrintBarcodes() {
                             onChange={(event)=>{setCategory(event.target.value)}}
                           >
                             <option value="All">All</option>
-                            {categorySuggestions.map((category)=>{
+                            {userProfile.categories.map((category)=>{
                               return(
                                 <option
                                   key={category}

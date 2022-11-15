@@ -40,7 +40,7 @@ function StockcardPage({ isAuth }) {
   const [recordQuickViewModalShow, setRecordQuickViewModalShow] = useState(false);
   const [recordToView, setRecordToView] = useState()
   const [stockcard, setStockcard] = useState(); // stockcardCollection variable
-  const [allPurchases, setAllPurchases] = useState();
+  const [allPurchases, setAllPurchases] = useState([]);
   const [docId, setDocId] = useState(); //document Id
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
@@ -590,7 +590,7 @@ function StockcardPage({ isAuth }) {
           </div>
         </div>
         <div className="row m-0 px-0 p-0">
-          <Table id="per-product-record" className="scrollable-table">
+          <Table hover id="per-product-record" className="scrollable-table">
             <thead>
               <tr>
                 <th className="tno left-curve">Transaction No.</th>
@@ -1208,7 +1208,8 @@ function StockcardPage({ isAuth }) {
           <div className="col-3 p-0 float-end">
             <button
               className={showingLeadtimeOptions ? "filter active float-end" : "filter float-end"}
-              data-title={showingLeadtimeOptions ? "Save" : "Set your own leadtime"}
+              disabled={newMaxLeadtime < newMinLeadtime}
+              data-title={showingLeadtimeOptions ? (newMaxLeadtime < newMinLeadtime?"Max is lower than min":"Save") : "Set your own leadtime"}
               onClick={() => {
                 if (showingLeadtimeOptions) {
                   setShowingLeadtimeOptions(false)
@@ -1642,7 +1643,7 @@ function StockcardPage({ isAuth }) {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            disabled={newMaxLeadtime === 0 ? true : false}
+            disabled={newMaxLeadtime > newMinLeadtime}
             onClick={() => { updateLeadtime(docId) }}
           >
             Save Changes
@@ -2155,7 +2156,7 @@ function StockcardPage({ isAuth }) {
                                 <img key={stockcard[docId].img}src={stockcard[docId].img} style={{height: '100%', width: 'auto'}}/>
                               </div>
                             }
-                            <a className="data-barcode">
+                            <a className="data-barcode" style={{height: "5em"}}>
                               <div className="data-barcode-edit-container">
                                 <div className="data-barcode-edit align-items-center justify-content-center">
                                   <Button
@@ -2166,6 +2167,7 @@ function StockcardPage({ isAuth }) {
                                   </Button>
                                 </div>
                               </div>
+                              <div>
                               {stockcard[docId].barcode == 0 || stockcard[docId].barcode === undefined ?
                                 <Alert className="text-center" variant="warning" style={{ height: '5em', fontSize: '0.8em' }}>
                                   <FontAwesomeIcon icon={faTriangleExclamation} /><span> Barcode Not Set</span>
@@ -2177,6 +2179,7 @@ function StockcardPage({ isAuth }) {
                                   value={stockcard[docId].barcode}
                                 />
                               }
+                              </div>
                             </a>
                           </div>
                         </div>

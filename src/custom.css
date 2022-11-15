@@ -586,11 +586,26 @@ li:hover{
 	transition: background-color 0.1s ease, color 0.1s ease;
 	border-radius: 5px !important;
 	border: none;
+	pointer-events: auto !important;
+	cursor: auto;
+}
+
+.filter.active[disabled] {
+	border-color: #c6d4ea !important;
+	background-color: #ffffff !important;
+	color: #c6d4ea !important;
 }
 
 .filter.active {
 	background-color: #4973ff;
 	color: #fff !important;  
+}
+
+.filter.active:hover[disabled] {
+	border-color: #c6d4ea !important;
+	background-color: #ffffff !important;
+	color: #c6d4ea !important;
+	box-shadow: none !important;
 }
 
 .filter.active:hover {
@@ -640,14 +655,21 @@ li:hover{
 
 .delete[disabled], 
 .edit[disabled],
-.add[disabled] {
+.add[disabled],
+.preview[disabled] {
   border-color: #c6d4ea !important;
   background-color: #ffffff !important;
   color: #c6d4ea !important;
   opacity: 1 !important
 }
 
-.delete[disabled].disabled-conditionally {
+.delete[disabled].disabled-conditionally,
+.preview[disabled].disabled-conditionally {
+	pointer-events: auto !important;
+	cursor: auto;
+}
+
+.preview[disabled].disabled-conditionally {
 	pointer-events: auto !important;
 	cursor: auto;
 }
@@ -715,13 +737,13 @@ li:hover{
 	padding: 0;
 	width: 100%;
 	height: 100%;
+	line-height: 0;
 }
 
 .data-barcode-edit-container {
 	display: inline-block;
 	position: relative;
 	top: 0;
-	left: 0;
 }
 
 .data-barcode:hover .data-barcode-edit {
@@ -735,7 +757,7 @@ li:hover{
 	left: 0;
 	z-index: 4;
 	width: 10em;
-	height: 4em;
+	height: 5em;
 	backdrop-filter: blur(1px);
 }
 
@@ -2312,8 +2334,13 @@ input:not(:focus):valid ~ .floating-label{
 }
 
 #map-preview {
+	display: inline-block;
 	margin: 0 auto;
 	line-height: 0 !important;
+	height: 100%;
+	min-height: 100%;
+	max-height: 100%;
+	width: 100%;
 }
 
 
@@ -2614,18 +2641,19 @@ input:not(:focus):valid ~ .floating-label{
 	width: 100%;
 	background-color: #fff;
 	min-height: 350px !important;
+	max-height: 380px !important;
 }
 
 .product-adding-stage-header {
 	text-align: center;
-	padding: 0.5em 0;
+	padding: 0.25em 0;
 	font-size: 1.3em;
 	font-weight: bolder;
 	background-color: rgb(9, 255, 0);
 	border-top-right-radius: 10px;
 	border-top-left-radius: 10px;
 	color: #fff;
-	height: 15%;
+	height: 10%;
 }
 
 .product-adding-stage-tip {
@@ -2641,7 +2669,7 @@ input:not(:focus):valid ~ .floating-label{
 	border-bottom-left-radius: 10px;
 	padding: 1em;
 	box-shadow: 0 0px 5px 1px #9e9e9e71 inset;
-	height: 85%;
+	height: 90%;
 }
 
 .products-container .card {
@@ -2657,6 +2685,19 @@ input:not(:focus):valid ~ .floating-label{
 .products-container .card:hover {
 	box-shadow: 0 4px 5px 1px #005eff65;
 	background-color: #fcfdff;
+}
+
+.products-container-header {
+	display: inline-block;
+	height: 20%;
+	width: 100%;
+}
+
+.products-container-body {
+	display: inline-block;
+	height: 80%;
+	width: 100%;
+	overflow-y: scroll;
 }
 
 .product-adding-stage-active.instorage .product-adding-stage-header {
@@ -3227,6 +3268,10 @@ table.scrollable-table tbody.small {
     height: 100px !important;
 }
 
+table.scrollable-table tbody.medium {
+    height: 450px !important;
+}
+
 #summary-report-options {
 	border: none;
 	padding: 1em 0.5em;
@@ -3488,4 +3533,65 @@ table.scrollable-table.receipt-table th.qty  {
 h3 .form-control {
 	font-size: calc(1rem + .6vw);
 	font-weight: bold;
+}
+
+.warehouse-template {
+	pointer-events: all;
+	cursor: pointer;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 6 / 9;
+	background: linear-gradient(0deg, #ffffff 0%, #ffffff 70%, #f7f7f7 100%);
+	border-width: 2px;
+	transition: background 0.1s ease, transform 0.1s linear;
+}
+
+.warehouse-template:hover {
+	transform: translateY(-30px);
+	transform: scale(110%);
+	box-shadow: 0 5px 5px 2px #abc8e66f;
+	border: 2px solid #20d400;
+	background: linear-gradient(0deg, #ffffff 0%, #ffffff 70%,#b5f0aa 100%);
+}
+
+.warehouse-template-icon-container{
+	transition: transform 0.5s ease;
+}
+
+.warehouse-template h6 {
+	line-height: 1.5em;
+	text-align: justify;
+}
+
+.warehouse-template:hover h1 {
+}
+
+
+.warehouse-template:hover .warehouse-template-icon-container{
+	transform: rotate(180deg)
+}
+
+.warehouse-template-thumb {
+	display: inline-block;
+	width: 100%;
+	height: 60%;
+}
+
+.warehouse-template-thumb img {
+	width: 100%;
+	height:100%;
+	object-fit: contain;
+	box-sizing: border-box;
+
+}
+
+.warehouse-template-info{
+	display: inline-block;
+	width: 100%;
+	height: 40%;
+}
+
+#catalogue {
+	height: 520px;
+	overflow-y: scroll;
 }

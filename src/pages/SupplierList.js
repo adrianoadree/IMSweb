@@ -1,5 +1,5 @@
 import RPersoneact from 'react';
-import { Tab, Button, Card, ListGroup, Modal, Form, Alert } from 'react-bootstrap';
+import { Tab, Button, Card, ListGroup, Modal, Form, Alert, Nav, Table } from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
@@ -19,6 +19,9 @@ import FormControl from "react-bootstrap/FormControl";
 import UserRouter from '../pages/UserRouter'
 import { UserAuth } from '../context/AuthContext'
 import { Spinner } from 'loading-animations-react';
+import  ProductQuickView  from '../components/ProductQuickView'
+
+import RecordQuickView from "../components/RecordQuickView";
 
 
 
@@ -30,14 +33,23 @@ function SupplierList() {
   const [userID, setUserID] = useState("");
   const [key, setKey] = useState('main');//Tab controller
   const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
+  
+  const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]); //purchase_record Collection
 
+  const [stockcardCollection, setStockcardCollection] = useState([]); // stockcardCollection variable
   const [editShow, setEditShow] = useState(false); //display/ hide edit modal
   const [modalShow, setModalShow] = useState(false);//display/hide modal
   const [supplier, setSupplier] = useState(); //supplier Collection
   const [supplierDoc, setSupplierDoc] = useState([]); //supplier Doc
   const [docId, setDocId] = useState(); //document id variable
-
+  const [catalogue, setCatalogue] = useState([])
+  const [transactions, setTransactions] = useState([])
+  const [productToView, setProductToView] = useState(["IT0000001"])
+  const [productQuickViewModalShow, setProductQuickViewModalShow] = useState(false); //product quick view modal
   const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("add")
+  
+  const [recordQuickViewModalShow, setRecordQuickViewModalShow] = useState(false);
+  const [recordToView, setRecordToView] = useState()
 
   //---------------------FUNCTIONS---------------------
 
@@ -49,7 +61,7 @@ function SupplierList() {
   }, [{ user }])
 
   useEffect(() => {
-    console.log(isFetched)
+    console.log(catalogue)
   },)
   
 
@@ -103,16 +115,35 @@ function SupplierList() {
 
   }, [userID])
 
+  //Read stock card collection from database
   useEffect(() => {
-    async function readSupplierDoc() {
-      const salesRecord = doc(db, "supplier", docId)
-      const docSnap = await getDoc(salesRecord)
-      if (docSnap.exists()) {
-        setSupplierDoc(docSnap.data());
-      }
+    if (userID === undefined) {
+
+      const stockcardCollectionRef = collection(db, "stockcard")
+      const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
     }
-    readSupplierDoc()
-  }, [docId])
+    else {
+      const purchaseCollectionRef = collection(db, "purchase_record")
+      const qq = query(purchaseCollectionRef, where("user", "==", userID));
+
+      const unsubscribe = onSnapshot(qq, (snapshot) =>
+        setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+
+      const stockcardCollectionRef = collection(db, "stockcard")
+      const q = query(stockcardCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
 
 
   const handleDocChange = (doc) => {
@@ -123,6 +154,64 @@ function SupplierList() {
       }
     })
   }
+
+  const getProductInfo = (product_id) => {
+    var tempProd = {}
+    stockcardCollection.map((prod)=>{
+      if(prod.id == product_id){
+        tempProd = prod
+      }
+    })
+    return tempProd
+  }
+
+  const getTransactions = () => {
+    var temp_transactions = []
+    purchaseRecordCollection.map((purch)=>{
+      if(purch.transaction_supplier == supplier[docId].id || purch.transaction_supplier == supplier[docId].supplier_name)
+      {
+        temp_transactions.push(purch)
+      }
+    })
+    setTransactions(temp_transactions)
+  }
+
+  const fillCatalogue = () => {
+    var temp_catalogue = []
+    transactions.map((transaction)=>{
+      transaction.product_list.map((product)=>{
+        console.log(temp_catalogue.indexOf(product.itemId))
+        if(temp_catalogue.indexOf(product.itemId) == -1)
+        {
+          
+          temp_catalogue.push(product.itemId)
+        }
+      })
+    })
+    setCatalogue(temp_catalogue)
+  }
+
+  useEffect(() => {
+    if(purchaseRecordCollection === undefined || docId === undefined)
+    {
+
+    }
+    else
+    {
+      getTransactions()
+    }
+  }, [docId])
+
+  useEffect(() => {
+    if(transactions === undefined || stockcardCollection === undefined)
+    {
+
+    }
+    else
+    {
+      fillCatalogue()
+    }
+  }, [transactions])
 
   //delete Toast
   const deleteToast = () => {
@@ -297,7 +386,76 @@ function SupplierList() {
     );
   }
 
+  function DisplayTransactions(props) {
+    return(
+      <Table hover>
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Date</th>
+            <th>Products</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {transactions.map((transaction)=>{
+            return(
+              <tr
+                className="clickable"
+                onClick={()=>{setRecordToView(transaction.id); setRecordQuickViewModalShow(true)}}
+              >
+                <td>{transaction.id.substring(0,7)}</td>
+                <td>{transaction.transaction_date}</td>
+                <td>
+                  {transaction.product_list.map((product, index) => {
+                    return(
+                      <>
+                        <span>{getProductInfo(product.itemId).description} [{product.itemQuantity} units]
+                        {index != transaction.product_list.length - 1?<>,</>:<></>}
+                        </span>
+                        <br/>
+                      </>
+                    )
+                  })}
+                </td>
+                <td>{transaction.transaction_note}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+        <tfoot>
 
+        </tfoot>
+      </Table>
+    )
+  }
+
+  function DisplayCatalogue(props) {
+    return(
+      <div id="catalogue">
+        <div className="row">
+          {catalogue.map((product)=>{
+            return(
+              <div className="col-3 p-3 d-flex align-items-center justify-content-center">
+                <Card 
+                  className="warehouse-template"
+                  onClick={()=>{setProductToView(product); setProductQuickViewModalShow(true)}}
+                >
+                    <div className="w-100 h-100 d-flex align-items-center justify-content-center p-1">
+                      {getProductInfo(product).img === undefined || getProductInfo(product).img == "" || getProductInfo(product).img == " "?
+                        <h6 className="p-2">{getProductInfo(product).description}</h6>
+                      :
+                        <img src={getProductInfo(product).img} style={{height: "100%", width: "100%", objectFit: "contain"}}/>
+                      }
+                    </div>
+                </Card>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
 
   // ===================================== START OF SEARCH FUNCTION =====================================
 
@@ -353,6 +511,16 @@ function SupplierList() {
         pauseOnHover
       />
 
+    <ProductQuickView
+                                show={productQuickViewModalShow}
+                                onHide={() => setProductQuickViewModalShow(false)}
+                                productid={productToView}
+                              />
+    <RecordQuickView
+        show={recordQuickViewModalShow}
+        onHide={() => setRecordQuickViewModalShow(false)}
+        recordid={recordToView}
+      />
       <Tab.Container
         activeKey={key}
         onSelect={(k) => setKey(k)}>
@@ -666,8 +834,9 @@ function SupplierList() {
                             <FontAwesomeIcon icon={faEdit} />
                           </Button>
                           <Button
-                            className="delete me-1"
-                            data-title="Delete Supplier"
+                            className="delete me-1 disabled-conditionally"
+                            disabled={transactions.length > 0}
+                            data-title={transactions.length > 0?"Supplier part of transactions":"Delete Supplier"}
                             onClick={() => { deleteSupplier(supplier[docId].id) }}>
                             <FontAwesomeIcon icon={faTrashCan} />
                           </Button>
@@ -789,6 +958,38 @@ function SupplierList() {
                       </div>
                     </div>
                   </div>
+                  <div className="folder-style">
+                        <Tab.Container id="list-group-tabs-example" defaultActiveKey={1}>
+                          <Nav variant="pills" defaultActiveKey={1}>
+                            <Nav.Item>
+                              <Nav.Link eventKey={1}>
+                                Catalogue
+                              </Nav.Link>
+                            </Nav.Item>
+                            <Nav.Item>
+                              <Nav.Link eventKey={0}>
+                                Transactions
+                              </Nav.Link>
+                            </Nav.Item>
+                          </Nav>
+                          <Tab.Content>
+                            <Tab.Pane eventKey={1}>
+                              <div className="row data-specs-add m-0">
+                                <div className='row m-0 p-0'>
+                                  <DisplayCatalogue/>
+                                </div>
+                              </div>
+                            </Tab.Pane>
+                            <Tab.Pane eventKey={0}>
+                              <div className="row data-specs-add m-0">
+                                <div className="row m-0 p-0">
+                                  <DisplayTransactions/>
+                                </div>
+                              </div>
+                            </Tab.Pane>
+                          </Tab.Content>
+                        </Tab.Container>
+                      </div>
                 </Tab.Pane>
                 }
               </Tab.Content>
