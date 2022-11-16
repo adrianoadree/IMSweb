@@ -29,7 +29,7 @@ function SalesRecords({ isAuth }) {
   const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
 
   const [modalShow, setModalShow] = useState(false); //add new sales record modal
-  const [modalShowPQV, setModalShowPQV] = useState(false); //product quick view modal
+  const [productQuickViewModalShow, setProductQuickViewModalShow] = useState(false); //product quick view modal
   const [modalShowVR, setModalShowVR] = useState(false); //product quick view modal
   const [salesRecordCollection, setSalesRecordCollection] = useState(); //sales_record Collection
   const [salesRecordDoc, setSalesRecordDoc] = useState([]); //sales_record Collection
@@ -683,23 +683,21 @@ function SalesRecords({ isAuth }) {
                             </thead>
                             <tbody>
                               <ProductQuickView
-                                show={modalShowPQV}
-                                onHide={() => setModalShowPQV(false)}
+                                show={productQuickViewModalShow}
+                                onHide={() => setProductQuickViewModalShow(false)}
                                 productid={productToView}
                               />
                               {list.map((sales, index) => (
-                                <tr key={index}>
+                                <tr 
+                                  key={index}
+                                  className="clickable"
+                                  onClick={()=>{setProductToView(sales.itemId); setProductQuickViewModalShow(true)}}
+                                >
                                   <td className='ic pt-entry px-3' key={sales.itemId}>
                                     {sales.itemId === undefined ?
                                       <></>
-                                      :
-                                      <>
-                                        <button
-                                          onClick={() => { setProductToView(sales.itemId); setModalShowPQV(true) }}
-                                        >
-                                          {sales.itemId.substring(0, 9)}
-                                        </button>
-                                      </>
+                                    :
+                                      <>{sales.itemId.substring(0, 9)}</>
                                     }
                                   </td>
                                   <td className="qc pt-entry text-center" key={sales.itemQuantity}>

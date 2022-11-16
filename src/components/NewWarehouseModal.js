@@ -19,9 +19,11 @@ function NewWarehouseModal(props) {
   const userCollectionRef = collection(db, "user")
   const [warehouseCounter, setWarehouseCounter] = useState(0);
 
-  const [newWHName, setnewWHName] = useState("");
-  const [newWHNotes, setnewWHNotes] = useState("");
-  const [newAddress, setnewAddress] = useState("");
+  const [newWHName, setNewWHName] = useState("");
+  const [newWHNotes, setNewWHNotes] = useState("");
+  const [newAddress, setNewAddress] = useState("");
+
+  const [disallowAddition, setDisallowAddition] = useState(true)
 
   useEffect((()=> {
     if(warehouseCounter > 1) {
@@ -33,10 +35,34 @@ function NewWarehouseModal(props) {
   }))
 
   useEffect(() => {
+    if(newWHName === undefined || newWHName == " " || newWHName == "")
+    {
+      setDisallowAddition(true)
+    }
+    else
+    {
+      setDisallowAddition(false)
+    }
+  })
+
+  useEffect(() => {
     if (user) {
       setUserID(user.uid)
     }  
   }, [{ user }])
+
+  const clearFields = () => {
+    setNewWHName("")
+    setNewWHNotes("")
+    setNewAddress("")
+  }
+
+  useEffect(()=>{
+    if(props.onHide)
+    {
+      clearFields()
+    }
+  }, [props.onHide])
 
   useEffect(() => {
     if (userID === undefined) {
@@ -145,11 +171,15 @@ function NewWarehouseModal(props) {
               />
             </div>
             <div className='col-7 ps-4'>
-              <label>Warehouse Name</label>
+              <label>
+                Warehouse Name
+                <span style={{color: '#b42525'}}> *</span>
+              </label>
               <input type="text"
                 className="form-control shadow-none"
                 placeholder="Warehouse"
-                onChange={(event) => { setnewWHName(event.target.value); }}
+                value={newWHName}
+                onChange={(event) => { setNewWHName(event.target.value); }}
               />
             </div>
           </div>
@@ -160,7 +190,8 @@ function NewWarehouseModal(props) {
                 className="form-control shadow-none"
                 placeholder="Address"
                 rows={3}
-                onChange={(event) => { setnewAddress(event.target.value); }}
+                value={newAddress}
+                onChange={(event) => { setNewAddress(event.target.value); }}
               />
             </div>
           </div>
@@ -171,7 +202,8 @@ function NewWarehouseModal(props) {
                 className="form-control shadow-none shadow-none"
                 as="textarea"
                 rows={2}
-                onChange={(event) => { setnewWHNotes(event.target.value); }}
+                value={newWHNotes}
+                onChange={(event) => { setNewWHNotes(event.target.value); }}
               />
             </div>
           </div>
@@ -189,7 +221,7 @@ function NewWarehouseModal(props) {
         </Button>
         <Button
           className="btn btn-light float-start"
-          disabled={newWHName === undefined || newWHName == ""?true:false}
+          disabled={disallowAddition}
           style={{ width: "6rem" }}
           onClick={() => { addWarehouse() }}
         >

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { db } from "../firebase-config";
-import { setDoc, collection, onSnapshot, query, doc, updateDoc, where } from "firebase/firestore";
+import { setDoc, collection, onSnapshot, query, doc, updateDoc, where, getDoc } from "firebase/firestore";
 import { Modal, Button, Form, Table } from "react-bootstrap";
 import moment from "moment";
 import { Warning } from 'react-ionicons'
@@ -28,8 +28,8 @@ function NewPurchaseModal(props) {
     const [userProfileID, setUserProfileID] = useState(""); // user profile id
     const userCollectionRef = collection(db, "user")// user collection
     const [purchaseCounter, setPurchaseCounter] = useState(0); // purchase counter
+    const [transactionIssuer, setTransactionIssuer] = useState("") // default purchaser in web
 
-    const [varRef, setVarRef] = useState([]); // variable collection
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
     const [supplierCol, setSupplierCol] = useState([]); // stockcardCollection variable
     const [supplierModalShow, setSupplierModalShow] = useState(false); //add new sales record modal
@@ -59,6 +59,11 @@ function NewPurchaseModal(props) {
         })
     }, [items])
 
+    useEffect(()=>{
+        console.log(itemSupplier)
+        console.log(computeDelay())
+    })
+
     //fetch user collection from database
     useEffect(() => {
         if (userID === undefined) {
@@ -85,6 +90,12 @@ function NewPurchaseModal(props) {
         userCollection.map((metadata) => {
             setPurchaseCounter(metadata.purchaseId)
             setUserProfileID(metadata.id)
+            metadata.accounts.map((account)=>{
+                if(account.isAdmin)
+                {
+                    setTransactionIssuer(account)
+                }
+            })
         });
       }, [userCollection])
 
@@ -114,6 +125,27 @@ function NewPurchaseModal(props) {
 
     }, [userID])
 
+    const handleDateChange = () => {
+        if (newOrderDate === undefined || newOrderDate == "" || newOrderDate == " " || newOrderDate == 0) 
+        {
+            return "hide-warning-message"
+        }
+        else 
+        {
+            var t_date = new Date(newTransactionDate)
+            t_date.setHours(0, 0, 0, 0)
+            var o_date = new Date(newOrderDate)
+            o_date.setHours(0, 0, 0, 0)
+            if(t_date.valueOf() < o_date.valueOf())
+            {
+                return "Order date must preceed transaction date"
+            }
+            else
+            {
+                return "hide-warning-message"
+            }
+        }
+      }
 
     //Read supplier collection from database
     useEffect(() => {
@@ -140,6 +172,17 @@ function NewPurchaseModal(props) {
 
     }, [userID])
 
+    useEffect(() => {
+        if(supplierCol === undefined || supplierCol.length == 0)
+        {
+
+        }
+        else
+        {
+            setItemSupplier(supplierCol[0].id)
+        }
+    }, [supplierCol])
+
     useEffect(()=>{
         if(props.onHide)
         {
@@ -148,7 +191,14 @@ function NewPurchaseModal(props) {
       }, [props.onHide])
 
     const clearFields = () => {
-        setItemSupplier("0")
+        if(supplierCol === undefined || supplierCol.length == 0)
+        {
+
+        }
+        else
+        {
+            setItemSupplier(supplierCol[0].id)
+        }
         setProductIds([])
         setItems([]);
         setNewNote("");
@@ -169,6 +219,7 @@ function NewPurchaseModal(props) {
             });
         }
     }, [itemId])
+
 
 
     //----------------------Start of Dynamic form functions----------------------
@@ -222,8 +273,44 @@ function NewPurchaseModal(props) {
         return format;
      }
 
+    const computeDelay = () => {
+        var t_date = new Date(newTransactionDate)
+        t_date.setHours(0, 0, 0, 0)
+        var o_date = new Date(newOrderDate)
+        o_date.setHours(0, 0, 0, 0)
+        return (moment(t_date).diff(moment(o_date), "days"))
+      }
+
     //add document to database
     const addRecord = async () => {
+        if(newOrderDate !== undefined || newOrderDate != " " || newOrderDate != "" || newOrderDate != 0)
+        {
+            for(var i = 0; i < productIds.length; i++)
+            {
+                var stockcardItemAnalytics = {}
+                await getDoc(doc(db, "stockcard", productIds[i])).then(docSnap => {
+                    if (docSnap.exists()) {
+                        stockcardItemAnalytics = docSnap.data().analytics
+                    }
+                    else
+                    {
+                
+                    }
+                })
+                if(stockcardItemAnalytics.leadtimeMaximum < computeDelay())
+                {
+                    stockcardItemAnalytics.leadtimeMaximum = computeDelay()
+                }
+                if(stockcardItemAnalytics.leadtimeMinimum > computeDelay())
+                {
+                    stockcardItemAnalytics.leadtimeMinimum = computeDelay()
+                }
+                stockcardItemAnalytics.leadtimeAverage = Number((stockcardItemAnalytics.leadtimeMaximum + stockcardItemAnalytics.leadtimeMaximum)/2)
+                updateDoc(doc(db, "stockcard", productIds[i]),{
+                    analytics: stockcardItemAnalytics,
+                })
+            }
+        }
         setDoc(doc(db, "purchase_record", createFormat()), {
             user: userID,
             transaction_number: createFormat().substring(0,7),
@@ -234,7 +321,8 @@ function NewPurchaseModal(props) {
             order_date: newOrderDate,
             product_list: items,
             product_ids: productIds,
-            isVoided: false
+            isVoided: false,
+            issuer: transactionIssuer.name
         });
         updateQuantity()  //update stockcard.qty function
         updatePurchDocNum() //update variables.purchDocNum function
@@ -347,22 +435,27 @@ function NewPurchaseModal(props) {
                             />
                         </div>
                         <div className="col-3 ps-4">
-                        <label>
-                            Date Ordered
-                            <a
-                                className="ms-2"
-                                data-title="The date when the purchase order was placed"
+                            <label>
+                                Date Ordered
+                                <a
+                                    className="ms-2"
+                                    data-title="The date when the purchase order was placed"
+                                >
+                                <FontAwesomeIcon icon={faCircleInfo
+                                }/>
+                                </a>
+                            </label>
+                            <input
+                                    type='date'
+                                    className="form-control shadow-none"
+                                    value={newOrderDate}
+                                    onChange={e => setNewOrderDate(e.target.value)}
+                                />
+                            <div 
+                                className={"field-warning-message red-strip my-1 m-0 " + (handleDateChange())}
                             >
-                            <FontAwesomeIcon icon={faCircleInfo
-                            }/>
-                            </a>
-                        </label>
-                        <input
-                                type='date'
-                                className="form-control shadow-none"
-                                value={newOrderDate}
-                                onChange={e => setNewOrderDate(e.target.value)}
-                            />
+                                {handleDateChange()}
+                            </div>    
                         </div>
                         <div className='col-4 ps-4'>
                             <NewSupplierModal
@@ -442,6 +535,7 @@ function NewPurchaseModal(props) {
                                                 className="form-control shadow-none"
                                                 placeholder='Quantity'
                                                 type='number'
+                                                min={1}
                                                 value={itemQuantity}
                                                 onChange={e => setItemQuantity(e.target.value)}
                                             />
@@ -514,8 +608,8 @@ function NewPurchaseModal(props) {
                 <Button
                     className="btn btn-light float-start"
                     style={{ width: "6rem" }}
-                    disabled={items.length === 0 && (itemSupplier == "" || itemSupplier == " " || itemSupplier == 0)}
-                    onClick={() => { addRecord(varRef.purchDocNum) }}>
+                    disabled={items.length === 0 || (itemSupplier == "" || itemSupplier == " " || itemSupplier == 0) || handleDateChange() == "Order date must preceed transaction date"}
+                    onClick={() => { addRecord() }}>
                     Save
                 </Button>
             </Modal.Footer>

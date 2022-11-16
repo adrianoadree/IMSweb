@@ -9,18 +9,19 @@ import { UserAuth } from '../context/AuthContext'
 import UserRouter from '../pages/UserRouter'
 import Navigation from "../layout/Navigation";
 
+import moment from "moment";
+
 import { Modal, Tab, ListGroup, Card, Table, Button, Nav, FormControl, InputGroup } from "react-bootstrap";
 import { faPlus, faPesoSign, faSearch, faBan } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Create, Calendar, InformationCircle, Person } from 'react-ionicons'
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import { Spinner, Spinner as Spinner2 } from 'loading-animations-react';
-import moment from "moment";
+
 
 import NewPurchaseModal from "../components/NewPurchaseModal";
-import  ProductQuickView  from '../components/ProductQuickView'
+import  ProductQuickView  from '../components/ProductQuickView';
 
 
 
@@ -117,7 +118,7 @@ function Records() {
   }, [collectionUpdateMethod])
 
   useEffect(() => {
-    if (purchaseRecordCollection === undefined) {
+    if (purchaseRecordCollection === undefined || supplierCollection === undefined) {
       setIsFetched(false)
     }
     else {
@@ -135,7 +136,7 @@ function Records() {
         }
       }
     }
-  }, [purchaseRecordCollection])
+  }, [purchaseRecordCollection, supplierCollection])
 
   const handleDocChange = (doc) => {
     purchaseRecordCollection.map((purchase, index)=>{
@@ -300,7 +301,7 @@ function Records() {
               </div>
               <div className="row m-0 p-0">
                 <div className="col-12 px-3 d-flex justify-content-center">
-                  <Table size="sm">
+                  <Table hover size="sm">
                     <tbody>
                       <tr>
                         <td>Date</td>
@@ -308,7 +309,13 @@ function Records() {
                       </tr>
                       <tr>
                         <td>Supplier</td>
-                        <td>{purchaseRecordCollection[docId].transaction_supplier}</td>
+                        <td>
+                          {purchaseRecordCollection[docId].transaction_supplier.startsWith("SU")?
+                            <>{getSupplierInfo(purchaseRecordCollection[docId].transaction_supplier).supplier_name}</>
+                          :
+                            <>{purchaseRecordCollection[docId].transaction_supplier}</>
+                          }
+                        </td>
                       </tr>
                       <tr>
                         <td>Notes</td>
@@ -885,17 +892,17 @@ function Records() {
                               />
                               {list.map((prod, index) => (
 
-                                <tr key={index}>
+                                <tr 
+                                  key={index}
+                                  className="clickable"
+                                  onClick={()=>{setProductToView(prod.itemId); setProductQuickViewModalShow(true)}}
+                                >
                                   <td className='ic pt-entry px-3' key={prod.itemId}>
                                     {prod.itemId === undefined?
                                       <></>
                                     :
                                       <>
-                                        <button
-                                          onClick={()=>{setProductToView(prod.itemId); setProductQuickViewModalShow(true)}}
-                                        >
                                           {prod.itemId.substring(0,9)}
-                                        </button>
                                       </>
                                     }
                                   </td>

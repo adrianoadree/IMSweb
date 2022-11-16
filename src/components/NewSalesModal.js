@@ -30,6 +30,7 @@ function NewSalesModal(props) {
     const [userProfileID, setUserProfileID] = useState(""); // user profile id
     const userCollectionRef = collection(db, "user")// user collection
     const [salesCounter, setSalesCounter] = useState(0); // sales counter
+    const [transactionIssuer, setTransactionIssuer] = useState("") // default purchaser in web
 
     const [newNote, setNewNote] = useState(""); // note form input
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
@@ -69,6 +70,7 @@ function NewSalesModal(props) {
             items.map((prod) => {
                 let person = {
                     itemId: prod.itemId,
+                    itemName: prod.itemName,
                     itemQuantity: Number(prod.itemQuantity),
                     itemPPrice: Number(prod.itemPPrice),
                     itemSPrice: Number(prod.itemSPrice),
@@ -109,6 +111,12 @@ function NewSalesModal(props) {
         userCollection.map((metadata) => {
             setSalesCounter(metadata.salesId)
             setUserProfileID(metadata.id)
+            metadata.accounts.map((account)=>{
+                if(account.isAdmin)
+                {
+                    setTransactionIssuer(account)
+                }
+            })
         });
     }, [userCollection])
 
@@ -244,8 +252,8 @@ function NewSalesModal(props) {
             transaction_date: newDate,
             product_list: prodList,
             product_ids: productIds,
-            isVoided: false
-
+            isVoided: false,
+            issuer: transactionIssuer.name
         });
         //update stockcard.qty function
         updateSalesDocNum() //update variables.salesDocNum function

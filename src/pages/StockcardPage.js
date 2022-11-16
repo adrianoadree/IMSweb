@@ -40,7 +40,7 @@ function StockcardPage({ isAuth }) {
   const [recordQuickViewModalShow, setRecordQuickViewModalShow] = useState(false);
   const [recordToView, setRecordToView] = useState()
   const [stockcard, setStockcard] = useState(); // stockcardCollection variable
-  const [allPurchases, setAllPurchases] = useState();
+  const [allPurchases, setAllPurchases] = useState([]);
   const [docId, setDocId] = useState(); //document Id
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
@@ -54,6 +54,7 @@ function StockcardPage({ isAuth }) {
   const [filterTransactionStatus, setFilterTransactionStatus] = useState("all");
   const [filterClickCounter, setFilterClickCounter] = useState(0);
   const [filterDateStart, setFilterDateStart] = useState("2001-01-01");
+  const [supplierCollection, setSupplierCollection] = useState(); //supplier collection  variable
   var curr = new Date();
   curr.setDate(curr.getDate());
   var today = moment(curr).format('YYYY-MM-DD')
@@ -76,7 +77,8 @@ function StockcardPage({ isAuth }) {
 
   //query documents from sales_record that contains docId
   useEffect(() => {
-    if (stockcard === undefined || stockcard.length == 0) {
+    if(stockcard === undefined || stockcard.length == 0)
+    {
 
     }
     else {
@@ -90,7 +92,27 @@ function StockcardPage({ isAuth }) {
     }
   }, [docId])
   //query documents from sales_record that contains docId
+  useEffect(() => {
+    //read supplier collection
+    if (userID === undefined) {
+      const supplierCollectionRef = collection(db, "supplier")
+      const q = query(supplierCollectionRef, where("user", "==", "DONOTDELETE"));
 
+      const unsub = onSnapshot(q, (snapshot) =>
+        setSupplierCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+      const supplierCollectionRef = collection(db, "supplier")
+      const q = query(supplierCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setSupplierCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
 
 
   useEffect(() => {
@@ -123,7 +145,6 @@ function StockcardPage({ isAuth }) {
       t_date.setHours(0, 0, 0, 0)
       var o_date = new Date(order_date)
       o_date.setHours(0, 0, 0, 0)
-
       return (moment(t_date).diff(moment(o_date), "days"))
     }
   }
@@ -163,6 +184,25 @@ function StockcardPage({ isAuth }) {
       }
     }
   }
+
+  const getSupplierInfo = (supplier_id) => {
+    var target_supplier
+    if(supplierCollection !== undefined)
+    {
+    supplierCollection.map((supp) => {
+      if(supp.id == supplier_id)
+      {
+        target_supplier = supp
+      }
+    })
+    return target_supplier
+    }
+    else
+    {
+      return {supplier_name: "", supplier_emailaddress: "", supplier_address: "", supplier_mobileNum: "", supplier_telNum: ""}
+    }
+  }
+
   //-----------------------------------------------------------------------------------------------
 
   //--------------------------------PURCHASE TOTAL RECORD FUNCTION---------------------------------
@@ -172,7 +212,8 @@ function StockcardPage({ isAuth }) {
 
   //query documents from sales_record that contains docId
   useEffect(() => {
-    if (stockcard === undefined || stockcard.length == 0) {
+    if(stockcard === undefined || stockcard.length == 0)
+    {
 
     }
     else {
@@ -322,10 +363,12 @@ function StockcardPage({ isAuth }) {
     }
     else {
       setIsFetched(true)
-      if (stockcard.length > 0) {
-        if (collectionUpdateMethod == "add") {
-          setDocId(stockcard.length - 1)
-          setKey(stockcard[stockcard.length - 1].id)
+      if(stockcard.length > 0)
+      {
+        if(collectionUpdateMethod == "add")
+        {
+          setDocId(stockcard.length-1)
+          setKey(stockcard[stockcard.length-1].id)
         }
         else {
           setCollectionUpdateMethod("add")
@@ -547,7 +590,7 @@ function StockcardPage({ isAuth }) {
           </div>
         </div>
         <div className="row m-0 px-0 p-0">
-          <Table id="per-product-record" className="scrollable-table">
+          <Table hover id="per-product-record" className="scrollable-table">
             <thead>
               <tr>
                 <th className="tno left-curve">Transaction No.</th>
@@ -560,16 +603,28 @@ function StockcardPage({ isAuth }) {
             <tbody>
               {filteredLedger.length > 0 ?
                 <>
-                  {filteredLedger.map((transac) => {
-                    return (
-                      <tr key={transac.id} className={'clickable' + (transac.isVoided ? 'voided-transaction' : '')}
-                        onClick={() => { setRecordToView(transac.id); setRecordQuickViewModalShow(true) }}>
-
+                  {filteredLedger.map((transac)=>{
+                    return(
+                      <tr key={transac.id} className={'clickable' + (transac.isVoided?'voided-transaction':'')}
+                      onClick={()=>{setRecordToView(transac.id); setRecordQuickViewModalShow(true)}}>
+                        
                         <td className="tno">
                           {transac.transaction_number}
                         </td>
                         <td className="td">{transac.transaction_date}</td>
-                        <td className="ts">{transac.transaction_supplier === undefined ? <>-</> : <>{transac.transaction_supplier}</>}</td>
+                        <td className="ts">
+                          {transac.transaction_supplier === undefined ? 
+                            <>-</> 
+                          : 
+                            <>
+                            {transac.transaction_supplier.startsWith("SU")?
+                              <>{getSupplierInfo(transac.transaction_supplier).supplier_name}</>
+                            :
+                              <>{transac.transaction_supplier}</>
+                            }
+                            </>
+                          }
+                        </td>
                         <td className="tq">{transac.product_list[0].itemQuantity}</td>
                         <td className="tnt">{transac.transaction_note}</td>
                       </tr>
@@ -1066,23 +1121,23 @@ function StockcardPage({ isAuth }) {
           pauseOnHover
         />
         <Modal.Body >
-          {(stockcard.length == 0 || stockcard === undefined) || docId === undefined ?
-            <></>
-            :
-            <div className="px-3 py-2">
-              <div className="module-header mb-4">
-                <h3 className="text-center">Deleting {stockcard === undefined || docId === undefined ? <></> : <>{stockcard[docId].id.substring(0, 9)}</>}</h3>
-              </div>
-              <div className="row m-0 p-0 mb-3">
-                <div className="col-12 px-3 text-center">
-                  <strong>
-                    Are you sure you want to delete
-                    <br />
-                    <span style={{ color: '#b42525' }}>{stockcard[docId].description}?</span>
-                  </strong>
-                </div>
-              </div>
-              <div className="row m-0 p-0">
+        {(stockcard.length == 0 || stockcard === undefined) || docId === undefined ?
+        <></>
+        :
+        <div className="px-3 py-2">
+          <div className="module-header mb-4">
+            <h3 className="text-center">Deleting {stockcard === undefined || docId === undefined ?<></>:<>{stockcard[docId].id.substring(0,9)}</>}</h3>
+          </div>
+          <div className="row m-0 p-0 mb-3">
+            <div className="col-12 px-3 text-center">
+              <strong>
+                Are you sure you want to delete
+                <br />
+                <span style={{color: '#b42525'}}>{stockcard[docId].description}?</span>
+              </strong>
+            </div>
+          </div>
+          <div className="row m-0 p-0">
                 <div className="col-12 px-3 d-flex justify-content-center">
                   <Table size="sm">
                     <tbody>
@@ -1099,12 +1154,8 @@ function StockcardPage({ isAuth }) {
                         <td>{stockcard[docId].category}</td>
                       </tr>
                       <tr>
-                        <td>Purchase Price</td>
-                        <td>{stockcard[docId].p_price}</td>
-                      </tr>
-                      <tr>
-                        <td>Selling Price</td>
-                        <td>{stockcard[docId].s_price}</td>
+                        <td>Classification</td>
+                        <td>{stockcard[docId].barcode}</td>
                       </tr>
                       <tr>
                         <td>Minimum Quantity</td>
@@ -1118,8 +1169,8 @@ function StockcardPage({ isAuth }) {
                   </Table>
                 </div>
               </div>
-            </div>
-          }
+        </div>
+        }
         </Modal.Body>
         <Modal.Footer
           className="d-flex justify-content-center"
@@ -1145,8 +1196,6 @@ function StockcardPage({ isAuth }) {
     )
   }
 
-
-
   function DisplayPurchases(props) {
     return (
       <div id="lead-time">
@@ -1159,7 +1208,8 @@ function StockcardPage({ isAuth }) {
           <div className="col-3 p-0 float-end">
             <button
               className={showingLeadtimeOptions ? "filter active float-end" : "filter float-end"}
-              data-title={showingLeadtimeOptions ? "Save" : "Set your own leadtime"}
+              disabled={newMaxLeadtime < newMinLeadtime}
+              data-title={showingLeadtimeOptions ? (newMaxLeadtime < newMinLeadtime?"Max is lower than min":"Save") : "Set your own leadtime"}
               onClick={() => {
                 if (showingLeadtimeOptions) {
                   setShowingLeadtimeOptions(false)
@@ -1305,6 +1355,7 @@ function StockcardPage({ isAuth }) {
   const [dateReorderPoint, setDateReorderPoint] = useState()
 
 
+
   useEffect(() => {
     if (docId !== undefined) {
       setCurrStockLvl(stockcard[docId].qty)
@@ -1442,7 +1493,7 @@ function StockcardPage({ isAuth }) {
 
 
   //---start of editLeadtimeModal
-  /*
+ 
   function EditLeadtimeModal(props) {
   
   
@@ -1544,7 +1595,7 @@ function StockcardPage({ isAuth }) {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            disabled={newMaxLeadtime === 0 ? true : false}
+            disabled={newMaxLeadtime > newMinLeadtime}
             onClick={() => { updateLeadtime(docId) }}
           >
             Save Changes
@@ -1553,7 +1604,7 @@ function StockcardPage({ isAuth }) {
       </Modal>
     );
   }
-  */
+ 
   //---end of editLeadtimeModal
   //-----------------------------------------------------------------------------------------------
 
@@ -1673,7 +1724,7 @@ function StockcardPage({ isAuth }) {
                       Qty
                     </div>
                   </div>
-                  <div className='scrollbar' style={{ height: '415px' }}>
+                  <div className='scrollbar' style={{ height: '380px' }}>
                     {isFetched ?
                       <>
                         {stockcard.length === 0 ?
@@ -1782,7 +1833,7 @@ function StockcardPage({ isAuth }) {
                             className="edit me-1"
                             disabled
                             data-title="Edit Product"
-                          >
+                            >
                             <FontAwesomeIcon icon={faEdit} />
                           </Button>
                           <Button
@@ -1798,8 +1849,8 @@ function StockcardPage({ isAuth }) {
                     <div className="row py-1 data-specs m-0 d-flex align-items-center" id="product-info">
                       <div id="message-to-select">
                         <div className="blur-overlay">
-                          <div className="d-flex align-items-center justify-content-center" style={{ width: '100%', height: '100%' }}>
-
+                          <div className="d-flex align-items-center justify-content-center" style={{width: '100%', height: '100%'}}>
+                            
                           </div>
                         </div>
                       </div>
@@ -1984,39 +2035,39 @@ function StockcardPage({ isAuth }) {
                     </div>
                   </div>
                 </Tab.Pane>
-                {(stockcard === undefined || stockcard.length == 0) || docId === undefined ?
+                {(stockcard === undefined || stockcard.length == 0) || docId === undefined?
                   <></>
-                  :
-                  <Tab.Pane eventKey={stockcard[docId].id}>
-                    <div className='row py-1 m-0' id="product-contents">
-                      <div className='row m-0 p-0'>
-                        <h1 className='text-center pb-2 module-title'>Inventory</h1>
-                        <hr></hr>
-                      </div>
-                      <div className="row py-1 m-0">
-                        <div className="col d-flex align-items-center">
-                          <div className="me-2">
-                            <InformationCircle
-                              color={'#0d6efd'}
-                              title={'Category'}
-                              height="40px"
-                              width="40px"
-                            />
-                          </div>
-                          <div>
-                            <h4 className="data-id"><strong>{stockcard === undefined || docId === undefined ? <></> : <>{stockcard[docId].id.substring(0, 9)}</>}</strong></h4>
-                          </div>
+                :
+                <Tab.Pane eventKey={stockcard[docId].id}>
+                  <div className='row py-1 m-0' id="product-contents">
+                    <div className='row m-0 p-0'>
+                      <h1 className='text-center pb-2 module-title'>Inventory</h1>
+                      <hr></hr>
+                    </div>
+                    <div className="row py-1 m-0">
+                      <div className="col d-flex align-items-center">
+                        <div className="me-2">
+                          <InformationCircle
+                            color={'#0d6efd'}
+                            title={'Category'}
+                            height="40px"
+                            width="40px"
+                          />
                         </div>
-                        <div className="col">
-                          <div className="float-end">
-                            <EditProductModal
-                              show={editShow}
-                              onHide={() => setEditShow(false)}
-                            />
-                            <DeleteProductModal
-                              show={modalShowDL}
-                              onHide={() => setModalShowDL(false)}
-                            />
+                        <div>
+                          <h4 className="data-id"><strong>{stockcard === undefined || docId === undefined ?<></>:<>{stockcard[docId].id.substring(0,9)}</>}</strong></h4>
+                        </div>
+                      </div>
+                      <div className="col">
+                        <div className="float-end">
+                          <EditProductModal
+                            show={editShow}
+                            onHide={() => setEditShow(false)}
+                          />
+                          <DeleteProductModal
+                            show={modalShowDL}
+                            onHide={() => setModalShowDL(false)}
+                          />
                             <Button
                               className="add me-1"
                               data-title="Add New Product"
@@ -2054,10 +2105,10 @@ function StockcardPage({ isAuth }) {
                               </div>
                               :
                               <div className="data-img mb-2 d-flex align-items-center justify-content-center">
-                                <img key={stockcard[docId].img} src={stockcard[docId].img} style={{ height: '100%', width: 'auto' }} />
+                                <img key={stockcard[docId].img}src={stockcard[docId].img} style={{height: '100%', width: 'auto'}}/>
                               </div>
                             }
-                            <a className="data-barcode">
+                            <a className="data-barcode" style={{height: "5em"}}>
                               <div className="data-barcode-edit-container">
                                 <div className="data-barcode-edit align-items-center justify-content-center">
                                   <Button
@@ -2068,6 +2119,7 @@ function StockcardPage({ isAuth }) {
                                   </Button>
                                 </div>
                               </div>
+                              <div>
                               {stockcard[docId].barcode == 0 || stockcard[docId].barcode === undefined ?
                                 <Alert className="text-center" variant="warning" style={{ height: '5em', fontSize: '0.8em' }}>
                                   <FontAwesomeIcon icon={faTriangleExclamation} /><span> Barcode Not Set</span>
@@ -2079,6 +2131,7 @@ function StockcardPage({ isAuth }) {
                                   value={stockcard[docId].barcode}
                                 />
                               }
+                              </div>
                             </a>
                           </div>
                         </div>
@@ -2235,65 +2288,63 @@ function StockcardPage({ isAuth }) {
                               </div>
                             </div>
                           </div>
-                          <hr className="my-1" />
-                          <div className="row mb-0" id="product-info-qty">
-                            <div className="col-3 p-1 d-flex align-items-center justify-content-center">
-                              <div className="row m-0 p-0">
-                                <h5 style={{ borderLeft: '8px solid #4973ff' }}>Stats:</h5>
+                        <hr className="my-1" />
+                        <div className="row mb-0" id="product-info-qty">
+                          <div className="col-3 p-1 d-flex align-items-center justify-content-center">
+                            <div className="row m-0 p-0">
+                              <h5 style={{borderLeft: '8px solid #4973ff'}}>Stats:</h5>
+                            </div>
+                          </div>
+                          <div className="col-3 p-1">
+                            <div className="row m-0 p-0">
+                              <a 
+                                className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                data-title="Total Quantity"
+                              >
+                                <Layers
+                                  color={'#0d6efd'}
+                                  height="25px"
+                                  width="25px"
+                                />
+                              </a>
+                              <div className="col-9 data-label">
+                                <strong>{stockcard[docId].qty} units</strong>
                               </div>
                             </div>
-                            <div className="col-3 p-1">
-                              <div className="row m-0 p-0">
-                                <a
-                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                  data-title="Total Quantity"
-                                >
-                                  <Layers
-                                    color={'#0d6efd'}
-                                    height="25px"
-                                    width="25px"
-                                  />
-                                </a>
-                                <div className="col-9 data-label">
-                                  <strong>{stockcard[docId].qty} units</strong>
-                                </div>
+                          </div>
+                          <div className="col-3 p-1">
+                            <div className="row m-0 p-0">
+                              <a 
+                                className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                data-title="Total Quantity In"
+                              >
+                                <Enter
+                                  color={'#0d6efd'}
+                                  height="25px"
+                                  width="25px"
+                                />
+                              </a>
+                              <div className="col-9 data-label">
+                                <strong>{totalPurchase} units</strong>
                               </div>
                             </div>
-                            <div className="col-3 p-1">
-                              <div className="row m-0 p-0">
-                                <a
-                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                  data-title="Total Quantity In"
-                                >
-                                  <Enter
-                                    color={'#0d6efd'}
-                                    height="25px"
-                                    width="25px"
-                                  />
-                                </a>
-                                <div className="col-9 data-label">
-                                  {totalPurchase} units
-                                </div>
+                          </div>
+                          <div className="col-3 p-1">
+                            <div className="row m-0 p-0">
+                              <a 
+                                className="col-3 data-icon d-flex align-items-center justify-content-center"
+                                data-title="Total Quantity Out"
+                              >
+                                <Exit
+                                  color={'#0d6efd'}
+                                  height="25px"
+                                  width="25px"
+                                />
+                              </a>
+                              <div className="col-9 data-label">
+                                <strong>{totalSales} units</strong>
                               </div>
                             </div>
-                            <div className="col-3 p-1">
-                              <div className="row m-0 p-0">
-                                <a
-                                  className="col-3 data-icon d-flex align-items-center justify-content-center"
-                                  data-title="Total Quantity Out"
-                                >
-                                  <Exit
-                                    color={'#0d6efd'}
-                                    height="25px"
-                                    width="25px"
-                                  />
-                                </a>
-                                <div className="col-9 data-label">
-                                  {totalSales} units
-                                </div>
-                              </div>
-                            </div>
-
                           </div>
                         </div>
                       </div>
@@ -2353,6 +2404,7 @@ function StockcardPage({ isAuth }) {
                           </Tab.Content>
                         </Tab.Container>
                       </div>
+                    </div>
                     </div>
                   </Tab.Pane>
                 }

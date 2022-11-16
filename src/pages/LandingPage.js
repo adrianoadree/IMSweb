@@ -33,8 +33,8 @@ function LandingPage() {
     const [salesQuantitySorting, setSalesQuantitySorting] = useState("unsorted")
     const [sidebarHidden, setSidebarHidden] = useState(false)
     const [topProducts, setTopProducts] = useState()
-    const [userProfile, setUserProfile] = useState({});
     const [prodNearROP, setProdNearROP] = useState()
+    const [userProfile, setUserProfile] = useState({});
 
     var curr_date = new Date(); // get current date
     curr_date.setDate(curr_date.getDate());
@@ -168,20 +168,15 @@ function LandingPage() {
             tempProductSoldList.map((product) => {
                 tempSalesTotal = tempSalesTotal + product.qty
             })
-
-            var sorted_products_sold = [...tempProductSoldList]
-            sorted_products_sold.sort((prod1, prod2) => { return prod1.qty < prod2.qty })
-            if (sorted_products_sold.length > 4) {
-                setTopProducts(sorted_products_sold.splice(4, 4))
-            }
-            else {
-                setTopProducts(sorted_products_sold)
-            }
+            
+            var sorted_products_sold = [... tempProductSoldList]
+            sorted_products_sold.sort((prod1, prod2)=>{return prod1.qty < prod2.qty})
+            setTopProducts(sorted_products_sold)
         }
     }
 
     function DisplayTopProducts(props) {
-        if (topProducts.length === 4) {
+        if (topProducts.length >= 4) {
             return (
                 <>
                     <div id="top-products-first" className="d-flex align-items-center justify-content-center flex-column col-4">
@@ -194,37 +189,37 @@ function LandingPage() {
                         <div>{topProducts[0].description}</div>
                     </div>
                     <div className="d-flex align-items-center justify-content-start flex-column col-8 top-products-others">
-                        <div className="row w-100 py-2">
-                            <div className="ranking-container">
-                                <div className="ranking">
-                                    2
+                        <div className="row w-100 my-3">
+                                <div className="ranking-container">
+                                    <div className="ranking">
+                                        2
+                                    </div>
                                 </div>
-                            </div>
                             <div className="d-flex align-items-center justify-content-start col-12">
                                 <img src={topProducts[1].img} style={{ height: '50px', width: 'auto', aspectRatio: '1 / 1' }} />
-                                {topProducts[1].description}
+                                <div className="ps-3">{topProducts[1].description}</div>
                             </div>
                         </div>
-                        <div className="row w-100 py-2">
-                            <div className="ranking-container">
-                                <div className="ranking">
-                                    3
+                        <div className="row w-100 my-3">
+                                <div className="ranking-container">
+                                    <div className="ranking">
+                                        3
+                                    </div>
                                 </div>
-                            </div>
                             <div className="d-flex align-items-center justify-content-start col-12">
                                 <img src={topProducts[2].img} style={{ height: 'auto', width: '50px', aspectRatio: '1 / 1' }} />
-                                {topProducts[2].description}
+                                <div className="ps-3">{topProducts[2].description}</div>
                             </div>
                         </div>
-                        <div className="row w-100 py-2">
-                            <div className="ranking-container">
-                                <div className="ranking">
-                                    4
+                        <div className="row w-100 my-3">
+                                <div className="ranking-container">
+                                    <div className="ranking">
+                                        4
+                                    </div>
                                 </div>
-                            </div>
                             <div className="d-flex align-items-center justify-content-start col-12">
                                 <img src={topProducts[3].img} style={{ height: '50px', width: 'auto', aspectRatio: '1 / 1' }} />
-                                {topProducts[3].description}
+                                <div className="ps-3">{topProducts[3].description}</div>
                             </div>
                         </div>
                     </div>
@@ -266,11 +261,12 @@ function LandingPage() {
                 </>
             )
         }
-        else if (topProducts.length == 0) {
-            return (
-                <div className="d-flex align-items-center justify-content-center col-12 p-5">
-                    <h4>No sales yet</h4>
-                </div>
+        else if(topProducts.length == 0)
+        {
+            return(
+                    <div className="d-flex align-items-center justify-content-center col-12 p-5">
+                        <h4>No sales yet</h4>
+                    </div>
             )
         }
         else {
@@ -369,7 +365,8 @@ function LandingPage() {
         if (salesRecordCollection === undefined) {
 
         }
-        else {
+        else
+        {
             displayLeaderboard()
         }
     }, [salesRecordCollection])
@@ -482,7 +479,10 @@ function LandingPage() {
                         else {
                             tempProductBoughtListId.push(product.itemId)
                             tempProductBoughtListQty.push(product.itemQuantity)
-                            tempProductBoughtListTransacItem.push(purch.id)
+                            if(tempProductBoughtListTransacItem.indexOf(purch.id) == -1)
+                            {
+                                tempProductBoughtListTransacItem.push(purch.id)
+                            }
                             tempProductBoughtListTransac.push(tempProductBoughtListTransacItem)
                         }
                     })
@@ -540,17 +540,32 @@ function LandingPage() {
         salesRecordCollection.map((sale) => {
             record_date = new Date(sale.transaction_date)
             record_date.setHours(0, 0, 0, 0)
+            tempProductSoldListTransacItem = []
             if (!sale.isVoided) {
                 if ((record_date.getTime() >= date_start.getTime() && record_date.getTime() <= date_end.getTime())) {
                     sale.product_list.map((product) => {
                         if (tempProductSoldListId.indexOf(product.itemId) >= 0) {
                             tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] = tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] + product.itemQuantity
-                            tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].push(sale.id)
+                            for(var i = 0; i < tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].length; i++)
+                            {
+                                if(tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)][i] == sale.id)
+                                {
+
+                                }
+                                else
+                                {
+
+                                    tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].push(sale.id)
+                                }
+                            }
                         }
                         else {
                             tempProductSoldListId.push(product.itemId)
                             tempProductSoldListQty.push(product.itemQuantity)
-                            tempProductSoldListTransacItem.push(sale.id)
+                            if(tempProductSoldListTransacItem.indexOf(sale.id) == -1)
+                            {
+                                tempProductSoldListTransacItem.push(sale.id)
+                            }
                             tempProductSoldListTransac.push(tempProductSoldListTransacItem)
                         }
                     })
@@ -855,7 +870,7 @@ function LandingPage() {
                                     >
                                         {sale.transaction.map((transac_id, i) => (
                                             <span
-                                                key={i}
+                                                key={transac_id}
                                             >
                                                 {transac_id.substring(0, 7)}
                                                 {i != sale.transaction.length - 1 ? <span>, </span> : <></>}
