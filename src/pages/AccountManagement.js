@@ -430,7 +430,12 @@ function AccountManagement() {
                           <tr key={i}>
                             {acc.isActive?
                               <td className="nm pt-entry text-center">
-                                {acc.name}
+                                {acc.isAdmin?
+                                <strong>{acc.name}</strong>
+                                :
+                                <>{acc.name}</>
+                                  }
+                                
                               </td>
                             :
                               <td className="nm pt-entry text-center"  style={{color: 'red'}}>
@@ -444,6 +449,17 @@ function AccountManagement() {
                               {acc.password}
                             </td>
                             <td className="mn pt-entry text-center" >
+                              {acc.isAdmin?
+                              <Button
+                              className="edit me-1"
+                              data-title="Edit Account"
+                              onClick={()=>{setSelectedAccount(i); setEditModalShow(true)}}
+                              >
+                              
+                                <FontAwesomeIcon icon={faEdit} />
+                              </Button>
+                              :
+<>
                               <Button
                               className="edit me-1"
                               data-title="Edit Account"
@@ -465,7 +481,8 @@ function AccountManagement() {
                               onClick={()=>DeleteAccount(account, i)}
                               >
                                 <FontAwesomeIcon icon={faTrashCan} />
-                              </Button>
+                              </Button></>
+                              }
                             </td>
                           </tr>
                           </> 

@@ -56,6 +56,7 @@ function Warehouse(props) {
   const [warehouseTemplates, setWarehouseTemplates] = useState([])
   const [isTemplateChosen, setIsTemplateChosen]= useState(false)
   const [templateChosen, setTemplateChosen] = useState({})
+  const [warehouseFormerLength, setWarehouseFormerLength] = useState(0)
 
   //element state updater
   useEffect(() => {
@@ -123,9 +124,6 @@ function Warehouse(props) {
 
   }, [whId])
 
-  useEffect(() => {
-    console.log()
-  },[warehouseTemplates])
   //set user ID
   useEffect(() => {
     if (user) {
@@ -204,6 +202,23 @@ function Warehouse(props) {
       return unsub;
     }
   }, [userID])
+
+  const handleKeyChange = () => {
+    console.log(warehouseFormerLength)
+    console.log(warehouse.length)
+    console.log("remove :" + (warehouseFormerLength > warehouse.length))
+    console.log("add :" + (warehouseFormerLength < warehouse.length))
+    if(warehouseFormerLength > warehouse.length)
+    {
+      setWHId(0)
+      setKey(warehouse[0].id)
+    }
+    else if(warehouseFormerLength < warehouse.length)
+    {
+      setWHId(warehouse.length-1)
+      setKey(warehouse[warehouse.length-1].id)
+    }
+  } 
   
   // check if data has been fetched
   useEffect(()=>{
@@ -215,24 +230,8 @@ function Warehouse(props) {
       setIsFetched(true)
       if(warehouse.length > 0)
       {
-        if(collectionUpdateMethod == "add")
-        {
-          setWHId(warehouse.length-1)
-          setKey(warehouse[warehouse.length-1].id)
-        }
-        /*
-        else if(collectionUpdateMethod == "update")
-        {
-          setCollectionUpdateMethod("add")
-        }*/
-        else  
-        {
-          /*
-          setWHId(0)
-          setKey(warehouse[0].id)
-          */
-          setCollectionUpdateMethod("add")
-        }
+        handleKeyChange()
+        setWarehouseFormerLength(warehouse.length)
       }
       else
       {
@@ -1960,14 +1959,15 @@ return (
                           />
                           <Button
                             className={warehouse[whId].cells.length > 0 ? "delete disabled-conditionally me-1" : "delete me-1"}
-                            data-title={warehouse[whId].cells.length > 0 ? "Warehouse already pooled" : "Delete Warehouse"}
-                            disabled={checkIfPooled(warehouse[whId].cells)}
+                            data-title={checkIfPooled(warehouse[whId].cells)?"Warehouse already pooled": (editingMap?"Can't delete while editing":"Delete Warehouse")}
+                            disabled={checkIfPooled(warehouse[whId].cells)? false: editingMap}
                             onClick={()=>{setDeleteWarehouseModalShow(true)}}
                           >
                             <FontAwesomeIcon icon={faTrashCan} />
                           </Button>
                           <Button
                             className="edit me-1"
+                            disabled={editingMap}
                             data-title={editingWarehouse?"Save Changes":"Edit Warehouse"}
                             onClick={()=>{
                               if (editingWarehouse) {

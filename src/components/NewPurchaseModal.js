@@ -28,8 +28,8 @@ function NewPurchaseModal(props) {
     const [userProfileID, setUserProfileID] = useState(""); // user profile id
     const userCollectionRef = collection(db, "user")// user collection
     const [purchaseCounter, setPurchaseCounter] = useState(0); // purchase counter
+    const [transactionIssuer, setTransactionIssuer] = useState("") // default purchaser in web
 
-    const [varRef, setVarRef] = useState([]); // variable collection
     const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
     const [supplierCol, setSupplierCol] = useState([]); // stockcardCollection variable
     const [supplierModalShow, setSupplierModalShow] = useState(false); //add new sales record modal
@@ -90,6 +90,12 @@ function NewPurchaseModal(props) {
         userCollection.map((metadata) => {
             setPurchaseCounter(metadata.purchaseId)
             setUserProfileID(metadata.id)
+            metadata.accounts.map((account)=>{
+                if(account.isAdmin)
+                {
+                    setTransactionIssuer(account)
+                }
+            })
         });
       }, [userCollection])
 
@@ -315,7 +321,8 @@ function NewPurchaseModal(props) {
             order_date: newOrderDate,
             product_list: items,
             product_ids: productIds,
-            isVoided: false
+            isVoided: false,
+            issuer: transactionIssuer.name
         });
         updateQuantity()  //update stockcard.qty function
         updatePurchDocNum() //update variables.purchDocNum function
@@ -602,7 +609,7 @@ function NewPurchaseModal(props) {
                     className="btn btn-light float-start"
                     style={{ width: "6rem" }}
                     disabled={items.length === 0 || (itemSupplier == "" || itemSupplier == " " || itemSupplier == 0) || handleDateChange() == "Order date must preceed transaction date"}
-                    onClick={() => { addRecord(varRef.purchDocNum) }}>
+                    onClick={() => { addRecord() }}>
                     Save
                 </Button>
             </Modal.Footer>

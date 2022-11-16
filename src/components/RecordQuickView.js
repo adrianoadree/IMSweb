@@ -345,17 +345,35 @@ function RecordQuickView(props) {
               </div>
               <div className="receipt-footer">
                 <div className="row p-0 m-0 d-flex justify-content-center align-items-center">
-                  <div className="col-8 p-0 m-0 d-flex align-items-baseline justify-content-between pe-2">
+                  <div className="col-3 p-0 m-0 d-flex align-items-baseline justify-content-between pe-2">
+                    <div className="col-3">
+                      <small>Issued by: </small>
+                    </div>
+                    <div className="col-9">
+                      <div className=" w-100 field-underline">
+                      {recordDoc.issuer === undefined || recordDoc.issuer == 0 || recordDoc.issuer == " " || recordDoc.issuer == ""?
+                        <>N/A</>
+                      :
+                        <>{recordDoc.issuer}</>
+                      }
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-6 p-0 m-0 d-flex align-items-baseline justify-content-between pe-2">
                     <div className="col-1">
                       <small>Notes: </small>
                     </div>
                     <div className="col-11">
                       <div className=" w-100 field-underline">
-                      {recordDoc.transaction_note}
+                      {recordDoc.transaction_note === undefined || recordDoc.transaction_note == 0 || recordDoc.transaction_note == " " || recordDoc.transaction_note== ""?
+                        <>No notes</>
+                      :
+                        <>{recordDoc.transaction_note}</>
+                      }
                       </div>
                     </div>
                   </div>
-                  <div className="col-4 p-0 m-0 d-flex align-items-baseline justify-content-between pe-2">
+                  <div className="col-3 p-0 m-0 d-flex align-items-baseline justify-content-between pe-2">
                     <div className="col-3">
                       <small>Ordered: </small>
                     </div>

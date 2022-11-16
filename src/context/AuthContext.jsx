@@ -90,6 +90,7 @@ const months = {
           supplierId: 1,
           preferences: {showTips: true, showQuickAccess: false,},
           categories: [],
+          accounts: [{name: "admin", password: "admin", designation: "Administrator", isActive: true, isAdmin: true}],
         });
 
         updateDoc(masterdataDocRef,{idCntr : Number(cntr) + 1 });

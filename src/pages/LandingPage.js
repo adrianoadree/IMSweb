@@ -189,7 +189,7 @@ function LandingPage() {
                         <div>{topProducts[0].description}</div>
                     </div>
                     <div className="d-flex align-items-center justify-content-start flex-column col-8 top-products-others">
-                        <div className="row w-100 py-2">
+                        <div className="row w-100 my-3">
                                 <div className="ranking-container">
                                     <div className="ranking">
                                         2
@@ -197,10 +197,10 @@ function LandingPage() {
                                 </div>
                             <div className="d-flex align-items-center justify-content-start col-12">
                                 <img src={topProducts[1].img} style={{ height: '50px', width: 'auto', aspectRatio: '1 / 1' }} />
-                                {topProducts[1].description}
+                                <div className="ps-3">{topProducts[1].description}</div>
                             </div>
                         </div>
-                        <div className="row w-100 py-2">
+                        <div className="row w-100 my-3">
                                 <div className="ranking-container">
                                     <div className="ranking">
                                         3
@@ -208,10 +208,10 @@ function LandingPage() {
                                 </div>
                             <div className="d-flex align-items-center justify-content-start col-12">
                                 <img src={topProducts[2].img} style={{ height: 'auto', width: '50px', aspectRatio: '1 / 1' }} />
-                                {topProducts[2].description}
+                                <div className="ps-3">{topProducts[2].description}</div>
                             </div>
                         </div>
-                        <div className="row w-100 py-2">
+                        <div className="row w-100 my-3">
                                 <div className="ranking-container">
                                     <div className="ranking">
                                         4
@@ -219,7 +219,7 @@ function LandingPage() {
                                 </div>
                             <div className="d-flex align-items-center justify-content-start col-12">
                                 <img src={topProducts[3].img} style={{ height: '50px', width: 'auto', aspectRatio: '1 / 1' }} />
-                                {topProducts[3].description}
+                                <div className="ps-3">{topProducts[3].description}</div>
                             </div>
                         </div>
                     </div>
@@ -870,7 +870,7 @@ function LandingPage() {
                                     >
                                         {sale.transaction.map((transac_id, i) => (
                                             <span
-                                                key={i}
+                                                key={transac_id}
                                             >
                                                 {transac_id.substring(0, 7)}
                                                 {i != sale.transaction.length - 1 ? <span>, </span> : <></>}

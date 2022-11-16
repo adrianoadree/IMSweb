@@ -118,7 +118,7 @@ function Records() {
   }, [collectionUpdateMethod])
 
   useEffect(() => {
-    if (purchaseRecordCollection === undefined) {
+    if (purchaseRecordCollection === undefined || supplierCollection === undefined) {
       setIsFetched(false)
     }
     else {
@@ -136,7 +136,7 @@ function Records() {
         }
       }
     }
-  }, [purchaseRecordCollection])
+  }, [purchaseRecordCollection, supplierCollection])
 
   const handleDocChange = (doc) => {
     purchaseRecordCollection.map((purchase, index)=>{
@@ -309,7 +309,13 @@ function Records() {
                       </tr>
                       <tr>
                         <td>Supplier</td>
-                        <td>{purchaseRecordCollection[docId].transaction_supplier}</td>
+                        <td>
+                          {purchaseRecordCollection[docId].transaction_supplier.startsWith("SU")?
+                            <>{getSupplierInfo(purchaseRecordCollection[docId].transaction_supplier).supplier_name}</>
+                          :
+                            <>{purchaseRecordCollection[docId].transaction_supplier}</>
+                          }
+                        </td>
                       </tr>
                       <tr>
                         <td>Notes</td>

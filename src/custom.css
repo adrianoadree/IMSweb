@@ -484,7 +484,7 @@ li:hover{
 .sidebar-card .card-body .list-group-flush .list-group-item .sidebar-contents .col-2,
 .sidebar-card .card-body .list-group-flush .list-group-item .sidebar-contents .col-7,
 .sidebar-card .card-body .list-group-flush .list-group-item .sidebar-contents .col-12 {
-	background-color: #f6f6f6;
+	background-color: #fcfcfc;
 	word-wrap: normal;
 	transition: background-color 0.2s linear;
 }	
