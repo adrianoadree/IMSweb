@@ -644,10 +644,10 @@ function TestPage() {
         await updateDoc(dox,{
             templates: whTemplates,
             
-    });
+        });
     }
     //ANALYTICS Datas
-    const [totalSales, setTotalSales] = useState(0); // total sales
+   /* const [totalSales, setTotalSales] = useState(0); // total sales*/
     const [minLeadtime, setMinLeadtime] = useState()
     const [maxLeadtime, setMaxLeadtime] = useState()
     const [averageLeadtime, setAverageLeadtime] = useState()
@@ -665,6 +665,7 @@ function TestPage() {
 
     const [transactionDates, setTransactionDates] = useState()
     const [sortedTransactionDates, setSortedTransactionDates] = useState()
+    const [totalSales, setTotalSales] = useState(0); // total sales
 
     const [date1, setDate1] = useState("")
     const [date2, setDate2] = useState("")
