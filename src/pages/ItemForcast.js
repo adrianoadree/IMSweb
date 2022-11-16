@@ -25,140 +25,64 @@ function Itemforecast() {
 
 
     //---------------------VARIABLES---------------------
-
-
-    const { user } = UserAuth();//user credentials
     const [userID, setUserID] = useState("");
+    const { user } = UserAuth();//user credentials
+    const [docId, setDocId] = useState(); //document Id
 
-    const [docId, setDocId] = useState("xx"); //document Id
+    const [key, setKey] = useState('main');//Tab controller
+    const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
+    const [searchValue, setSearchValue] = useState('');    // the value of the search field 
+    const [searchResult, setSearchResult] = useState();    // the search result
     const [stockcard, setStockcard] = useState(); // stockcardCollection variable
-    const [stockcardDoc, setStockcardDoc] = useState(); //stockcard Document variable
-    const [salesRecordCollection, setSalesRecordCollection] = useState([]); // sales_record collection
-    const [filteredResults, setFilteredResults] = useState([])
-    const [forecastingBoolean, setForecastingBoolean] = useState(false)
+    const [salesRecordCollection, setSalesRecordCollection] = useState(); // sales_record collection
 
-    //ANALYTICS Datas
-    const [totalSales, setTotalSales] = useState(0); // total sales
-    const [minLeadtime, setMinLeadtime] = useState()
-    const [maxLeadtime, setMaxLeadtime] = useState()
-    const [averageLeadtime, setAverageLeadtime] = useState()
-
-    const [startDate, setStartDate] = useState(new Date(2022, 8, 1));
-
-    const [stringStartDate, setStringStartDate] = useState("");
-
-    const [today, setToday] = useState(new Date());
-    const [stringToday, setStringToday] = useState("");
-
-
-    const [arrDate, setArrDate] = useState([]);
-    // ==================================== VARIABLES ====================================
+    const [forecastingBoolean, setForecastingBoolean] = useState()
+    const [errorBoolean, setErrorBoolean] = useState(false)
 
     const [transactionDates, setTransactionDates] = useState()
     const [sortedTransactionDates, setSortedTransactionDates] = useState()
 
-    const [date1, setDate1] = useState("")
-    const [date2, setDate2] = useState("")
-    const [date3, setDate3] = useState("")
-    const [date4, setDate4] = useState("")
-    const [date5, setDate5] = useState("")
-
-    // ===================================================================================
-
-    // ==================================== FUNCTIONS ====================================
-    useEffect(() => {
-        if (sortedTransactionDates !== undefined) {
-            {
-                sortedTransactionDates.length >= 5 ?
-                    setForecastingBoolean(true)
-                    :
-                    setForecastingBoolean(false)
-            }
-        }
-    }, [sortedTransactionDates])
-
-    useEffect(() => {
-        arrayOfSalesDate()
-    }, [salesRecordCollection])
-
-    function arrayOfSalesDate() {
-        let tempArr = []
-        salesRecordCollection.map((sales) => {
-            if (!tempArr.includes(sales.transaction_date))
-                tempArr.push(sales.transaction_date)
-        })
-        setTransactionDates(tempArr)
-    }
-
-    function sortDates() {
-        setSortedTransactionDates()
-        if (transactionDates !== undefined) {
-            let temp = transactionDates.sort()
-            setSortedTransactionDates(temp)
-        }
-    }
-
-    //sort array of transaction dates
-    useEffect(() => {
-        sortDates()
-    }, [transactionDates])
-
-    useEffect(() => {
-        console.log("transactionDates:", transactionDates)
-    }, [transactionDates])
 
 
-    useEffect(() => {
-        console.log("sortedTransactionDates:", sortedTransactionDates)
-    }, [sortedTransactionDates])
+    const [i1, setI1] = useState()
+    const [i2, setI2] = useState()
+    const [i3, setI3] = useState()
+    const [i4, setI4] = useState()
+    const [i5, setI5] = useState()
 
-    //-------------------------------Chart Data function-------------------------
+    const [date1, setDate1] = useState()
+    const [date2, setDate2] = useState()
+    const [date3, setDate3] = useState()
+    const [date4, setDate4] = useState()
+    const [date5, setDate5] = useState()
 
-    useEffect(() => {
-        setDate1("")
-        setDate2("")
-        setDate3("")
-        setDate4("")
-        setDate5("")
-        if (sortedTransactionDates !== undefined) {
-            if (sortedTransactionDates.length >= 5) {
-                setDate1(sortedTransactionDates[sortedTransactionDates.length - 1])
-                setDate2(sortedTransactionDates[sortedTransactionDates.length - 2])
-                setDate3(sortedTransactionDates[sortedTransactionDates.length - 3])
-                setDate4(sortedTransactionDates[sortedTransactionDates.length - 4])
-                setDate5(sortedTransactionDates[sortedTransactionDates.length - 5])
-            }
-            else {
-                setDate1("")
-                setDate2("")
-                setDate3("")
-                setDate4("")
-                setDate5("")
-            }
-        }
-    }, [sortedTransactionDates])
+    const [query1, setQuery1] = useState()
+    const [query2, setQuery2] = useState()
+    const [query3, setQuery3] = useState()
+    const [query4, setQuery4] = useState()
+    const [query5, setQuery5] = useState()
 
 
+    const [quantity1, setQuantity1] = useState()
+    const [quantity2, setQuantity2] = useState()
+    const [quantity3, setQuantity3] = useState()
+    const [quantity4, setQuantity4] = useState()
+    const [quantity5, setQuantity5] = useState()
+
+    const [fillerDate1, setFillerDate1] = useState(new Date())
+    const [fillerDate2, setFillerDate2] = useState(new Date())
+    const [fillerDate3, setFillerDate3] = useState(new Date())
+    const [fillerDate4, setFillerDate4] = useState(new Date())
+
+    const [fillerQuantity1, setFillerQuantity1] = useState()
+    const [fillerQuantity2, setFillerQuantity2] = useState()
+    const [fillerQuantity3, setFillerQuantity3] = useState()
+    const [fillerQuantity4, setFillerQuantity4] = useState()
 
 
-    // ===================================================================================
+    // ===================================== START OF FUNCTIONS =====================================
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //---------------------FUNCTIONS---------------------
 
     useEffect(() => {
         if (user) {
@@ -166,74 +90,8 @@ function Itemforecast() {
         }
     }, [{ user }])
 
-
-    //---------------------ANALYTICS COMPUTATIONS---------------------
-
-
     useEffect(() => {
-        setMinLeadtime()
-        setMaxLeadtime()
-        setAverageLeadtime()
-        if (stockcardDoc !== undefined) {
-            setMaxLeadtime(stockcardDoc.analytics.leadtimeMaximum)
-            setMinLeadtime(stockcardDoc.analytics.leadtimeMinimum)
-            setAverageLeadtime(stockcardDoc.analytics.leadtimeAverage)
-        }
-    }, [stockcardDoc])
-
-
-    //array of dates of transaction of a product
-    useEffect(() => {
-        var temp = []
-        salesRecordCollection.map((sales) => {
-            if (!temp.includes(sales.transaction_date)) {
-                temp.push(sales.transaction_date);
-            }
-        })
-        setArrDate(temp)
-    }, [salesRecordCollection])
-
-
-    useEffect(() => {
-        let tempStart = new Date(startDate)
-        setStringStartDate(tempStart.toISOString().substring(0, 10))
-    }, [startDate])
-
-
-
-
-    //compute for total sales
-    useEffect(() => {
-        var temp = 0;
-        filteredResults.map((value) => {
-            value.product_list.map((prod) => {
-                temp += prod.itemQuantity
-            })
-        })
-        setTotalSales(temp)
-    }, [filteredResults])
-
-
-
-    //----------------------------------------------------------------
-
-    // --------------------------------- |||||||||||||||||| ---------------------------------
-
-    //---------------------FIRESTORE QUERY---------------------
-
-    //read stockcard collection
-    useEffect(() => {
-        if (userID === undefined) {
-
-            const collectionRef = collection(db, "stockcard")
-            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-        else {
+        if (userID !== undefined) {
 
             const collectionRef = collection(db, "stockcard")
             const q = query(collectionRef, where("user", "==", userID));
@@ -248,84 +106,442 @@ function Itemforecast() {
     }, [userID])
 
 
-    //access stockcard document
+    //query documents from sales_record that contains docId
     useEffect(() => {
-        async function readStockcardDoc() {
-            const stockcardRef = doc(db, "stockcard", docId)
-            const docSnap = await getDoc(stockcardRef)
-            if (docSnap.exists()) {
-                setStockcardDoc(docSnap.data());
+        if (stockcard === undefined || stockcard.length == 0) {
+            setSalesRecordCollection()
+        }
+        else {
+            const collectionRef = collection(db, "sales_record")
+            const q = query(collectionRef, where("product_ids", "array-contains", stockcard[docId].id));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [docId])
+
+
+    const handleDocChange = (doc) => {
+        stockcard.map((product, index) => {
+            if (product.id == doc) {
+                setDocId(index)
+            }
+        })
+    }
+
+
+    useEffect(() => {
+        if (stockcard === undefined) {
+            setIsFetched(false)
+        }
+        else {
+            setIsFetched(true)
+        }
+    }, [stockcard])
+
+
+    useEffect(() => {
+        setSearchResult(stockcard)
+    }, [stockcard])
+
+
+    const filter = (e) => {
+        const keyword = e.target.value;
+
+        if (keyword !== '') {
+            const results = stockcard.filter((stockcard) => {
+                return stockcard.id.toLowerCase().includes(keyword.toLowerCase()) || stockcard.description.toLowerCase().includes(keyword.toLowerCase())
+                // Use the toLowerCase() method to make it case-insensitive
+            });
+            setSearchResult(results);
+        } else {
+            setSearchResult(stockcard);
+            // If the text field is empty, show all users
+        }
+
+        setSearchValue(keyword);
+    };
+
+    useEffect(() => {
+        arrayOfSalesDate()
+    }, [salesRecordCollection, docId])
+
+    function arrayOfSalesDate() {
+        let tempArr = []
+        if (salesRecordCollection !== undefined) {
+            salesRecordCollection.map((sales) => {
+                if (!tempArr.includes(sales.transaction_date))
+                    tempArr.push(sales.transaction_date)
+            })
+        }
+        setTransactionDates(tempArr)
+    }
+
+    useEffect(() => {
+        sortDates()
+    }, [transactionDates, docId])
+
+
+    function sortDates() {
+        setSortedTransactionDates()
+        if (transactionDates !== undefined) {
+            let temp = transactionDates.sort()
+            setSortedTransactionDates(temp)
+        }
+    }
+
+    useEffect(() => {
+        setDates()//function
+    }, [sortedTransactionDates, docId])
+
+    function setDates() {
+        if (sortedTransactionDates !== undefined) {
+            if (sortedTransactionDates.length >= 5) {
+                setDate1(sortedTransactionDates[sortedTransactionDates.length - 1])
+                setDate2(sortedTransactionDates[sortedTransactionDates.length - 2])
+                setDate3(sortedTransactionDates[sortedTransactionDates.length - 3])
+                setDate4(sortedTransactionDates[sortedTransactionDates.length - 4])
+                setDate5(sortedTransactionDates[sortedTransactionDates.length - 5])
+            } else {
+                setDate1()
+                setDate2()
+                setDate3()
+                setDate4()
+                setDate5()
             }
         }
-        readStockcardDoc()
-    }, [docId])
+    }
 
 
     //query documents from sales_record that contains docId
     useEffect(() => {
+        if (sortedTransactionDates === undefined || date1 === undefined) {
+            setQuery1()
+        }
+        else {
+            const collectionRef = collection(db, "sales_record")
+            const q = query(collectionRef, where("transaction_date", "==", date1), where("user", "==", userID));
 
-        const collectionRef = collection(db, "sales_record")
-        const q = query(collectionRef, where("product_ids", "array-contains", docId));
+            const unsub = onSnapshot(q, (snapshot) =>
+                setQuery1(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
 
-        const unsub = onSnapshot(q, (snapshot) =>
-            setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-
-    }, [docId])
+    }, [date1, sortedTransactionDates])
 
 
     //query documents from sales_record that contains docId
     useEffect(() => {
-
-        setFilteredResults(salesRecordCollection.map((element) => {
-            return {
-                ...element, product_list: element.product_list.filter((product_list) => product_list.itemId === docId)
+        if (query1 !== undefined) {
+            if (query1.length !== 0) {
+                query1.map((q1) => {
+                    q1.product_list.map((prod) => {
+                        if (prod.itemId === stockcard[docId].id) {
+                            setQuantity1(prod.itemNewQuantity)
+                        }
+                    })
+                })
             }
-        }))
+        }
+        else {
+            setQuantity1()
+        }
+    }, [query1, date1])
 
+
+
+
+
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+        if (sortedTransactionDates === undefined || date2 === undefined) {
+            setQuery2()
+        }
+        else {
+            const collectionRef = collection(db, "sales_record")
+            const q = query(collectionRef, where("transaction_date", "==", date2), where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setQuery2(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [date2, sortedTransactionDates])
+
+
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+        if (query2 !== undefined) {
+            if (query2.length !== 0) {
+                query2.map((q2) => {
+                    q2.product_list.map((prod) => {
+                        if (prod.itemId === stockcard[docId].id) {
+                            setQuantity2(prod.itemNewQuantity)
+                        }
+                    })
+                })
+            }
+        }
+        else {
+            setQuantity2()
+        }
+    }, [query2, date2])
+
+
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+        if (sortedTransactionDates === undefined || date3 === undefined) {
+            setQuery3()
+        }
+        else {
+            const collectionRef = collection(db, "sales_record")
+            const q = query(collectionRef, where("transaction_date", "==", date3), where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setQuery3(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [date3, sortedTransactionDates])
+
+
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+        if (query3 !== undefined) {
+            if (query3.length !== 0) {
+                query3.map((q3) => {
+                    q3.product_list.map((prod) => {
+                        if (prod.itemId === stockcard[docId].id) {
+                            setQuantity3(prod.itemNewQuantity)
+                        }
+                    })
+                })
+            }
+        }
+        else {
+            setQuantity3()
+        }
+    }, [query3, date3])
+
+
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+        if (sortedTransactionDates === undefined || date4 === undefined) {
+            setQuery4()
+        }
+        else {
+            const collectionRef = collection(db, "sales_record")
+            const q = query(collectionRef, where("transaction_date", "==", date4), where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setQuery4(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [date4, sortedTransactionDates])
+
+
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+        if (query4 !== undefined) {
+            if (query4.length !== 0) {
+                query4.map((q4) => {
+                    q4.product_list.map((prod) => {
+                        if (prod.itemId === stockcard[docId].id) {
+                            setQuantity4(prod.itemNewQuantity)
+                        }
+                    })
+                })
+            }
+        }
+        else {
+            setQuantity4()
+        }
+    }, [query4, date4])
+
+
+
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+        if (sortedTransactionDates === undefined || date5 === undefined) {
+            setQuery5()
+        }
+        else {
+            const collectionRef = collection(db, "sales_record")
+            const q = query(collectionRef, where("transaction_date", "==", date5), where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setQuery5(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [date5, sortedTransactionDates])
+
+
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+        if (query5 !== undefined) {
+            if (query5.length !== 0) {
+                query5.map((q5) => {
+                    q5.product_list.map((prod) => {
+                        if (prod.itemId === stockcard[docId].id) {
+                            setQuantity5(prod.itemNewQuantity)
+                        }
+                    })
+                })
+            }
+        }
+        else {
+            setQuantity5()
+        }
+    }, [query5, date5])
+
+
+
+
+    useEffect(() => {
+        if (sortedTransactionDates === undefined || date1 === undefined) {
+            setFillerDate1()
+            setFillerDate2()
+            setFillerDate3()
+            setFillerDate4()
+        } else {
+            let tempDate1 = new Date(date1)
+            let tempDate2 = new Date(date1)
+            let tempDate3 = new Date(date1)
+            let tempDate4 = new Date(date1)
+
+            let tempf1 = new Date()
+            let tempf2 = new Date()
+            let tempf3 = new Date()
+            let tempf4 = new Date()
+
+            tempf1 = tempDate1.setDate(tempDate1.getDate() + 7)
+            tempf2 = tempDate2.setDate(tempDate2.getDate() + 14)
+            tempf3 = tempDate3.setDate(tempDate3.getDate() + 21)
+            tempf4 = tempDate4.setDate(tempDate4.getDate() + 28)
+
+            setFillerDate1(tempf1)
+            setFillerDate2(tempf2)
+            setFillerDate3(tempf3)
+            setFillerDate4(tempf4)
+        }
+
+    }, [date1, sortedTransactionDates])
+
+    useEffect(() => {
+        if (stockcard === undefined || quantity1 === undefined) {
+            setFillerQuantity1()
+            setFillerQuantity2()
+            setFillerQuantity3()
+            setFillerQuantity4()
+        } else {
+            let tempQuantity1 = 0
+            let tempQuantity2 = 0
+            let tempQuantity3 = 0
+            let tempQuantity4 = 0
+
+            tempQuantity1 = quantity1 - (Number(stockcard[docId].analytics.averageDailySales) * 7)
+            tempQuantity2 = quantity1 - (Number(stockcard[docId].analytics.averageDailySales) * 14)
+            tempQuantity3 = quantity1 - (Number(stockcard[docId].analytics.averageDailySales) * 21)
+            tempQuantity4 = quantity1 - (Number(stockcard[docId].analytics.averageDailySales) * 28)
+
+            setFillerQuantity1(Math.round(tempQuantity1))
+            setFillerQuantity2(Math.round(tempQuantity2))
+            setFillerQuantity3(Math.round(tempQuantity3))
+            setFillerQuantity4(Math.round(tempQuantity4))
+        }
+
+    }, [stockcard, quantity1])
+
+
+
+    useEffect(() => {
+        console.log("date1: ", date1)
+        console.log("date2: ", date2)
+        console.log("date3: ", date3)
+        console.log("date4: ", date4)
+        console.log("date5: ", date5)
+    }, [date1, date2, date3, date4, date5])
+
+
+    //sort array of transaction dates
+    useEffect(() => {
+        console.log(sortedTransactionDates)
+    }, [sortedTransactionDates])
+
+    //sort array of transaction dates
+    useEffect(() => {
+        console.log(salesRecordCollection)
     }, [salesRecordCollection])
 
 
-
-    //---------------------------------------------------------
-
-
-    //-------------------------------TOOL TIPS-------------------------------
-
-    const leadTimeTooltip = (props) => (
-        <ToolTip id="LeadTime" className="tooltipBG" {...props}>
-            Lead time is the amount of days it takes for your vendor to fulfill
-            your order
-        </ToolTip>
-    );
-
-    const ROPToolTip = (props) => (
-        <ToolTip className="tooltipBG" id="ROP" style={{ color: 'yellow' }} {...props}>
-            A reorder point (ROP) is the specific level at which your stock needs to be
-            replenished. In other words, it tells you when to place an order so you don’t run out of an
-            item.
-        </ToolTip>
-    );
+    useEffect(() => {
+        if (sortedTransactionDates !== undefined) {
+            {
+                sortedTransactionDates.length >= 5 ?
+                    setForecastingBoolean(true)
+                    :
+                    setForecastingBoolean(false)
+            }
+        }else{
+            setForecastingBoolean()
+        }
+    }, [sortedTransactionDates])
 
 
-    const safetystockTooltip = (props) => (
-        <ToolTip id="safetystock" className="tooltipBG" {...props}>
-            This is the extra quantity of a product that kept in storage to prevent stockouts.  Safety stock serves as insurance against demand fluctuations.
-        </ToolTip>
-    );
 
-
-    //----------------------------CHART FUNCTIONS----------------------------
-
-
+    const data = [
+        {
+            date: moment(date5).format('LL'),
+            StockLevel: quantity5
+        },
+        {
+            date: moment(date4).format('LL'),
+            StockLevel: quantity4
+        },
+        {
+            date: moment(date3).format('LL'),
+            StockLevel: quantity3
+        },
+        {
+            date: moment(date2).format('LL'),
+            StockLevel: quantity2
+        },
+        {
+            date: moment(date1).format('LL'),
+            StockLevel: quantity1,
+            ProjectedStockLevel: quantity1
+        },
+        {
+            date: moment(fillerDate1).format('LL'),
+            ProjectedStockLevel: fillerQuantity1
+        },
+        {
+            date: moment(fillerDate2).format('LL'),
+            ProjectedStockLevel: fillerQuantity2
+        }, {
+            date: moment(fillerDate3).format('LL'),
+            ProjectedStockLevel: fillerQuantity3
+        }, {
+            date: moment(fillerDate4).format('LL'),
+            ProjectedStockLevel: fillerQuantity4
+        },
+    ];
 
 
     function displayAccordion() {
 
-        if (stockcardDoc !== undefined) {
+        if (stockcard !== undefined) {
             return (
-                maxLeadtime !== 0 ?
+                stockcard[docId].analytics.leadtimeMaximum !== 0 ?
                     <>
                         <div>
                             <div className='row mt-3'>
@@ -341,58 +557,55 @@ function Itemforecast() {
                                     <YAxis label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }} />
                                     <Tooltip />
                                     <Legend />
-                                    <ReferenceLine y={stockcardDoc.min_qty}
+                                    <ReferenceLine y={stockcard[docId].min_qty}
                                         label={{ value: 'Minimum Quantity', position: 'insideRight', textAnchor: 'middle' }}
                                         stroke="gray" strokeDasharray="3 3" />
 
-                                    <ReferenceLine y={stockcardDoc.max_qty}
+                                    <ReferenceLine y={stockcard[docId].max_qty}
                                         label={{ value: 'Maximum Quantity', position: 'insideRight', textAnchor: 'middle' }}
                                         stroke="gray" strokeDasharray="3 3" />
 
-                                    <ReferenceLine y={stockcardDoc.analytics.reorderPoint}
+                                    <ReferenceLine y={stockcard[docId].analytics.reorderPoint}
                                         label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
                                         stroke="#009933" strokeDasharray="3 3" />
-                                    <ReferenceLine y={stockcardDoc.analytics.safetyStock}
+                                    <ReferenceLine y={stockcard[docId].analytics.safetyStock}
                                         label={{ value: 'SafetyStock', position: 'insideLeft', textAnchor: 'middle' }}
                                         stroke="#ff9900" strokeDasharray="3 3" />
-                                    <Line type="monotone" dataKey="StockLevel" stroke="#ff0000" 
-
-                                        dot={{ stroke: '#8884d8', strokeWidth: 1, r: 10, strokeDasharray: '' }}
+                                    <Line type="monotone" dataKey="StockLevel" stroke="#ff0000"
+                                        dot={{ stroke: '#8884d8', strokeWidth: 1, r: 3, strokeDasharray: '' }}
                                     />
                                     <Line type="monotone" dataKey="ProjectedStockLevel" stroke="#0066ff"
-                                        dot={{ stroke: '#blue', strokeWidth: 1, r: 10, strokeDasharray: '' }}
+                                        dot={{ stroke: '#blue', strokeWidth: 1, r: 3, strokeDasharray: '' }}
                                     />
+
                                 </LineChart>
                             </div>
                             <div className="row mt-3 px-4 py-2 bg-white">
                                 <div className="col">
                                     <div className="row">
-                                        <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint: </strong></span>{stockcardDoc.analytics.reorderPoint} unit(s)</span>
+                                        <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint: </strong></span>{stockcard[docId].analytics.reorderPoint} unit(s)</span>
                                     </div>
                                     <div className="row">
-                                        <span>| <span style={{ color: '#ff9900' }}> <strong>SafetyStock: </strong></span>{stockcardDoc.analytics.safetyStock} unit(s)</span>
+                                        <span>| <span style={{ color: '#ff9900' }}> <strong>SafetyStock: </strong></span>{stockcard[docId].analytics.safetyStock} unit(s)</span>
                                     </div>
                                     <div className="row">
-                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Minimum Quantity: </strong></span>{stockcardDoc.min_qty} unit(s)</span>
+                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Minimum Quantity: </strong></span>{stockcard[docId].min_qty} unit(s)</span>
                                     </div>
                                     <div className="row">
-                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Maximum Quantity: </strong></span>{stockcardDoc.max_qty} unit(s)</span>
+                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Maximum Quantity: </strong></span>{stockcard[docId].max_qty} unit(s)</span>
                                     </div>
                                 </div>
 
                                 <div className="col">
 
                                     <div className="row">
-                                        <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint Date: </strong></span>{moment(stockcardDoc.analytics.dateReorderPoint).format('LL')}</span>
+                                        <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint Date: </strong></span>{moment(stockcard[docId].analytics.dateReorderPoint).format('LL')}</span>
                                     </div>
                                     <div className="row">
-                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Total Sales: </strong></span>{totalSales} unit(s)</span>
+                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Highest Daily Sales: </strong></span>{stockcard[docId].analytics.highestDailySales} unit(s)</span>
                                     </div>
                                     <div className="row">
-                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Highest Daily Sales: </strong></span>{stockcardDoc.analytics.highestDailySales} unit(s)</span>
-                                    </div>
-                                    <div className="row">
-                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Average Daily Sales: </strong></span>{stockcardDoc.analytics.averageDailySales} unit(s)</span>
+                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Average Daily Sales: </strong></span>{stockcard[docId].analytics.averageDailySales} unit(s)</span>
                                     </div>
                                 </div>
 
@@ -416,20 +629,15 @@ function Itemforecast() {
 
 
             )
+        } else {
+            <Spinner
+                color1="#b0e4ff"
+                color2="#fff"
+                textColor="rgba(0,0,0, 0.5)"
+                className="w-50 h-50"
+            />
         }
     }
-
-    const [errorBoolean, setErrorBoolean] = useState(false)
-
-    useEffect(() => {
-        {
-            maxLeadtime === 0 ?
-                setErrorBoolean(true)
-                :
-                setErrorBoolean(false)
-        }
-    }, [maxLeadtime])
-
     function displayChartError() {
         return (
             errorBoolean ?
@@ -467,418 +675,24 @@ function Itemforecast() {
 
     }
 
-    //-----------------------------------------------------------------------
-
-    useEffect(() => {
-        console.log("sortedTransactionDates: ", sortedTransactionDates)
-    }, [sortedTransactionDates])
-
-
-    useEffect(() => {
-        console.log("arrDate: ", arrDate)
-    }, [arrDate])
-
-
-
-    // ---------------------------------Q1 DATA---------------------------------
-
-    const [query1, setQuery1] = useState()
-    const [q1ProductList, setQ1ProductList] = useState()
-    const [q1Quantity, setQ1Quantity] = useState(0)
-    const [q1Date, setQ1Date] = useState("")
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-
-        const collectionRef = collection(db, "sales_record")
-        const q = query(collectionRef, where("transaction_date", "==", date1));
-
-        const unsub = onSnapshot(q, (snapshot) =>
-            setQuery1(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-
-    }, [date1])
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-        if (query1 !== undefined) {
-            if (query1.length !== 0) {
-                query1.map((q1) => {
-                    setQ1ProductList(q1.product_list)
-                })
-            }
-        }
-    }, [query1])
-
-    useEffect(() => {
-        if (q1ProductList !== undefined) {
-            q1ProductList.map((q1) => {
-                if (q1.itemId === docId) {
-                    setQ1Date(date1)
-                    setQ1Quantity(q1.itemNewQuantity)
-                }
-            })
-        }
-    }, [q1ProductList])
-
-
-    // -------------------------------------------------------------------------
-
-    // ---------------------------------Q2 DATA---------------------------------
-
-    const [query2, setQuery2] = useState([{}])
-    const [q2ProductList, setQ2ProductList] = useState([{}])
-    const [q2Quantity, setQ2Quantity] = useState(0)
-    const [q2Date, setQ2Date] = useState("")
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-
-        const collectionRef = collection(db, "sales_record")
-        const q = query(collectionRef, where("transaction_date", "==", date2));
-
-        const unsub = onSnapshot(q, (snapshot) =>
-            setQuery2(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-
-    }, [date2])
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-        if (query2.length !== 0) {
-
-            query2.map((q2) => {
-                setQ2ProductList(q2.product_list)
-            })
-
-        }
-    }, [query2])
-
-    useEffect(() => {
-        if (q2ProductList !== undefined) {
-            q2ProductList.map((q2) => {
-                if (q2.itemId === docId) {
-                    setQ2Date(date2)
-                    setQ2Quantity(q2.itemNewQuantity)
-                }
-            })
-        }
-    }, [q2ProductList])
-    // -------------------------------------------------------------------------
-
-    // ---------------------------------Q3 DATA---------------------------------
-
-    const [query3, setQuery3] = useState([{}])
-    const [q3ProductList, setQ3ProductList] = useState([{}])
-    const [q3Quantity, setQ3Quantity] = useState(0)
-    const [q3Date, setQ3Date] = useState("")
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-
-        const collectionRef = collection(db, "sales_record")
-        const q = query(collectionRef, where("transaction_date", "==", date3));
-
-        const unsub = onSnapshot(q, (snapshot) =>
-            setQuery3(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-
-    }, [date3])
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-        if (query3.length !== 0) {
-
-            query3.map((q3) => {
-                setQ3ProductList(q3.product_list)
-            })
-
-        }
-    }, [query3])
-
-    useEffect(() => {
-        if (q3ProductList !== undefined) {
-            q3ProductList.map((q3) => {
-                if (q3.itemId === docId) {
-                    setQ3Date(date3)
-                    setQ3Quantity(q3.itemNewQuantity)
-                }
-            })
-        }
-    }, [q3ProductList])
-    // -------------------------------------------------------------------------
-
-    // ---------------------------------Q4 DATA---------------------------------
-
-    const [query4, setQuery4] = useState([{}])
-    const [q4ProductList, setQ4ProductList] = useState([{}])
-    const [q4Quantity, setQ4Quantity] = useState(0)
-    const [q4Date, setQ4Date] = useState("")
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-
-        const collectionRef = collection(db, "sales_record")
-        const q = query(collectionRef, where("transaction_date", "==", date4));
-
-        const unsub = onSnapshot(q, (snapshot) =>
-            setQuery4(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-
-    }, [date4])
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-        if (query4.length !== 0) {
-
-            query4.map((q4) => {
-                setQ4ProductList(q4.product_list)
-            })
-
-        }
-    }, [query4])
-
-    useEffect(() => {
-        if (q4ProductList !== undefined) {
-            q4ProductList.map((q4) => {
-                if (q4.itemId === docId) {
-                    setQ4Date(date4)
-                    setQ4Quantity(q4.itemNewQuantity)
-                }
-            })
-        }
-    }, [q4ProductList])
-    // -------------------------------------------------------------------------
-
-    // ---------------------------------Q5 DATA---------------------------------
-
-    const [query5, setQuery5] = useState([{}])
-    const [q5ProductList, setQ5ProductList] = useState([{}])
-    const [q5Quantity, setQ5Quantity] = useState(0)
-    const [q5Date, setQ5Date] = useState("")
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-
-        const collectionRef = collection(db, "sales_record")
-        const q = query(collectionRef, where("transaction_date", "==", date5));
-
-        const unsub = onSnapshot(q, (snapshot) =>
-            setQuery5(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-
-    }, [date5])
-
-
-    //query documents from sales_record that contains docId
-    useEffect(() => {
-        if (query5.length !== 0) {
-
-            query5.map((q5) => {
-                setQ5ProductList(q5.product_list)
-            })
-
-        }
-    }, [query5])
-
-    useEffect(() => {
-        if (q5ProductList !== undefined) {
-            q5ProductList.map((q5) => {
-                if (q5.itemId === docId) {
-                    setQ5Date(date5)
-                    setQ5Quantity(q5.itemNewQuantity)
-                }
-            })
-        }
-    }, [q5ProductList])
-    // -------------------------------------------------------------------------
-
-    const [fillerDate1, setFillerDate1] = useState(new Date())
-    const [fillerDate2, setFillerDate2] = useState(new Date())
-    const [fillerDate3, setFillerDate3] = useState(new Date())
-    const [fillerDate4, setFillerDate4] = useState(new Date())
-
-    today.setDate(today.getDate() + 14)
-
-
-
-    useEffect(() => {
-        let tempDate1 = new Date(q1Date)
-        let tempDate2 = new Date(q1Date)
-        let tempDate3 = new Date(q1Date)
-        let tempDate4 = new Date(q1Date)
-
-        let tempf1 = new Date()
-        let tempf2 = new Date()
-        let tempf3 = new Date()
-        let tempf4 = new Date()
-
-        tempf1 = tempDate1.setDate(tempDate1.getDate() + 7)
-        tempf2 = tempDate2.setDate(tempDate2.getDate() + 14)
-        tempf3 = tempDate3.setDate(tempDate3.getDate() + 21)
-        tempf4 = tempDate4.setDate(tempDate4.getDate() + 28)
-
-        setFillerDate1(tempf1)
-        setFillerDate2(tempf2)
-        setFillerDate3(tempf3)
-        setFillerDate4(tempf4)
-
-    }, [q1Date])
-    //---------------------------------------------------------------------------
-
-
-    const [fillerQuantity1, setFillerQuantity1] = useState(0)
-    const [fillerQuantity2, setFillerQuantity2] = useState(0)
-    const [fillerQuantity3, setFillerQuantity3] = useState(0)
-    const [fillerQuantity4, setFillerQuantity4] = useState(0)
-    const [tempQuantity1, setTempQuantity1] = useState(0)
-    const [tempQuantity2, setTempQuantity2] = useState(0)
-    const [tempQuantity3, setTempQuantity3] = useState(0)
-    const [tempQuantity4, setTempQuantity4] = useState(0)
-
-
-    useEffect(() => {
-        setTempQuantity1(q1Quantity)
-        setTempQuantity2(q1Quantity)
-        setTempQuantity3(q1Quantity)
-        setTempQuantity4(q1Quantity)
-    }, [q1Quantity])
-
-
-    useEffect(() => {
-        if (stockcardDoc !== undefined) {
-            setFillerQuantity1(Math.round(tempQuantity1 - (stockcardDoc.analytics.averageDailySales * 7)))
-            setFillerQuantity2(Math.round(tempQuantity2 - (stockcardDoc.analytics.averageDailySales * 14)))
-            setFillerQuantity3(Math.round(tempQuantity3 - (stockcardDoc.analytics.averageDailySales * 21)))
-            setFillerQuantity4(Math.round(tempQuantity4 - (stockcardDoc.analytics.averageDailySales * 28)))
-        }
-    }, [tempQuantity1])
-
-    //---------------------------------------------------------------------------
-
-
-
-
-
-    const data = [
-        {
-            date: moment(q5Date).format('ll'),
-            StockLevel: q5Quantity,
-        },
-        {
-            date: moment(q4Date).format('ll'),
-            StockLevel: q4Quantity,
-        },
-        {
-            date: moment(q3Date).format('ll'),
-            StockLevel: q3Quantity,
-        },
-        {
-            date: moment(q2Date).format('ll'),
-            StockLevel: q2Quantity,
-        },
-        {
-            date: moment(q1Date).format('ll'),
-            StockLevel: q1Quantity,
-            ProjectedStockLevel: q1Quantity
-        },
-        {
-            date: moment(fillerDate1).format('ll'),
-            ProjectedStockLevel: fillerQuantity1,
-        },
-        {
-            date: moment(fillerDate2).format('ll'),
-            ProjectedStockLevel: fillerQuantity2,
-        },
-        {
-            date: moment(fillerDate3).format('ll'),
-            ProjectedStockLevel: fillerQuantity3,
-        },
-        {
-            date: moment(fillerDate4).format('ll'),
-            ProjectedStockLevel: fillerQuantity4,
-        },
-
-
-    ];
-
-    // ===================================== START OF SEARCH FUNCTION =====================================
-    const [isFetched, setIsFetched] = useState(false);//listener for when collection is retrieved
-
-
-    const [searchValue, setSearchValue] = useState('');    // the value of the search field 
-    const [searchResult, setSearchResult] = useState();    // the search result
-
-
-    useEffect(() => {
-        if (stockcard === undefined) {
-            setIsFetched(false)
-        }
-        else {
-            setIsFetched(true)
-        }
-    }, [stockcard])
-
-    useEffect(() => {
-        setSearchResult(stockcard)
-    }, [stockcard])
-
-
-    const filter = (e) => {
-        const keyword = e.target.value;
-
-        if (keyword !== '') {
-            const results = stockcard.filter((user) => {
-                return user.description.toLowerCase().startsWith(keyword.toLowerCase()) ||
-                    user.id.toLowerCase().startsWith(keyword.toLowerCase());
-                // Use the toLowerCase() method to make it case-insensitive
-            });
-            setSearchResult(results);
-        } else {
-            setSearchResult(stockcard);
-            // If the text field is empty, show all users
-        }
-
-        setSearchValue(keyword);
-    };
-
-    // ====================================== END OF SEARCH FUNCTION ======================================
-
-
-
-
-
-
-
 
     return (
+        <div>
 
-        <div className="row bg-light">
             <Navigation />
 
-            <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+            <Tab.Container
+                activeKey={key}
+                onSelect={(k) => setKey(k)}
+            >
                 <div id="contents" className="row">
                     <div className="row py-4 px-5">
-                        <div className="sidebar">
-                            <Card className='sidebar-card' style={{ height: "550px" }}>
+                        <div className='sidebar'>
+                            <Card className='sidebar-card'>
                                 <Card.Header>
                                     <div className='row'>
-                                        <InputGroup className="mb-3">
-                                            <InputGroup.Text id="basic-addon1">
+                                        <InputGroup id="fc-search">
+                                            <InputGroup.Text>
                                                 <FontAwesomeIcon icon={faSearch} />
                                             </InputGroup.Text>
                                             <FormControl
@@ -886,12 +700,13 @@ function Itemforecast() {
                                                 value={searchValue}
                                                 onChange={filter}
                                                 className="input"
-                                                placeholder="Search by Item Code/Description"
+                                                placeholder="IT000013, Rexona Pink 3mL (1pc)"
                                             />
                                         </InputGroup>
                                     </div>
                                 </Card.Header>
-                                <Card.Body>
+                                <Card.Body style={{ height: "500px" }}>
+
                                     <div className="row g-1 sidebar-header">
                                         <div className="col-4 left-curve">
                                             Item Code
@@ -900,30 +715,33 @@ function Itemforecast() {
                                             Description
                                         </div>
                                     </div>
-                                    <div id='scrollbar' style={{ height: '400px' }}>
+                                    <div className='scrollbar' style={{ height: '415px' }}>
                                         {isFetched ?
-                                            (
-                                                stockcard.length === 0 ?
+                                            <>
+                                                {stockcard.length === 0 ?
                                                     <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                                                        <h5 className="text-center mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to display</strong>
-                                                            <br /><span style={{ color: '#0d6efd' }}>ReorderPoint Forecasting</span>.</h5>
+                                                        <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to show.</strong></h5>
                                                         <p className="d-flex align-items-center justify-content-center">
-                                                            <span>Go to -</span>
-                                                            <Alert.Link as={Link} to="/stockcard">Stockcard Page</Alert.Link>
+                                                            <span>Click the</span>
+                                                            <Button
+                                                                className="add ms-1 me-1 static-button no-click"
+                                                            >
+                                                                <FontAwesomeIcon icon={faPlus} />
+                                                            </Button>
                                                             <span>
-                                                                - to add one.
+                                                                button to add one.
                                                             </span>
                                                         </p>
                                                     </div>
                                                     :
-                                                    <ListGroup variant="flush">
+                                                    <ListGroup activeKey={key} variant="flush">
                                                         {searchResult && searchResult.length > 0 ? (
                                                             searchResult.map((stockcard) => (
                                                                 <ListGroup.Item
                                                                     action
                                                                     key={stockcard.id}
                                                                     eventKey={stockcard.id}
-                                                                    onClick={() => { setDocId(stockcard.id) }}
+                                                                    onClick={() => { handleDocChange(stockcard.id) }}
                                                                 >
                                                                     <div className="row gx-0 sidebar-contents">
                                                                         <div className="col-4">
@@ -936,15 +754,19 @@ function Itemforecast() {
                                                                 </ListGroup.Item>
                                                             ))
                                                         ) : (
-                                                            <div className='mt-5 text-center'>
-                                                                <Alert variant='danger'>
-                                                                    No Search Result for
-                                                                    <br /><strong>{searchValue}</strong>
-                                                                </Alert>
+                                                            <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
+                                                                <h5>
+                                                                    <strong className="d-flex align-items-center justify-content-center flex-column">
+                                                                        No product matched:
+                                                                        <br />
+                                                                        <span style={{ color: '#0d6efd' }}>{searchValue}</span>
+                                                                    </strong>
+                                                                </h5>
                                                             </div>
                                                         )}
                                                     </ListGroup>
-                                            )
+                                                }
+                                            </>
                                             :
                                             <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
                                                 <Spinner
@@ -958,14 +780,14 @@ function Itemforecast() {
                                     </div>
                                 </Card.Body>
                             </Card>
-
                         </div>
-                        <div className="divider">
-
-                        </div>
-                        <div className="data-contents">
+                        <div className="divider"></div>
+                        <div className='data-contents'>
                             <Tab.Content>
-                                <Tab.Pane eventKey={0}>
+                                <Tab.Pane eventKey='main'>
+
+
+
                                     <div className="row">
                                         <div className="row p-3 m-0" style={{ height: "200px" }}>
                                             <h1 className='text-center pb-2 module-title'>Reorder Point Forecasting
@@ -1007,84 +829,85 @@ function Itemforecast() {
                                     </div>
 
 
-
-
                                 </Tab.Pane>
-                                <Tab.Pane eventKey={docId}>
-                                    <div className="row">
-                                        <div className="row p-3 m-0" style={{ height: "200px" }}>
-                                            <h1 className='text-center pb-2 module-title'>Reorder Point Forecasting
-                                            </h1>
-                                            <hr />
+                                {(stockcard === undefined || stockcard.length == 0) || docId === undefined ?
+                                    <></>
+                                    :
+                                    <Tab.Pane eventKey={stockcard[docId].id}>
+                                        <div className='row py-1 m-0' id="product-contents">
 
-                                            <div className="row m-0 mt-2 mb-4 px-5 py-2 yellow-strip">
-                                                <div className="row p1 text-center">
-                                                    <div className="col-3">
-                                                        Item Code
+                                            <div className="row p-3 m-0" style={{ height: "200px" }}>
+                                                <h1 className='text-center pb-2 module-title'>Reorder Point Forecasting
+                                                </h1>
+                                                <hr />
+
+                                                <div className="row m-0 mt-2 mb-4 px-5 py-2 yellow-strip">
+                                                    <div className="row p1 text-center">
+                                                        <div className="col-3">
+                                                            Item Code
+                                                        </div>
+                                                        <div className="col-7">
+                                                            Item Description
+                                                        </div>
+                                                        <div className="col-2">
+                                                            Available Stock
+                                                        </div>
                                                     </div>
-                                                    <div className="col-7">
-                                                        Item Description
-                                                    </div>
-                                                    <div className="col-2">
-                                                        Available Stock
-                                                    </div>
-                                                </div>
-                                                <hr className="yellow-strip-divider"></hr>
-                                                <div className="row my-2">
-                                                    <div className="col-3 text-center">
-                                                        <h5><strong>
-                                                            {docId === undefined ?
-                                                                <>
-                                                                </>
+                                                    <hr className="yellow-strip-divider"></hr>
+                                                    <div className="row my-2">
+                                                        <div className="col-3 text-center">
+                                                            <h5><strong>
+                                                                {stockcard === undefined ?
+                                                                    <>
+                                                                    </>
+                                                                    :
+                                                                    <>
+                                                                        {stockcard[docId].id.substring(0, 9)}
+                                                                    </>
+                                                                }
+                                                            </strong></h5>
+                                                        </div>
+                                                        <div className="col-7 text-center">
+                                                            {stockcard !== undefined ?
+                                                                <h5><strong>{stockcard[docId].description}</strong></h5>
                                                                 :
-                                                                <>
-                                                                    {docId.substring(0, 9)}
-                                                                </>
+                                                                <></>
                                                             }
-                                                        </strong></h5>
-                                                    </div>
-                                                    <div className="col-7 text-center">
-                                                        {stockcardDoc !== undefined ?
-                                                            <h5><strong>{stockcardDoc.description}</strong></h5>
-                                                            :
-                                                            <></>
-                                                        }
-                                                    </div>
-                                                    <div className="col-2 text-center">
-                                                        {stockcardDoc !== undefined ?
-                                                            <h5><strong>{stockcardDoc.qty}</strong></h5>
-                                                            :
-                                                            <></>
-                                                        }
+                                                        </div>
+                                                        <div className="col-2 text-center">
+                                                            {stockcard !== undefined ?
+                                                                <h5><strong>{stockcard[docId].qty}</strong></h5>
+                                                                :
+                                                                <></>
+                                                            }
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            {salesRecordCollection === undefined ?
+                                                <Spinner
+                                                    color1="#b0e4ff"
+                                                    color2="#fff"
+                                                    textColor="rgba(0,0,0, 0.5)"
+                                                    className="w-50 h-50"
+                                                />
+                                                :
+                                                forecastingBoolean ?
+                                                    displayAccordion()
+                                                    :
+                                                    displayChartError()
+                                            }
                                         </div>
-                                        {forecastingBoolean ?
-                                            displayAccordion()
-                                            :
-                                            displayChartError()
-                                        }
-
-
-
-
-
-
-
-                                    </div>
-
-
-
-
-                                </Tab.Pane>
+                                    </Tab.Pane>
+                                }
                             </Tab.Content>
                         </div>
                     </div>
                 </div>
-            </Tab.Container>
+            </Tab.Container >
         </div >
-    )
+    );
+
 
 }
 

@@ -1302,9 +1302,7 @@ function StockcardPage({ isAuth }) {
   const [highestDailySales, setHighestDailySales] = useState(0); //highest daily sales
   const [averageDailySales, setAverageDailySales] = useState(0); //average daily sales 
   const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
-  const [dateToOrder, setDateToOrder] = useState()
   const [dateReorderPoint, setDateReorderPoint] = useState()
-  const [daysDiffDateToOrder, setDaysDiffDateToOrder] = useState()
 
 
   useEffect(() => {
@@ -1415,50 +1413,6 @@ function StockcardPage({ isAuth }) {
     computeDaysToReorderPoint()
   }, [daysROP, docId])
 
-  //Date to order = date of reorder point - average Leadtime [ceiling value]
-  function computeDateToOrder() {
-    setDateToOrder()
-
-    if (dateReorderPoint !== undefined) {
-      let tempDate = new Date(dateReorderPoint)
-      let x
-      let y
-      y = Math.round(newAverageLeadtime)
-      x = tempDate.setDate(tempDate.getDate() - y)
-      let z = new Date(x)
-      z = moment(z).format('YYYY-MM-DD')
-      setDateToOrder(z)
-    }
-  }
-
-  function computeDaysDiffToOrder() {
-    let x = daysROP
-    let y = newAverageLeadtime
-    let z = 0
-    if (daysROP < 0) {
-      z = x - y
-    } else {
-      z = x + y
-    }
-
-    var num = Math.round(z)
-    setDaysDiffDateToOrder(num)
-  }
-
-  useEffect(() => {
-    computeDaysDiffToOrder()
-  }, [dateToOrder, docId])
-
-  useEffect(() => {
-    console.log("dateToOrder: ", dateToOrder)
-    console.log("reorderPointDate: ", dateReorderPoint)
-  }, [dateToOrder, dateReorderPoint])
-
-  useEffect(() => {
-    computeDateToOrder()
-  }, [dateReorderPoint, newAverageLeadtime, docId])
-
-
 
   const updateLeadtime = () => {
     updateDoc(doc(db, "stockcard", stockcard[docId].id), {
@@ -1468,8 +1422,6 @@ function StockcardPage({ isAuth }) {
       "analytics.safetyStock": Number(safetyStock),
       "analytics.reorderPoint": Number(reorderPoint),
       "analytics.daysROP": Number(daysROP),
-      "analytics.daysDiffDateToOrder": Number(daysDiffDateToOrder),
-      "analytics.dateToOrder": dateToOrder,
       "analytics.dateReorderPoint": dateReorderPoint,
     });
     setCollectionUpdateMethod("update")
