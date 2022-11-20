@@ -1729,7 +1729,7 @@ function StockcardPage({ isAuth }) {
                       <>
                         {stockcard.length === 0 ?
                           <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to show.</strong></h5>
+                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>products</span> to show.</strong></h5>
                             <p className="d-flex align-items-center justify-content-center">
                               <span>Click the</span>
                               <Button

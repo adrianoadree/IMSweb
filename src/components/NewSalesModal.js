@@ -111,9 +111,8 @@ function NewSalesModal(props) {
         userCollection.map((metadata) => {
             setSalesCounter(metadata.salesId)
             setUserProfileID(metadata.id)
-            metadata.accounts.map((account)=>{
-                if(account.isAdmin)
-                {
+            metadata.accounts.map((account) => {
+                if (account.isAdmin) {
                     setTransactionIssuer(account)
                 }
             })
@@ -194,7 +193,8 @@ function NewSalesModal(props) {
                 safetyStock: Number(safetyStock),
                 reorderPoint: Number(reorderPoint),
                 daysROP: Number(daysROP),
-                dateReorderPoint: dateReorderPoint
+                dateReorderPoint: dateReorderPoint,
+                analyticsBoolean: analyticsBoolean
             }
         ]);
         setItemId("IT999999");
@@ -273,7 +273,9 @@ function NewSalesModal(props) {
                 "analytics.safetyStock": Number(items.safetyStock),
                 "analytics.reorderPoint": Number(items.reorderPoint),
                 "analytics.daysROP": Number(items.daysROP),
-                "analytics.dateReorderPoint": items.dateReorderPoint
+                "analytics.dateReorderPoint": items.dateReorderPoint,
+                "analytics.analyticsBoolean": items.analyticsBoolean
+
             });
 
         })
@@ -328,7 +330,8 @@ function NewSalesModal(props) {
     const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
     const [dateReorderPoint, setDateReorderPoint] = useState()
     const [daysDiffDateToOrder, setDaysDiffDateToOrder] = useState()
-
+    const [transactionDates, setTransactionDates] = useState()
+    const [analyticsBoolean, setAnalyticsBoolean] = useState(false)
 
 
     //query documents from sales_record that contains docId
@@ -392,6 +395,43 @@ function NewSalesModal(props) {
             }, ...salesRecordCollection])
         }
     }, [newDate, salesRecordCollection, itemQuantity, itemId])
+
+
+
+    useEffect(() => {
+        arrayOfSalesDate()
+    }, [salesRecordCollection, itemId])
+
+    function arrayOfSalesDate() {
+        let tempArr = []
+        if (salesRecordCollection !== undefined) {
+            salesRecordCollection.map((sales) => {
+                if (!tempArr.includes(sales.transaction_date))
+                    tempArr.push(sales.transaction_date)
+            })
+        }
+        setTransactionDates(tempArr)
+    }
+
+
+    useEffect(() => {
+        if (transactionDates !== undefined){
+            if(transactionDates.length >= 5){
+                setAnalyticsBoolean(true)
+            }
+            else{
+                setAnalyticsBoolean(false)
+            }
+        }
+    }, [transactionDates, itemId])
+
+
+    useEffect(() => {
+        console.log("transactionDates: ", transactionDates)
+    }, [transactionDates, itemId])
+
+
+
 
     //compute Total Sales
     useEffect(() => {

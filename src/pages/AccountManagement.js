@@ -477,6 +477,7 @@ function AccountManagement() {
                               </Button>
                               <Button
                               className="delete"
+                              disabled
                               data-title="Delete Account"
                               onClick={()=>DeleteAccount(account, i)}
                               >

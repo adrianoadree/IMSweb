@@ -945,7 +945,7 @@ function LandingPage() {
     useEffect(() => {
         if (userID !== undefined) {
             const stockcardCollectionRef = collection(db, "stockcard")
-            const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.daysDiffDateToOrder", "<=", 7), orderBy("analytics.daysDiffDateToOrder", "asc"));
+            const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.analyticsBoolean", "==", true), orderBy("analytics.daysROP", "asc"));
 
             const unsub = onSnapshot(q, (snapshot) =>
                 setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -957,7 +957,7 @@ function LandingPage() {
 
     function Notification() {
         return (
-            <ListGroup>
+            <ListGroup className='scrollbar' style={{ height: '200px' }}>
                 {prodNearROP !== undefined ?
                     prodNearROP.length !== 0 ?
                         prodNearROP.map((prod) => {
@@ -972,19 +972,19 @@ function LandingPage() {
                                         <div className="col ">
                                             <div className="float-end">
 
-                                                {prod.analytics.daysDiffDateToOrder > 0 ?
-                                                    <small><strong>{prod.analytics.daysDiffDateToOrder}</strong> day(s)<br /> before Restocking</small>
+                                                {prod.analytics.daysROP > 0 ?
+                                                    <small><strong>{prod.analytics.daysROP}</strong> day(s)<br /> before Restocking</small>
                                                     :
-                                                    prod.analytics.daysDiffDateToOrder === 0 ?
+                                                    prod.analytics.daysROP === 0 ?
                                                         <small>Restock <strong>Today</strong></small>
                                                         :
-                                                        <small><strong>{Math.abs(prod.analytics.daysDiffDateToOrder)}</strong> day(s)<br /> past Restocking</small>
+                                                        <small><strong>{Math.abs(prod.analytics.daysROP)}</strong> day(s)<br /> past Restocking</small>
                                                 }
 
                                             </div>
                                         </div>
                                         <div className="row">
-                                            <small className="text-muted float-end">Date to Restock: {moment(prod.analytics.dateToOrder).format('LL')}</small>
+                                            <small className="text-muted float-end">Date to Restock: {moment(prod.analytics.dateReorderPoint).format('LL')}</small>
                                         </div>
                                     </div>
                                 </ListGroup.Item>

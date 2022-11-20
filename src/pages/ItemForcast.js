@@ -175,8 +175,8 @@ function Itemforecast() {
                 if (!tempArr.includes(sales.transaction_date))
                     tempArr.push(sales.transaction_date)
             })
+            setTransactionDates(tempArr)
         }
-        setTransactionDates(tempArr)
     }
 
     useEffect(() => {
@@ -463,38 +463,34 @@ function Itemforecast() {
 
 
 
-    useEffect(() => {
-        console.log("date1: ", date1)
-        console.log("date2: ", date2)
-        console.log("date3: ", date3)
-        console.log("date4: ", date4)
-        console.log("date5: ", date5)
-    }, [date1, date2, date3, date4, date5])
-
-
-    //sort array of transaction dates
-    useEffect(() => {
-        console.log(sortedTransactionDates)
-    }, [sortedTransactionDates])
-
-    //sort array of transaction dates
-    useEffect(() => {
-        console.log(salesRecordCollection)
-    }, [salesRecordCollection])
-
 
     useEffect(() => {
+
+        setForecastingBoolean()
         if (sortedTransactionDates !== undefined) {
             {
-                sortedTransactionDates.length >= 5 ?
+                setForecastingBoolean()
+                if (sortedTransactionDates.length >= 5) {
                     setForecastingBoolean(true)
-                    :
+                } else {
                     setForecastingBoolean(false)
+                }
             }
-        }else{
+        } else {
             setForecastingBoolean()
         }
     }, [sortedTransactionDates])
+
+
+    useEffect(() => {
+        console.log("forecastingBoolean: ", forecastingBoolean)
+    }, [forecastingBoolean])
+
+
+    useEffect(() => {
+        console.log("salesRecordCollection: ", salesRecordCollection)
+    }, [salesRecordCollection])
+
 
 
 
@@ -557,13 +553,14 @@ function Itemforecast() {
                                     <YAxis label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }} />
                                     <Tooltip />
                                     <Legend />
+
                                     <ReferenceLine y={stockcard[docId].min_qty}
                                         label={{ value: 'Minimum Quantity', position: 'insideRight', textAnchor: 'middle' }}
-                                        stroke="gray" strokeDasharray="3 3" />
+                                        stroke="#262626" strokeDasharray="3 3" />
 
                                     <ReferenceLine y={stockcard[docId].max_qty}
                                         label={{ value: 'Maximum Quantity', position: 'insideRight', textAnchor: 'middle' }}
-                                        stroke="gray" strokeDasharray="3 3" />
+                                        stroke="#262626" strokeDasharray="3 3" />
 
                                     <ReferenceLine y={stockcard[docId].analytics.reorderPoint}
                                         label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
@@ -581,7 +578,11 @@ function Itemforecast() {
                                 </LineChart>
                             </div>
                             <div className="row mt-3 px-4 py-2 bg-white">
+                                <hr />
+                                <h3 className='text-center'>CHART LEGEND</h3>
+                                <hr />
                                 <div className="col">
+                                    <h4>Reference Lines</h4>
                                     <div className="row">
                                         <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint: </strong></span>{stockcard[docId].analytics.reorderPoint} unit(s)</span>
                                     </div>
@@ -589,15 +590,15 @@ function Itemforecast() {
                                         <span>| <span style={{ color: '#ff9900' }}> <strong>SafetyStock: </strong></span>{stockcard[docId].analytics.safetyStock} unit(s)</span>
                                     </div>
                                     <div className="row">
-                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Minimum Quantity: </strong></span>{stockcard[docId].min_qty} unit(s)</span>
+                                        <span>| <span style={{ color: '#262626' }}> <strong>Minimum Quantity: </strong></span>{stockcard[docId].min_qty} unit(s)</span>
                                     </div>
                                     <div className="row">
-                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Maximum Quantity: </strong></span>{stockcard[docId].max_qty} unit(s)</span>
+                                        <span>| <span style={{ color: '#262626' }}> <strong>Maximum Quantity: </strong></span>{stockcard[docId].max_qty} unit(s)</span>
                                     </div>
                                 </div>
 
                                 <div className="col">
-
+                                    <h4>{stockcard[docId].id.substring(0, 9)} Outbound Stats</h4>
                                     <div className="row">
                                         <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint Date: </strong></span>{moment(stockcard[docId].analytics.dateReorderPoint).format('LL')}</span>
                                     </div>
@@ -640,36 +641,17 @@ function Itemforecast() {
     }
     function displayChartError() {
         return (
-            errorBoolean ?
-                <>
-
-                    < div className='mt-2 p-3' >
-                        <Alert variant="danger">
-                            <Alert.Heading className="text-center">
-                                PREREQUISITE FOR FORECASTING
-                            </Alert.Heading>
-                            <p className="text-center">
-                                Forecasting Chart only displays when product <strong>Leadtime</strong> has been set. To set product leadtime go to  <Alert.Link as={Link} to="/stockcard">Stockcard Page</Alert.Link>. <br />
-                            </p>
-                        </Alert>
-                    </div >
-                </>
-                :
-                <>
-                    <div className='mt-2 p-3'>
-                        <Alert variant="danger">
-                            <Alert.Heading className="text-center">
-                                PREREQUISITE FOR FORECASTING
-                            </Alert.Heading>
-                            <p className="text-center">
-                                Forecasting Chart is only available for those products with <strong>Five(5) days</strong>  or more sales transaction days. to create a sales transaction, go to
-                                <Alert.Link as={Link} to="/salesrecord">Sales Record</Alert.Link>. <br />
-                            </p>
-                        </Alert>
-                    </div>
-                </>
-
-
+            <div className='mt-2 p-3'>
+                <Alert variant="danger">
+                    <Alert.Heading className="text-center">
+                        PREREQUISITE FOR FORECASTING
+                    </Alert.Heading>
+                    <p className="text-center">
+                        Forecasting Chart is only available for those products with <strong>Five(5) days</strong>  or more sales transaction days. to create a sales transaction, go to
+                        <Alert.Link as={Link} to="/salesrecord">Sales Record</Alert.Link>. <br />
+                    </p>
+                </Alert>
+            </div>
         )
 
 
@@ -884,7 +866,7 @@ function Itemforecast() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            {salesRecordCollection === undefined ?
+                                            {stockcard === undefined ?
                                                 <Spinner
                                                     color1="#b0e4ff"
                                                     color2="#fff"
@@ -892,11 +874,13 @@ function Itemforecast() {
                                                     className="w-50 h-50"
                                                 />
                                                 :
-                                                forecastingBoolean ?
+                                                stockcard[docId].analytics.analyticsBoolean ?
                                                     displayAccordion()
                                                     :
                                                     displayChartError()
                                             }
+
+
                                         </div>
                                     </Tab.Pane>
                                 }
