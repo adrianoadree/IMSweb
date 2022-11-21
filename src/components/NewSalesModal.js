@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { db } from "../firebase-config";
 import { collection, updateDoc, onSnapshot, query, doc, setDoc, getDoc, where } from "firebase/firestore";
 import moment from "moment";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer, toast, Zoom } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserAuth } from '../context/AuthContext'
 
@@ -111,9 +111,8 @@ function NewSalesModal(props) {
         userCollection.map((metadata) => {
             setSalesCounter(metadata.salesId)
             setUserProfileID(metadata.id)
-            metadata.accounts.map((account)=>{
-                if(account.isAdmin)
-                {
+            metadata.accounts.map((account) => {
+                if (account.isAdmin) {
                     setTransactionIssuer(account)
                 }
             })
@@ -193,7 +192,8 @@ function NewSalesModal(props) {
                 safetyStock: Number(safetyStock),
                 reorderPoint: Number(reorderPoint),
                 daysROP: Number(daysROP),
-                dateReorderPoint: dateReorderPoint
+                dateReorderPoint: dateReorderPoint,
+                analyticsBoolean: analyticsBoolean
             }
         ]);
         setItemId("IT999999");
@@ -257,6 +257,10 @@ function NewSalesModal(props) {
         //update stockcard.qty function
         updateQuantity()
         updateSalesDocNum() //update variables.salesDocNum function
+        successToast()
+        
+
+        props.onHide()
     }
 
     //update stockcard.qty function
@@ -272,7 +276,9 @@ function NewSalesModal(props) {
                 "analytics.safetyStock": Number(items.safetyStock),
                 "analytics.reorderPoint": Number(items.reorderPoint),
                 "analytics.daysROP": Number(items.daysROP),
-                "analytics.dateReorderPoint": items.dateReorderPoint
+                "analytics.dateReorderPoint": items.dateReorderPoint,
+                "analytics.analyticsBoolean": items.analyticsBoolean
+
             });
 
         })
@@ -327,7 +333,8 @@ function NewSalesModal(props) {
     const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
     const [dateReorderPoint, setDateReorderPoint] = useState()
     const [daysDiffDateToOrder, setDaysDiffDateToOrder] = useState()
-
+    const [transactionDates, setTransactionDates] = useState()
+    const [analyticsBoolean, setAnalyticsBoolean] = useState(false)
 
 
     //query documents from sales_record that contains docId
@@ -344,6 +351,19 @@ function NewSalesModal(props) {
     }, [itemId])
 
 
+    //success toastify
+    const successToast = () => {
+        toast.success("Generating " + createFormat().substring(0, 7), {
+            position: "top-right",
+            autoClose: 1500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            transition: Zoom
+        });
+    }
 
     //array of dates of transaction of a product
     useEffect(() => {
@@ -391,6 +411,43 @@ function NewSalesModal(props) {
             }, ...salesRecordCollection])
         }
     }, [newDate, salesRecordCollection, itemQuantity, itemId])
+
+
+
+    useEffect(() => {
+        arrayOfSalesDate()
+    }, [salesRecordCollection, itemId])
+
+    function arrayOfSalesDate() {
+        let tempArr = []
+        if (salesRecordCollection !== undefined) {
+            salesRecordCollection.map((sales) => {
+                if (!tempArr.includes(sales.transaction_date))
+                    tempArr.push(sales.transaction_date)
+            })
+        }
+        setTransactionDates(tempArr)
+    }
+
+
+    useEffect(() => {
+        if (transactionDates !== undefined){
+            if(transactionDates.length >= 5){
+                setAnalyticsBoolean(true)
+            }
+            else{
+                setAnalyticsBoolean(false)
+            }
+        }
+    }, [transactionDates, itemId])
+
+
+    useEffect(() => {
+        console.log("transactionDates: ", transactionDates)
+    }, [transactionDates, itemId])
+
+
+
 
     //compute Total Sales
     useEffect(() => {
@@ -653,17 +710,6 @@ function NewSalesModal(props) {
             centered
             className="IMS-modal"
         >
-            <ToastContainer
-                position="top-right"
-                autoClose={1000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
 
             <Modal.Body >
                 <div className="px-3 py-2">

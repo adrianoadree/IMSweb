@@ -101,7 +101,7 @@ function NewWarehouseModal(props) {
   const successToast = () => {
     toast.success(' Warehouse Creation Successful ', {
       position: "top-right",
-      autoClose: 3500,
+      autoClose: 1500,
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: true,

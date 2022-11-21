@@ -115,6 +115,14 @@ function Tips(props) {
             props.isNew? setTipsToDisplay(tipsIfNew.reports):expandTipsToDisplay(tips.reports)
             setTipId(0)
             break;
+          case '/analytics':
+            props.isNew? setTipsToDisplay(tipsIfNew.analytics):expandTipsToDisplay(tips.analytics)
+            setTipId(0)
+            break;
+          case '/inventoryadjustment':
+            props.isNew? setTipsToDisplay(tipsIfNew.adjustment):expandTipsToDisplay(tips.adjustment)
+            setTipId(0)
+            break;
           default: setTipsToDisplay(["hello"])
         }
       }

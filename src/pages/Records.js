@@ -15,7 +15,7 @@ import { Modal, Tab, ListGroup, Card, Table, Button, Nav, FormControl, InputGrou
 import { faPlus, faPesoSign, faSearch, faBan } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { DocumentAttach, Calendar, InformationCircle, Person } from 'react-ionicons'
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer, toast, Zoom } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Spinner } from 'loading-animations-react';
 
@@ -235,14 +235,15 @@ function Records() {
     }
 
     const voidToast = () => {
-      toast.error(purchaseRecordCollection[docId].id.substring(0, 7) + ' voided', {
+      toast.error("Voiding " + purchaseRecordCollection[docId].id.substring(0, 7), {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        transition: Zoom
       });
     }
 
@@ -284,7 +285,7 @@ function Records() {
           size="md"
           aria-labelledby="contained-modal-title-vcenter"
           centered
-          className="IMS-modal warning"
+          className="IMS-modal danger"
         >
           <Modal.Body >
             <div className="px-3 py-2">
@@ -485,10 +486,6 @@ function Records() {
       <Navigation
         page='/purchase'
       />
-      <ToastContainer
-        newestOnTop={false}
-        pauseOnFocusLoss
-      />
       <ProductQuickView
         show={showProductQuickModal}
         onHide={() => setShowProductQuickViewModal(false)}
@@ -610,6 +607,19 @@ function Records() {
             <div className="divider"></div>
             <div className="data-contents">
               <Tab.Content>
+                
+              <div className="IMS-toast-container">
+                      <div className="IMS-toast">
+                        <div className="w-100 h-100 d-flex align-items-center justify-content-center">
+                        <ToastContainer
+                          className="w-100 h-100 d-flex align-items-center justify-content-center"
+                          newestOnTop={false}
+                          rtl={false}
+                          pauseOnFocusLoss
+                        />
+                        </div>
+                      </div>
+                      </div>
                 <Tab.Pane eventKey="main">
                   <div className="placeholder-content">
                     <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
@@ -900,7 +910,7 @@ function Records() {
                               </tr>
                             </thead>
                             <tbody>
-                              {list.map((prod, index) => (
+                              {purchaseRecordCollection[docId].product_list.map((prod, index) => (
 
                                 <tr 
                                   key={index}

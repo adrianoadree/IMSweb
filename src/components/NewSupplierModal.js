@@ -3,7 +3,7 @@ import React from "react";
 import { collection } from 'firebase/firestore';
 import { db } from '../firebase-config';
 import { useState, useEffect } from 'react';
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer, toast, Zoom } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { addDoc, onSnapshot, doc, updateDoc, setDoc, query, where } from 'firebase/firestore';
 import { UserAuth } from '../context/AuthContext'
@@ -92,14 +92,15 @@ function NewSupplierModal(props) {
 
   //success toast
   const successToast = () => {
-    toast.success(' New Supplier Successfully Registered to the Database ', {
+    toast.success("Adding " + newSupplierName, {
       position: "top-right",
-      autoClose: 3500,
+      autoClose: 1500,
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
       progress: undefined,
+      transition: Zoom
     });
   }
 
@@ -142,18 +143,6 @@ function NewSupplierModal(props) {
       centered
       className="IMS-modal"
     >
-
-      <ToastContainer
-        position="top-right"
-        autoClose={1000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
 
       
       <Modal.Body
@@ -240,9 +229,9 @@ function NewSupplierModal(props) {
         <Button
           className="btn btn-light float-start"
           disabled={disallowAddition}
-          style={{ width: "6rem" }}
+          style={{ width: "8rem" }}
           onClick={() => { addSupplier() }}>
-          Save
+          Add Supplier
         </Button>
       </Modal.Footer>
     </Modal>

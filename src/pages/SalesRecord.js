@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
 import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy, updateDoc } from "firebase/firestore";
-import { Modal, Tab, ListGroup, Card, Table, Button, Nav, FormControl, Placeholder, InputGroup } from "react-bootstrap";
-import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign, faSearch, faBan} from '@fortawesome/free-solid-svg-icons'
+import { Modal, Tab, ListGroup, Card, Table, Button, Nav, FormControl, InputGroup } from "react-bootstrap";
+import { faPlus, faPesoSign, faSearch, faBan} from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { DocumentAttach, Calendar, Document, InformationCircle } from 'react-ionicons'
 import moment from "moment";
@@ -13,7 +13,7 @@ import { UserAuth } from '../context/AuthContext'
 import UserRouter from '../pages/UserRouter'
 import { Spinner } from 'loading-animations-react';
 import  ProductQuickView  from '../components/ProductQuickView'
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer, toast, Zoom } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
@@ -151,14 +151,15 @@ function SalesRecords({ isAuth }) {
 
 
     const voidToast = () => {
-      toast.error(salesRecordCollection[docId].id.substring(0, 7) + ' voided', {
+      toast.error("Voiding " + salesRecordCollection[docId].id.substring(0, 7), {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 1500,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        transition: Zoom
       });
     }
 
@@ -225,19 +226,8 @@ function SalesRecords({ isAuth }) {
           size="md"
           aria-labelledby="contained-modal-title-vcenter"
           centered
-          className="IMS-modal warning"
+          className="IMS-modal danger"
         >
-          <ToastContainer
-            position="top-right"
-            autoClose={3500}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
           <Modal.Body >
             <div className="px-3 py-2">
               <div className="module-header mb-4">
@@ -532,6 +522,18 @@ const toDate = (keyword_in_date) => {
             <div className="divider"></div>
             <div className="data-contents">
               <Tab.Content>
+              <div className="IMS-toast-container">
+                      <div className="IMS-toast">
+                        <div className="w-100 h-100 d-flex align-items-center justify-content-center">
+                        <ToastContainer
+                          className="w-100 h-100 d-flex align-items-center justify-content-center"
+                          newestOnTop={false}
+                          rtl={false}
+                          pauseOnFocusLoss
+                        />
+                        </div>
+                      </div>
+                    </div>
                 <Tab.Pane eventKey="main">
                   <div className="placeholder-content">
                     <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/salesrecord">
@@ -778,7 +780,7 @@ const toDate = (keyword_in_date) => {
                                 onHide={() => setProductQuickViewModalShow(false)}
                                 productid={productToView}
                               />
-                              {list.map((sales, index) => (
+                              {salesRecordCollection[docId].product_list.map((sales, index) => (
                                 <tr 
                                   key={index}
                                   className="clickable"

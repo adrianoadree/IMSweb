@@ -3,7 +3,7 @@ import { Button, Modal } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { collection, updateDoc, onSnapshot, query, doc, setDoc, where } from "firebase/firestore";
 import { db, st } from "../firebase-config";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer, toast, Zoom } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { UserAuth } from '../context/AuthContext'
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
@@ -120,14 +120,15 @@ function NewProductModal(props) {
 
   //Toastify
   const successToast = () => {
-    toast.success(' New Product Successfully Registered to the Database ', {
+    toast.success('Adding ' + newProductName, {
       position: "top-right",
-      autoClose: 3500,
+      autoClose: 1500,
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
       progress: undefined,
+      transition: Zoom
     });
   }
 
@@ -269,17 +270,6 @@ function NewProductModal(props) {
       className="IMS-modal"
       id="add-product-modal"
     >
-      <ToastContainer
-        position="top-right"
-        autoClose={3500}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
       <Modal.Body >
         <div className="px-3 py-2">
           <div className="module-header mb-4">

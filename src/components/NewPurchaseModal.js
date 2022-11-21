@@ -5,7 +5,7 @@ import { Modal, Button, Form, Table } from "react-bootstrap";
 import moment from "moment";
 import { Warning } from 'react-ionicons'
 import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer, toast, Zoom } from "react-toastify";
 import { UserAuth } from '../context/AuthContext'
 
 import { faPlus, faMinus, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
@@ -355,14 +355,15 @@ function NewPurchaseModal(props) {
 
     //success toastify
     const successToast = () => {
-        toast.success('Purchase Transaction Successfully Recorded!', {
+        toast.success("Generating " + createFormat().substring(0, 7), {
             position: "top-right",
-            autoClose: 1000,
+            autoClose: 1500,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
             draggable: true,
             progress: undefined,
+            transition: Zoom
         });
     }
 

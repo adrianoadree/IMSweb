@@ -326,7 +326,9 @@ function GenerateWarehouseCompositionReport() {
       <UserRouter
         route=''
       />
-      <Navigation />
+      <Navigation 
+        route="/reports"
+      />
       <Tab.Container
         activeKey="main"
       >
@@ -348,9 +350,9 @@ function GenerateWarehouseCompositionReport() {
                     <Nav.Item>
                       <Nav.Link as={Link} to="/generatewcr" active>Warehouse Composition Report</Nav.Link>
                     </Nav.Item>
-                    <Nav.Item>
+                    {/*<Nav.Item>
                       <Nav.Link as={Link} to="/generateppr">Product Projections Report</Nav.Link>
-                    </Nav.Item>
+                  </Nav.Item>*/}
                   </Nav>
                 </Card.Body>
               </Card>

@@ -340,7 +340,9 @@ function GenerateItemSummaryReport() {
       <UserRouter
         route=''
       />
-      <Navigation />
+      <Navigation 
+        page="/reports"
+      />
       <Tab.Container
         activeKey="main"
       >
@@ -362,9 +364,9 @@ function GenerateItemSummaryReport() {
                     <Nav.Item>
                       <Nav.Link as={Link} to="/generatewcr">Warehouse Composition Report</Nav.Link>
                     </Nav.Item>
-                    <Nav.Item>
+                    {/*<Nav.Item>
                       <Nav.Link as={Link} to="/generateppr">Product Projections Report</Nav.Link>
-                    </Nav.Item>
+                    </Nav.Item>*/}
                   </Nav>
                 </Card.Body>
               </Card>

@@ -141,12 +141,13 @@ const Navigation = (props) => {
                     <NavDropdown.Item>Adjust Inventory</NavDropdown.Item>
                   </LinkContainer>
                 </NavDropdown>
+                {/*
                 <LinkContainer to="/community">
                   <Nav.Link>Community</Nav.Link>
                 </LinkContainer>
                 <LinkContainer to="/testpage">
                   <Nav.Link>Test</Nav.Link>
-                </LinkContainer>
+  </LinkContainer>*/}
               </Nav>
             }
             <Nav>

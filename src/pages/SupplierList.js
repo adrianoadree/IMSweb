@@ -9,7 +9,7 @@ import { Person, Location, PhonePortrait, Layers, Mail, Call, InformationCircle 
 import NewSupplierModal from '../components/NewSupplierModal';
 import { useNavigate } from 'react-router-dom';
 import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc, where } from 'firebase/firestore';
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer, toast, Zoom } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { faEdit } from '@fortawesome/free-regular-svg-icons';
 import Barcode from 'react-barcode';
@@ -37,10 +37,10 @@ function SupplierList() {
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]); //purchase_record Collection
 
   const [stockcardCollection, setStockcardCollection] = useState([]); // stockcardCollection variable
-  const [editShow, setEditShow] = useState(false); //display/ hide edit modal
-  const [modalShow, setModalShow] = useState(false);//display/hide modal
+  const [showEditModal, setShowEditModal] = useState(false); //display/ hide edit modal
+  const [showAddModal, setShowAddModal] = useState(false);//display/hide modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);//display/hide modal
   const [supplier, setSupplier] = useState(); //supplier Collection
-  const [supplierDoc, setSupplierDoc] = useState([]); //supplier Doc
   const [docId, setDocId] = useState(); //document id variable
   const [catalogue, setCatalogue] = useState([])
   const [transactions, setTransactions] = useState([])
@@ -213,49 +213,36 @@ function SupplierList() {
     }
   }, [transactions])
 
-  //delete Toast
-  const deleteToast = () => {
-    toast.error('Supplier DELETED from the Database', {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
-  }
-  //Delete collection from database
-  const deleteSupplier = async (id) => {
-    const supplierDoc = doc(db, "supplier", id)
-    deleteToast();
-    await deleteDoc(supplierDoc);
-  }
 
-  const handleClose = () => setEditShow(false);
-
+  // edit supplier Modal-----------------------------------------------------------------------------
   function EditSupplierModal(props) {
 
     //-----------------VARIABLES------------------
     const [newSuppName, setNewSuppName] = useState("");
     const [newSuppAddress, setNewSuppAddress] = useState("");
     const [newSuppEmail, setNewSuppEmail] = useState("");
-    const [newSuppMobileNum, setSuppNewMobileNum] = useState(0);
-    const [newSuppTelNum, setNewSuppTelNum] = useState(0);
+    const [newSuppMobileNum, setNewSuppMobileNum] = useState("");
+    const [newSuppTelNum, setNewSuppTelNum] = useState("");
 
     //SetValues
     useEffect(() => {
-      setNewSuppName(supplierDoc.supplier_name)
-      setNewSuppAddress(supplierDoc.supplier_address)
-      setNewSuppEmail(supplierDoc.supplier_emailaddress)
-      setSuppNewMobileNum(supplierDoc.supplier_mobileNum)
-      setNewSuppTelNum(supplierDoc.supplier_telNum)
+      if (supplier === undefined || docId === undefined) {
+
+      }
+      else
+      {
+      setNewSuppName(supplier[docId].supplier_name)
+      setNewSuppAddress(supplier[docId].supplier_address)
+      setNewSuppEmail(supplier[docId].supplier_emailaddress)
+      setNewSuppMobileNum(supplier[docId].supplier_mobileNum)
+      setNewSuppTelNum(supplier[docId].supplier_telNum)
+      }
     }, [docId])
 
 
     //delete Toast
     const updateToast = () => {
-      toast.info(' Supplier Information Successfully Updated', {
+      toast.info("Updating " + supplier[docId].supplier_name, {
         position: "top-right",
         autoClose: 1000,
         hideProgressBar: false,
@@ -263,128 +250,241 @@ function SupplierList() {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        transition: Zoom
       })
     }
 
     //update Supplier Document
     function updateSupplier() {
-      updateDoc(doc(db, "supplier", docId), {
+      updateDoc(doc(db, "supplier", supplier[docId].id), {
         supplier_name: newSuppName
         , supplier_emailaddress: newSuppEmail
         , supplier_address: newSuppAddress
-        , supplier_mobileNum: Number(newSuppMobileNum)
-        , supplier_telNum: Number(newSuppTelNum)
+        , supplier_mobileNum: newSuppMobileNum
+        , supplier_telNum: newSuppTelNum
       });
       updateToast()
-      handleClose();
+      props.onHide()
     }
 
     return (
       <Modal
         {...props}
-        size="lg"
+        size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
+        className="IMS-modal"
       >
-        <ToastContainer
-          position="top-right"
-          autoClose={1000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
 
-        <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-vcenter">
-            Edit <strong>{newSuppName}</strong>
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+        <Modal.Body
+          className="d-flex justify-content-center">
 
-          <div className="p-3">
-            <div className="row my-2">
-              <div className='row'>
-                <div className='col-8'>
-                  <label>Supplier Name</label>
+          {supplier ===  undefined || supplier.length == 0 || docId == undefined?
+          <></>
+          :
+  
+          <div className="px-3 py-2">
+            <div className="module-header mb-4">
+              <h3 className="text-center">Add New Supplier</h3>
+            </div>
+            <div className="row my-2 mb-3">
+              <div className='col-3 ps-4'>
+                <label>Supplier ID</label>
 
-                  <input type="text"
-                    className="form-control"
-                    placeholder="Supplier Name"
-                    value={newSuppName}
-                    onChange={(event) => { setNewSuppName(event.target.value); }}
-                  />
-                </div>
+                <input type="text"
+                  readOnly
+                  className="form-control shadow-none no-click"
+                  placeholder=""
+                  value={supplier[docId].id}
+                />
+              </div>
+              <div className='col-9 ps-4'>
+                <label>
+                  Supplier Name
+                  <span style={{ color: '#b42525' }}> *</span>
+                </label>
+                <input type="text"
+                  className="form-control shadow-none"
+                  value={newSuppName}
+                  autoFocus
+                  onChange={(event) => { setNewSuppName(event.target.value); }}
+                />
               </div>
             </div>
-            <div className="row my-2">
-              <div className="col-12">
+            <div className="row my-2 mb-3">
+              <div className="col-12 ps-4">
                 <label>Address</label>
                 <input type="text"
-                  className="form-control"
-                  placeholder="Address"
-                  rows={3}
+                  className="form-control shadow-none"
                   value={newSuppAddress}
                   onChange={(event) => { setNewSuppAddress(event.target.value); }}
                 />
               </div>
             </div>
-            <h5>Contact Information</h5>
             <hr></hr>
-
-            <div className="row my-2">
-              <div className="col-7">
-                <label>Email Address</label>
-                <input type="email"
-                  className="form-control"
-                  placeholder="*****@email.com"
-                  value={newSuppEmail}
-                  onChange={(event) => { setNewSuppEmail(event.target.value); }}
-                />
-              </div>
-            </div>
-
-            <div className="row my-2">
-              <div className="col-6">
+            <div className="row my-2 mb-3">
+              <div className="col-6 ps-4">
                 <label>Mobile Number</label>
-                <input type="number"
-                  className="form-control"
-                  placeholder="09---------"
+                <input type="text"
+                  className="form-control shadow-none"
                   value={newSuppMobileNum}
-                  onChange={(event) => { setSuppNewMobileNum(event.target.value); }}
+                  onChange={(event) => { setNewSuppMobileNum(event.target.value); }}
                 />
               </div>
-            </div>
-
-            <div className="row my-2">
-              <div className="col-6">
+              <div className="col-6 ps-4">
                 <label>Telephone Number</label>
-                <input type="number"
-                  className="form-control"
-                  placeholder="Contact Number"
+                <input type="text"
+                  className="form-control shadow-none"
                   value={newSuppTelNum}
                   onChange={(event) => { setNewSuppTelNum(event.target.value); }}
                 />
               </div>
             </div>
-
-
+            <div className="row my-2 mb-3">
+              <div className="col-12 ps-4">
+                <label>Email Address</label>
+                <input type="email"
+                  className="form-control shadow-none"
+                  value={newSuppEmail}
+                  onChange={(event) => { setNewSuppEmail(event.target.value); }}
+                />
+              </div>
+            </div>
           </div>
-
+          }
         </Modal.Body>
-        <Modal.Footer>
+        <Modal.Footer
+          className="d-flex justify-content-center"
+        >
           <Button
-            onClick={() => { updateSupplier(docId) }}
+            className="btn btn-danger"
+            style={{ width: "6rem" }}
+            onClick={() => props.onHide()}
           >
-            Save Changes
+            Cancel
+          </Button>
+          <Button
+            className="btn btn-light float-start"
+            disabled={newSuppName === undefined || newSuppName == "" || newSuppName == " "}
+            style={{ width: "10rem" }}
+            onClick={() => { updateSupplier() }}>
+            Update Supplier
           </Button>
         </Modal.Footer>
       </Modal>
     );
+
   }
+
+    //Edit Stockcard Data Modal-----------------------------------------------------------------------------
+    function DeleteSupplierModal(props) {
+
+      
+    //Delete collection from database
+    const deleteSupplier = async () => {
+      setKey("main")
+      setDocId(0)
+      deleteToast();
+      props.onHide()
+      const supplierDoc = doc(db, "supplier", supplier[docId].id)
+      await deleteDoc(supplierDoc);
+    }
+  
+      //delete Toast
+      const deleteToast = () => {
+        toast.error("Deleting " + supplier[docId].id.name + " from the Database", {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          transition: Zoom
+        });
+      }
+  
+  
+      return (
+        <Modal
+          {...props}
+          size="md"
+          aria-labelledby="contained-modal-title-vcenter"
+          centered
+          className="IMS-modal danger"
+        >
+          <Modal.Body >
+          {(supplier === undefined || supplier.length == 0) || docId === undefined ?
+          <></>
+          :
+          <div className="px-3 py-2">
+            <div className="module-header mb-4">
+              <h3 className="text-center">Deleting {supplier[docId].id.substring(0,5)}</h3>
+            </div>
+            <div className="row m-0 p-0 mb-3">
+              <div className="col-12 px-3 text-center">
+                <strong>
+                  Are you sure you want to delete
+                  <br />
+                  <span style={{color: '#b42525'}}>{supplier[docId].supplier_name}?</span>
+                </strong>
+              </div>
+            </div>
+            <div className="row m-0 p-0">
+                  <div className="col-12 px-3 d-flex justify-content-center">
+                    <Table size="sm">
+                      <tbody>
+                        <tr>
+                          <td>Name</td>
+                          <td>{supplier[docId].supplier_name}</td>
+                        </tr>
+                        <tr>
+                          <td>Address</td>
+                          <td>{supplier[docId].supplier_address}</td>
+                        </tr>
+                        <tr>
+                          <td>Telephone Number</td>
+                          <td>{supplier[docId].supplier_telNum}</td>
+                        </tr>
+                        <tr>
+                          <td>Mobile Number</td>
+                          <td>{supplier[docId].supplier_mobileNum}</td>
+                        </tr>
+                        <tr>
+                          <td>Email Address</td>
+                          <td>{supplier[docId].supplier_emailaddress}</td>
+                        </tr>
+                      </tbody>
+                    </Table>
+                  </div>
+                </div>
+          </div>
+          }
+          </Modal.Body>
+          <Modal.Footer
+            className="d-flex justify-content-center"
+          >
+            <Button
+              className="btn btn-light"
+              style={{ width: "6rem" }}
+              onClick={() => props.onHide()}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="btn btn-danger float-start"
+              style={{ width: "9rem" }}
+              onClick={() => { deleteSupplier() }}
+            >
+              Delete Supplier
+            </Button>
+          </Modal.Footer>
+        </Modal>
+  
+  
+      )
+    }
+
 
   function DisplayTransactions(props) {
     return(
@@ -501,18 +601,6 @@ function SupplierList() {
         page="/supplier"
       />
 
-      <ToastContainer
-        position="top-right"
-        autoClose={1500}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-
     <ProductQuickView
                                 show={productQuickViewModalShow}
                                 onHide={() => setProductQuickViewModalShow(false)}
@@ -522,6 +610,18 @@ function SupplierList() {
         show={recordQuickViewModalShow}
         onHide={() => setRecordQuickViewModalShow(false)}
         recordid={recordToView}
+      />
+      <NewSupplierModal
+        show={showAddModal}
+        onHide={() => setShowAddModal(false)}
+      />
+      <EditSupplierModal
+        show={showEditModal}
+        onHide={() => setShowEditModal(false)}
+      />
+      <DeleteSupplierModal
+        show={showDeleteModal}
+        onHide={() => setShowDeleteModal(false)}
       />
       <Tab.Container
         activeKey={key}
@@ -632,6 +732,18 @@ function SupplierList() {
             <div className="divider"></div>
             <div className='data-contents'>
               <Tab.Content>
+                    <div className="IMS-toast-container">
+                      <div className="IMS-toast">
+                        <div className="w-100 h-100 d-flex align-items-center justify-content-center">
+                        <ToastContainer
+                          className="w-100 h-100 d-flex align-items-center justify-content-center"
+                          newestOnTop={false}
+                          rtl={false}
+                          pauseOnFocusLoss
+                        />
+                        </div>
+                      </div>
+                    </div>
                 <Tab.Pane eventKey='main'>
                   <div className="module-contents row py-1 m-0 placeholder-content">
                     <div className='row m-0 p-0'>
@@ -655,14 +767,10 @@ function SupplierList() {
                       </div>
                       <div className="col">
                         <div className="float-end">
-                          <NewSupplierModal
-                            show={modalShow}
-                            onHide={() => setModalShow(false)}
-                          />
                           <Button
                             className="add me-1"
                             data-title="Add New Supplier"
-                            onClick={() => setModalShow(true)}>
+                            onClick={() => setShowAddModal(true)}>
                             <FontAwesomeIcon icon={faPlus} />
                           </Button>
                           <Button
@@ -815,31 +923,23 @@ function SupplierList() {
                       </div>
                       <div className="col">
                         <div className="float-end">
-                          <NewSupplierModal
-                            show={modalShow}
-                            onHide={() => setModalShow(false)}
-                          />
                           <Button
                             className="add me-1"
                             data-title="Add New Supplier"
-                            onClick={() => setModalShow(true)}>
+                            onClick={() => setShowAddModal(true)}>
                             <FontAwesomeIcon icon={faPlus} />
                           </Button>
-                          <EditSupplierModal
-                            show={editShow}
-                            onHide={() => setEditShow(false)}
-                          />
                           <Button
                             className="edit me-1"
                             data-title="Edit Supplier"
-                            onClick={() => setEditShow(true)}>
+                            onClick={() => setShowEditModal(true)}>
                             <FontAwesomeIcon icon={faEdit} />
                           </Button>
                           <Button
                             className="delete me-1 disabled-conditionally"
                             disabled={transactions.length > 0}
                             data-title={transactions.length > 0?"Supplier part of transactions":"Delete Supplier"}
-                            onClick={() => { deleteSupplier(supplier[docId].id) }}>
+                            onClick={() => setShowDeleteModal(true)}>
                             <FontAwesomeIcon icon={faTrashCan} />
                           </Button>
                         </div>

@@ -184,20 +184,6 @@ function LandingPage() {
         }
     }, [userID])
 
-    
-    //Read stock card collection from database
-    useEffect(() => {
-        if (userID !== undefined) {
-            const stockcardCollectionRef = collection(db, "stockcard")
-            const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.daysROP", "<=", 7), orderBy("analytics.daysROP", "asc"));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-    }, [userID])
-
     //query documents from purchase_record that contains docId
     useEffect(() => {
         if (userID !== undefined) {
@@ -1013,6 +999,73 @@ function LandingPage() {
 
         )
     }
+
+    //Read stock card collection from database
+    useEffect(() => {
+        if (userID !== undefined) {
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.analyticsBoolean", "==", true), orderBy("analytics.daysROP", "asc"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
+
+
+    function Notification() {
+        return (
+            <ListGroup className='scrollbar' style={{ height: '200px' }}>
+                {prodNearROP !== undefined ?
+                    prodNearROP.length !== 0 ?
+                        prodNearROP.map((prod) => {
+                            return (
+                                <ListGroup.Item key={prod.id}>
+                                    <div className="row px-2">
+                                        <div className="col">
+                                            <div className="row">
+                                                <span><small>{prod.id.substring(0, 9)}</small> | <span style={{ color: '#4172c1' }}> <strong>{prod.description}</strong></span></span>
+                                            </div>
+                                        </div>
+                                        <div className="col ">
+                                            <div className="float-end">
+
+                                                {prod.analytics.daysROP > 0 ?
+                                                    <small><strong>{prod.analytics.daysROP}</strong> day(s)<br /> before Restocking</small>
+                                                    :
+                                                    prod.analytics.daysROP === 0 ?
+                                                        <small>Restock <strong>Today</strong></small>
+                                                        :
+                                                        <small><strong>{Math.abs(prod.analytics.daysROP)}</strong> day(s)<br /> past Restocking</small>
+                                                }
+
+                                            </div>
+                                        </div>
+                                        <div className="row">
+                                            <small className="text-muted float-end">Date to Restock: {moment(prod.analytics.dateReorderPoint).format('LL')}</small>
+                                        </div>
+                                    </div>
+                                </ListGroup.Item>
+                            )
+                        })
+                        :
+                        <div className="full-column text-center">
+                            No Product near Restocking
+                        </div>                        
+                    :
+                    <Spinner
+                        color1="#b0e4ff"
+                        color2="#fff"
+                        textColor="rgba(0,0,0, 0.5)"
+                        className="w-100 h-100"
+                    />
+                }
+
+            </ListGroup>
+        )
+    }
+
 
     return (
         <div>

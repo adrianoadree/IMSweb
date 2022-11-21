@@ -413,12 +413,6 @@ function StockcardPage({ isAuth }) {
           setDocId(stockcard.length-1)
           setKey(stockcard[stockcard.length-1].id)
         }
-        else if(collectionUpdateMethod == "delete")
-        {
-          setDocId()
-          setKey("main")
-          setCollectionUpdateMethod("add")
-        }
         else
         {
           
@@ -1149,12 +1143,13 @@ function StockcardPage({ isAuth }) {
 
     //delete row 
     const deleteStockcard = async () => {
+      setDocId(0)
+      setKey('main')
+      setCollectionUpdateMethod("delete")
       const stockcardDoc = doc(db, "stockcard", stockcard[docId].id)
       deleteToast();
       await deleteDoc(stockcardDoc);
-      setKey('main')
       props.onHide()
-      setCollectionUpdateMethod("delete")
     }
 
     //delete Toast
@@ -1178,7 +1173,7 @@ function StockcardPage({ isAuth }) {
         size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
-        className="IMS-modal warning"
+        className="IMS-modal danger"
       >
         <Modal.Body >
         {(stockcard.length == 0 || stockcard === undefined) || docId === undefined ?
