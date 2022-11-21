@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tab, Button, ListGroup, Modal, Card, Table,FormControl,InputGroup} from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
-import { useState, useEffect, useRef, Component  } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { collection, doc, deleteDoc, updateDoc, onSnapshot, query, where, getDoc } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -112,17 +112,6 @@ function Warehouse(props) {
     }
     getTemplatesDoc()
   },[])
-  useEffect(()=>{
-    if(warehouse === undefined || whId === undefined)
-    {
-
-    }
-    else
-    {
-
-    }
-
-  }, [whId])
 
   //set user ID
   useEffect(() => {
@@ -215,8 +204,8 @@ function Warehouse(props) {
     }
     else if(warehouseFormerLength < warehouse.length)
     {
-      setWHId(warehouse.length-1)
-      setKey(warehouse[warehouse.length-1].id)
+      setWHId()
+      setKey("main")
     }
   } 
   
@@ -763,10 +752,9 @@ function Warehouse(props) {
     //delete row 
     const deleteWarehouse = async () => {
       const warehouseDoc = doc(db, "warehouse", warehouse[whId].id)
-      deleteToast();
       await deleteDoc(warehouseDoc);
-      setKey('main')
       props.onHide()
+      deleteToast();
       setCollectionUpdateMethod("delete")
     }
 
@@ -1960,7 +1948,7 @@ return (
                           <Button
                             className={warehouse[whId].cells.length > 0 ? "delete disabled-conditionally me-1" : "delete me-1"}
                             data-title={checkIfPooled(warehouse[whId].cells)?"Warehouse already pooled": (editingMap?"Can't delete while editing":"Delete Warehouse")}
-                            disabled={checkIfPooled(warehouse[whId].cells)? false: editingMap}
+                            disabled={checkIfPooled(warehouse[whId].cells)? true: editingMap}
                             onClick={()=>{setDeleteWarehouseModalShow(true)}}
                           >
                             <FontAwesomeIcon icon={faTrashCan} />

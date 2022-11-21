@@ -6,7 +6,7 @@ import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy, 
 import { Modal, Tab, ListGroup, Card, Table, Button, Nav, FormControl, Placeholder, InputGroup } from "react-bootstrap";
 import { faPlus, faNoteSticky, faCalendarDay, faFile, faTrashCan, faPesoSign, faSearch, faBan} from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Create, Calendar, Document, InformationCircle } from 'react-ionicons'
+import { DocumentAttach, Calendar, Document, InformationCircle } from 'react-ionicons'
 import moment from "moment";
 import NewSalesModal from "../components/NewSalesModal";
 import { UserAuth } from '../context/AuthContext'
@@ -318,14 +318,92 @@ function SalesRecords({ isAuth }) {
    setSearchResult(salesRecordCollection)
  }, [salesRecordCollection])
 
+ const toMonth = (worded_month) => {
+  if("January".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "01"
+  }
+  else if("February".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "02"
+  }
+  else if("March".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "03"
+  }
+  else if("April".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "04"
+  }
+  else if("May".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "05"
+  }
+  else if("June".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "06"
+  }
+  else if("July".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "07"
+  }
+  else if("August".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "08"
+  }
+  else if("September".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "09"
+  }
+  else if("October".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "10"
+  }
+  else if("November".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "11"
+  }
+  else if("December".toLowerCase().startsWith(worded_month.toLowerCase()))
+  {
+    return "12"
+  }
+  else
+  {
+    return worded_month
+  }
+}
 
+const toDate = (keyword_in_date) => {
+  var tempDate = keyword_in_date
+  var tempDateAlpha = keyword_in_date.replace(/[^A-Za-z]/g, '')
+  if(tempDate.includes("/"))
+  {
+    tempDate = tempDate.replaceAll("/", "-")
+  }
+  if(tempDate.includes(" "))
+  {
+    tempDate = tempDate.replaceAll(" ", "-")
+  }
+  if(tempDateAlpha.length > 0)
+  {
+    tempDate = tempDate.replace(tempDateAlpha, toMonth(tempDateAlpha))
+    console.log("with alphabet")
+    console.log(tempDateAlpha)
+    console.log(tempDate)
+  }
+  return tempDate
+}
+
+  const changeDateFormatToSearchable = (date) => {
+    return date.substring(5, date.length) + "-" + date.substring(0, 4)
+  }
 
  const filter = (e) => {
    const keyword = e.target.value;
 
    if (keyword !== '') {
      const results = salesRecordCollection.filter((salesRecordCollection) => {
-       return salesRecordCollection.id.toLowerCase().startsWith(keyword.toLowerCase())
+       return salesRecordCollection.id.toLowerCase().startsWith(keyword.toLowerCase()) || changeDateFormatToSearchable(salesRecordCollection.transaction_date).toLowerCase().includes(toDate(keyword))
        // Use the toLowerCase() method to make it case-insensitive
      });
      setSearchResult(results);
@@ -346,6 +424,11 @@ function SalesRecords({ isAuth }) {
       />
       <Navigation
         page='/sales'
+      />
+      <ProductQuickView
+        show={productQuickViewModalShow}
+        onHide={() => setProductQuickViewModalShow(false)}
+        productid={productToView}
       />
       <Tab.Container
         activeKey={key}
@@ -450,7 +533,7 @@ function SalesRecords({ isAuth }) {
             <div className="data-contents">
               <Tab.Content>
                 <Tab.Pane eventKey="main">
-                  <div className="">
+                  <div className="placeholder-content">
                     <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/salesrecord">
                       <Nav.Item>
                         <Nav.Link as={Link} to="/records">Purchase History</Nav.Link>
@@ -533,7 +616,7 @@ function SalesRecords({ isAuth }) {
                                   className="col-1 data-icon d-flex align-items-center justify-content-center"
                                   data-title="Notes"
                                 >
-                                  <Create
+                                  <DocumentAttach
                                     color={'#00000'}
                                     title={'Category'}
                                     height="25px"
@@ -652,7 +735,7 @@ function SalesRecords({ isAuth }) {
                                     className="col-1 data-icon d-flex align-items-center justify-content-center"
                                     data-title="Notes"
                                   >
-                                    <Create
+                                    <DocumentAttach
                                       color={'#00000'}
                                       title={'Category'}
                                       height="25px"
@@ -669,8 +752,16 @@ function SalesRecords({ isAuth }) {
                                 </div>
                               </div>
                             </div>
+                            <div className="row m-0 mt-2">
+                              <div className="col-12">
+                                <div className="row m-0 p-0 ps-2">
+                                  <div className="col-12 text-end p1">
+                                    <strong>Issued by: {salesRecordCollection[docId].issuer}</strong>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          
                           <Table striped bordered hover className="records-table scrollable-table">
                             <thead>
                               <tr>

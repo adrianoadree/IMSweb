@@ -157,7 +157,7 @@ function ProductQuickView(props) {
                           />
                         </a>
                         <div className="col-10 data-label">
-                          {stockcardDoc.s_price}
+                        &#8369; {(Math.round(stockcardDoc.s_price * 100) / 100).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                         </div>
                       </div>
                       <div className="row my-2 px-1">
@@ -170,20 +170,7 @@ function ProductQuickView(props) {
                           />
                         </a>
                         <div className="col-10 data-label">
-                          {stockcardDoc.p_price}
-                        </div>
-                      </div>
-                      <div className="row my-2 px-1">
-                        <a className="col-2 data-icon">
-                          <Layers
-                            color={'#00000'}
-                            data-title={'Purchase Price'}
-                            height="25px"
-                            width="25px"
-                          />
-                        </a>
-                        <div className="col-10 data-label">
-                          {stockcardDoc.p_price}
+                          &#8369; {(Math.round(stockcardDoc.p_price * 100) / 100).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                         </div>
                       </div>
                 </div>

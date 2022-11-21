@@ -154,9 +154,14 @@ function NewProductModal(props) {
 
   const createBarcode = () => {
     var prefix = userProfileID.substring(1,4)
-    var suffix = productCounter +"";
+    prefix = parseInt(prefix)
+    if(prefix < 10)
+    {
+      prefix = prefix * 10
+    }
+    var suffix = productCounter + "";
     while(suffix.length < 11) {suffix = "0" + suffix};
-    var barcode = prefix + suffix;
+    var barcode = prefix.toString() + suffix;
     return parseInt(barcode);
   }
 

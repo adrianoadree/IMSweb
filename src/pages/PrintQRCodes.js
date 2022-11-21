@@ -1,30 +1,24 @@
-import RPersoneact from 'react';
-import { Tab, Button, Card, ListGroup, Modal, Form, Alert, Nav, Table } from 'react-bootstrap';
-import Navigation from '../layout/Navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { db } from '../firebase-config';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faTriangleExclamation, faSearch } from '@fortawesome/free-solid-svg-icons'
-import { Person, Location, PhonePortrait, Layers, Mail, Call, InformationCircle } from 'react-ionicons'
-import NewSupplierModal from '../components/NewSupplierModal';
-import { useNavigate } from 'react-router-dom';
-import { collection, doc, deleteDoc, onSnapshot, query, getDoc, setDoc, updateDoc, where } from 'firebase/firestore';
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import UserRouter from '../pages/UserRouter'
-import { UserAuth } from '../context/AuthContext'
-import { Spinner } from 'loading-animations-react';
-import QRCode from "react-qr-code";
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
-import { faFileDownload } from '@fortawesome/free-solid-svg-icons';
+import { UserAuth } from '../context/AuthContext'
+import UserRouter from '../pages/UserRouter'
+import Navigation from '../layout/Navigation';
+
+
 import moment from "moment";
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'
 import html2canvas from 'html2canvas';
 import bwipjs from 'bwip-js';
+import QRCode from "react-qr-code";
 
-
+import { Tab, Button, Card, Nav, Table } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faFileDownload } from '@fortawesome/free-solid-svg-icons';
+import { Spinner } from 'loading-animations-react';
 
 
 
@@ -33,43 +27,29 @@ function PrintQRCodes() {
   //---------------------VARIABLES---------------------
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
-  const [userCollection, setUserCollection] = useState([]);// user collection variable
   const userCollectionRef = collection(db, "user")// user collection reference
+  const [userCollection, setUserCollection] = useState([]);// user collection variable
   const [userProfile, setUserProfile] = useState({categories: []})// categories made by user
-  const [warehouseCollection, setWarehouseCollection] = useState([]); //supplier Collection
+
+  const [warehouseCollection, setWarehouseCollection] = useState([]); //warehouse Collection
+  const [stockcardCollection, setStockcardCollection] = useState(); //stockcard Collection
+
   const [warehouseChosenId, setWarehouseChosenId] = useState()
   const [warehouseChosen, setWarehouseChosen] = useState({})
   const [warehouseStorages, setWarehouseStorages] = useState()
-  const [stockcardCollection, setStockcardCollection] = useState(); //supplier Collection
+
   var curr_date = new Date(); // get current date
   curr_date.setDate(curr_date.getDate());
   var today = curr_date
 
-
   //---------------------FUNCTIONS---------------------
-
-  useEffect(() => {
-    if (userID !== undefined) {
-      const stockcardCollectionRef = collection(db, "stockcard")
-      const q = query(stockcardCollectionRef, where("user", "==", userID));
-
-      const unsub = onSnapshot(q, (snapshot) =>
-      setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-      );
-      return unsub;
-    }
-  }, [userID])
-
-  useEffect(()=>{
-    console.log(warehouseChosenId)
-    console.log(warehouseChosen)
-})
 
   useEffect(() => {
     if (user) {
       setUserID(user.uid)
     }
   }, [{ user }])
+
   // fetch user collection
   useEffect(() => {
     if (userID === undefined) {
@@ -98,18 +78,8 @@ function PrintQRCodes() {
     });
   }, [userCollection])
 
-  const getProductInfo = (product_id) => {
-    var tempProd = {}
-    stockcardCollection.map((prod)=>{
-      if(prod.id == product_id){
-        tempProd = prod
-      }
-    })
-    return tempProd
-  }
-
+  // read warehouse collection
   useEffect(() => {
-    //read purchase_record collection
     if (userID === undefined) {
       const collectionRef = collection(db, "warehouse")
       const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
@@ -130,7 +100,21 @@ function PrintQRCodes() {
       return unsub;
     }
   }, [userID])
-  
+
+  // read stockcard collection
+  useEffect(() => {
+    if (userID !== undefined) {
+      const stockcardCollectionRef = collection(db, "stockcard")
+      const q = query(stockcardCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+      setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
+
+  // set defaults
   useEffect(() => {
     if(warehouseCollection ===  undefined || warehouseCollection.length == 0)
     {
@@ -143,10 +127,21 @@ function PrintQRCodes() {
     }
   }, [warehouseCollection])
 
+  // listen to change in warehouse chosen 
+  useEffect(() => {
+    if(warehouseChosenId === undefined)
+    {
+
+    }
+    else
+    {
+      handleWarehouseChosenChange()
+    }
+  },[warehouseChosenId])
+
+  // get id of chosen warehouse
   const handleWarehouseChoiceChange = (value) => {
     setWarehouseChosenId(value)
-    console.log(value)
-    console.log(warehouseCollection.indexOf(value))
     warehouseCollection.map((warehouse, index) => {
       if (warehouse.id == value) {
         setWarehouseChosen(warehouseCollection[index])
@@ -154,6 +149,7 @@ function PrintQRCodes() {
     })
   }
 
+  // get list of storages from chosen warehouse
   const handleWarehouseChosenChange = () => {
     var temp_warehouse_cells = []
     warehouseChosen.cells.map((row) => {
@@ -166,16 +162,17 @@ function PrintQRCodes() {
     })
     setWarehouseStorages(temp_warehouse_cells)
   }
-  useEffect(() => {
-    if(warehouseChosenId === undefined)
-    {
 
-    }
-    else
-    {
-      handleWarehouseChosenChange()
-    }
-  },[warehouseChosenId])
+  // get product information of products inside the storage
+  const getProductInfo = (product_id) => {
+    var tempProd = {}
+    stockcardCollection.map((prod)=>{
+      if(prod.id == product_id){
+        tempProd = prod
+      }
+    })
+    return tempProd
+  }
 
   const generatePDF = () => {
     // create barcodes in DOM (as containers so it can be rendered)
@@ -187,7 +184,7 @@ function PrintQRCodes() {
         text: warehouseStorages[i].id,
         includetext: true,
         
-    });
+      });
     }
 
     // create document
@@ -234,27 +231,29 @@ function PrintQRCodes() {
         doc.text("" + doc.internal.getNumberOfPages(), pageWidth/2, pageHeight - 10, {align: 'center'});
       },
       didDrawCell: function(data) {
-      if (data.column.index === 4 && data.cell.section === 'body') {
-        var td = data.cell.raw;
-        var canvas = td.getElementsByClassName('qrcode')[0]
-        var img = canvas.toDataURL("image/png");
-        var dim = data.cell.height - data.cell.padding('vertical');
-        var textPos = data.cell;
-        doc.addImage(img, textPos.x + 3, textPos.y + 3, 35, 35);
+        if (data.column.index === 4 && data.cell.section === 'body') {
+          var td = data.cell.raw;
+          var canvas = td.getElementsByClassName('qrcode')[0]
+          var img = canvas.toDataURL("image/png");
+          var dim = data.cell.height - data.cell.padding('vertical');
+          var textPos = data.cell;
+          doc.addImage(img, textPos.x + 3, textPos.y + 3, 35, 35);
+        }
       }
-    }
-  });
-      // specify file name
-      var filename = "qrcodes_" + moment(today).format('MMDDYY') + "_" + warehouseChosen.wh_name + ".pdf"
-      // make doc downloadable
-      doc.save(filename)
+    });
+    // specify file name
+    var filename = "qrcodes_" + moment(today).format('MMDDYY') + "_" + warehouseChosen.wh_name + ".pdf"
+    // make doc downloadable
+    doc.save(filename)
   }
   return (
     <div>
       <UserRouter
         route=''
       />
-      <Navigation />
+      <Navigation 
+        page="/printqr"
+      />
       <Tab.Container
         activeKey="main"
       >
@@ -288,8 +287,8 @@ function PrintQRCodes() {
                     </div>
                     <div className="row py-1 m-0">
                     <div className="row px-0 py-2 m-0">
-                        <div className="col-2 d-flex align-items-center justify-content-center">
-                          Choose Warehouse
+                        <div className="col-2 d-flex align-items-center justify-content-start">
+                          Warehouse
                         </div>
                         <div className="col-10">
                           <select
@@ -314,7 +313,10 @@ function PrintQRCodes() {
                         </div>
                         <div className="col-1">
                           <Button
+                            className="edit"
                             onClick={()=>{generatePDF()}}
+                            data-title="Download PDF version"
+                            disabled={warehouseStorages === undefined || warehouseStorages.length == 0}
                           >
                             <FontAwesomeIcon icon={faFileDownload}/>
                           </Button>

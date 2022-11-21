@@ -10,16 +10,16 @@ import Navigation from '../layout/Navigation';
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'
 import html2canvas from 'html2canvas';
-import Barcode from 'react-jsbarcode'
 import moment from "moment";
+import '../assets/fonts/Helvetica-UTF-normal.js';
 
-
-import { Tab, Table, Card, Button, Nav } from 'react-bootstrap';
+import { Tab, Table, Card, Button, Nav} from 'react-bootstrap';
+import FormControl from "react-bootstrap/FormControl";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons';
 import { Spinner } from 'loading-animations-react';
 
-function PrintBarcodes() {
+function GenerateInventoryBalanceReport() {
 
   //---------------------VARIABLES---------------------
   const { user } = UserAuth();//user credentials
@@ -27,14 +27,19 @@ function PrintBarcodes() {
   const [userCollection, setUserCollection] = useState([]);// user collection variable
   const userCollectionRef = collection(db, "user")// user collection reference
   const [userProfile, setUserProfile] = useState({categories: []})// categories made by user
+
   const [stockcardCollection, setStockcardCollection] = useState(); // stockcard Collection
+  const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([]) // purchase record Collection
+  const [salesRecordCollection, setSalesRecordCollection] = useState([]) // sales record Collection
+
   const [classification, setClassification] = useState("All")//classification filter
   const [category, setCategory] = useState("All")// category filter
-  const [itemList, setItemList] = useState()// product list that satisfied filters
-  const JsBarcode = require('jsbarcode');
   var curr_date = new Date(); // get current date
   curr_date.setDate(curr_date.getDate());
   var today = curr_date
+  var today_filter = moment(curr_date).format('YYYY-MM-DD')
+  const [filterDateEnd, setFilterDateEnd] = useState(today_filter);
+  const [itemList, setItemList] = useState()// product list that satisfied filters
 
   // get user id
   useEffect(() => {
@@ -63,7 +68,7 @@ function PrintBarcodes() {
 
     }
   }, [userID])
-
+  
   // fetch user-made categories
   useEffect(() => {
     userCollection.map((metadata) => {
@@ -84,7 +89,33 @@ function PrintBarcodes() {
     }
   }, [userID])
 
-  // initializr product list
+  // fetch purchase records collection
+  useEffect(() => {
+    if (userID !== undefined) {
+      const collectionRef = collection(db, "purchase_record")
+      const q = query(collectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+          setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
+
+  // fetch sales records collection
+  useEffect(() => {
+    if (userID !== undefined) {
+      const collectionRef = collection(db, "sales_record")
+      const q = query(collectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+          setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
+
+  // initialize product list
   useEffect(() => {
     if(stockcardCollection === undefined)
     {
@@ -92,11 +123,13 @@ function PrintBarcodes() {
     }
     else
     {
-      setItemList(stockcardCollection)
+      setItemList(stockcardCollection.sort((item_1, item_2)=>{
+        return item_1.description > item_2.description;
+      }))
     }
   }, [stockcardCollection])
 
-  // filter change listeners
+  // listen to filter changes
   useEffect(() => {
     if(stockcardCollection === undefined)
     {
@@ -106,19 +139,7 @@ function PrintBarcodes() {
     {
       handleFilterChange()
     }
-  }, [category])
-
-  useEffect(() => {
-    if(stockcardCollection === undefined)
-    {
-
-    }
-    else
-    {
-      handleFilterChange()
-    }
-  }, [classification])
-
+  }, [classification, filterDateEnd, category])
   
   // update item list according to filter
   const handleFilterChange = () => {
@@ -155,19 +176,63 @@ function PrintBarcodes() {
       temp_item_list = stockcardCollection
     }
 
-    setItemList(temp_item_list)
+    setItemList(temp_item_list.sort((item_1, item_2)=>{
+      return item_1.description > item_2.description;
+    }))
   }
 
-  // generate pdf of barcodes
-  const generatePDF = () => {
-    // create barcodes in DOM (as containers so it can be rendered)
-    for(var i = 0; i < itemList.length; i++)
+  // compute stock level according to date
+  const computeStockLevel = (product_id, quantity) => {
+    var to_subtract = 0
+    var date_end = new Date(filterDateEnd)
+    var record_date
+    if(purchaseRecordCollection === undefined || purchaseRecordCollection.length == 0)
     {
-      var element = "#" + itemList[i].id.substring(0,9)
-      JsBarcode(element, itemList[i].barcode)
+      return 0
     }
+    else
+    {
+      purchaseRecordCollection.map((purchase_record)=>{
+        if(!purchase_record.isVoided)
+        {
+          record_date = new Date(purchase_record.transaction_date)
+          if(record_date.getTime() > date_end.getTime())
+          {
+            purchase_record.product_list.map((product) => {
+              if(product.itemId == product_id)
+              {
+                to_subtract = to_subtract + Number(product.itemQuantity)
+              }
+            })
+          }
+        }
+      })
+      if(quantity - to_subtract < 0)
+      {
+        return  0
+      }
+      else
+      {
+        return quantity - to_subtract
+      }
+    }
+  }
+
+  // compute total quantity and total cost
+  const computeTotals = () => {
+    var total_quantity = 0
+    var total_cost = 0
+    itemList.map((item) => {
+      total_quantity = total_quantity + computeStockLevel(item.id, item.qty)
+      total_cost = total_cost + (computeStockLevel(item.id, item.qty) * item.p_price)
+    })
+
+    return {totalQuantity: total_quantity, totalCost: total_cost}
+  }
+
+  // generate pdf of report
+  const generatePDF = () => {
     // form table title
-    var element = document.getElementById('generated-result');
     var clsn = classification.toUpperCase()
     var cgry= category.toUpperCase()
     var cgry_preword = ""
@@ -196,47 +261,54 @@ function PrintBarcodes() {
     doc.setFont('Helvetica', 'normal')
     doc.setFontSize(8);
     var printDateString = "Generated: " + moment(today).format("MM-DD-YYYY @ hh:mm:ss A")
-    doc.text(printDateString, pageWidth - 15, 30, {align: 'right'})
+    doc.text(printDateString, pageWidth - 15, 40, {align: 'right'})
     doc.setFontSize(10);
-    doc.text("Listing " + clsn + " products " + cgry_preword + cgry + cgry_postword, 15, 30, {align: 'left'});
+    doc.text("Listing " + clsn + " products' stock level " + cgry_preword + cgry + cgry_postword + " as of " + moment(filterDateEnd).format("MMMM DD, YYYY"), 15, 30, {align: 'left'});
     doc.autoTable({
-      html: "#product-table",
+      html: "#isr-table",
       theme: "grid",
-      startY: 35,
+      startY: 45,
       margin: {left: 15},
+      styles: {
+        font: 'Helvetica-UTF'
+      },
       headStyles: {
-        fillColor: "#fff",
+        fillColor: "#b8dcff",
         textColor: "#000",
-        lineColor: "#000",
-        lineWidth: 0.1
+        lineColor: "#e0e0e0",
+        lineWidth: 0.1,
+        halign: "center"
       },
       bodyStyles: {
-        minCellHeight: 30,
-        lineColor: "#000"
+        minCellHeight: 10,
+        lineColor: "#e0e0e0"
+      },
+      footStyles: {
+        fillColor: "#b8dcff",
+        textColor: "#000",
+        lineColor: "#e0e0e0",
+        lineWidth: 0.1
       },
       columnStyles: {
         0: {cellWidth: 25},
-        1: {cellWidth: 105},
-        2: {cellWidth: 10},
-        3: {cellWidth: 40},
+        1: {cellWidth: 100},
+        2: {cellWidth: 15},
+        3: {
+          cellWidth: 20,
+          halign: "right"
+        },
+        4: {
+          cellWidth: 20,
+          halign: "right"
+        },
       },
       didDrawPage: function (data) {
         doc.setFontSize(8);
         doc.text("" + doc.internal.getNumberOfPages(), pageWidth/2, pageHeight - 10, {align: 'center'});
-        
-      },
-      didDrawCell: function(data) {
-        if (data.column.index === 3 && data.cell.section === 'body') {
-          var td = data.cell.raw;
-          var img = td.getElementsByClassName('barcode')[0]
-          var dim = data.cell.height - data.cell.padding('vertical');
-          var textPos = data.cell;
-          doc.addImage(img.src, textPos.x + 2, textPos.y + 1, 35, 20);
-      }
-      }
+        }
     });
     // specify file name
-    var filename = "barcodes_" + moment(today).format('MMDDYY') + "_" + classification.toLowerCase() + "-" + category.toLocaleLowerCase() + ".pdf"
+    var filename = "item-summary-report_" + moment(today).format('MMDDYY') + "_" + classification.toLowerCase() + "-" + category.toLocaleLowerCase() + ".pdf"
     // make doc downloadable
     doc.save(filename)
   }
@@ -246,25 +318,31 @@ function PrintBarcodes() {
         route=''
       />
       <Navigation 
-        page="/printbar"
+        page="/reports"
       />
       <Tab.Container
         activeKey="main"
       >
-        <div id="contents" className="row print-codes">
+        <div id="contents" className="row generate-reports">
           <div className="row  py-4 px-5">
             <div className='sidebar'>
               <Card className='sidebar-card'>
                 <Card.Header className="bg-primary text-white py-3 text-center left-curve right-curve">
-                  <h5><strong>Print</strong></h5>
+                  <h5><strong>Generate</strong></h5>
                 </Card.Header>
                 <Card.Body>
                   <Nav className="user-management-tab mb-3 flex-column" defaultActiveKey="/profilemanagement">
                     <Nav.Item>
-                      <Nav.Link as={Link} to="/printbarcodes" active>Barcodes</Nav.Link>
+                      <Nav.Link as={Link} to="/generateisr">Item Summary Report</Nav.Link>
                     </Nav.Item>
                     <Nav.Item>
-                      <Nav.Link as={Link} to="/printqrcodes">QR Codes</Nav.Link>
+                      <Nav.Link as={Link} to="/generateibr" active>Inventory Balance Report</Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                      <Nav.Link as={Link} to="/generatewcr">Warehouse Composition Report</Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                      <Nav.Link as={Link} to="/generateppr">Product Projections Report</Nav.Link>
                     </Nav.Item>
                   </Nav>
                 </Card.Body>
@@ -276,7 +354,7 @@ function PrintBarcodes() {
                 <Tab.Pane eventKey='main'>
                   <div className='row py-1 m-0' id="supplier-contents">
                     <div className='row m-0 p-0'>
-                      <h1 className='text-center pb-2 module-title'>Print Barcodes</h1>
+                      <h1 className='text-center pb-2 module-title'>Generate Inventory Balance Report</h1>
                       <hr></hr>
                     </div>
                     <div className="row py-1 m-0">
@@ -321,14 +399,43 @@ function PrintBarcodes() {
                           </select>
                         </div>
                       </div>
+                      <div className="row px-0 py-2 m-0">
+                        <div className="col-2 d-flex align-items-center">
+                          Date End
+                        </div>
+                        <div className="col-10 p-0 d-flex flex-row">
+                          <div className="row w-100 m-0 p-0 d-flex align-items-center justify-content-start">
+                            <div className="col-5 d-flex align-items-center justify-content-center">
+                                <input
+                                  className="form-control shadow-none"
+                                  type="date"
+                                  max={moment(today).format("YYYY-MM-DD")}
+                                  required
+                                  value={filterDateEnd}
+                                  onChange={(e) => { setFilterDateEnd(e.target.value) }}
+                                />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div id="generated-result" className="row py-1 m-0">
                       <div className="row px-0 py-2 m-0 justify-content-center align-items-center">
                         <div className="col-11">
-                          <h5 className="text-center">Listing <strong>{classification.toUpperCase()}</strong> products {category == "All"?<>in <strong>ALL</strong> categories</>:<>in the <strong>{category.toUpperCase()}</strong> category.</>}</h5>
+                          <h5 className="text-center">
+                            <div className="mb-2">
+                              Listing 
+                              <strong> {classification.toUpperCase()} </strong>
+                              products' stock level
+                              {category == "All"?<> in <strong>ALL</strong> categories</>:<> in the <strong>{category.toUpperCase()}</strong> category </>} 
+                            </div>
+                            <div>
+                              as of
+                              <strong> {moment(filterDateEnd).format("MMMM DD, YYYY")}</strong>.
+                            </div>
+                          </h5>
                         </div>
                         <div className="col-1">
-                        
                           <Button
                             className="edit"
                             onClick={()=>{generatePDF()}}
@@ -349,19 +456,20 @@ function PrintBarcodes() {
                           />
                         </div>
                       :
-                        <Table id="product-table">
+                        <Table id="isr-table" className="records-table light">
                           <thead>
                             <tr>
-                              <td>Item Code</td>
-                              <td>Description</td>
-                              <td>Qty</td>
-                              <td>Barcode</td>
+                              <th>Item Code</th>
+                              <th>Description</th>
+                              <th>Qty</th>
+                              <th>Purchase Price</th>
+                              <th>Cost</th>
                             </tr>
                           </thead>
                           <tbody>
                             {itemList.length == 0?
                               <tr>
-                                <td colSpan={4}>
+                                <td colSpan={5}>
                                   <div className="row px-0 py-2 m-0 justify-content-center" style={{minHeight: "300px"}}>
                                     <div className="text-center">0 products</div>
                                   </div>
@@ -374,21 +482,44 @@ function PrintBarcodes() {
                                     <tr>
                                       <td>{item.id.substring(0,9)}</td>
                                       <td>{item.description}</td>
-                                      <td>{item.qty}</td>
-                                      <td>
-                                        <img className="barcode" id={item.id.substring(0,9)} value={item.barcode} style={{display: 'none'}}/>
-                                        <Barcode
-                                          format="EAN13"
-                                          value={item.barcode}
-                                          color="#000"
-                                        />
+                                      <td className="text-center">{computeStockLevel(item.id, item.qty)}</td>
+                                      <td className="text-end">
+                                        <div className="d-flex justify-content-between align-items-center">
+                                          <div>&#8369;</div>
+                                          <div>
+                                            {(Math.round(item.p_price * 100) / 100).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                          </div>
+                                        </div>
                                       </td>
-                                      </tr>
+                                      <td className="text-end">
+                                        <div className="d-flex justify-content-between align-items-center">
+                                          <div>&#8369;</div>
+                                          <div>
+                                            {(Math.round((computeStockLevel(item.id, item.qty) * item.p_price) * 100) / 100).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                          </div>
+                                        </div>
+                                      </td>
+                                    </tr>
                                   )
                                 })}
                               </>
                               }
                           </tbody>
+                          <tfoot>
+                            <tr>
+                              <td colSpan={2}></td>
+                              <td className="text-center">{computeTotals().totalQuantity}</td>
+                              <td className="text-end"></td>
+                              <td className="text-end">
+                                <div className="d-flex justify-content-between align-items-center">
+                                  <div>&#8369;</div>
+                                  <div>
+                                    {(Math.round((computeTotals().totalCost * 100)) / 100).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          </tfoot>
                         </Table>
                       }
                     </div>
@@ -403,4 +534,4 @@ function PrintBarcodes() {
   );
 }
 
-export default PrintBarcodes;
+export default GenerateInventoryBalanceReport;

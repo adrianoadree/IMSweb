@@ -99,6 +99,22 @@ function Tips(props) {
             props.isNew? setTipsToDisplay(tipsIfNew.home):expandTipsToDisplay(tips.home)
             setTipId(0)
             break;
+          case '/supplier':
+            props.isNew? setTipsToDisplay(tipsIfNew.supplier):expandTipsToDisplay(tips.supplier)
+            setTipId(0)
+            break;
+          case '/printbar':
+            props.isNew? setTipsToDisplay(tipsIfNew.printbar):expandTipsToDisplay(tips.printbar)
+            setTipId(0)
+            break;
+          case '/printqr':
+            props.isNew? setTipsToDisplay(tipsIfNew.printqr):expandTipsToDisplay(tips.printqr)
+            setTipId(0)
+            break;
+          case '/reports':
+            props.isNew? setTipsToDisplay(tipsIfNew.reports):expandTipsToDisplay(tips.reports)
+            setTipId(0)
+            break;
           default: setTipsToDisplay(["hello"])
         }
       }

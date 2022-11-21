@@ -393,7 +393,7 @@ function NewPurchaseModal(props) {
 
         <Modal
             {...props}
-            size="lg"
+            size="xl"
             aria-labelledby="contained-modal-title-vcenter"
             centered
             className="IMS-modal"
@@ -414,181 +414,196 @@ function NewPurchaseModal(props) {
                     <div className="module-header mb-4">
                         <h3 className="text-center">Generate a Purchase Record</h3>
                     </div>
-                    <div className="row my-2 mb-3">
-                        <div className='col-2 ps-4'>
-                            <label>Transaction #</label>
-                            <input type="text"
-                                readOnly
-                                className="form-control shadow-none no-click"
-                                placeholder=""
-                                defaultValue={createFormat().substring(0,7)}
-                            />
-                        </div>
-                        <div className='col-3 ps-4'>
-                            <label>Transaction Date</label>
-                            <input
-                                type='date'
-                                required
-                                className="form-control shadow-none"
-                                value={newTransactionDate}
-                                onChange={e => setNewTransactionDate(e.target.value)}
-                            />
-                        </div>
-                        <div className="col-3 ps-4">
-                            <label>
-                                Date Ordered
-                                <a
-                                    className="ms-2"
-                                    data-title="The date when the purchase order was placed"
-                                >
-                                <FontAwesomeIcon icon={faCircleInfo
-                                }/>
-                                </a>
-                            </label>
-                            <input
-                                    type='date'
-                                    className="form-control shadow-none"
-                                    value={newOrderDate}
-                                    onChange={e => setNewOrderDate(e.target.value)}
-                                />
-                            <div 
-                                className={"field-warning-message red-strip my-1 m-0 " + (handleDateChange())}
-                            >
-                                {handleDateChange()}
-                            </div>    
-                        </div>
-                        <div className='col-4 ps-4'>
-                            <NewSupplierModal
-                                show={supplierModalShow}
-                                onHide={() => setSupplierModalShow(false)}
-                            />
-                            <label>
-                                Supplier Name
-                                <span style={{color: '#b42525'}}> *</span>
-                            </label>
-                            <div className="d-flex justify-content-center">
-                                <select 
-                                    required
-                                    className="form-select shadow-none"
-                                    value={itemSupplier}
-                                    onChange={e => handleSupplierSelect(e.target.value)}
-                                    >
-                                        {supplierCol.map((supplier) => {
-                                            return (
-                                                <option
-                                                    key={supplier.id}
-                                                    value={supplier.id}
-                                                >
-                                                    {supplier.supplier_name}
-                                                </option>
-                                            )
-                                        })}
-                                        
-                                    <option
-                                        value="add-supplier"
-                                        className style={{fontStyle: 'italic'}}
-                                    >
-                                        Not on the list? Add a supplier
-                                    </option>
-                                </select>
+                    <div className="row">
+                        <div className="col-4 px-3">
+                            <div className="row my-2 mb-3">
+                                <div className='col-12 ps-4'>
+                                    <label>Transaction Number</label>
+                                    <input type="text"
+                                        readOnly
+                                        className="form-control shadow-none no-click"
+                                        placeholder=""
+                                        defaultValue={createFormat().substring(0,7)}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div className="row my-2 mb-3">
-                        <div className='col-12 ps-4'>
-                            <label>Notes: (Optional)</label>
-                            <textarea
-                                className="form-control shadow-none"
-                                as="textarea"
-                                rows={1}
-                                onChange={(event) => { setNewNote(event.target.value); }}
-                            />
-                        </div>
-                    </div>
-                    <div className="row my-2 mb-3 p-3 item-adding-container">
-                        <div className="row m-0 p-0">
-                            <div className='col-12 text-center mb-2'>
-                                <h5><strong>Purchase List</strong></h5>
-                                    <div className="row p-0 m-0 py-1">
-                                        <div className='col-6 p-1'>
-                                            <select
-                                                className="form-select shadow-none"
-                                                value={itemId}
-                                                onChange={e => setItemId(e.target.value)}
+                            <div className="row my-2 mb-3">
+                                <div className='col-6 ps-4'>
+                                    <label>
+                                        Transaction Date
+                                        <span style={{color: '#b42525'}}> *</span>
+                                    </label>
+                                    <input
+                                        type='date'
+                                        required
+                                        className="form-control shadow-none"
+                                        value={newTransactionDate}
+                                        onChange={e => setNewTransactionDate(e.target.value)}
+                                    />
+                                </div>
+                                <div className="col-6 ps-4">
+                                    <label>
+                                        Date Ordered
+                                        <a
+                                            className="ms-2"
+                                            data-title="The date when the purchase order was placed"
+                                        >
+                                        <FontAwesomeIcon icon={faCircleInfo
+                                        }/>
+                                        </a>
+                                    </label>
+                                    <input
+                                            type='date'
+                                            className="form-control shadow-none"
+                                            value={newOrderDate}
+                                            onChange={e => setNewOrderDate(e.target.value)}
+                                        />  
+                                </div>
+                                <div className="col-12 ps-4">
+                                    <div 
+                                        className={"field-warning-message red-strip my-1 m-0 " + (handleDateChange())}
+                                    >
+                                        {handleDateChange()}
+                                    </div>  
+                                </div>
+                            </div>
+                            <div className="row my-2 mb-3">
+                                <div className='col-12 ps-4'>
+                                    <NewSupplierModal
+                                        show={supplierModalShow}
+                                        onHide={() => setSupplierModalShow(false)}
+                                    />
+                                    <label>
+                                        Supplier Name
+                                        <span style={{color: '#b42525'}}> *</span>
+                                    </label>
+                                    <div className="d-flex justify-content-center">
+                                        <select 
+                                            required
+                                            className="form-select shadow-none"
+                                            value={itemSupplier}
+                                            onChange={e => handleSupplierSelect(e.target.value)}
                                             >
-                                                <option
-                                                    value="IT999999">
-                                                    Select Item
-                                                </option>
-                                                {stockcard.map((stockcard) => {
+                                                {supplierCol.map((supplier) => {
                                                     return (
                                                         <option
-                                                            key={stockcard.id}
-                                                            value={stockcard.id}
-                                                        >{stockcard.description}</option>
+                                                            key={supplier.id}
+                                                            value={supplier.id}
+                                                        >
+                                                            {supplier.supplier_name}
+                                                        </option>
                                                     )
                                                 })}
-                                            </select>
-                                        </div>
-                                        <div className='col-4 p-1'>
-                                            <input
-                                                className="form-control shadow-none"
-                                                placeholder='Quantity'
-                                                type='number'
-                                                min={1}
-                                                value={itemQuantity}
-                                                onChange={e => setItemQuantity(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className='col-2 p-1'>
-                                            <Button
-                                                onClick={addItem}
-                                                disabled={itemId === "IT999999" ? true : false}
+                                                
+                                            <option
+                                                value="add-supplier"
+                                                className style={{fontStyle: 'italic'}}
                                             >
-                                                <FontAwesomeIcon icon={faPlus} />
-                                            </Button>
-                                        </div>
+                                                Not on the list? Add a supplier
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="row my-2 mb-3">
+                                    <div className='col-12 ps-4'>
+                                        <label>Notes: (Optional)</label>
+                                        <textarea
+                                            className="form-control shadow-none"
+                                            as="textarea"
+                                            rows={4}
+                                            onChange={(event) => { setNewNote(event.target.value); }}
+                                        />
                                     </div>
                             </div>
-                            <div className="row p-0 m-0 py-1">
-                                <div className="col-12">
-                                    <Table striped bordered hover size="sm">
-                                        <thead>
-                                            <tr className='text-center bg-white'>
-                                                <th>Item ID</th>
-                                                <th>Item Description</th>
-                                                <th>Quantity</th>
-                                                <th>Remove</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {items.map((item, index) => (
-                                                <tr
-                                                    className='text-center'
-                                                    key={index}>
-                                                    <td>
-                                                        {item.itemId === undefined?
-                                                        <></>
-                                                        :
-                                                        <>
-                                                        {item.itemId.substring(0,9)}
-                                                        </>
-                                                        }
-                                                    </td>
-                                                    <td>{item.itemName}</td>
-                                                    <td>{item.itemQuantity}</td>
-                                                    <td>
-                                                        <Button
-                                                            size='sm'
-                                                            variant="outline-danger"
-                                                            onClick={() => handleItemRemove(index)}>
-                                                            <FontAwesomeIcon icon={faMinus} />
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </Table>
+                        </div>
+                        <div className="col-8">
+                            <div className="row mx-0 h-100 my-2 mb-3 p-3 item-adding-container align-items-start">
+                                <div className="row m-0 p-0">
+                                    <div className='col-12 text-center mb-2'>
+                                        <h5><strong>Purchase List</strong></h5>
+                                            <div className="row p-0 m-0 py-1">
+                                                <div className='col-9 p-1'>
+                                                    <select
+                                                        className="form-select shadow-none"
+                                                        value={itemId}
+                                                        onChange={e => setItemId(e.target.value)}
+                                                    >
+                                                        <option
+                                                            value="IT999999">
+                                                            Select Item
+                                                        </option>
+                                                        {stockcard.map((stockcard) => {
+                                                            return (
+                                                                <option
+                                                                    key={stockcard.id}
+                                                                    value={stockcard.id}
+                                                                >{stockcard.description}</option>
+                                                            )
+                                                        })}
+                                                    </select>
+                                                </div>
+                                                <div className='col-2 p-1'>
+                                                    <input
+                                                        className="form-control shadow-none"
+                                                        placeholder='Quantity'
+                                                        type='number'
+                                                        min={1}
+                                                        value={itemQuantity}
+                                                        onChange={e => setItemQuantity(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className='col-1 p-1'>
+                                                    <Button
+                                                        onClick={addItem}
+                                                        disabled={itemId === "IT999999" ? true : false}
+                                                    >
+                                                        <FontAwesomeIcon icon={faPlus} />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                    </div>
+                                    <div className="row p-0 m-0 py-1">
+                                        <div className="col-12">
+                                            <Table striped bordered hover size="sm">
+                                                <thead>
+                                                    <tr className='text-center bg-white'>
+                                                        <th>Item ID</th>
+                                                        <th>Item Description</th>
+                                                        <th>Quantity</th>
+                                                        <th>Remove</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {items.map((item, index) => (
+                                                        <tr
+                                                            className='text-center'
+                                                            key={index}>
+                                                            <td>
+                                                                {item.itemId === undefined?
+                                                                <></>
+                                                                :
+                                                                <>
+                                                                {item.itemId.substring(0,9)}
+                                                                </>
+                                                                }
+                                                            </td>
+                                                            <td>{item.itemName}</td>
+                                                            <td>{item.itemQuantity}</td>
+                                                            <td>
+                                                                <Button
+                                                                    size='sm'
+                                                                    variant="outline-danger"
+                                                                    onClick={() => handleItemRemove(index)}>
+                                                                    <FontAwesomeIcon icon={faMinus} />
+                                                                </Button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -14,6 +14,7 @@ import ToolTip from 'react-bootstrap/Tooltip';
 import { LineChart, Line, XAxis, YAxis, ReferenceDot, Legend, Tooltip, Label, ReferenceLine } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Spinner } from 'loading-animations-react';
+import UserRouter from '../pages/UserRouter'
 
 
 
@@ -678,7 +679,9 @@ function Itemforecast() {
 
     return (
         <div>
-
+            <UserRouter
+                route='/analytics'
+            />
             <Navigation />
 
             <Tab.Container

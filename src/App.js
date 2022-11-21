@@ -24,6 +24,10 @@ import ModRouter from './pages/ModRouter';
 import ManageUsers from './pages/ManageUsers';
 import PrintBarcodes from './pages/PrintBarcodes';
 import PrintQRCodes from './pages/PrintQRCodes';
+import GenerateItemSummaryReport from './pages/GenerateItemSummaryReport';
+import GenerateWarehouseCompositionReport from './pages/GenerateWarehouseCompositionReport';
+import GenerateInventoryBalanceReport from './pages/GenerateInventoryBalanceReport';
+import InventoryAdjustment from './pages/InventoryAdjustment';
 
 
 
@@ -58,6 +62,10 @@ function App() {
           <Route path='/manageusers' element={<Protected><ManageUsers /></Protected>} />
           <Route path='/printbarcodes' element={<Protected><PrintBarcodes /></Protected>} />
           <Route path='/printqrcodes' element={<Protected><PrintQRCodes /></Protected>} />
+          <Route path='/generateisr' element={<Protected><GenerateItemSummaryReport /></Protected>} />
+          <Route path='/generatewcr' element={<Protected><GenerateWarehouseCompositionReport /></Protected>} />
+          <Route path='/generateibr' element={<Protected><GenerateInventoryBalanceReport /></Protected>} />
+          <Route path='/adjustinventory' element={<Protected><InventoryAdjustment /></Protected>} />
           <Route path='/analytics' element={<Analytics />} />
         </Routes>
       </AuthContextProvider>

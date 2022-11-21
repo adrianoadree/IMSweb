@@ -133,12 +133,12 @@ const Navigation = (props) => {
                     <NavDropdown.Item>Print Codes</NavDropdown.Item>
                   </LinkContainer>
                   <NavDropdown.Divider />
-                  <LinkContainer to="/home">
+                  <LinkContainer to="/generateisr">
                     <NavDropdown.Item>Generate Reports</NavDropdown.Item>
                   </LinkContainer>
                   <NavDropdown.Divider />
-                  <LinkContainer to="/home">
-                    <NavDropdown.Item></NavDropdown.Item>
+                  <LinkContainer to="/adjustinventory">
+                    <NavDropdown.Item>Adjust Inventory</NavDropdown.Item>
                   </LinkContainer>
                 </NavDropdown>
                 <LinkContainer to="/community">

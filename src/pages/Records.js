@@ -14,14 +14,14 @@ import moment from "moment";
 import { Modal, Tab, ListGroup, Card, Table, Button, Nav, FormControl, InputGroup } from "react-bootstrap";
 import { faPlus, faPesoSign, faSearch, faBan } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { Create, Calendar, InformationCircle, Person } from 'react-ionicons'
+import { DocumentAttach, Calendar, InformationCircle, Person } from 'react-ionicons'
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Spinner, Spinner as Spinner2 } from 'loading-animations-react';
+import { Spinner } from 'loading-animations-react';
 
 
 import NewPurchaseModal from "../components/NewPurchaseModal";
-import  ProductQuickView  from '../components/ProductQuickView';
+import ProductQuickView  from '../components/ProductQuickView';
 
 
 
@@ -44,9 +44,9 @@ function Records() {
   const [queryList, setQueryList] = useState([]); //compound query access
   const [stockcardData, setStockcardData] = useState([{}]);
 
-  const [newPurchaseModalShow, setNewPurchaseModalShow] = useState(false); //add new sales record modal
-  const [productQuickViewModalShow, setProductQuickViewModalShow] = useState(false); //product quick view modal
-  const [voidRecordModalShow, setVoidRecordModalShow] = useState(false); //product quick view modal
+  const [showNewPurchaseModal, SetShowNewPurchaseModal] = useState(false); //add new sales record modal
+  const [showProductQuickModal, setShowProductQuickViewModal] = useState(false); //product quick view modal
+  const [showVoidRecordModal, setShowVoidRecordModal] = useState(false); //product quick view modal
   
   const [productToView, setProductToView] = useState(["IT0000001"])
   const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("add")
@@ -90,6 +90,7 @@ function Records() {
       return unsub;
     }
   }, [userID])
+  
 
   useEffect(() => {
     //read purchase_record collection
@@ -488,13 +489,18 @@ function Records() {
         newestOnTop={false}
         pauseOnFocusLoss
       />
+      <ProductQuickView
+        show={showProductQuickModal}
+        onHide={() => setShowProductQuickViewModal(false)}
+        productid={productToView}
+      />
       <Tab.Container
         activeKey={key}
         onSelect={(k) => setKey(k)}
       >
       <NewPurchaseModal
-        show={newPurchaseModalShow}
-        onHide={() => setNewPurchaseModalShow(false)}
+        show={showNewPurchaseModal}
+        onHide={() => SetShowNewPurchaseModal(false)}
       />
         <div id="contents" className="row">
           <div className="row py-4 px-5">
@@ -605,7 +611,7 @@ function Records() {
             <div className="data-contents">
               <Tab.Content>
                 <Tab.Pane eventKey="main">
-                  <div className="">
+                  <div className="placeholder-content">
                     <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
                       <Nav.Item>
                         <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
@@ -633,7 +639,7 @@ function Records() {
                             <Button
                               className="add me-1"
                               data-title="Add New Purchase Record"
-                              onClick={() => setNewPurchaseModalShow(true)}
+                              onClick={() => SetShowNewPurchaseModal(true)}
                             >
                               <FontAwesomeIcon icon={faPlus} />
                             </Button>
@@ -701,7 +707,7 @@ function Records() {
                                   className="col-1 data-icon d-flex align-items-center justify-content-center"
                                   data-title="Notes"
                                 >
-                                  <Create
+                                  <DocumentAttach
                                     color={'#00000'}
                                     title={'Category'}
                                     height="25px"
@@ -786,19 +792,19 @@ function Records() {
                               <Button
                                 className="add me-1"
                                 data-title="Add New Purchase Record"
-                                onClick={() => setNewPurchaseModalShow(true)}
+                                onClick={() => SetShowNewPurchaseModal(true)}
                               >
                                 <FontAwesomeIcon icon={faPlus} />
                               </Button>
                               <VoidRecordModal
-                                show={voidRecordModalShow}
-                                onHide={() => setVoidRecordModalShow(false)}
+                                show={showVoidRecordModal}
+                                onHide={() => setShowVoidRecordModal(false)}
                               />
                               <Button
                                 className="delete me-1"
                                 disabled={purchaseRecordCollection[docId].isVoided}
                                 data-title="Void Purchase Record"
-                                onClick={() => { setProductList(purchaseRecordCollection[docId].product_list); setVoidRecordModalShow(true) }}
+                                onClick={() => { setProductList(purchaseRecordCollection[docId].product_list); setShowVoidRecordModal(true) }}
                               >
                                 <FontAwesomeIcon icon={faBan} />
                               </Button>
@@ -806,7 +812,7 @@ function Records() {
                           </div>
                         </div>
                         <div className="row p-1 m-0 data-specs" id="record-info">
-                        <div className="mb-3">
+                          <div className="mb-3">
                             <div className="row m-0 mt-2">
                               <div className="col-6">
                                 <div className="row m-0 p-0">
@@ -856,7 +862,7 @@ function Records() {
                                     className="col-1 data-icon d-flex align-items-center justify-content-center"
                                     data-title="Notes"
                                   >
-                                    <Create
+                                    <DocumentAttach
                                       color={'#00000'}
                                       title={'Category'}
                                       height="25px"
@@ -873,6 +879,15 @@ function Records() {
                                 </div>
                               </div>
                             </div>
+                            <div className="row m-0 mt-2">
+                              <div className="col-12">
+                                <div className="row m-0 p-0 ps-2">
+                                  <div className="col-12 text-end p1">
+                                    <strong>Issued by: {purchaseRecordCollection[docId].issuer}</strong>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                           <Table striped bordered hover className="records-table scrollable-table">
                             <thead>
@@ -885,17 +900,12 @@ function Records() {
                               </tr>
                             </thead>
                             <tbody>
-                              <ProductQuickView
-                                show={productQuickViewModalShow}
-                                onHide={() => setProductQuickViewModalShow(false)}
-                                productid={productToView}
-                              />
                               {list.map((prod, index) => (
 
                                 <tr 
                                   key={index}
                                   className="clickable"
-                                  onClick={()=>{setProductToView(prod.itemId); setProductQuickViewModalShow(true)}}
+                                  onClick={()=>{setProductToView(prod.itemId); setShowProductQuickViewModal(true)}}
                                 >
                                   <td className='ic pt-entry px-3' key={prod.itemId}>
                                     {prod.itemId === undefined?

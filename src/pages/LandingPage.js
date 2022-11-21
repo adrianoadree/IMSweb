@@ -1,37 +1,47 @@
 import React, { useEffect, useState } from "react";
-import { Card, Nav, Table, Button, ButtonGroup, Tab, Accordion, Alert, ListGroup } from "react-bootstrap";
-import NewSupplierModal from "../components/NewSupplierModal";
-import Navigation from "../layout/Navigation";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowRightFromBracket, faArrowRightToBracket, faCartFlatbed, faFileInvoice, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from 'react-router-dom';
-import { collection, where, query, onSnapshot, orderBy } from "firebase/firestore";
 import { db } from "../firebase-config";
-import { UserAuth } from '../context/AuthContext';
+import { collection, where, query, onSnapshot, orderBy } from "firebase/firestore";
+
 import moment from "moment";
+
+import { UserAuth } from '../context/AuthContext';
 import UserRouter from '../pages/UserRouter'
-import { Spinner } from 'loading-animations-react';
+import Navigation from "../layout/Navigation";
+
 import { ChevronBack, ChevronForward, Exit, Enter } from 'react-ionicons'
+import { Card, Nav, Table,  Tab, ListGroup } from "react-bootstrap";
+import { Spinner } from 'loading-animations-react';
+
 import ProductQuickView from "../components/ProductQuickView";
 
 
 function LandingPage() {
-
+    
     const { user } = UserAuth();
     const [userID, setUserID] = useState("");
-    const navigate = useNavigate();
-
-    const [stockcard, setStockcard] = useState(); // stockcardCollection variable
     const userCollectionRef = collection(db, "user");
     const [userCollection, setUserCollection] = useState(); // stockcardCollection variable
-    const [productQuickViewModalShow, setProductQuickViewModalShow] = useState(false);
-    const [productToView, setProductToView] = useState()
-    const [dateSelected, setDateSelected] = useState()
+
+    const [stockcardCollection, setStockcardCollection] = useState(); // stockcardCollection variable
+    const [purchaseRecordCollection, setPurchaseRecordCollection] = useState(); // sales_record collection
+    const [salesRecordCollection, setSalesRecordCollection] = useState();
+
+    const [showProductQuickViewModal, setShowProductQuickViewModal] = useState(false); // show/hide product quick view modal
+    const [productToView, setProductToView] = useState() // set product to view
+    const [sidebarHidden, setSidebarHidden] = useState(false) // display/hide sidebar
+
+    const [productsSold, setProductsSold] = useState([])
+    const [productsBought, setProductsBought] = useState([])
+    const [totalSales, setTotalSales] = useState(0)
+    const [totalPurchases, setTotalPurchases] = useState(0)
+
+    const [dateSelected, setDateSelected] = useState() // selected date variable
     const [purchaseDescriptionSorting, setPurchaseDescriptionSorting] = useState("ascending")
     const [purchaseQuantitySorting, setPurchaseQuantitySorting] = useState("unsorted")
     const [salesDescriptionSorting, setSalesDescriptionSorting] = useState("ascending")
     const [salesQuantitySorting, setSalesQuantitySorting] = useState("unsorted")
-    const [sidebarHidden, setSidebarHidden] = useState(false)
+
     const [topProducts, setTopProducts] = useState()
     const [prodNearROP, setProdNearROP] = useState()
     const [userProfile, setUserProfile] = useState({});
@@ -40,6 +50,7 @@ function LandingPage() {
     curr_date.setDate(curr_date.getDate());
     curr_date.setHours(0, 0, 0, 0); // set current date's hours to zero to compare dates only
 
+    // date periods for summary report
     var today = curr_date
 
     var yesterday = new Date(curr_date.getFullYear(), curr_date.getMonth(), curr_date.getDate() - 1); // get yesterday's date
@@ -62,18 +73,10 @@ function LandingPage() {
     },)
 
     useEffect(() => {
-        console.log(productsSold)
-    })
-
-    useEffect(() => {
         if (user) {
             setUserID(user.uid)
         }
     }, [{ user }])
-
-    useEffect(() => {
-        console.log(topProducts)
-    })
 
     useEffect(() => {
         if (userID === undefined) {
@@ -108,7 +111,418 @@ function LandingPage() {
         }
     }, [userCollection])
 
-    const displayLeaderboard = () => {
+        //query documents from stockcard that contains docId
+    useEffect(() => {
+        if (userID === undefined) {
+
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
+
+    //query documents from purchase_record that contains docId
+    useEffect(() => {
+        if (userID !== undefined) {
+            const collectionRef = collection(db, "purchase_record")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [userID])
+
+    //query documents from purchase_record that contains docId
+    useEffect(() => {
+        if (userID !== undefined) {
+            const collectionRef = collection(db, "sales_record")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [userID])
+    //query documents from stockcard that contains docId
+    useEffect(() => {
+        if (userID === undefined) {
+
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
+
+    
+    //Read stock card collection from database
+    useEffect(() => {
+        if (userID !== undefined) {
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.daysROP", "<=", 7), orderBy("analytics.daysROP", "asc"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
+
+    //query documents from purchase_record that contains docId
+    useEffect(() => {
+        if (userID !== undefined) {
+            const collectionRef = collection(db, "purchase_record")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [userID])
+
+    //query documents from purchase_record that contains docId
+    useEffect(() => {
+        if (userID !== undefined) {
+            const collectionRef = collection(db, "sales_record")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [userID])
+
+    // make default date selected today
+    useEffect(() => {
+        if (purchaseRecordCollection === undefined || salesRecordCollection === undefined || stockcardCollection === undefined) {
+
+        }
+        else {
+            setDateSelected("today")
+            determineLeaderboard()
+        }
+    }, [purchaseRecordCollection, salesRecordCollection, stockcardCollection])
+
+    // update summary report date on date change
+    useEffect(() => {
+        if (purchaseRecordCollection !== undefined && salesRecordCollection !== undefined) {
+            handleDateChange()
+        }
+        else {
+
+        }
+    }, [dateSelected])
+
+    // change sorting
+    useEffect(() => {
+        if (purchaseQuantitySorting == "ascending" || purchaseQuantitySorting == "descending")
+            handlePurchaseQuantityOrderChange()
+    }, [purchaseQuantitySorting])
+
+    useEffect(() => {
+        if (purchaseDescriptionSorting == "ascending" || purchaseDescriptionSorting == "descending")
+            handlePurchaseDescriptionOrderChange()
+    }, [purchaseDescriptionSorting])
+
+    useEffect(() => {
+        if (salesQuantitySorting == "ascending" || salesQuantitySorting == "descending")
+            handleSalesQuantityOrderChange()
+    }, [salesQuantitySorting])
+
+    useEffect(() => {
+        if (salesDescriptionSorting == "ascending" || salesDescriptionSorting == "descending")
+            handleSalesDescriptionOrderChange()
+    }, [salesDescriptionSorting])
+
+    // display date according to date selected
+    const handleDateDisplay = () => {
+        switch (dateSelected) {
+            case "today":
+                var temp_date = new Date(today)
+                temp_date.setDate(temp_date.getDate())
+                return moment(temp_date).format('dddd') + ", " + moment(temp_date).format('MMMM DD, YYYY');
+                break;
+            case "this month":
+                var temp_date_first = firstday_month.setDate(firstday_month.getDate())
+                var temp_date_last = lastday_month.setDate(lastday_month.getDate())
+                return moment(temp_date_first).format('MMMM') + " " + moment(temp_date_first).format('DD') + " - " + moment(temp_date_last).format('DD') + ", " + moment(temp_date_first).format('YYYY')
+                break;
+            case "yesterday":
+                var temp_date = yesterday.setDate(yesterday.getDate());
+                return moment(temp_date).format('dddd') + ", " + moment(temp_date).format('MMMM DD, YYYY');
+                break;
+            case "this week":
+                var temp_date_first = firstday_week.setDate(firstday_week.getDate())
+                var temp_date_last = lastday_week.setDate(lastday_week.getDate())
+                return moment(temp_date_first).format('MMMM') + " " + moment(temp_date_first).format('DD') + " - " + moment(temp_date_last).format('MMMM') + " " + moment(temp_date_last).format('DD') + ", " + moment(temp_date_first).format('YYYY')
+                break;
+        }
+    }
+
+    // update summary report according to date selected
+    const handleDateChange = () => {
+        // date variables, changes depending on what the user selected
+        var date_start
+        var date_end
+
+        switch (dateSelected) {
+            case "today":
+                date_start = today
+                date_end = today
+                break;
+            case "yesterday":
+                date_start = yesterday
+                date_end = yesterday
+                break;
+            case "this week":
+                date_start = firstday_week
+                date_end = lastday_week
+                break;
+            case "this month":
+                date_start = firstday_month
+                date_end = lastday_month
+                break;
+        }
+
+        var tempProductBoughtList = []
+        var tempProductBoughtListId = []
+        var tempProductBoughtListQty = []
+        var tempProductBoughtListTransacItem = []
+        var tempProductBoughtListTransac = []
+        var tempProductInfo = {
+            "id": "",
+            "description": "",
+            "img": "",
+            "transaction": [],
+            "qty": 0
+        }
+
+        var record_date
+        purchaseRecordCollection.map((purch) => {
+            record_date = new Date(purch.transaction_date)
+            record_date.setHours(0, 0, 0, 0)
+            tempProductBoughtListTransacItem = []
+            if (!purch.isVoided) {
+                if ((record_date.getTime() >= date_start.getTime() && record_date.getTime() <= date_end.getTime())) {
+                    purch.product_list.map((product) => {
+                        if (tempProductBoughtListId.indexOf(product.itemId) >= 0) {
+                            tempProductBoughtListQty[tempProductBoughtListId.indexOf(product.itemId)] = tempProductBoughtListQty[tempProductBoughtListId.indexOf(product.itemId)] + product.itemQuantity
+                            tempProductBoughtListTransac[tempProductBoughtListId.indexOf(product.itemId)].push(purch.id)
+                        }
+                        else {
+                            tempProductBoughtListId.push(product.itemId)
+                            tempProductBoughtListQty.push(product.itemQuantity)
+                            if(tempProductBoughtListTransacItem.indexOf(purch.id) == -1)
+                            {
+                                tempProductBoughtListTransacItem.push(purch.id)
+                            }
+                            tempProductBoughtListTransac.push(tempProductBoughtListTransacItem)
+                        }
+                    })
+                }
+            }
+        })
+
+        stockcardCollection.map((product) => {
+            var tempProductInfo = {
+                "id": "",
+                "description": "",
+                "img": "",
+                "transaction": [],
+                "qty": 0
+            }
+            if (tempProductBoughtListId.indexOf(product.id) >= 0) {
+                tempProductInfo.id = tempProductBoughtListId[tempProductBoughtListId.indexOf(product.id)]
+                tempProductInfo.description = product.description
+                tempProductInfo.img = product.img
+                tempProductInfo.transaction = tempProductBoughtListTransac[tempProductBoughtListId.indexOf(product.id)]
+                tempProductInfo.qty = Number(tempProductBoughtListQty[tempProductBoughtListId.indexOf(product.id)])
+
+                tempProductBoughtList.push(tempProductInfo)
+            }
+        })
+
+        var tempPurchasesTotal = 0
+
+        tempProductBoughtList.map((product) => {
+            tempPurchasesTotal = tempPurchasesTotal + product.qty
+        })
+
+        setTotalPurchases(tempPurchasesTotal)
+        setProductsBought(tempProductBoughtList)
+        var sorted_products_bought = [...tempProductBoughtList]
+        sorted_products_bought.sort((description1, description2) => { return description1.description > description2.description })
+        setProductsBought(sorted_products_bought)
+        setPurchaseDescriptionSorting("ascending")
+        setPurchaseQuantitySorting("unsorted")
+
+        var tempProductSoldList = []
+        var tempProductSoldListId = []
+        var tempProductSoldListQty = []
+        var tempProductSoldListTransacItem = []
+        var tempProductSoldListTransac = []
+        var tempProductInfo = {
+            "id": "",
+            "description": "",
+            "img": "",
+            "transaction": [],
+            "qty": 0
+        }
+
+        var record_date
+        salesRecordCollection.map((sale) => {
+            record_date = new Date(sale.transaction_date)
+            record_date.setHours(0, 0, 0, 0)
+            tempProductSoldListTransacItem = []
+            if (!sale.isVoided) {
+                if ((record_date.getTime() >= date_start.getTime() && record_date.getTime() <= date_end.getTime())) {
+                    sale.product_list.map((product) => {
+                        if (tempProductSoldListId.indexOf(product.itemId) >= 0) {
+                            tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] = tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] + product.itemQuantity
+                            for(var i = 0; i < tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].length; i++)
+                            {
+                                if(tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)][i] == sale.id)
+                                {
+
+                                }
+                                else
+                                {
+
+                                    tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].push(sale.id)
+                                }
+                            }
+                        }
+                        else {
+                            tempProductSoldListId.push(product.itemId)
+                            tempProductSoldListQty.push(product.itemQuantity)
+                            if(tempProductSoldListTransacItem.indexOf(sale.id) == -1)
+                            {
+                                tempProductSoldListTransacItem.push(sale.id)
+                            }
+                            tempProductSoldListTransac.push(tempProductSoldListTransacItem)
+                        }
+                    })
+                }
+            }
+        })
+
+        stockcardCollection.map((product) => {
+            tempProductInfo = {
+                "id": "",
+                "description": "",
+                "img": "",
+                "transaction": [],
+                "qty": 0
+            }
+            if (tempProductSoldListId.indexOf(product.id) >= 0) {
+                tempProductInfo.id = tempProductSoldListId[tempProductSoldListId.indexOf(product.id)]
+                tempProductInfo.description = product.description
+                tempProductInfo.img = product.img
+                tempProductInfo.transaction = tempProductSoldListTransac[tempProductSoldListId.indexOf(product.id)]
+                tempProductInfo.qty = Number(tempProductSoldListQty[tempProductSoldListId.indexOf(product.id)])
+
+                tempProductSoldList.push(tempProductInfo)
+            }
+        })
+
+        var tempSalesTotal = 0
+
+        tempProductSoldList.map((product) => {
+            tempSalesTotal = tempSalesTotal + product.qty
+        })
+
+        setTotalSales(tempSalesTotal)
+        var sorted_products_sold = [...tempProductSoldList]
+        sorted_products_sold.sort((description1, description2) => { return description1.description > description2.description })
+        setProductsSold(sorted_products_sold)
+        setSalesDescriptionSorting("ascending")
+        setSalesQuantitySorting("unsorted")
+    }
+
+    // update product list according to sorting method
+    const handlePurchaseQuantityOrderChange = () => {
+        var sorted_products_bought = [...productsBought]
+        if (purchaseQuantitySorting == "ascending") {
+            sorted_products_bought.sort((qty1, qty2) => { return qty1.qty > qty2.qty })
+        }
+        else if (purchaseQuantitySorting == "descending") {
+            sorted_products_bought.sort((qty1, qty2) => { return qty1.qty < qty2.qty })
+        }
+
+        setProductsBought(sorted_products_bought)
+    }
+
+    const handlePurchaseDescriptionOrderChange = () => {
+        var sorted_products_bought = [...productsBought]
+        if (purchaseDescriptionSorting == "ascending") {
+            sorted_products_bought.sort((description1, description2) => { return description1.description > description2.description })
+        }
+        else if (purchaseDescriptionSorting == "descending") {
+            sorted_products_bought.sort((description1, description2) => { return description1.description < description2.description })
+        }
+
+        setProductsBought(sorted_products_bought)
+    }
+
+    const handleSalesQuantityOrderChange = () => {
+        var sorted_products_sold = [...productsSold]
+        if (salesQuantitySorting == "ascending") {
+            sorted_products_sold.sort((qty1, qty2) => { return qty1.qty > qty2.qty })
+        }
+        else if (salesQuantitySorting == "descending") {
+            sorted_products_sold.sort((qty1, qty2) => { return qty1.qty < qty2.qty })
+        }
+
+        setProductsSold(sorted_products_sold)
+    }
+
+    const handleSalesDescriptionOrderChange = () => {
+        var sorted_products_sold = [...productsSold]
+        if (salesDescriptionSorting == "ascending") {
+            sorted_products_sold.sort((description1, description2) => { return description1.description > description2.description })
+        }
+        else if (salesDescriptionSorting == "descending") {
+            sorted_products_sold.sort((description1, description2) => { return description1.description < description2.description })
+        }
+
+        setProductsSold(sorted_products_sold)
+    }
+
+    const determineLeaderboard = () => {
         var tempProductSoldList = []
         var tempProductSoldListId = []
         var tempProductSoldListQty = []
@@ -143,8 +557,8 @@ function LandingPage() {
                 }
             }
         })
-        if (stockcard !== undefined) {
-            stockcard.map((product) => {
+        if (stockcardCollection !== undefined) {
+            stockcardCollection.map((product) => {
                 tempProductInfo = {
                     "id": "",
                     "description": "",
@@ -173,6 +587,58 @@ function LandingPage() {
             sorted_products_sold.sort((prod1, prod2)=>{return prod1.qty < prod2.qty})
             setTopProducts(sorted_products_sold)
         }
+    }
+
+    function Notification() {
+        return (
+            <ListGroup>
+                {prodNearROP !== undefined ?
+                    prodNearROP.length !== 0 ?
+                        prodNearROP.map((prod) => {
+                            return (
+                                <ListGroup.Item key={prod.id}>
+                                    <div className="row px-2">
+                                        <div className="col">
+                                            <div className="row">
+                                                <span><small>{prod.id.substring(0, 9)}</small> | <span style={{ color: '#4172c1' }}> <strong>{prod.description}</strong></span></span>
+                                            </div>
+                                        </div>
+                                        <div className="col ">
+                                            <div className="float-end">
+
+                                                {prod.analytics.daysROP > 0 ?
+                                                    <small><strong>{prod.analytics.daysROP}</strong> day(s)<br /> before Restocking</small>
+                                                    :
+                                                    prod.analytics.daysROP === 0 ?
+                                                        <small>Restock <strong>Today</strong></small>
+                                                        :
+                                                        <small><strong>{Math.abs(prod.analytics.daysROP)}</strong> day(s)<br /> past Restocking</small>
+                                                }
+
+                                            </div>
+                                        </div>
+                                        <div className="row">
+                                            <small className="text-muted float-end">Date to Restock: {moment(prod.analytics.dateReorderPoint).format('LL')}</small>
+                                        </div>
+                                    </div>
+                                </ListGroup.Item>
+                            )
+                        })
+                        :
+                        <div className="full-column text-center">
+                            No Product near Restocking
+                        </div>                        
+                    :
+                    <Spinner
+                        color1="#b0e4ff"
+                        color2="#fff"
+                        textColor="rgba(0,0,0, 0.5)"
+                        className="w-100 h-100"
+                    />
+                }
+
+            </ListGroup>
+        )
     }
 
     function DisplayTopProducts(props) {
@@ -287,377 +753,7 @@ function LandingPage() {
 
         }
     }
-    //---------------------FUNCTIONS---------------------
 
-    // =================================== START OF SUMMARY REPORT FUNCTION ===================================
-
-    const [purchaseRecordCollection, setPurchaseRecordCollection] = useState(); // sales_record collection
-    const [salesRecordCollection, setSalesRecordCollection] = useState();
-
-    const [productsSold, setProductsSold] = useState([])
-    const [productsBought, setProductsBought] = useState([])
-
-    const [totalSales, setTotalSales] = useState(0)
-    const [totalPurchases, setTotalPurchases] = useState(0)
-
-    //query documents from stockcard that contains docId
-    useEffect(() => {
-        if (userID === undefined) {
-
-            const stockcardCollectionRef = collection(db, "stockcard")
-            const q = query(stockcardCollectionRef, where("user", "==", "DONOTDELETE"));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-        else {
-            const stockcardCollectionRef = collection(db, "stockcard")
-            const q = query(stockcardCollectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-    }, [userID])
-
-    //query documents from purchase_record that contains docId
-    useEffect(() => {
-        if (userID !== undefined) {
-            const collectionRef = collection(db, "purchase_record")
-            const q = query(collectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-
-    }, [userID])
-
-    //query documents from purchase_record that contains docId
-    useEffect(() => {
-        if (userID !== undefined) {
-            const collectionRef = collection(db, "sales_record")
-            const q = query(collectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-
-    }, [userID])
-
-    // make default date selected today
-    useEffect(() => {
-        if (purchaseRecordCollection === undefined && salesRecordCollection === undefined && stockcard === undefined) {
-
-        }
-        else {
-            setDateSelected("today")
-        }
-    }, [purchaseRecordCollection && salesRecordCollection && stockcard])
-
-    useEffect(() => {
-        if (salesRecordCollection === undefined) {
-
-        }
-        else
-        {
-            displayLeaderboard()
-        }
-    }, [salesRecordCollection])
-
-    // update summary report date on date change
-    useEffect(() => {
-        if (purchaseRecordCollection !== undefined && salesRecordCollection !== undefined) {
-            handleDateChange()
-        }
-        else {
-
-        }
-    }, [dateSelected])
-
-    useEffect(() => {
-        if (purchaseQuantitySorting == "ascending" || purchaseQuantitySorting == "descending")
-            handlePurchaseQuantityOrderChange()
-    }, [purchaseQuantitySorting])
-
-    useEffect(() => {
-        if (purchaseDescriptionSorting == "ascending" || purchaseDescriptionSorting == "descending")
-            handlePurchaseDescriptionOrderChange()
-    }, [purchaseDescriptionSorting])
-
-    useEffect(() => {
-        if (salesQuantitySorting == "ascending" || salesQuantitySorting == "descending")
-            handleSalesQuantityOrderChange()
-    }, [salesQuantitySorting])
-
-    useEffect(() => {
-        if (salesDescriptionSorting == "ascending" || salesDescriptionSorting == "descending")
-            handleSalesDescriptionOrderChange()
-    }, [salesDescriptionSorting])
-
-    // display date according to date selected
-    const handleDateDisplay = () => {
-        switch (dateSelected) {
-            case "today":
-                var temp_date = new Date(today)
-                temp_date.setDate(temp_date.getDate())
-                return moment(temp_date).format('dddd') + ", " + moment(temp_date).format('MMMM DD, YYYY');
-                break;
-            case "this month":
-                var temp_date_first = firstday_month.setDate(firstday_month.getDate())
-                var temp_date_last = lastday_month.setDate(lastday_month.getDate())
-                return moment(temp_date_first).format('MMMM') + " " + moment(temp_date_first).format('DD') + " - " + moment(temp_date_last).format('DD') + ", " + moment(temp_date_first).format('YYYY')
-                break;
-            case "yesterday":
-                var temp_date = yesterday.setDate(yesterday.getDate());
-                return moment(temp_date).format('dddd') + ", " + moment(temp_date).format('MMMM DD, YYYY');
-                break;
-            case "this week":
-                var temp_date_first = firstday_week.setDate(firstday_week.getDate())
-                var temp_date_last = lastday_week.setDate(lastday_week.getDate())
-                return moment(temp_date_first).format('MMMM') + " " + moment(temp_date_first).format('DD') + " - " + moment(temp_date_last).format('MMMM') + " " + moment(temp_date_last).format('DD') + ", " + moment(temp_date_first).format('YYYY')
-                break;
-        }
-    }
-
-    // update summary report according to date selected
-    const handleDateChange = () => {
-        // date variables, changes depending on what the user selected
-        var date_start
-        var date_end
-
-        switch (dateSelected) {
-            case "today":
-                date_start = today
-                date_end = today
-                break;
-            case "yesterday":
-                date_start = yesterday
-                date_end = yesterday
-                break;
-            case "this week":
-                date_start = firstday_week
-                date_end = lastday_week
-                break;
-            case "this month":
-                date_start = firstday_month
-                date_end = lastday_month
-                break;
-        }
-
-        var tempProductBoughtList = []
-        var tempProductBoughtListId = []
-        var tempProductBoughtListQty = []
-        var tempProductBoughtListTransacItem = []
-        var tempProductBoughtListTransac = []
-        var tempProductInfo = {
-            "id": "",
-            "description": "",
-            "img": "",
-            "transaction": [],
-            "qty": 0
-        }
-
-        var record_date
-        purchaseRecordCollection.map((purch) => {
-            record_date = new Date(purch.transaction_date)
-            record_date.setHours(0, 0, 0, 0)
-            tempProductBoughtListTransacItem = []
-            if (!purch.isVoided) {
-                if ((record_date.getTime() >= date_start.getTime() && record_date.getTime() <= date_end.getTime())) {
-                    purch.product_list.map((product) => {
-                        if (tempProductBoughtListId.indexOf(product.itemId) >= 0) {
-                            tempProductBoughtListQty[tempProductBoughtListId.indexOf(product.itemId)] = tempProductBoughtListQty[tempProductBoughtListId.indexOf(product.itemId)] + product.itemQuantity
-                            tempProductBoughtListTransac[tempProductBoughtListId.indexOf(product.itemId)].push(purch.id)
-                        }
-                        else {
-                            tempProductBoughtListId.push(product.itemId)
-                            tempProductBoughtListQty.push(product.itemQuantity)
-                            if(tempProductBoughtListTransacItem.indexOf(purch.id) == -1)
-                            {
-                                tempProductBoughtListTransacItem.push(purch.id)
-                            }
-                            tempProductBoughtListTransac.push(tempProductBoughtListTransacItem)
-                        }
-                    })
-                }
-            }
-        })
-
-        stockcard.map((product) => {
-            var tempProductInfo = {
-                "id": "",
-                "description": "",
-                "img": "",
-                "transaction": [],
-                "qty": 0
-            }
-            if (tempProductBoughtListId.indexOf(product.id) >= 0) {
-                tempProductInfo.id = tempProductBoughtListId[tempProductBoughtListId.indexOf(product.id)]
-                tempProductInfo.description = product.description
-                tempProductInfo.img = product.img
-                tempProductInfo.transaction = tempProductBoughtListTransac[tempProductBoughtListId.indexOf(product.id)]
-                tempProductInfo.qty = Number(tempProductBoughtListQty[tempProductBoughtListId.indexOf(product.id)])
-
-                tempProductBoughtList.push(tempProductInfo)
-            }
-        })
-
-        var tempPurchasesTotal = 0
-
-        tempProductBoughtList.map((product) => {
-            tempPurchasesTotal = tempPurchasesTotal + product.qty
-        })
-
-        setTotalPurchases(tempPurchasesTotal)
-        setProductsBought(tempProductBoughtList)
-        var sorted_products_bought = [...tempProductBoughtList]
-        sorted_products_bought.sort((description1, description2) => { return description1.description > description2.description })
-        setProductsBought(sorted_products_bought)
-        setPurchaseDescriptionSorting("ascending")
-        setPurchaseQuantitySorting("unsorted")
-
-        var tempProductSoldList = []
-        var tempProductSoldListId = []
-        var tempProductSoldListQty = []
-        var tempProductSoldListTransacItem = []
-        var tempProductSoldListTransac = []
-        var tempProductInfo = {
-            "id": "",
-            "description": "",
-            "img": "",
-            "transaction": [],
-            "qty": 0
-        }
-
-        var record_date
-        salesRecordCollection.map((sale) => {
-            record_date = new Date(sale.transaction_date)
-            record_date.setHours(0, 0, 0, 0)
-            tempProductSoldListTransacItem = []
-            if (!sale.isVoided) {
-                if ((record_date.getTime() >= date_start.getTime() && record_date.getTime() <= date_end.getTime())) {
-                    sale.product_list.map((product) => {
-                        if (tempProductSoldListId.indexOf(product.itemId) >= 0) {
-                            tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] = tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] + product.itemQuantity
-                            for(var i = 0; i < tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].length; i++)
-                            {
-                                if(tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)][i] == sale.id)
-                                {
-
-                                }
-                                else
-                                {
-
-                                    tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].push(sale.id)
-                                }
-                            }
-                        }
-                        else {
-                            tempProductSoldListId.push(product.itemId)
-                            tempProductSoldListQty.push(product.itemQuantity)
-                            if(tempProductSoldListTransacItem.indexOf(sale.id) == -1)
-                            {
-                                tempProductSoldListTransacItem.push(sale.id)
-                            }
-                            tempProductSoldListTransac.push(tempProductSoldListTransacItem)
-                        }
-                    })
-                }
-            }
-        })
-
-        stockcard.map((product) => {
-            tempProductInfo = {
-                "id": "",
-                "description": "",
-                "img": "",
-                "transaction": [],
-                "qty": 0
-            }
-            if (tempProductSoldListId.indexOf(product.id) >= 0) {
-                tempProductInfo.id = tempProductSoldListId[tempProductSoldListId.indexOf(product.id)]
-                tempProductInfo.description = product.description
-                tempProductInfo.img = product.img
-                tempProductInfo.transaction = tempProductSoldListTransac[tempProductSoldListId.indexOf(product.id)]
-                tempProductInfo.qty = Number(tempProductSoldListQty[tempProductSoldListId.indexOf(product.id)])
-
-                tempProductSoldList.push(tempProductInfo)
-            }
-        })
-
-        var tempSalesTotal = 0
-
-        tempProductSoldList.map((product) => {
-            tempSalesTotal = tempSalesTotal + product.qty
-        })
-
-        setTotalSales(tempSalesTotal)
-        var sorted_products_sold = [...tempProductSoldList]
-        sorted_products_sold.sort((description1, description2) => { return description1.description > description2.description })
-        setProductsSold(sorted_products_sold)
-        setSalesDescriptionSorting("ascending")
-        setSalesQuantitySorting("unsorted")
-    }
-
-
-
-    const handlePurchaseQuantityOrderChange = () => {
-        var sorted_products_bought = [...productsBought]
-        if (purchaseQuantitySorting == "ascending") {
-            sorted_products_bought.sort((qty1, qty2) => { return qty1.qty > qty2.qty })
-        }
-        else if (purchaseQuantitySorting == "descending") {
-            sorted_products_bought.sort((qty1, qty2) => { return qty1.qty < qty2.qty })
-        }
-
-        setProductsBought(sorted_products_bought)
-    }
-
-    const handlePurchaseDescriptionOrderChange = () => {
-        var sorted_products_bought = [...productsBought]
-        if (purchaseDescriptionSorting == "ascending") {
-            sorted_products_bought.sort((description1, description2) => { return description1.description > description2.description })
-        }
-        else if (purchaseDescriptionSorting == "descending") {
-            sorted_products_bought.sort((description1, description2) => { return description1.description < description2.description })
-        }
-
-        setProductsBought(sorted_products_bought)
-    }
-
-
-    const handleSalesQuantityOrderChange = () => {
-        var sorted_products_sold = [...productsSold]
-        if (salesQuantitySorting == "ascending") {
-            sorted_products_sold.sort((qty1, qty2) => { return qty1.qty > qty2.qty })
-        }
-        else if (salesQuantitySorting == "descending") {
-            sorted_products_sold.sort((qty1, qty2) => { return qty1.qty < qty2.qty })
-        }
-
-        setProductsSold(sorted_products_sold)
-    }
-
-    const handleSalesDescriptionOrderChange = () => {
-        var sorted_products_sold = [...productsSold]
-        if (salesDescriptionSorting == "ascending") {
-            sorted_products_sold.sort((description1, description2) => { return description1.description > description2.description })
-        }
-        else if (salesDescriptionSorting == "descending") {
-            sorted_products_sold.sort((description1, description2) => { return description1.description < description2.description })
-        }
-
-        setProductsSold(sorted_products_sold)
-    }
-
-    // ==================================== END OF SUMMARY REPORT FUNCTION ====================================
     function purchaseTable() {
         return (
             productsBought !== undefined ?
@@ -697,36 +793,29 @@ function LandingPage() {
                         </thead>
                         <tbody>
                             {productsBought.map((purchase, index) => (
-                                <tr key={index}>
+                                <tr 
+                                    key={index}
+                                    className="clickable"
+                                    onClick={() => { setProductToView(purchase.id); setShowProductQuickViewModal(true) }}
+                                >
                                     <td className="start-column">
-                                        {purchase.id === undefined ?
-                                            <></>
-                                            :
-                                            <>
-                                                <button
-                                                    className="plain-button w-100"
-                                                    onClick={() => { setProductToView(purchase.id); setProductQuickViewModalShow(true) }}
-                                                >
-                                                    <div className="row m-0 p-0">
-                                                        <div className="col-3 text-center">
-                                                            {purchase.img === undefined || purchase.img == "" || purchase.img == " " ?
-                                                                <span>
-                                                                    <div className="data-img d-flex align-items-center justify-content-center" style={{ width: '90px', height: 'auto', backgroundColor: '#f3f5f9' }}>
-                                                                        <img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fproduct-image-placeholder.png?alt=media&token=c29c223b-c9a1-4b47-af4f-c57a76b3e6c2" style={{ width: '80%' }} />
-                                                                    </div>
-                                                                </span>
-                                                                :
-                                                                <img src={purchase.img} style={{ width: '90px', height: 'auto' }} />
-                                                            }
+                                        <div className="row m-0 p-0">
+                                            <div className="col-3 text-center">
+                                                {purchase.img === undefined || purchase.img == "" || purchase.img == " " ?
+                                                    <span>
+                                                        <div className="data-img d-flex align-items-center justify-content-center" style={{ width: '90px', height: 'auto', backgroundColor: '#f3f5f9' }}>
+                                                            <img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fproduct-image-placeholder.png?alt=media&token=c29c223b-c9a1-4b47-af4f-c57a76b3e6c2" style={{ width: '80%' }} />
                                                         </div>
-                                                        <div className="col-9">
-                                                            <h5>{purchase.description}</h5>
-                                                            <h6>{purchase.id.substring(0, 9)}</h6>
-                                                        </div>
-                                                    </div>
-                                                </button>
-                                            </>
-                                        }
+                                                    </span>
+                                                :
+                                                    <img src={purchase.img} style={{ width: '90px', height: 'auto' }} />
+                                                }
+                                            </div>
+                                            <div className="col-9">
+                                                <h5>{purchase.description}</h5>
+                                                <h6>{purchase.id.substring(0, 9)}</h6>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td className="center-column text-center">
                                         {purchase.transaction.map((transac_id, i) => (
@@ -793,7 +882,6 @@ function LandingPage() {
         )
     }
 
-
     function salesTable() {
         return (
             productsSold !== undefined ?
@@ -833,37 +921,29 @@ function LandingPage() {
                         </thead>
                         <tbody>
                             {productsSold.map((sale, index) => (
-                                <tr key={index}>
-                                    <td
-                                        className="start-column"
-                                    >{sale.id === undefined ?
-                                        <></>
-                                        :
-                                        <>
-                                            <button
-                                                className="plain-button w-100"
-                                                onClick={() => { setProductToView(sale.id); setProductQuickViewModalShow(true) }}
-                                            >
-                                                <div className="row m-0 p-0">
-                                                    <div className="col-3 text-center">
-                                                        {sale.img === undefined || sale.img == "" || sale.img == " " ?
-                                                            <span>
-                                                                <div className="data-img d-flex align-items-center justify-content-center" style={{ width: '90px', height: 'auto', backgroundColor: '#f3f5f9' }}>
-                                                                    <img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fproduct-image-placeholder.png?alt=media&token=c29c223b-c9a1-4b47-af4f-c57a76b3e6c2" style={{ width: '80%' }} />
-                                                                </div>
-                                                            </span>
-                                                            :
-                                                            <img src={sale.img} style={{ width: '90px', height: 'auto' }} />
-                                                        }
-                                                    </div>
-                                                    <div className="col-9">
-                                                        <h5>{sale.description}</h5>
-                                                        <h6>{sale.id.substring(0, 9)}</h6>
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        </>
-                                        }
+                                <tr 
+                                    key={index}
+                                    className="clickable"
+                                    onClick={() => { setProductToView(sale.id); setShowProductQuickViewModal(true) }}
+                                >
+                                    <td className="start-column">
+                                        <div className="row m-0 p-0">
+                                            <div className="col-3 text-center">
+                                                {sale.img === undefined || sale.img == "" || sale.img == " " ?
+                                                    <span>
+                                                        <div className="data-img d-flex align-items-center justify-content-center" style={{ width: '90px', height: 'auto', backgroundColor: '#f3f5f9' }}>
+                                                            <img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fproduct-image-placeholder.png?alt=media&token=c29c223b-c9a1-4b47-af4f-c57a76b3e6c2" style={{ width: '80%' }} />
+                                                        </div>
+                                                    </span>
+                                                :
+                                                    <img src={sale.img} style={{ width: '90px', height: 'auto' }} />
+                                                }
+                                            </div>
+                                            <div className="col-9">
+                                                <h5>{sale.description}</h5>
+                                                <h6>{sale.id.substring(0, 9)}</h6>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td
                                         className="center-column"
@@ -934,80 +1014,6 @@ function LandingPage() {
         )
     }
 
-
-    const handleStockcardNavigation = () => {
-        navigate('/stockcard', { docId: 4 })
-    }
-
-
-
-    //Read stock card collection from database
-    useEffect(() => {
-        if (userID !== undefined) {
-            const stockcardCollectionRef = collection(db, "stockcard")
-            const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.daysROP", "<=", 7), orderBy("analytics.daysROP", "asc"));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-    }, [userID])
-
-
-    function Notification() {
-        return (
-            <ListGroup>
-                {prodNearROP !== undefined ?
-                    prodNearROP.length !== 0 ?
-                        prodNearROP.map((prod) => {
-                            return (
-                                <ListGroup.Item key={prod.id}>
-                                    <div className="row px-2">
-                                        <div className="col">
-                                            <div className="row">
-                                                <span><small>{prod.id.substring(0, 9)}</small> | <span style={{ color: '#4172c1' }}> <strong>{prod.description}</strong></span></span>
-                                            </div>
-                                        </div>
-                                        <div className="col ">
-                                            <div className="float-end">
-
-                                                {prod.analytics.daysROP > 0 ?
-                                                    <small><strong>{prod.analytics.daysROP}</strong> day(s)<br /> before Restocking</small>
-                                                    :
-                                                    prod.analytics.daysROP === 0 ?
-                                                        <small>Restock <strong>Today</strong></small>
-                                                        :
-                                                        <small><strong>{Math.abs(prod.analytics.daysROP)}</strong> day(s)<br /> past Restocking</small>
-                                                }
-
-                                            </div>
-                                        </div>
-                                        <div className="row">
-                                            <small className="text-muted float-end">Date to Restock: {moment(prod.analytics.dateReorderPoint).format('LL')}</small>
-                                        </div>
-                                    </div>
-                                </ListGroup.Item>
-                            )
-                        })
-                        :
-                        <div className="full-column text-center">
-                            No Product near Restocking
-                        </div>                        
-                    :
-                    <Spinner
-                        color1="#b0e4ff"
-                        color2="#fff"
-                        textColor="rgba(0,0,0, 0.5)"
-                        className="w-100 h-100"
-                    />
-                }
-
-            </ListGroup>
-        )
-    }
-
-
     return (
         <div>
             <UserRouter
@@ -1017,8 +1023,8 @@ function LandingPage() {
                 page='/home'
             />
             <ProductQuickView
-                show={productQuickViewModalShow}
-                onHide={() => setProductQuickViewModalShow(false)}
+                show={showProductQuickViewModal}
+                onHide={() => setShowProductQuickViewModal(false)}
                 productid={productToView}
             />
             <div id="contents" className="row">
@@ -1045,7 +1051,7 @@ function LandingPage() {
                                             textColor="rgba(0,0,0, 0.5)"
                                             className="w-50 h-50 p-2"
                                         />
-                                        :
+                                    :
                                         <DisplayTopProducts />
                                     }
                                 </div>
@@ -1062,7 +1068,7 @@ function LandingPage() {
                                     height="15px"
                                     width="15px"
                                 />
-                                :
+                            :
                                 <ChevronBack
                                     color={'#000000'}
                                     height="15px"
@@ -1079,7 +1085,7 @@ function LandingPage() {
                             <Card.Header className="py-3 text-center left-curve right-curve">
                                 {userProfile === undefined ?
                                     <></>
-                                    :
+                                :
                                     <div className="py-2" style={{ color: '#4172c1' }}>
                                         <h2><strong>{userProfile.bname}</strong></h2>
                                     </div>
@@ -1146,13 +1152,8 @@ function LandingPage() {
                                         <Tab.Pane eventKey={1}>
                                             {purchaseTable()}
                                         </Tab.Pane>
-
-
                                     </Tab.Content>
-
-
                                 </Tab.Container>
-
                             </Card.Body>
                         </Card>
                     </div>

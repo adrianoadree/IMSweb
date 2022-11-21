@@ -495,9 +495,11 @@ function SupplierList() {
   return (
     <div>
       <UserRouter
-        route='supplier'
+        route='/supplier'
       />
-      <Navigation />
+      <Navigation 
+        page="/supplier"
+      />
 
       <ToastContainer
         position="top-right"
@@ -631,7 +633,7 @@ function SupplierList() {
             <div className='data-contents'>
               <Tab.Content>
                 <Tab.Pane eventKey='main'>
-                  <div className="module-contents row py-1 m-0">
+                  <div className="module-contents row py-1 m-0 placeholder-content">
                     <div className='row m-0 p-0'>
                       <h1 className='text-center pb-2 module-title'>Supplier List</h1>
                       <hr></hr>

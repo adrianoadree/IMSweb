@@ -88,6 +88,7 @@ const months = {
           purchaseId: 1,
           warehouseId: 1,
           supplierId: 1,
+          adjustmentId: 1,
           preferences: {showTips: true, showQuickAccess: false,},
           categories: [],
           accounts: [{name: "admin", password: "admin", designation: "Administrator", isActive: true, isAdmin: true}],

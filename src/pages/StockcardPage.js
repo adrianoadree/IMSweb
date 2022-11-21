@@ -58,6 +58,7 @@ function StockcardPage({ isAuth }) {
   var curr = new Date();
   curr.setDate(curr.getDate());
   var today = moment(curr).format('YYYY-MM-DD')
+  const [delayCount, setDelayCount]= useState(0)
 
   const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("add")
 
@@ -136,8 +137,18 @@ function StockcardPage({ isAuth }) {
     setTotalSales(temp)
   }, [productSales])
 
+  const getDelayCount = () => {
+    for(var i =0; i < purchaseRecordCollection.length; i++)
+    {
+      if(purchaseRecordCollection[i].order_date === undefined || purchaseRecordCollection[i].order_date == 0 || purchaseRecordCollection[i].order_date == "" || purchaseRecordCollection[i].order_date == " ")
+      {
+        return true
+      }
+    }
+  }
+
   const computeDelay = (transaction_date, order_date) => {
-    if (order_date === undefined) {
+    if (order_date === undefined || order_date == "" || order_date == " ") {
       return "-"
     }
     else {
@@ -226,18 +237,8 @@ function StockcardPage({ isAuth }) {
       return unsub;
     }
   }, [docId])
-  //query documents from sales_record that contains docId
-  useEffect(() => {
 
-    setProductPurchases(purchaseRecordCollection.map((element) => {
-      return {
-        ...element, product_list: element.product_list.filter((product_list) => product_list.itemId === stockcard[docId].id)
-      }
-    }))
-
-  }, [purchaseRecordCollection])
-
-  //compute for total sales
+  //compute for total purchases
   useEffect(() => {
     var tempPurch = 0;
     productPurchases.map((purch) => {
@@ -249,6 +250,46 @@ function StockcardPage({ isAuth }) {
     })
     setTotalPurchase(tempPurch)
   }, [productPurchases])
+
+  //query documents from sales_record that contains docId
+  useEffect(() => {
+    setProductPurchases(purchaseRecordCollection.map((element) => {
+      return {
+        ...element, product_list: element.product_list.filter((product_list) => product_list.itemId === stockcard[docId].id)
+      }
+    }))
+
+  }, [purchaseRecordCollection])
+
+    //--------------------------------PURCHASE TOTAL RECORD FUNCTION---------------------------------
+    const [adjustmentRecordCollection, setAdjustmentRecordCollection] = useState([]); // sales_record collection
+    const [productAdjustments, setProductAdjustments] = useState([])
+  
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+      if(stockcard === undefined || stockcard.length == 0)
+      {
+  
+      }
+      else {
+        const collectionRef = collection(db, "adjustment_record")
+        const q = query(collectionRef, where("product_ids", "array-contains", stockcard[docId].id));
+  
+        const unsub = onSnapshot(q, (snapshot) =>
+          setAdjustmentRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+        return unsub;
+      }
+    }, [docId])
+    //query documents from sales_record that contains docId
+    useEffect(() => {
+      setProductAdjustments(adjustmentRecordCollection.map((element) => {
+        return {
+          ...element, product_list: element.product_list.filter((product_list) => product_list.itemId === stockcard[docId].id)
+        }
+      }))
+  
+    }, [adjustmentRecordCollection])
 
 
   const [filterDateEnd, setFilterDateEnd] = useState(today);
@@ -293,14 +334,16 @@ function StockcardPage({ isAuth }) {
         }
       })
     }
-    var transac1_date
-    var transac2_date
     setFilteredLedger(tempTransac.sort((transac1, transac2) => {
-      transac1_date = new Date(transac1.transaction_date)
-      transac2_date = new Date(transac2.transaction_date)
-      return transac1_date.getTime() - transac2_date.getTime();
+      var transac1_date = new Date(transac1.transaction_date)
+      var transac2_date = new Date(transac2.transaction_date)
+      var difference = transac1_date.getTime() - transac2_date.getTime();
+      if(difference == 0)
+      {
+        difference = transac1.id.localeCompare(transac2.id);
+      }
+      return difference
     }))
-
   }
 
   useEffect(() => {
@@ -370,7 +413,15 @@ function StockcardPage({ isAuth }) {
           setDocId(stockcard.length-1)
           setKey(stockcard[stockcard.length-1].id)
         }
-        else {
+        else if(collectionUpdateMethod == "delete")
+        {
+          setDocId()
+          setKey("main")
+          setCollectionUpdateMethod("add")
+        }
+        else
+        {
+          
           setCollectionUpdateMethod("add")
         }
       }
@@ -421,17 +472,22 @@ function StockcardPage({ isAuth }) {
 
 
   useEffect(() => {
-    setLedgerBaseLevel(productSales.concat(productPurchases))
-    setFilteredLedger((productSales.concat(productPurchases)).sort((transac1, transac2) => {
-      transac1 = new Date(transac1.transaction_date)
-      transac2 = new Date(transac2.transaction_date)
-      return transac1.getTime() - transac2.getTime();
+    setLedgerBaseLevel(productAdjustments.concat(productSales.concat(productPurchases)))
+    setFilteredLedger((productAdjustments.concat(productSales.concat(productPurchases))).sort((transac1, transac2) => {
+      var transac1_date = new Date(transac1.transaction_date)
+      var transac2_date = new Date(transac2.transaction_date)
+      var difference = transac1_date.getTime() - transac2_date.getTime();
+      if(difference == 0)
+      {
+        difference = transac1.id.localeCompare(transac2.id);
+      }
+      return difference
     }))
     setFilterTransactionType("all")
     setFilterTransactionStatus("all")
     setFilterDateStart("2001-01-01")
     setFilterDateEnd(today)
-  }, [productPurchases])
+  }, [productPurchases, productSales, productAdjustments])
 
   function DisplayLedger(props) {
     return (
@@ -590,13 +646,13 @@ function StockcardPage({ isAuth }) {
           </div>
         </div>
         <div className="row m-0 px-0 p-0">
-          <Table hover id="per-product-record" className="scrollable-table">
+          <Table hover={filteredLedger.length > 0} id="per-product-record" className="scrollable-table">
             <thead>
               <tr>
                 <th className="tno left-curve">Transaction No.</th>
                 <th className="td">Date</th>
                 <th className="ts">Supplier</th>
-                <th className="tq">Quantity</th>
+                <th className="tq">Qty</th>
                 <th className="tnt right-curve">Notes</th>
               </tr>
             </thead>
@@ -609,9 +665,15 @@ function StockcardPage({ isAuth }) {
                       onClick={()=>{setRecordToView(transac.id); setRecordQuickViewModalShow(true)}}>
                         
                         <td className="tno">
-                          {transac.transaction_number}
+                          {transac.id.substring(0, 7)}
                         </td>
-                        <td className="td">{transac.transaction_date}</td>
+                        <td className="td">
+                          {transac.transaction_date == undefined?
+                            <>{transac.date}</>
+                          :
+                            <>{transac.transaction_date}</>
+                          }
+                        </td>
                         <td className="ts">
                           {transac.transaction_supplier === undefined ? 
                             <>-</> 
@@ -625,8 +687,20 @@ function StockcardPage({ isAuth }) {
                             </>
                           }
                         </td>
-                        <td className="tq">{transac.product_list[0].itemQuantity}</td>
-                        <td className="tnt">{transac.transaction_note}</td>
+                        <td className="tq">
+                          {transac.id.startsWith("PR")?
+                            <>{transac.product_list[0].itemQuantity}</>
+                          :
+                            <>{transac.product_list[0].itemQuantity * -1}</>
+                          }
+                        </td>
+                        <td className="tnt">
+                          {transac.transaction_note == undefined?
+                            <>{transac.notes}</>
+                          :
+                            <>{transac.transaction_note}</>
+                          }
+                        </td>
                       </tr>
                     )
                   })}
@@ -782,7 +856,7 @@ function StockcardPage({ isAuth }) {
         description: newStockcardDescription
         , classification: newStockcardClassification
         , category: newStockcardCategory
-        , barcode: newStockcardBarcode
+        , barcode: Number(newStockcardBarcode)
         , s_price: Number(newStockcardSPrice)
         , p_price: Number(newStockcardPPrice)
         , min_qty: Number(newStockcardMinQty)
@@ -799,9 +873,9 @@ function StockcardPage({ isAuth }) {
 
     //update Toast
     const updateToast = () => {
-      toast.info(stockcard[docId].description + ' successfully updated', {
+      toast.info("Updating "+ stockcard[docId].description, {
         position: "top-right",
-        autoClose: 5000,
+        autoClose: 1300,
         hideProgressBar: false,
         closeOnClick: true,
         pauseOnHover: true,
@@ -820,10 +894,6 @@ function StockcardPage({ isAuth }) {
         centered
         className="IMS-modal"
       >
-        <ToastContainer
-          newestOnTop={false}
-          pauseOnFocusLoss
-        />
         <Modal.Body >
           <div className="px-3 py-2">
             <div className="module-header mb-4">
@@ -1089,7 +1159,7 @@ function StockcardPage({ isAuth }) {
 
     //delete Toast
     const deleteToast = () => {
-      toast.error('Product DELETED from the Database', {
+      toast.error("Deleting " + stockcard[docId].description + " from the Database", {
         position: "top-right",
         autoClose: 1500,
         hideProgressBar: false,
@@ -1097,6 +1167,7 @@ function StockcardPage({ isAuth }) {
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
+        transition: Zoom
       });
     }
 
@@ -1109,17 +1180,6 @@ function StockcardPage({ isAuth }) {
         centered
         className="IMS-modal warning"
       >
-        <ToastContainer
-          position="top-right"
-          autoClose={3500}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
         <Modal.Body >
         {(stockcard.length == 0 || stockcard === undefined) || docId === undefined ?
         <></>
@@ -1201,9 +1261,19 @@ function StockcardPage({ isAuth }) {
       <div id="lead-time">
         <div className="row m-0 px-0 py-2 d-flex align-items-center justify-content-between">
           <div className="col-9 p-0">
-            <div className="yellow-strip p-2 left-full-curve right-full-curve w-100 h-80" style={{ fontSize: '0.95em' }}>
-              Some transactions have no order date. Lead time may be inaccurate.
-            </div>
+            {purchaseRecordCollection === undefined?
+              <></>
+            :
+              <>
+                {getDelayCount()?
+                  <div className="yellow-strip p-2 left-full-curve right-full-curve w-100 h-80" style={{ fontSize: '0.95em' }}>
+                    Some transactions have no order date. Lead time may be inaccurate.
+                  </div>
+                :
+                  <></>
+                }
+              </>
+            }
           </div>
           <div className="col-3 p-0 float-end">
             <button
@@ -1231,7 +1301,7 @@ function StockcardPage({ isAuth }) {
         </div>
         <div className="row m-0 px-0 d-flex justify-content-end">
           <div className="col-8">
-            <Table className="scrollable-table">
+            <Table className="scrollable-table records-table light">
               <thead>
                 <tr>
                   <th>Purchase Number</th>
@@ -1540,17 +1610,6 @@ function StockcardPage({ isAuth }) {
         aria-labelledby="contained-modal-title-vcenter"
         centered
       >
-        <ToastContainer
-          position="top-right"
-          autoClose={1000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-        />
         <Modal.Header closeButton>
           <Modal.Title id="contained-modal-title-vcenter">
             Set Product Leadtime
@@ -1662,17 +1721,6 @@ function StockcardPage({ isAuth }) {
         onHide={() => setRecordQuickViewModalShow(false)}
         recordid={recordToView}
       />
-      <ToastContainer
-        position="top-right"
-        autoClose={1500}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
 
       <Tab.Container
         activeKey={key}
@@ -1729,7 +1777,7 @@ function StockcardPage({ isAuth }) {
                       <>
                         {stockcard.length === 0 ?
                           <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>Product</span> to show.</strong></h5>
+                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>products</span> to show.</strong></h5>
                             <p className="d-flex align-items-center justify-content-center">
                               <span>Click the</span>
                               <Button
@@ -1797,6 +1845,18 @@ function StockcardPage({ isAuth }) {
             <div className="divider"></div>
             <div className='data-contents'>
               <Tab.Content>
+                    <div className="IMS-toast-container">
+                      <div className="IMS-toast">
+                        <div className="w-100 h-100 d-flex align-items-center justify-content-center">
+                        <ToastContainer
+                          className="w-100 h-100 d-flex align-items-center justify-content-center"
+                          newestOnTop={false}
+                          rtl={false}
+                          pauseOnFocusLoss
+                        />
+                        </div>
+                      </div>
+                    </div>
                 <Tab.Pane eventKey='main'>
                   <div className='row py-1 m-0 placeholder-content' id="product-contents">
                     <div className='row m-0 p-0'>
@@ -1808,7 +1868,6 @@ function StockcardPage({ isAuth }) {
                         <div className="me-2">
                           <InformationCircle
                             color={'#0d6efd'}
-                            title={'Category'}
                             height="40px"
                             width="40px"
                           />
@@ -2211,7 +2270,7 @@ function StockcardPage({ isAuth }) {
                                   />
                                 </a>
                                 <div className="col-10 data-label">
-                                  &#8369; {(Math.round(stockcard[docId].p_price * 100) / 100).toFixed(2)}
+                                  &#8369; {(Math.round(stockcard[docId].p_price * 100) / 100).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                                 </div>
                               </div>
                             </div>
@@ -2229,7 +2288,7 @@ function StockcardPage({ isAuth }) {
                                   />
                                 </a>
                                 <div className="col-10 data-label">
-                                  &#8369; {(Math.round(stockcard[docId].s_price * 100) / 100).toFixed(2)}
+                                  &#8369; {(Math.round(stockcard[docId].s_price * 100) / 100).toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                                 </div>
                               </div>
                             </div>

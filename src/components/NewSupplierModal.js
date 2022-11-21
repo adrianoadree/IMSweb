@@ -25,8 +25,8 @@ function NewSupplierModal(props) {
   const [newSupplierName, setnewSupplierName] = useState("");
   const [newSupplierAddress, setnewSupplierAddress] = useState("");
   const [newSupplierEmailAddress, setnewSupplierEmailAddress] = useState("");
-  const [newSupplierMobileNumber, setnewSupplierMobileNumber] = useState(0);
-  const [newSupplierTelephoneNumber, setnewSupplierTelephoneNumber] = useState(0);
+  const [newSupplierMobileNumber, setnewSupplierMobileNumber] = useState("");
+  const [newSupplierTelephoneNumber, setnewSupplierTelephoneNumber] = useState("");
 
 
   const [varRef, setVarRef] = useState([]); // variable collection
@@ -117,8 +117,8 @@ function NewSupplierModal(props) {
       , supplier_name: newSupplierName
       , supplier_emailaddress: newSupplierEmailAddress
       , supplier_address: newSupplierAddress
-      , supplier_mobileNum: Number(newSupplierMobileNumber)
-      , supplier_telNum: Number(newSupplierTelephoneNumber)
+      , supplier_mobileNum: newSupplierMobileNumber
+      , supplier_telNum: newSupplierTelephoneNumber
     });
 
     //update docNum variable
@@ -174,7 +174,10 @@ function NewSupplierModal(props) {
                 />
             </div>
             <div className='col-9 ps-4'>
-              <label>Supplier Name</label>
+              <label>
+                Supplier Name
+                <span style={{color: '#b42525'}}> *</span>
+              </label>
                 <input type="text"
                   className="form-control shadow-none"
                   placeholder="ABC Inc.,"

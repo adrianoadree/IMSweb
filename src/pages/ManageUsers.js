@@ -15,16 +15,11 @@ import ModRouter from '../pages/ModRouter';
 function ManageUsers() {
 
   //---------------------VARIABLES---------------------
-  const { user } = UserAuth();//user credentials
+  const { user } = UserAuth();// user credentials
   const [userID, setUserID] = useState("");
   const [userCollection, setUserCollection] = useState([]);
 
-  const [editModalShow, setEditModalShow] = useState(false); //display/hide edit modal
-  const [addModalShow, setAddModalShow] = useState(false);//display/hide add modal
-  const [profileID, setProfileID] = useState([]); //user profile id
-  const [account, setAccount] = useState([]);//accounts container
-  const [docId, setDocId] = useState("");
-  const [userProfile, setUserProfile] = useState([]);
+  const [docId, setDocId] = useState(0);
 
   //---------------------FUNCTIONS---------------------
   
@@ -34,34 +29,34 @@ function ManageUsers() {
     }
   }, [{ user }])
 
-  //read Functions
+  // read Functions
 
   useEffect(() => {
-
-          const userCollectionRef = collection(db, "user")
+    const userCollectionRef = collection(db, "user")
     
-          const unsub = onSnapshot(userCollectionRef, (snapshot) =>
-            setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-          );
-          return unsub;
-          
-        
+    const unsub = onSnapshot(userCollectionRef, (snapshot) =>
+      setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+    );
+    return unsub;
   }, [userID])
 
-  //update accounts and profileID
-  useEffect(() => {
-    userCollection.map((metadata) => {
-      setAccount(["name:hi",])
-      setProfileID(metadata.id)
-    });
-    console.log(userProfile.documents)
-  }, [userCollection])  
+  // change selected user
+  const handleDocChange = (user_id) => {
+    userCollection.map((user, index)=>{
+      if(user.id == user_id)
+      {
+        setDocId(index)
+      }
+    })
+  }
 
-  const handleFileName = (url) => {
+  // get file names
+  const getFileName = (url) => {
     var first_half = url.substring(121, url.length)
     return first_half.substring(0, first_half.length - 53)
   }
 
+  // verify chosen account
   const VerifyAccount = (id) => {
     const saveVerification = async () => {
       await updateDoc(doc(db, 'user', id), {
@@ -70,10 +65,10 @@ function ManageUsers() {
         preferences: {showTips: true, showQuickAccess: true,}
       });
   }
-
     saveVerification()
   }
 
+  // undo account verification
   const UndoVerifyAccount = (id) => {
     const saveUndoVerification = async () => {
       await updateDoc(doc(db, 'user', id), {
@@ -82,20 +77,8 @@ function ManageUsers() {
         preferences: {showTips: true, showQuickAccess: false,}
       });
   }
-
     saveUndoVerification()
   }
-
-  useEffect(() => {
-    async function readUser() {
-        const userProfileDoc = doc(db, "user", docId)
-        const docSnap = await getDoc(doc(db, "user", docId))
-        if (docSnap.exists()) {
-            setUserProfile(docSnap.data());
-        }
-    }
-    readUser()
-    }, [docId])
 
   return (
     <div>
@@ -103,21 +86,13 @@ function ManageUsers() {
         route="/manageusers"
       />
       <Navigation />
-
       <ToastContainer
-        position="top-right"
-        autoClose={1500}
-        hideProgressBar={false}
         newestOnTop={false}
-        closeOnClick
         rtl={false}
         pauseOnFocusLoss
-        draggable
-        pauseOnHover
       />
-
       <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-        <div className="row contents">
+        <div id="contents" className="row">
           <div className="row  py-4 px-5">
             <div className='sidebar'>
               <Card className='sidebar-card'>
@@ -141,55 +116,53 @@ function ManageUsers() {
                     </div>
                   </div>
                   <div >
-                  <ListGroup variant="flush">
-                    {userCollection.map((user) => {
-                      return (
-                        <ListGroup.Item
-                          action
-                          key={user.id}
-                          eventKey={user.id}
-                          onClick={() => { setDocId(user.id) }}>
-                              <div className="row gx-0 sidebar-contents">
+                    <ListGroup variant="flush">
+                      {userCollection.map((user) => {
+                        return (
+                          <ListGroup.Item
+                            action
+                            key={user.id}
+                            eventKey={user.id}
+                            onClick={() => { handleDocChange(user.id) }}
+                          >
+                            <div className="row gx-0 sidebar-contents">
                               <div className="col-3" style={{fontSize: "9pt"}}>
                                 {user.name}
                               </div>
                               <div className="col-7" style={{fontSize: "9pt"}}>
                                 {user.email}
                               </div>
-                                <div className="col-2" style={{fontSize: "9pt"}}>
-                                  {user.status == 'new'?
-                                      <span>New</span>
-                                    :
-                                      <span></span>
-                                  }
-                                  {user.status == 'inVerification'?
-                                      <span>In Verification</span>
-                                    :
-                                      <span></span>
-                                  }
-                                  {user.status == 'verified'?
-                                    <span>Verified</span>
-                                  :
-                                    <span></span>
-                                  }
-                                  {user.status == '' || user.status === undefined?
-                                      <span>N/A</span>
-                                    :
-                                      <span></span>
-                                  }
-                                </div>
-                              
+                              <div className="col-2" style={{fontSize: "9pt"}}>
+                                {user.status == 'new'?
+                                  <span>New</span>
+                                :
+                                  <span></span>
+                                }
+                                {user.status == 'inVerification'?
+                                  <span>In Verification</span>
+                                :
+                                  <span></span>
+                                }
+                                {user.status == 'verified'?
+                                  <span>Verified</span>
+                                :
+                                  <span></span>
+                                }
+                                {user.status == '' || user.status === undefined?
+                                  <span>N/A</span>
+                                :
+                                  <span></span>
+                                }
+                              </div>
                             </div>
-                        </ListGroup.Item>
-                      )
-                    })}
-
-                  </ListGroup>
+                          </ListGroup.Item>
+                        )
+                      })}
+                    </ListGroup>
                   </div>
                 </Card.Body>
               </Card>
             </div>
-
             <div className="divider"></div>
             <div className='data-contents'>
               <Tab.Content>
@@ -226,149 +199,149 @@ function ManageUsers() {
                   </div>
                 </div>
                 </Tab.Pane>
-
-                <Tab.Pane eventKey={docId}>
-                <div className='row py-1 m-0' id="supplier-contents">
-                    <div className='row m-0'>
-                      <h1 className='text-center pb-2 module-title'>Manage Users</h1>
-                      <hr></hr>
-                    </div>
-                    <div className="row py-1 m-0">
-                      <div className="col d-flex align-items-center">
-                      <span>
-                          <InformationCircle
-                            className="me-2 pull-down"
-                            color={'#0d6efd'} 
-                            title={'Category'}
-                            height="40px"
-                            width="40px"
-                          />
-                        </span>
-                        <h4 className="data-id">{docId}</h4>
+                {userCollection === undefined || userCollection.length == 0 || docId == undefined?
+                  <></>
+                :
+                  <Tab.Pane eventKey={userCollection[docId].id}>
+                    <div className='row py-1 m-0' id="supplier-contents">
+                      <div className='row m-0'>
+                        <h1 className='text-center pb-2 module-title'>Manage Users</h1>
+                        <hr></hr>
                       </div>
-                      <div className="col">
-                        <div className="float-end d-flex align-items-center">
-                          <h4 className="data-id me-3">Status:</h4>
+                      <div className="row py-1 m-0">
+                        <div className="col d-flex align-items-center">
+                        <span>
+                            <InformationCircle
+                              className="me-2 pull-down"
+                              height="40px"
+                              width="40px"
+                            />
+                          </span>
+                          <h4 className="data-id">{userCollection[docId].id}</h4>
+                        </div>
+                        <div className="col">
+                          <div className="float-end d-flex align-items-center">
+                            <h4 className="data-id me-3">Status:</h4>
                             <div className="d-inline-block">
-                              {userProfile.status == 'new'?
-                                      <label className="horizontal-switch new">
-                                      <span className="horizontal-slider round"></span>
-                                      <h6>New User</h6>
-                                    </label>
-                                    :
-                                      <></>
-                                  }
-                                  {userProfile.status == 'inVerification'?
-                                      <label className="horizontal-switch unchecked">
-                                      <input 
+                                {userCollection[docId].status == 'new'?
+                                  <label className="horizontal-switch new">
+                                    <span className="horizontal-slider round"></span>
+                                    <h6>New User</h6>
+                                  </label>
+                                :
+                                  <></>
+                                }
+                                {userCollection[docId].status == 'inVerification'?
+                                  <label className="horizontal-switch unchecked">
+                                    <input 
                                       type="checkbox"
                                       defaultValue="false"
-                                      onChange={()=>VerifyAccount(docId)}
-                                      />
-                                      <span className="horizontal-slider round"></span>
-                                      <h6>Unverified</h6>
-                                    </label>
-                                    :
-                                      <></>
-                                  }
-                                  {userProfile.status == 'verified'?
-                                    <label className="horizontal-switch">
+                                      onChange={()=>VerifyAccount(userCollection[docId].id)}
+                                    />
+                                    <span className="horizontal-slider round"></span>
+                                    <h6>Unverified</h6>
+                                  </label>
+                                :
+                                  <></>
+                                }
+                                {userCollection[docId].status == 'verified'?
+                                  <label className="horizontal-switch">
                                     <input 
-                                    type="checkbox"
-                                    checked="checked"
-                                    onChange={()=>UndoVerifyAccount(docId)}
+                                      type="checkbox"
+                                      checked="checked"
+                                      onChange={()=>UndoVerifyAccount(userCollection[docId].id)}
                                     />
                                     <span className="horizontal-slider round"></span>
                                     <h6>Verified</h6>
                                   </label>
-                                  :
-                                    <></>
-                                  }
-                                  {userProfile.status == '' || userProfile.status === undefined?
-                                      <label className="horizontal-switch na">
-                                      <span className="horizontal-slider round"></span>
-                                      <h6>Unavailable</h6>
-                                    </label>
-                                    :
-                                      <></>
-                                  }
-                              
+                                :
+                                  <></>
+                                }
+                                {userCollection[docId].status == '' || userCollection[docId].status === undefined?
+                                  <label className="horizontal-switch na">
+                                    <span className="horizontal-slider round"></span>
+                                    <h6>Unavailable</h6>
+                                      </label>
+                                :
+                                  <></>
+                                }
+                            </div>
                           </div>
                         </div>
                       </div>
+                      <div className="row py-1 data-specs">
+                        <div className="col-12 p-3" id="user-table">
+                          <Table bordered size="sm">
+                            <tbody>
+                              <tr>
+                                <td className="header left-curve">Name</td>
+                                <td className="content right-curve">{userCollection[docId].name}</td>
+                              </tr>
+                              <tr>
+                                <td className="header">Email</td>
+                                <td className="content">{userCollection[docId].email}</td>
+                              </tr>
+                              <tr>
+                                <td className="header">Phone Number</td>
+                                <td className="content">{userCollection[docId].phone}</td>
+                              </tr>
+                              <tr>
+                                <td className="header">Address</td>
+                                <td className="content">{userCollection[docId].address}</td>
+                              </tr>
+                            </tbody>
+                          </Table>
+                          <Table bordered size="sm">
+                            <tbody>
+                              <tr>
+                                <td className="header business left-curve">Business Name</td>
+                                <td className="content right-curve">{userCollection[docId].bname}</td>
+                              </tr>
+                              <tr>
+                                <td className="header business">Business Address</td>
+                                <td className="content">{userCollection[docId].baddress}</td>
+                              </tr>
+                              <tr>
+                                <td className="header business">Nature of Business</td>
+                                <td className="content">{userCollection[docId].bnature}</td>
+                              </tr>
+                              <tr>
+                                <td className="header business">Business Type</td>
+                                <td className="content">{userCollection[docId].btype}</td>
+                              </tr>
+                              <tr>
+                                <td className="header business">Business Phone Number</td>
+                                <td className="content">{userCollection[docId].bphone}</td>
+                              </tr>
+                              <tr>
+                                <td className="header business">Business Email Address</td>
+                                <td className="content">{userCollection[docId].bemail}</td>
+                              </tr>
+                              <tr>
+                                <td className="header business">Business Documents</td>
+                                <td className="content">
+                                  {userCollection[docId].documents == undefined?
+                                    <></>
+                                  :
+                                    <>
+                                    {userCollection[docId].documents.map((document)=>{
+                                      return(
+                                        <div>
+                                          <a href={document}>{getFileName(document)}</a>
+                                        </div>
+                                      )
+                                    })}
+                                    </>
+                                  }
+                                </td>
+                              </tr>
+                            </tbody>
+                          </Table>
+                      </div>
+                      </div>
                     </div>
-                    <div className="row py-1 data-specs">
-                      <div className="col-12 p-3" id="user-table">
-                        <Table bordered size="sm">
-                          <tbody>
-                            <tr>
-                              <td className="header left-curve">Name</td>
-                              <td className="content right-curve">{userProfile.name}</td>
-                            </tr>
-                            <tr>
-                              <td className="header">Email</td>
-                              <td className="content">{userProfile.email}</td>
-                            </tr>
-                            <tr>
-                              <td className="header">Phone Number</td>
-                              <td className="content">{userProfile.phone}</td>
-                            </tr>
-                            <tr>
-                              <td className="header">Address</td>
-                              <td className="content">{userProfile.address}</td>
-                            </tr>
-                          </tbody>
-                        </Table>
-                        <Table bordered size="sm">
-                          <tbody>
-                            <tr>
-                              <td className="header business left-curve">Business Name</td>
-                              <td className="content right-curve">{userProfile.bname}</td>
-                            </tr>
-                            <tr>
-                              <td className="header business">Business Address</td>
-                              <td className="content">{userProfile.baddress}</td>
-                            </tr>
-                            <tr>
-                              <td className="header business">Nature of Business</td>
-                              <td className="content">{userProfile.bnature}</td>
-                            </tr>
-                            <tr>
-                              <td className="header business">Business Type</td>
-                              <td className="content">{userProfile.btype}</td>
-                            </tr>
-                            <tr>
-                              <td className="header business">Business Phone Number</td>
-                              <td className="content">{userProfile.bphone}</td>
-                            </tr>
-                            <tr>
-                              <td className="header business">Business Email Address</td>
-                              <td className="content">{userProfile.bemail}</td>
-                            </tr>
-                            <tr>
-                              <td className="header business">Business Documents</td>
-                              <td className="content">
-                                {userProfile.documents == undefined?
-                                  <></>
-                                :
-                                  <>
-                                  {userProfile.documents.map((document)=>{
-                                    return(
-                                      <div>
-                                        <a href={document}>{handleFileName(document)}</a>
-                                      </div>
-                                    )
-                                  })}
-                                  </>
-                                }
-                              </td>
-                            </tr>
-                          </tbody>
-                        </Table>
-                    </div>
-                  </div>
-                </div>
-                </Tab.Pane>
+                  </Tab.Pane>
+                }
               </Tab.Content>
             </div>
           </div>

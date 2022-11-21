@@ -2,7 +2,7 @@ import React from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { db } from '../firebase-config';
-import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, updateDoc, where, orderBy } from 'firebase/firestore';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faTrashCan, faBan, faEdit } from '@fortawesome/free-solid-svg-icons'
@@ -24,8 +24,10 @@ function AccountManagement() {
   const [editModalShow, setEditModalShow] = useState(false); //display/hide edit modal
   const [addModalShow, setAddModalShow] = useState(false);//display/hide add modal
   const [profileID, setProfileID] = useState([]); //user profile id
-  const [account, setAccount] = useState([]);//accounts container
+  const [account, setAccount] = useState([{name: "", designation: "", password:""}]);//accounts container
   const [selectedAccount, setSelectedAccount] = useState(0);
+  const [salesRecordCollection, setSalesRecordCollection] = useState([]);
+  const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([])
 
   //---------------------FUNCTIONS---------------------
   
@@ -35,7 +37,53 @@ function AccountManagement() {
     }
   }, [{ user }])
 
-  
+  useEffect(() => {
+    //read purchase_record collection
+    if (userID === undefined) {
+      const purchaseRecordCollectionRef = collection(db, "purchase_record")
+      const q = query(purchaseRecordCollectionRef, where("user", "==", "DONOTDELETE"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+      const purchaseRecordCollectionRef = collection(db, "purchase_record")
+      const q = query(purchaseRecordCollectionRef, where("user", "==", userID), orderBy("transaction_number", "desc"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
+
+  useEffect(() => {
+    //read sales_record collection
+    if (userID === undefined) {
+
+      const collectionRef = collection(db, "sales_record")
+      const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+
+      const collectionRef = collection(db, "sales_record")
+      const q = query(collectionRef, where("user", "==", userID), orderBy("transaction_number", "desc"));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+
+    }
+
+  }, [userID])
 
   //read Functions
 
@@ -93,7 +141,24 @@ function AccountManagement() {
           progress: undefined,
       });
   }
+  
+  /*const checkIfInteracted = (name) => {
+    if((purchaseRecordCollection === undefined || purchaseRecordCollection.length == 0)|| (salesRecordCollection === undefined || salesRecordCollection.length == 0))
+    {
 
+    }
+    else
+    {
+      setPurchaseRecordCollection([... purchaseRecordCollection, salesRecordCollection])
+      purchaseRecordCollection.map((record) => {
+        if(record.issuer == name)
+        {
+          return true
+        }
+      })
+      return false
+    }
+  }*/
   const handleClose = () => setEditModalShow(false);
   function EditAccountModal(param) {
     var acc = account;//get accounts list and place in temp array
@@ -350,7 +415,9 @@ function AccountManagement() {
       route='/accountmanagement'
       />
 
-      <Navigation />
+      <Navigation 
+        page='/profileManagement'
+      />
 
       <ToastContainer
         position="top-right"
@@ -364,6 +431,11 @@ function AccountManagement() {
         pauseOnHover
       />
 
+                          
+      <EditAccountModal
+                          show={editModalShow}
+                          onHide={() => setEditModalShow(false)}
+                          />
       <Tab.Container id="list-group-tabs-example"defaultActiveKey={0}>
         <div id="contents" className="row">
           <div className="row  py-4 px-5">
@@ -422,20 +494,15 @@ function AccountManagement() {
                     <tbody>
                       {account.map((acc, i) => {
                         return(
-                          <>   
-                        <EditAccountModal
-                        show={editModalShow}
-                        onHide={() => setEditModalShow(false)}
-                        />
+                          <> 
                           <tr key={i}>
                             {acc.isActive?
                               <td className="nm pt-entry text-center">
                                 {acc.isAdmin?
-                                <strong>{acc.name}</strong>
+                                  <strong>{acc.name}</strong>
                                 :
-                                <>{acc.name}</>
-                                  }
-                                
+                                  <>{acc.name}</>
+                                }
                               </td>
                             :
                               <td className="nm pt-entry text-center"  style={{color: 'red'}}>
@@ -450,38 +517,38 @@ function AccountManagement() {
                             </td>
                             <td className="mn pt-entry text-center" >
                               {acc.isAdmin?
-                              <Button
-                              className="edit me-1"
-                              data-title="Edit Account"
-                              onClick={()=>{setSelectedAccount(i); setEditModalShow(true)}}
-                              >
-                              
-                                <FontAwesomeIcon icon={faEdit} />
-                              </Button>
+                                <Button
+                                  className="edit me-1"
+                                  data-title="Edit Account"
+                                  onClick={()=>{setSelectedAccount(i); setEditModalShow(true)}}
+                                >
+                                  <FontAwesomeIcon icon={faEdit} />
+                                </Button>
                               :
-<>
-                              <Button
-                              className="edit me-1"
-                              data-title="Edit Account"
-                              onClick={()=>{setSelectedAccount(i); setEditModalShow(true)}}
-                              >
+                                <>
+                                  <Button
+                                    className="edit me-1"
+                                    data-title="Edit Account"
+                                    onClick={()=>{setSelectedAccount(i); setEditModalShow(true)}}
+                                  >
+                                    <FontAwesomeIcon icon={faEdit} />
+                                  </Button>
+                                  <Button
+                                    className="deactivate me-1"
+                                    data-title="Activate/Deactivate Account"
+                                    onClick={()=>DeactivateAccount(account, i)}
+                                  >
+                                    <FontAwesomeIcon icon={faBan} />
+                                  </Button>
+                                  <Button
+                                    className="delete"
                               
-                                <FontAwesomeIcon icon={faEdit} />
-                              </Button>
-                              <Button
-                                className="deactivate me-1"
-                                data-title="Activate/Deactivate Account"
-                                onClick={()=>DeactivateAccount(account, i)}
-                              >
-                                <FontAwesomeIcon icon={faBan} />
-                              </Button>
-                              <Button
-                              className="delete"
-                              data-title="Delete Account"
-                              onClick={()=>DeleteAccount(account, i)}
-                              >
-                                <FontAwesomeIcon icon={faTrashCan} />
-                              </Button></>
+                                    data-title="Delete Account"
+                                    onClick={()=>DeleteAccount(account, i)}
+                                  >
+                                    <FontAwesomeIcon icon={faTrashCan} />
+                                  </Button>
+                                </>
                               }
                             </td>
                           </tr>

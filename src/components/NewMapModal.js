@@ -26,6 +26,7 @@ function NewMapModal(props) {
   const [modeChosen, setModeChosen] = useState();
   const [warehouseWidth, setWarehouseWidth] = useState(1);
   const [warehouseHeight, setWarehouseHeight] = useState(1);
+  const [storageWidth, setStorageWidth] = useState(1);
   const [mapPreviewDivHeight, setMapPreviewDivHeight] = useState(1);
   const [mapPreviewHeight, setMapPreviewHeight] = useState(1);
   const [mapPreviewDivWidth, setMapPreviewDivWidth] = useState(1);
@@ -133,6 +134,14 @@ function NewMapModal(props) {
     
     var tempArray = [];
     var tempCol = [];
+
+    if(modeChosen == "scale")
+    {
+      var col = warehouseWidth/storageWidth
+      var row = warehouseHeight/storageWidth
+      setCol(col)
+      setRow(row)
+    }
   
     for(var i = 0; i < col; i++){
       tempCol.push("");
@@ -260,8 +269,8 @@ function NewMapModal(props) {
                     />
                     <strong>Select a method to initialize your map: </strong>
                   </button>
-                  <button className="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, 'grid')}>By Grid</button>
-                  <button className="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, 'scale')}>By Scale</button>
+                  <button className="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, "grid")}>By Grid</button>
+                  <button className="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, "scale")}>By Scale</button>
                 </div>
                 <div id="grid" className="tabcontent">
                   <div className="row h-100">
@@ -490,7 +499,7 @@ function NewMapModal(props) {
                               onChange={(e) => {
                                 getMapPreviewHeight()
                                 setPrevClicked(false);
-                                setRow(e.target.value)
+                                setStorageWidth(e.target.value)
                               }}
                             />
                           </div>
