@@ -372,14 +372,15 @@ function NewMapModal(props) {
   const calculateGrid = () => {
     var col = warehouseWidth/storageWidth
     var row = warehouseHeight/storageWidth
-    setCol(col)
-    setRow(row)
+    setCol(Math.floor(col))
+    setRow(Math.floor(row))
   }
 
   const updatePreview = () => {
     
     var tempArray = [];
     var tempCol = [];
+    var prev_height = mapPreviewHeight
   
     for(var i = 0; i < col; i++){
       tempCol.push("");
@@ -389,9 +390,6 @@ function NewMapModal(props) {
       tempArray.push(tempCol);
     }
 
-    console.log(tempArray)
-    console.log(col)
-    console.log(row)
   
     setPrevCell(tempArray)
     if(mapPreviewHeight == mapPreviewDivHeight/row || mapPreviewHeight == mapPreviewDivWidth/col)
@@ -400,7 +398,13 @@ function NewMapModal(props) {
     }
     else
     {
-      if(mapPreviewHeight*col > mapPreviewDivWidth)
+      console.log(prev_height)
+      if(prev_height == 1)
+      {
+        prev_height = mapPreviewDivHeight/row
+      }
+      console.log(prev_height)
+      if(prev_height*col > mapPreviewDivWidth)
       {
         setMapPreviewHeight(mapPreviewDivWidth/col)
       }
