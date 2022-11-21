@@ -272,6 +272,7 @@ function NewMapModal(props) {
   const [prevBackground, setPrevBackground] = useState(0);
   const [cell, setCell] = useState({});
   const [prevClicked, setPrevClicked] = useState(false);
+  const [gridCalculated, setGridCalculated] = useState(false);
   const [modeChosen, setModeChosen] = useState();
   const [warehouseWidth, setWarehouseWidth] = useState(1);
   const [warehouseHeight, setWarehouseHeight] = useState(1);
@@ -279,6 +280,10 @@ function NewMapModal(props) {
   const [mapPreviewDivHeight, setMapPreviewDivHeight] = useState(1);
   const [mapPreviewHeight, setMapPreviewHeight] = useState(1);
   const [mapPreviewDivWidth, setMapPreviewDivWidth] = useState(1);
+
+  useEffect(()=>{
+    console.log(prevCell)
+  })
 
   useEffect(() => {
     if (isTemplateChosen) 
@@ -295,7 +300,7 @@ function NewMapModal(props) {
     setPrevDimension(prevHeight/row+1)
   })
 
-  function changeMode(evt, mode) {
+  const changeMode = (evt, mode) => {
     // Declare all variables
     var i, tabcontent, tablinks;
     setPrevClicked(false)
@@ -305,12 +310,6 @@ function NewMapModal(props) {
       allTabs[i].classList.remove('tablinks-init-style');
     }
   
-    // Get all elements with className="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-      tabcontent[i].style.display = "none";
-    }
-  
     // Get all elements with className="tablinks" and remove the className "active"
     tablinks = document.getElementsByClassName("tablinks");
     for (i = 0; i < tablinks.length; i++) {
@@ -318,7 +317,6 @@ function NewMapModal(props) {
     }
   
     // Show the current tab, and add an "active" className to the button that opened the tab
-    document.getElementById(mode).style.display = "block";
     evt.currentTarget.className += " active";
   } 
 
@@ -371,25 +369,29 @@ function NewMapModal(props) {
     }
   }
 
+  const calculateGrid = () => {
+    var col = warehouseWidth/storageWidth
+    var row = warehouseHeight/storageWidth
+    setCol(col)
+    setRow(row)
+  }
+
   const updatePreview = () => {
     
     var tempArray = [];
     var tempCol = [];
-
-    if(modeChosen == "scale")
-    {
-      var col = warehouseWidth/storageWidth
-      var row = warehouseHeight/storageWidth
-      setCol(col)
-      setRow(row)
-    }
   
     for(var i = 0; i < col; i++){
       tempCol.push("");
     }
+    
     for(var j = 0; j < row; j++){
       tempArray.push(tempCol);
     }
+
+    console.log(tempArray)
+    console.log(col)
+    console.log(row)
   
     setPrevCell(tempArray)
     if(mapPreviewHeight == mapPreviewDivHeight/row || mapPreviewHeight == mapPreviewDivWidth/col)
@@ -514,35 +516,45 @@ function NewMapModal(props) {
                   <button className="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, "grid")}>By Grid</button>
                   <button className="tablinks tablinks-init-style" onClick={(event)=>changeMode(event, "scale")}>By Scale</button>
                 </div>
-                <div id="grid" className="tabcontent">
+                {modeChosen === undefined?
+                <></>
+                :
+                <div className="tabcontent">
                   <div className="row h-100">
                     <div className="blue-strip p-2 mb-2 left-full-curve right-full-curve  d-flex align-items-center justify-content-center" style={{fontSize: '11pt'}}>
+                      {modeChosen == "grid"?
                       <span>With <strong>by grid</strong>, the number of workable spaces is dependent on the number of rows and columns (row * col).</span>
+                      :
+                      <span>With <strong>by scale</strong>, the number of workable spaces is dependent on the estimated dimensions of the warehouse as well as the dedicated width for every storage.</span>
+                      }
                     </div>
                     <div className="col-6">
                       <div id="map-preview">
                         <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                          {prevCell.map((row, index) =>
-                            <div 
-                              className="prev-box-row d-flex align-items-center justify-content-center"
-                              key={index}
-                            >
-                              {row.map((col, i) =>
-                                <div 
-                                  key={i}
-                                  className={'prev-box-col ' + prevBackground}
-                                  style={{width: mapPreviewHeight  + "px", height: mapPreviewHeight  + "px", aspectRatio: "1 / 1"}}
-                                >
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          {prevCell.map((row, index) =>{
+                          return(
+                          <div 
+                            className="prev-box-row d-flex align-items-center justify-content-center"
+                            key={index}
+                          >
+                            {row.map((col, i) =>
+                              <div 
+                                key={i}
+                                className={'prev-box-col ' + prevBackground}
+                                style={{width: mapPreviewHeight  + "px", height: mapPreviewHeight  + "px", aspectRatio: "1 / 1"}}
+                              >
+                              </div>
+                            )}
+                          </div>
+                          )
+                        })}
                         </div>
                       </div>
                     </div>
                     <div className="col-6">
                       <h6 className="mb-2"></h6>
                       <div className="mb-2">
+                        {modeChosen == "grid"?
                         <div className="row m-0 mb-3 p-0 d-flex align-items-center">
                           <div className="col-5">
                             <label className="mb-2">Columns</label>
@@ -578,120 +590,7 @@ function NewMapModal(props) {
                             />
                           </div>
                         </div>
-                        <div className="row m-0 mb-3 p-0 d-flex justify-content-center align-items-center">
-                          <div className="mb-2">Choose warehouse flooring</div>
-                          <div className="color-swatch map-creation d-flex justify-content-center mb-2">
-                            <button
-                              className="color"
-                              style={{backgroundColor: '#ffffff'}}
-                              data-title="None"
-                              onClick={()=>{setPrevBackground('#ffffff');setPrevClicked(false)
-                              }}
-                            >
-                            </button>
-                            <button
-                              className="color"
-                              style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fsmooth_conrete.jpg?alt=media&token=0773acac-c048-4f33-8f39-47fd644330d6")'}}
-                              data-title="Smooth Concrete"
-                              onClick={()=>{setPrevBackground('pattern-smooth-concrete');setPrevClicked(false)}}
-                            >
-                            </button>
-                            <button
-                              className="color"
-                              style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Frough_concrete.jpg?alt=media&token=3cce02b1-a2fd-49cc-8011-507f6ea3c352")'}}
-                              data-title="Rough Concrete"
-                              onClick={()=>{setPrevBackground('pattern-rough-concrete');setPrevClicked(false)}}
-                            >
-                            </button>
-                            <button
-                              className="color"
-                              style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fdark_wood.jpg?alt=media&token=d3385145-b7ac-4845-a06c-e51012d56226")'}}
-                              data-title="Dark Wood"
-                              onClick={()=>{setPrevBackground('pattern-dark-wood');setPrevClicked(false)}}
-                            >
-                            </button>
-                            <button
-                              className="color"
-                              style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Flight_wood.jpg?alt=media&token=307a303c-1698-4c92-ad96-def38752042e")'}}
-                              data-title="Light Wood"
-                              onClick={()=>{setPrevBackground('pattern-light-wood');setPrevClicked(false)}}
-                            >
-                            </button>
-                            <button
-                              className="color"
-                              style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fwhite_tile.jpg?alt=media&token=09c77e80-ba5c-44c8-a056-e169a449100d")'}}
-                              data-title="Tile"
-                              onClick={()=>{setPrevBackground('pattern-white-tile');setPrevClicked(false)}}
-                            >
-                            </button>
-                            <button
-                              className="color"
-                              style={{backgroundImage: 'url("https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fcell_patterns%2Fbrick.jpg?alt=media&token=403814c0-b98b-4c8f-89f9-f23720905649")'}}
-                              data-title="Cobblestone"
-                              onClick={()=>{setPrevBackground('pattern-cobblestone');setPrevClicked(false)}}
-                              >
-                            </button>
-                          </div>
-                        </div>
-                        <div className="row m-0 mb-3 p-0">
-                          <div className="col d-flex justify-content-center">
-                            <Button
-                              disabled={col <= 0 || row <=0}
-                              className="preview float-end disabled-conditionally"
-                              data-title={col <= 0 || row <=0?"Enter positive numbers":""}
-                              variant="outline-primary"
-                              onClick={(e)=>{setPrevClicked(true);updatePreview()}}
-                            >
-                              Preview
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="row m-0 p-0">
-                          <div className="col d-flex justify-content-center">
-                            {col <= 0 || row <=0?
-                              <div className="red-strip p-2 mb-4 left-full-curve right-full-curve  d-flex align-items-center justify-content-center" style={{fontSize: '11pt'}}>
-                                Please enter the corrent number of columns and rows.
-                              </div>
-                            :
-                              <div className="blue-strip p-2 mb-4 left-full-curve right-full-curve  d-flex align-items-center justify-content-center" style={{fontSize: '11pt'}}>
-                                You created a warehouse map with {col*row} spaces.
-                              </div>
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div id="scale" className="tabcontent">
-                <div className="row h-100">
-                    <div className="blue-strip p-2 mb-2 left-full-curve right-full-curve  d-flex align-items-center justify-content-center" style={{fontSize: '11pt'}}>
-                    <span>With <strong>by scale</strong>, the number of workable spaces is dependent on the estimated dimensions of the warehouse as well as the dedicated width for every storage.</span>
-                    </div>
-                    <div className="col-6">
-                      <div id="map-preview">
-                        <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                          {prevCell.map((row, index) =>
-                            <div 
-                              className="prev-box-row d-flex align-items-center justify-content-center"
-                              key={index}
-                            >
-                              {row.map((col, i) =>
-                                <div 
-                                  key={i}
-                                  className={'prev-box-col ' + prevBackground}
-                                  style={{width: mapPreviewHeight  + "px", height: mapPreviewHeight  + "px", aspectRatio: "1 / 1"}}
-                                >
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="col-6">
-                      <h6 className="mb-2"></h6>
-                      <div className="mb-2">
+                        :
                         <div className="row m-0 mb-3 p-0 d-flex align-items-center">
                           <div className="col-12">
                             <label className="mb-2">Warehouse Dimensions</label>
@@ -705,7 +604,7 @@ function NewMapModal(props) {
                                 value={warehouseWidth}
                                 onChange={(e) => { 
                                   getMapPreviewHeight()
-                                  setPrevClicked(false);
+                                  setGridCalculated(false);
                                   setWarehouseWidth(e.target.value)
                                 }}
                               />
@@ -722,7 +621,7 @@ function NewMapModal(props) {
                                 value={warehouseHeight}
                                 onChange={(e) => { 
                                   getMapPreviewHeight()
-                                  setPrevClicked(false);
+                                  setGridCalculated(false);
                                   setWarehouseHeight(e.target.value)
                                 }}
                               />
@@ -737,15 +636,16 @@ function NewMapModal(props) {
                               className="form-control"
                               placeholder="Row"
                               min={1}
-                              defaultValue={row}
+                              value={storageWidth}
                               onChange={(e) => {
                                 getMapPreviewHeight()
-                                setPrevClicked(false);
+                                setGridCalculated(false);
                                 setStorageWidth(e.target.value)
                               }}
                             />
                           </div>
                         </div>
+                        }
                         <div className="row m-0 mb-3 p-0 d-flex justify-content-center align-items-center">
                           <div className="mb-2">Choose warehouse flooring</div>
                           <div className="color-swatch map-creation d-flex justify-content-center mb-2">
@@ -803,6 +703,28 @@ function NewMapModal(props) {
                         </div>
                         <div className="row m-0 mb-3 p-0">
                           <div className="col d-flex justify-content-center">
+                            {modeChosen == "scale"?
+                            <>
+                            <Button
+                              disabled={warehouseWidth <= 0 || warehouseHeight <=0 || storageWidth <=0}
+                              className="preview float-end disabled-conditionally me-2"
+                              data-title={warehouseWidth <= 0 || warehouseHeight <=0 || storageWidth <=0?"Enter positive numbers":""}
+                              variant="outline-primary"
+                              onClick={(e)=>{setGridCalculated(true);calculateGrid()}}
+                            >
+                              Calculate
+                            </Button>
+                            <Button
+                              disabled={!gridCalculated}
+                              className="preview float-end disabled-conditionally"
+                              data-title={!gridCalculated?"Calculate the dimensions first":""}
+                              variant="outline-primary"
+                              onClick={(e)=>{setPrevClicked(true);updatePreview()}}
+                            >
+                              Preview
+                            </Button>
+                            </>
+                            :
                             <Button
                               disabled={col <= 0 || row <=0}
                               className="preview float-end disabled-conditionally"
@@ -812,6 +734,7 @@ function NewMapModal(props) {
                             >
                               Preview
                             </Button>
+                            }
                           </div>
                         </div>
                         <div className="row m-0 p-0">
@@ -831,6 +754,8 @@ function NewMapModal(props) {
                     </div>
                   </div>
                 </div>
+                  
+                }
               </div>
             </div>
           </div>
@@ -849,7 +774,7 @@ function NewMapModal(props) {
         <Button
           className="btn btn-light float-start"
           style={{ width: "8rem" }}
-          disabled={!prevClicked}
+          disabled={!prevClicked || !gridCalculated}
           onClick={()=>{setPrevClicked(true); addMap()}}
         >
           Create Map
@@ -1300,7 +1225,7 @@ function NewMapModal(props) {
                     
                     <button
                       id="add-column-icon"
-                      classname="plain-button"
+                      className="plain-button"
                       onClick={(show)=>addColumn(warehouse[whId].cells, warehouse[whId].row, warehouse[whId].col)}
                     >
                       <FontAwesomeIcon icon={faPlus}/>
