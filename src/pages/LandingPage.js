@@ -1170,9 +1170,9 @@ function LandingPage() {
                                     </a>
                                 </div>
                                 <h4 className="mb-2 py-2"><strong>Summary Report</strong></h4>
-                                <h5 className="yellow-strip subtitle">{handleDateDisplay()}</h5>
+                                <h5 className="yellow-strip subtitle left-full-curve right-full-curve p-2">{handleDateDisplay()}</h5>
                             </Card.Header>
-                            <Card.Body className="folder-style">
+                            <Card.Body className="folder-style mt-2">
                                 <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
                                     <Nav variant="pills" defaultActiveKey={0}>
                                         <Nav.Item>

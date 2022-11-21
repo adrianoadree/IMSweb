@@ -2402,7 +2402,7 @@ function StockcardPage({ isAuth }) {
                           </div>
                         </div>
                       </div>
-                      <div className="folder-style">
+                      <div className="folder-style mt-2">
                         <Tab.Container id="list-group-tabs-example" defaultActiveKey={1}>
                           <Nav variant="pills" defaultActiveKey={1}>
                             <Nav.Item>
