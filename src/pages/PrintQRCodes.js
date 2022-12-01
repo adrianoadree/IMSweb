@@ -166,11 +166,17 @@ function PrintQRCodes() {
   // get product information of products inside the storage
   const getProductInfo = (product_id) => {
     var tempProd = {}
-    stockcardCollection.map((prod)=>{
-      if(prod.id == product_id){
-        tempProd = prod
-      }
-    })
+    if(stockcardCollection === undefined)
+    {
+    }
+    else
+    {
+      stockcardCollection.map((prod)=>{
+        if(prod.id == product_id){
+          tempProd = prod
+        }
+      })
+    }
     return tempProd
   }
 

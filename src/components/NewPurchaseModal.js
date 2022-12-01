@@ -429,19 +429,6 @@ function NewPurchaseModal(props) {
                                 </div>
                             </div>
                             <div className="row my-2 mb-3">
-                                <div className='col-6 ps-4'>
-                                    <label>
-                                        Transaction Date
-                                        <span style={{color: '#b42525'}}> *</span>
-                                    </label>
-                                    <input
-                                        type='date'
-                                        required
-                                        className="form-control shadow-none"
-                                        value={newTransactionDate}
-                                        onChange={e => setNewTransactionDate(e.target.value)}
-                                    />
-                                </div>
                                 <div className="col-6 ps-4">
                                     <label>
                                         Date Ordered
@@ -459,6 +446,19 @@ function NewPurchaseModal(props) {
                                             value={newOrderDate}
                                             onChange={e => setNewOrderDate(e.target.value)}
                                         />  
+                                </div>
+                                <div className='col-6 ps-4'>
+                                    <label>
+                                        Date Received
+                                        <span style={{color: '#b42525'}}> *</span>
+                                    </label>
+                                    <input
+                                        type='date'
+                                        required
+                                        className="form-control shadow-none"
+                                        value={newTransactionDate}
+                                        onChange={e => setNewTransactionDate(e.target.value)}
+                                    />
                                 </div>
                                 <div className="col-12 ps-4">
                                     <div 

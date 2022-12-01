@@ -1,11 +1,12 @@
 import React from 'react';
 import { Tab, Button, ListGroup, Modal, Card, Table,FormControl,InputGroup} from 'react-bootstrap';
 import Navigation from '../layout/Navigation';
-import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase-config';
 import { collection, doc, deleteDoc, updateDoc, onSnapshot, query, where, getDoc } from 'firebase/firestore';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrashCan, faPlus, faMap, faEdit, faArrowCircleRight, faDoorOpen, faDoorClosed, faSave, faGears,faSearch } from '@fortawesome/free-solid-svg-icons'
+import { faTrashCan, faPlus, faMap, faEdit, faArrowCircleRight, faDoorOpen, faDoorClosed, faSave, faGears,faSearch, faClose } from '@fortawesome/free-solid-svg-icons'
 import { faMap as faMapO } from '@fortawesome/free-regular-svg-icons'
 import QRCode from "react-qr-code";
 import { Create, Text, QrCode as QR, SearchOutline} from 'react-ionicons'
@@ -48,15 +49,14 @@ function Warehouse(props) {
   const [isStockcardFetched, setIsStockcardFetched] = useState();
   const [key, setKey] = useState('main');//Tab controller
   const [collectionUpdateMethod, setCollectionUpdateMethod] = useState("add")
-  const [newWarehouseName, setNewWarehouseName] = useState("")
-  const [newWarehouseAddress, setNewWarehouseAddress] = useState("")
-  const [newWarehouseNotes, setNewWarehouseNotes] = useState("")
   const [openStorageHovered, setOpenStorageHovered] = useState(false)
   const [closeStorageHovered, setCloseStorageHovered] = useState(false)
   const [warehouseTemplates, setWarehouseTemplates] = useState([])
   const [isTemplateChosen, setIsTemplateChosen]= useState(false)
   const [templateChosen, setTemplateChosen] = useState({})
   const [warehouseFormerLength, setWarehouseFormerLength] = useState(0)
+  const [searchResult, setSearchResult] = useState([])
+  const storageSearchRef = useRef(null);
 
   //element state updater
   useEffect(() => {
@@ -86,21 +86,7 @@ function Warehouse(props) {
     {
       for(var i = 0; i < allID.length; i++) {allID[i].classList.add('d-none');} // hide space ids
     }
-
-    var warehouse_list_bar = document.getElementById("warehouse-list-bar");
-    var warehouse_list_visibility_toggle = document.getElementById("warehouse-list-visibility-toggle");
-    var warehouse_list_footer = document.getElementById("warehouse-list-bar-footer");
-
-    if (warehouseListVisible) {
-      warehouse_list_bar.classList.remove("d-none")
-      warehouse_list_visibility_toggle.setAttribute("data-title","Hide");
-      warehouse_list_footer.classList.remove("warehouse-list-bar-hidden");
-    } else {
-      warehouse_list_bar.classList.add("d-none")
-      warehouse_list_visibility_toggle.setAttribute("data-title","Show");
-      warehouse_list_footer.classList.add("warehouse-list-bar-hidden");
-    }
-  }, )
+  },[editingMap, qrVisible, cellIdVisible] )
 
   useEffect(() => { 
     async function getTemplatesDoc() {
@@ -230,18 +216,6 @@ function Warehouse(props) {
     })
   }
 
-  useEffect(() => {
-    if(warehouse === undefined || whId == undefined)
-    {
-
-    }
-    else
-    {
-      setNewWarehouseName(warehouse[whId].wh_name)
-      setNewWarehouseAddress(warehouse[whId].address)
-      setNewWarehouseNotes(warehouse[whId].wh_notes)
-    }
-  }, [whId])
 
   useEffect(()=>{
     if(stockcard === undefined) {
@@ -253,13 +227,12 @@ function Warehouse(props) {
     }
   }, [stockcard])
 
-  function addPadding(num) {
+
+  const addPadding = (num) => {
     var padded = num + "";
     while(padded.length < 2) {padded = "0" + padded;}
     return padded;
   }
- 
-
 
   
 function NewMapModal(props) {
@@ -280,10 +253,6 @@ function NewMapModal(props) {
   const [mapPreviewDivHeight, setMapPreviewDivHeight] = useState(1);
   const [mapPreviewHeight, setMapPreviewHeight] = useState(1);
   const [mapPreviewDivWidth, setMapPreviewDivWidth] = useState(1);
-
-  useEffect(()=>{
-    console.log(prevCell)
-  })
 
   useEffect(() => {
     if (isTemplateChosen) 
@@ -321,11 +290,7 @@ function NewMapModal(props) {
   } 
 
 
-  function addPadding(num) {
-    var padded = num + "";
-    while(padded.length < 2) {padded = "0" + padded;}
-    return padded;
-  }
+
 
   const pushCellsArray = () => {
     var tempArray = []
@@ -345,9 +310,6 @@ function NewMapModal(props) {
     setCell(tempArray);
   }
 
-  useEffect(()=>{
-    console.log(modeChosen)
-  })
   const getMapPreviewHeight = () => {
     if(mapPreviewHeight == 1)
     {
@@ -398,12 +360,10 @@ function NewMapModal(props) {
     }
     else
     {
-      console.log(prev_height)
       if(prev_height == 1)
       {
         prev_height = mapPreviewDivHeight/row
       }
-      console.log(prev_height)
       if(prev_height*col > mapPreviewDivWidth)
       {
         setMapPreviewHeight(mapPreviewDivWidth/col)
@@ -446,10 +406,6 @@ function NewMapModal(props) {
     }
     setCollectionUpdateMethod("update")
     props.onHide()
-  }
-
-  const computeSpaces = () => {
-
   }
 
   return (
@@ -778,7 +734,7 @@ function NewMapModal(props) {
         <Button
           className="btn btn-light float-start"
           style={{ width: "8rem" }}
-          disabled={!prevClicked || !gridCalculated}
+          disabled={modeChosen == "scale"?(!prevClicked || !gridCalculated):!prevClicked}
           onClick={()=>{setPrevClicked(true); addMap()}}
         >
           Create Map
@@ -895,12 +851,10 @@ function NewMapModal(props) {
   }
 
   const checkIfPooled = (warehouse_cells) => {
-    console.log(warehouse_cells)
     for(var i = 0; i < warehouse_cells.length; i++)
     {
       for(var j = 0; j < Object.keys(warehouse_cells[i]).length; j++)
       {
-        console.log(warehouse_cells[i][j])
         if(warehouse_cells[i][j].products.length > 0)
         {
           return true;
@@ -910,15 +864,6 @@ function NewMapModal(props) {
     return false;
   }
 
-  const editWarehouse = () => {
-    updateDoc(doc(db, "warehouse", warehouse[whId].id), {
-      wh_name: newWarehouseName,
-      address: newWarehouseAddress,
-      wh_notes: newWarehouseNotes
-    });
-    setCollectionUpdateMethod("update")
-    updateWarehouseToast()
-  }
 
   const updateWarehouseToast = () => {
     toast.info(warehouse[whId].id.substring(0, 4) + " edited", {
@@ -945,7 +890,7 @@ function NewMapModal(props) {
                       draggable
                     >
                       <a 
-                        className="box d-flex align-items-center justify-content-center"
+                        className={"box" + (searchResult.includes(content[k].id)?" searched ":" ") + "d-flex align-items-center justify-content-center"}
                         key={'row' + index + '-' + k}
                       >
                         <div className="box-call-to-action"
@@ -1182,7 +1127,7 @@ function NewMapModal(props) {
                             
                           </div>
                         </div>
-                        <div className={'box-col ' + content[k].color} style ={{width: (getMapWidth()/warehouse[whId].col) + 'px', height: (getMapWidth()/warehouse[whId].col) + 'px'}}
+                        <div className={'box-col ' + content[k].color + " border-0"} style ={{width: (getMapWidth()/warehouse[whId].col) + 'px', height: (getMapWidth()/warehouse[whId].col) + 'px'}}
                         key={'col' + index + '-' + k}
                         >
                           {content[k].isStorage?
@@ -1434,7 +1379,6 @@ function NewMapModal(props) {
       </div>
     )
   }
-  
   function WarehouseMapAddProductModal(props) {
     const [productsInStorage, setProductsInStorage] = useState([]);
     const [cellId, setCellId] = useState("");
@@ -1496,6 +1440,8 @@ function NewMapModal(props) {
 
       setOutStorageSearchValue(keyword);
     };
+
+
 
     const handleProductSelect = (product) => {
       let productIndex = productsInStorage.indexOf(product)
@@ -1580,7 +1526,7 @@ function NewMapModal(props) {
                       <div className="products-container">
                         <div className="products-container-header">
                           <div className="row">
-                            <InputGroup id="fc-search">
+                            <InputGroup>
                               <InputGroup.Text>
                                 <FontAwesomeIcon icon={faSearch} />
                               </InputGroup.Text>
@@ -1596,62 +1542,75 @@ function NewMapModal(props) {
                           </div>
                         </div>
                         <div className="products-container-body">
-                          <div className="row" style={{overflowY:"scroll"}}>
+                          <div className="h-100 row" style={{overflowY:"scroll"}}>
                             {stockcard === undefined?<></>:<>
-                              {outStorageSearchResult && outStorageSearchResult.length > 0 ? (
-                                outStorageSearchResult.map((stockcard) => (
-                                  <>
-                                    {productsInStorage === undefined? <>
-                                      <Spinner 
-                                        color1="#b0e4ff"
-                                        color2="#fff"
-                                        textColor="rgba(0,0,0, 0.5)"
-                                        className="w-25 h-25"
-                                      /></>
-                                    :
-                                      <>
-                                        {productsInStorage.indexOf(stockcard.id) == -1?
-                                          <div className="col-6 p-1">
-                                            <button
-                                              className={"product-inselection" + (stockcard.qty == 0?" product-not-used":"")}
-                                              id={stockcard.id}
-                                              key={stockcard.id}
-                                              onClick={() => { handleProductSelect(stockcard.id)}}
-                                              style={{border: '0', background: 'none'}}
-                                            >
-                                              <Card>
-                                                <Card.Body>
-                                                  <strong>{stockcard.description}</strong>
-                                                  <div className="row specification" style={{margin: '0 auto'}}>
-                                                    <div className="col-8 p-0 p-0">
-                                                      <p className="code">{stockcard.id.substring(0, 9)}</p>
-                                                    </div>
-                                                    <div className="col-4 p-0 p-0">
-                                                      <p className="qty">QTY: {stockcard.qty}</p>
-                                                    </div>
+                            {stockcard.length == 0?
+                            <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                            <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>products</span> to show.</strong></h5>
+                            <p className="d-flex align-items-center justify-content-center">
+                            <span>
+                            Go to 
+                            <Link to="/stockcard"><strong> stockcard </strong></Link>
+                            to add one.
+                          </span>
+                            </p>
+                          </div>
+                            :
+                            <>{outStorageSearchResult && outStorageSearchResult.length > 0 ? (
+                              outStorageSearchResult.map((stockcard) => (
+                                <>
+                                  {productsInStorage === undefined? <>
+                                    <Spinner 
+                                      color1="#b0e4ff"
+                                      color2="#fff"
+                                      textColor="rgba(0,0,0, 0.5)"
+                                      className="w-25 h-25"
+                                    /></>
+                                  :
+                                    <>
+                                      {productsInStorage.indexOf(stockcard.id) == -1?
+                                        <div className="col-6 p-1">
+                                          <button
+                                            className={"product-inselection" + (stockcard.qty == 0?" product-not-used":"")}
+                                            id={stockcard.id}
+                                            key={stockcard.id}
+                                            onClick={() => { handleProductSelect(stockcard.id)}}
+                                            style={{border: '0', background: 'none'}}
+                                          >
+                                            <Card>
+                                              <Card.Body>
+                                                <strong>{stockcard.description}</strong>
+                                                <div className="row specification" style={{margin: '0 auto'}}>
+                                                  <div className="col-8 p-0 p-0">
+                                                    <p className="code">{stockcard.id.substring(0, 9)}</p>
                                                   </div>
-                                                </Card.Body>
-                                              </Card>
-                                            </button>
-                                          </div>
-                                        :
-                                          <></>
-                                        }
-                                      </>
-                                    }
-                                  </>
-                                ))
-                                ) : (
-                                <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
-                                  <h5>
-                                    <strong className="d-flex align-items-center justify-content-center flex-column">
-                                      No product matched:
-                                      <br />
-                                      <span style={{ color: '#0d6efd' }}>{outStorageSearchValue}</span>
-                                    </strong>
-                                  </h5>
-                                </div>
-                              )}
+                                                  <div className="col-4 p-0 p-0">
+                                                    <p className="qty">QTY: {stockcard.qty}</p>
+                                                  </div>
+                                                </div>
+                                              </Card.Body>
+                                            </Card>
+                                          </button>
+                                        </div>
+                                      :
+                                        <></>
+                                      }
+                                    </>
+                                  }
+                                </>
+                              ))
+                              ) : (
+                              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
+                                <h5>
+                                  <strong className="d-flex align-items-center justify-content-center flex-column">
+                                    No product matched:
+                                    <br />
+                                    <span style={{ color: '#0d6efd' }}>{outStorageSearchValue}</span>
+                                  </strong>
+                                </h5>
+                              </div>
+                            )}</>}
+                              
                               </>
                             }
                           </div>
@@ -1689,62 +1648,77 @@ function NewMapModal(props) {
                           </InputGroup>
                         <p className="product-adding-stage-tip">Click a product to <span style={{color: '#e36262c3'}}>remove</span> from the storage</p>
                       </div>
-                      <div className="row" style={{overflowY:"scroll"}}>
+                      <div className="h-100 row " style={{overflowY:"scroll"}}>
                         {stockcard === undefined?<></>:<>
-                            {inStorageSearchResult && inStorageSearchResult.length > 0 ? (
-                              inStorageSearchResult.map((stockcard) => (
+                        {stockcard.length == 0?
+                        
+                        <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                        <h5 className="mb-3"><strong>No <span style={{ color: '#0d6efd' }}>products</span> to show.</strong></h5>
+                        <p className="d-flex align-items-center justify-content-center">
+                          <span>
+                            Go to 
+                            <Link to="/stockcard"><strong> stockcard </strong></Link>
+                            to add one.
+                          </span>
+                        </p>
+                      </div>
+                        :
+                         <>{inStorageSearchResult && inStorageSearchResult.length > 0 ? (
+                          inStorageSearchResult.map((stockcard) => (
+                            <>
+                              {productsInStorage === undefined? <>
+                                <Spinner 
+                                  color1="#b0e4ff"
+                                  color2="#fff"
+                                  textColor="rgba(0,0,0, 0.5)"
+                                  className="w-25 h-25"
+                                /></>
+                              :
                                 <>
-                                  {productsInStorage === undefined? <>
-                                    <Spinner 
-                                      color1="#b0e4ff"
-                                      color2="#fff"
-                                      textColor="rgba(0,0,0, 0.5)"
-                                      className="w-25 h-25"
-                                    /></>
+                                  {productsInStorage.indexOf(stockcard.id) >= 0?
+                                    <div className="col-6 p-0">
+                                      <button
+                                        className={"product-inselection" + (stockcard.qty == 0?" product-not-used":"")}
+                                        id={stockcard.id}
+                                        key={stockcard.id}
+                                        onClick={() => { handleProductSelect(stockcard.id)}}
+                                        style={{border: '0', background: 'none'}}
+                                      >
+                                        <Card>
+                                          <Card.Body>
+                                            <strong>{stockcard.description}</strong>
+                                            <div className="row specification" style={{margin: '0 auto'}}>
+                                              <div className="col-8 p-0 p-0">
+                                                <p className="code">{stockcard.id.substring(0, 9)}</p>
+                                              </div>
+                                              <div className="col-4 p-0 p-0">
+                                                <p className="qty">QTY: {stockcard.qty}</p>
+                                              </div>
+                                            </div>
+                                          </Card.Body>
+                                        </Card>
+                                      </button>
+                                    </div>
                                   :
-                                    <>
-                                      {productsInStorage.indexOf(stockcard.id) >= 0?
-                                        <div className="col-6 p-0">
-                                          <button
-                                            className={"product-inselection" + (stockcard.qty == 0?" product-not-used":"")}
-                                            id={stockcard.id}
-                                            key={stockcard.id}
-                                            onClick={() => { handleProductSelect(stockcard.id)}}
-                                            style={{border: '0', background: 'none'}}
-                                          >
-                                            <Card>
-                                              <Card.Body>
-                                                <strong>{stockcard.description}</strong>
-                                                <div className="row specification" style={{margin: '0 auto'}}>
-                                                  <div className="col-8 p-0 p-0">
-                                                    <p className="code">{stockcard.id.substring(0, 9)}</p>
-                                                  </div>
-                                                  <div className="col-4 p-0 p-0">
-                                                    <p className="qty">QTY: {stockcard.qty}</p>
-                                                  </div>
-                                                </div>
-                                              </Card.Body>
-                                            </Card>
-                                          </button>
-                                        </div>
-                                      :
-                                        <></>
-                                      }
-                                    </>
+                                    <></>
                                   }
                                 </>
-                              ))
-                              ) : (
-                              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
-                                <h5>
-                                  <strong className="d-flex align-items-center justify-content-center flex-column">
-                                    No product matched:
-                                    <br />
-                                    <span style={{ color: '#0d6efd' }}>{inStorageSearchValue}</span>
-                                  </strong>
-                                </h5>
-                              </div>
-                            )}
+                              }
+                            </>
+                          ))
+                          ) : (
+                          <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
+                            <h5>
+                              <strong className="d-flex align-items-center justify-content-center flex-column">
+                                No product matched:
+                                <br />
+                                <span style={{ color: '#0d6efd' }}>{inStorageSearchValue}</span>
+                              </strong>
+                            </h5>
+                          </div>
+                        )}</> 
+                        }
+                            
                             </>
                           }
                       </div>
@@ -2148,7 +2122,329 @@ function NewMapModal(props) {
     );
   }
 
+  function DisplayWarehouseListFooter() {
+    const [searchValue, setSearchValue] = useState("")
+    const findProducts = () => {
+      var keyword = searchValue
+      var temp_storages = []
+      if(keyword == null || keyword === undefined || keyword == "")
+      {
+        temp_storages = []
+      }
+      else
+      {
+        warehouse[whId].cells.map((row) => {
+          Object.keys(row).map((col) => {
+            if(row[col].isStorage)
+            {
+              row[col].products.map((product) => {
+                if(product.substring(0, 9).toLowerCase() == keyword.toLowerCase() || getProductInfo(product).description.toLowerCase().startsWith(keyword.toLowerCase()))
+                {
+                  
+                  temp_storages.push(row[col].id)
+                }
+              })
+            }
+          })
+        })
 
+      }
+      setSearchResult(temp_storages)
+    
+    };
+    return(
+      
+      <div 
+        id="warehouse-list-bar-footer" 
+        className={"w-100 d-flex justify-content-between align-items-center" + (warehouseListVisible?"":" warehouse-list-bar-hidden")}
+        style={{height: '50px'}}
+      >
+      <div className="w-100 row m-0">
+        <div className="col-5 d-flex align-items-center justify-content-center ps-2 pe-5">
+          <InputGroup id="warehouse-search">
+            <InputGroup.Text style={{borderTopLeftRadius: "15px", borderBottomLeftRadius: "15px"}}>
+              <FontAwesomeIcon icon={faSearch} />
+            </InputGroup.Text>
+            <input
+              ref={storageSearchRef}
+              type="search"
+              className="input"
+              value={searchValue}
+              onChange={(event)=>{setSearchValue(event.target.value)}}
+              placeholder="IT000013, Rexona Pink 3mL (1pc)"
+            />
+            <button
+            className="locate ms-2"
+            disabled={searchValue === undefined || searchValue == "" || searchValue == " "}
+            onClick={findProducts}>
+              Locate
+            </button>
+            <button
+            className="reset mx-2"
+            onClick={()=>{setSearchResult([])}}>
+              Reset
+            </button>
+            </InputGroup>
+        </div>
+        <div className="col-2 d-flex align-items-center justify-content-end ps-0 pe-2">
+          <span className="me-2" style={{lineHeight: '0'}}><strong>Warehouse Map Togggles:</strong></span>
+        </div>
+        <div className="col-5 ps-1 pe-5">
+          <div className="row m-0 p-2">
+            <div className="col-3 d-flex align-items-center justify-content-center px-2">
+              <span className="me-2" style={{lineHeight: '0'}}>
+                <Create
+                  color={'#000'} 
+                  title={'Category'}
+                  height="15px"
+                  width="15px"
+                />
+              </span>
+              <label
+                className={'vertical-switch '+ (zooming?'no-click':'')}
+                data-title="Toggle Map Editing"
+              >
+                <input 
+                  type="checkbox"
+                  defaultChecked={editingMap}
+                  disabled={zooming}
+                  onClick={()=>{editingMap?setEditingMap(false):setEditingMap(true)}}
+                />
+                <span className="vertical-slider round"></span>
+              </label>
+            </div>
+            <div className="col-3 d-flex align-items-center justify-content-center px-2">
+              <span className="me-2" style={{lineHeight: '0'}}>
+                <QR
+                  color={'#000'} 
+                  title={'Category'}
+                  height="15px"
+                  width="15px"
+                />
+              </span>
+              <label 
+                className="vertical-switch"
+                data-title="Toggle QR Code Display"
+              >
+                <input 
+                  type="checkbox"
+                  defaultChecked={qrVisible}
+                  onClick={()=>{qrVisible?setQRVisible(false):setQRVisible(true)}}
+                />
+                  <span className="vertical-slider round"></span>
+              </label>
+            </div>
+            <div className="col-3 d-flex align-items-center justify-content-center px-2">
+              <span className="me-2" style={{lineHeight: '0'}}>
+                <Text
+                  color={'#000'} 
+                  title={'Category'}
+                  height="15px"
+                  width="15px"
+                />
+              </span>
+              <label
+                className="vertical-switch"
+                data-title="Toggle Space ID Display"
+              > 
+                <input 
+                  type="checkbox"
+                  defaultChecked={cellIdVisible}
+                  onClick={()=>{cellIdVisible?setCellIdVisible(false):setCellIdVisible(true)}}
+                />
+                <span className="vertical-slider round"></span>
+              </label>
+            </div>
+            <div className="col-3 d-flex align-items-center justify-content-center px-2">
+              <span className="me-2" style={{lineHeight: '0'}}>
+                <SearchOutline
+                  color={'#000'} 
+                  title={'Category'}
+                  height="15px"
+                  width="15px"
+                />
+              </span>
+              <label
+                  className={'vertical-switch '+ (editingMap?'no-click':'')}
+                  data-title="Toggle Zooming"
+              > 
+                <input
+                  className={(editingMap?'no-click':'')} 
+                  type="checkbox"
+                  defaultChecked={zooming}
+                  onClick={()=>{if(zooming){setZooming(false); setEditingMap(false)}else{setZooming(true)}}}
+                />
+                  <span className="vertical-slider round"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="">
+        <div className="">
+          <button
+            id="warehouse-list-visibility-toggle"
+            className="plain-button float-end"
+            data-title={warehouseListVisible?"Hide":"Show"}
+            onClick={() => {warehouseListVisible?setWarehouseListVisible(false):setWarehouseListVisible(true)}}
+          >
+            {warehouseListVisible?
+              <CaretUp
+                className="caret pull-down"
+                color={'#000000'}
+                height="15px"
+                width="15px"
+              />
+            :
+              <CaretDown
+                className="caret pull-down"
+                color={'#000000'}
+                height="15px"
+                width="15px"
+                />
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+    )
+  }
+
+  function WarehouseInfo() {
+    const editWarehouse = () => {
+      updateDoc(doc(db, "warehouse", warehouse[whId].id), {
+        wh_name: newWarehouseName,
+        address: newWarehouseAddress,
+        wh_notes: newWarehouseNotes
+      });
+      setCollectionUpdateMethod("update")
+      updateWarehouseToast()
+    }
+    const [newWarehouseName, setNewWarehouseName] = useState("")
+    const [newWarehouseAddress, setNewWarehouseAddress] = useState("")
+    const [newWarehouseNotes, setNewWarehouseNotes] = useState("")
+    
+  useEffect(() => {
+    if(warehouse === undefined || whId == undefined)
+    {
+
+    }
+    else
+    {
+      setNewWarehouseName(warehouse[whId].wh_name)
+      setNewWarehouseAddress(warehouse[whId].address)
+      setNewWarehouseNotes(warehouse[whId].wh_notes)
+    }
+  }, [whId])
+    return(
+      <div className="w-100 m-0 row d-flex align-items-center">
+        <div className="col-11">
+          {editingWarehouse?
+      <div className="w-100 m-0 row">
+      <div className="col-5 px-1 d-flex align-items-center justify-content-start">
+        <h3><strong>
+        <input
+          type="text"
+          className="form-control shadow-none"
+          value={newWarehouseName}
+          onChange={(e)=>{setNewWarehouseName(e.target.value)}}
+        />
+        </strong></h3>
+      </div>
+      <div className="col-4 px-1 d-flex align-items-center justify-content-center">
+        <div className="me-2">
+          <strong>Address:</strong>
+        </div>
+        <input
+          type="text"
+          className="form-control shadow-none"
+          value={newWarehouseAddress}
+          onChange={(e)=>{setNewWarehouseAddress(e.target.value)}}
+        />
+      </div>
+      <div className="col-3 px-1 d-flex align-items-center justify-content-center">
+        <div className="me-2">
+          <strong>Notes:</strong>
+        </div>
+        <input
+          type="text"
+          className="form-control shadow-none"
+          value={newWarehouseNotes}
+          onChange={(e)=>{setNewWarehouseNotes(e.target.value)}}
+        />
+      </div>
+    </div>
+          :
+          <div className="w-100 m-0 row">
+            <div className="col-5 px-1 d-flex align-items-center justify-content-start" style={{padding: ".375rem .75rem"}}>
+              <h3><strong>{warehouse[whId].wh_name}</strong></h3>
+            </div>
+            <div className="col-4 px-1 d-flex align-items-center justify-content-center" style={{padding: ".375rem .75rem"}}>
+              <div className="me-2">
+                <strong>Address:</strong>
+              </div>
+              <div className="d-inline-block">
+                  {warehouse[whId].address}
+              </div>
+            </div>
+            <div className="col-3 px-1 d-flex align-items-center justify-content-center" style={{padding: ".375rem .75rem"}}>
+              <div className="me-2">
+                <strong>Notes:</strong>
+              </div>
+              <div className="d-inline-block">
+                  {warehouse[whId].wh_notes}
+              </div>
+            </div>
+          </div>
+          }
+        </div>
+        <div className="col-1 px-1 d-flex align-items-center">
+          <DeleteWarehouseModal
+            show={deleteWarehouseModalShow}
+            onHide={() => { setDeleteWarehouseModalShow(false) }}
+          />
+          {editingWarehouse?
+          <Button
+            className="delete me-1"
+            data-title="Cancel Changes"
+            onClick={()=>{setEditingWarehouse(false)}}
+          >
+            <FontAwesomeIcon icon={faClose} />
+          </Button>
+          :
+          <Button
+            className={warehouse[whId].cells.length > 0 ? "delete disabled-conditionally me-1" : "delete me-1"}
+            data-title={checkIfPooled(warehouse[whId].cells)?"Warehouse already pooled": (editingMap?"Can't delete while editing":"Delete Warehouse")}
+            disabled={checkIfPooled(warehouse[whId].cells)? true: editingMap}
+            onClick={()=>{setDeleteWarehouseModalShow(true)}}
+          >
+            <FontAwesomeIcon icon={faTrashCan} />
+          </Button>
+          }
+          <Button
+            className="edit me-1"
+            disabled={editingMap}
+            data-title={editingWarehouse?"Save Changes":"Edit Warehouse"}
+            onClick={()=>{
+              if (editingWarehouse) {
+                setEditingWarehouse(false)
+                editWarehouse(warehouse[whId].id)
+              }
+              else {
+                setEditingWarehouse(true)
+              }
+            }}
+          >
+            {editingWarehouse?
+              <FontAwesomeIcon icon={faSave} />
+            :
+              <FontAwesomeIcon icon={faEdit} />
+            }
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
 return (
  <div>
@@ -2174,7 +2470,10 @@ return (
     <Tab.Container activeKey={key} onSelect={(k) => setKey(k)}>
       <div id="contents" className="row">
         <div className="row py-4 px-5">
-          <div className='sidebar horizontal' id="warehouse-list-bar">
+          <div 
+            id="warehouse-list-bar"
+            className={"sidebar horizontal" + (warehouseListVisible?"":" d-none")}
+          >
             <div className="hsidebar-segment left">
               <h1 className="pb-2 module-title">Warehouse Management</h1>
               <hr></hr>
@@ -2267,129 +2566,7 @@ return (
               </div>
             </div>
           </div>
-          <div id="warehouse-list-bar-footer" className="d-flex justify-content-end align-items-center"style={{height: '40px'}}>
-            <div className="col-4 d-flex align-items-center justify-content-center px-2">
-            </div>
-            <div className="col-3 d-flex align-items-center justify-content-end px-2">
-              <span className="me-2" style={{lineHeight: '0'}}><strong>Warehouse Map Togggles:</strong></span>
-            </div>
-            <div className="col-6">
-              <div className="row m-0 p-2">
-                <div className="col-2 d-flex align-items-center justify-content-center px-2">
-                  <span className="me-2" style={{lineHeight: '0'}}>
-                    <Create
-                      color={'#000'} 
-                      title={'Category'}
-                      height="15px"
-                      width="15px"
-                    />
-                  </span>
-                  <label
-                    className={'vertical-switch '+ (zooming?'no-click':'')}
-                    data-title="Toggle Map Editing"
-                  >
-                    <input 
-                      type="checkbox"
-                      defaultChecked={editingMap}
-                      disabled={zooming}
-                      onClick={()=>{editingMap?setEditingMap(false):setEditingMap(true)}}
-                    />
-                    <span className="vertical-slider round"></span>
-                  </label>
-                </div>
-                <div className="col-2 d-flex align-items-center justify-content-center px-2">
-                  <span className="me-2" style={{lineHeight: '0'}}>
-                    <QR
-                      color={'#000'} 
-                      title={'Category'}
-                      height="15px"
-                      width="15px"
-                    />
-                  </span>
-                  <label 
-                    className="vertical-switch"
-                    data-title="Toggle QR Code Display"
-                  >
-                    <input 
-                      type="checkbox"
-                      defaultChecked={qrVisible}
-                      onClick={()=>{qrVisible?setQRVisible(false):setQRVisible(true)}}
-                    />
-                      <span className="vertical-slider round"></span>
-                  </label>
-                </div>
-                <div className="col-2 d-flex align-items-center justify-content-center px-2">
-                  <span className="me-2" style={{lineHeight: '0'}}>
-                    <Text
-                      color={'#000'} 
-                      title={'Category'}
-                      height="15px"
-                      width="15px"
-                    />
-                  </span>
-                  <label
-                    className="vertical-switch"
-                    data-title="Toggle Space ID Display"
-                  > 
-                    <input 
-                      type="checkbox"
-                      defaultChecked={cellIdVisible}
-                      onClick={()=>{cellIdVisible?setCellIdVisible(false):setCellIdVisible(true)}}
-                    />
-                    <span className="vertical-slider round"></span>
-                  </label>
-                </div>
-                <div className="col-2 d-flex align-items-center justify-content-center px-2">
-                  <span className="me-2" style={{lineHeight: '0'}}>
-                    <SearchOutline
-                      color={'#000'} 
-                      title={'Category'}
-                      height="15px"
-                      width="15px"
-                    />
-                  </span>
-                  <label
-                      className={'vertical-switch '+ (editingMap?'no-click':'')}
-                      data-title="Toggle Zooming"
-                  > 
-                    <input
-                      className={(editingMap?'no-click':'')} 
-                      type="checkbox"
-                      defaultChecked={zooming}
-                      onClick={()=>{if(zooming){setZooming(false); setEditingMap(false)}else{setZooming(true)}}}
-                    />
-                      <span className="vertical-slider round"></span>
-                   </label>
-                </div>
-              </div>
-            </div>
-            <div className="col-1">
-              <button
-                id="warehouse-list-visibility-toggle"
-                className="plain-button float-end"
-                data-title="Hide"
-                onClick={() => {warehouseListVisible?setWarehouseListVisible(false):setWarehouseListVisible(true)}}
-              >
-                {warehouseListVisible?
-                  <CaretUp
-                    className="caret pull-down"
-                    color={'#000000'} 
-                    title={'Category'}
-                    height="15px"
-                    width="15px"
-                  />
-                :
-                  <CaretDown
-                    className="caret pull-down"
-                    color={'#000000'} 
-                    title={'Category'}
-                    height="15px"
-                    width="15px"
-                    />
-                }
-              </button>
-            </div>
-          </div>
+          <DisplayWarehouseListFooter/>
           <div className="divider horizontal">
           </div>
           <Tab.Content
@@ -2400,102 +2577,7 @@ return (
                 <Tab.Pane eventKey={warehouse[whId].id}>
                   <div className="data-contents horizontal">
                     <div id="warehouse-info">
-                      <div className="row d-flex align-items-center">
-                        <div className="col-11">
-                          {editingWarehouse?
-                          <div className="row">
-                            <div className="col-5 px-1 d-flex align-items-center justify-content-start">
-                              <h3><strong>
-                              <input
-                                type="text"
-                                className="form-control shadow-none"
-                                value={newWarehouseName}
-                                onChange={(e)=>{setNewWarehouseName(e.target.value)}}
-                              />
-                              </strong></h3>
-                            </div>
-                            <div className="col-4 px-1 d-flex align-items-center justify-content-center">
-                              <div className="me-2">
-                                <strong>Address:</strong>
-                              </div>
-                              <input
-                                type="text"
-                                className="form-control shadow-none"
-                                value={newWarehouseAddress}
-                                onChange={(e)=>{setNewWarehouseAddress(e.target.value)}}
-                              />
-                            </div>
-                            <div className="col-3 px-1 d-flex align-items-center justify-content-center">
-                              <div className="me-2">
-                                <strong>Notes:</strong>
-                              </div>
-                              <input
-                                type="text"
-                                className="form-control shadow-none"
-                                value={newWarehouseNotes}
-                                onChange={(e)=>{setNewWarehouseNotes(e.target.value)}}
-                              />
-                            </div>
-                          </div>
-                          :
-                          <div className="row">
-                            <div className="col-5 px-1 d-flex align-items-center justify-content-start">
-                              <h3><strong>{warehouse[whId].wh_name}</strong></h3>
-                            </div>
-                            <div className="col-4 px-1 d-flex align-items-center justify-content-center">
-                              <div className="me-2">
-                                <strong>Address:</strong>
-                              </div>
-                              <div className="d-inline-block">
-                                  {warehouse[whId].address}
-                              </div>
-                            </div>
-                            <div className="col-3 px-1 d-flex align-items-center justify-content-center">
-                              <div className="me-2">
-                                <strong>Notes:</strong>
-                              </div>
-                              <div className="d-inline-block">
-                                  {warehouse[whId].wh_notes}
-                              </div>
-                            </div>
-                          </div>
-                          }
-                        </div>
-                        <div className="col-1 d-flex align-items-center">
-                          <DeleteWarehouseModal
-                            show={deleteWarehouseModalShow}
-                            onHide={() => { setDeleteWarehouseModalShow(false) }}
-                          />
-                          <Button
-                            className={warehouse[whId].cells.length > 0 ? "delete disabled-conditionally me-1" : "delete me-1"}
-                            data-title={checkIfPooled(warehouse[whId].cells)?"Warehouse already pooled": (editingMap?"Can't delete while editing":"Delete Warehouse")}
-                            disabled={checkIfPooled(warehouse[whId].cells)? true: editingMap}
-                            onClick={()=>{setDeleteWarehouseModalShow(true)}}
-                          >
-                            <FontAwesomeIcon icon={faTrashCan} />
-                          </Button>
-                          <Button
-                            className="edit me-1"
-                            disabled={editingMap}
-                            data-title={editingWarehouse?"Save Changes":"Edit Warehouse"}
-                            onClick={()=>{
-                              if (editingWarehouse) {
-                                setEditingWarehouse(false)
-                                editWarehouse(warehouse[whId].id)
-                              }
-                              else {
-                                setEditingWarehouse(true)
-                              }
-                            }}
-                          >
-                            {editingWarehouse?
-                              <FontAwesomeIcon icon={faSave} />
-                            :
-                              <FontAwesomeIcon icon={faEdit} />
-                            }
-                          </Button>
-                        </div>
-                      </div>
+                      <WarehouseInfo/>
                     </div>
                     <div className="map-container">
                       <div id="warehouse-map">

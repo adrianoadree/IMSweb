@@ -9,7 +9,7 @@ import { UserAuth } from '../context/AuthContext'
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Spinner } from 'loading-animations-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
+import { faEye, faCircleInfo, faFile, faClose } from '@fortawesome/free-solid-svg-icons'
 
 
 function NewProductModal(props) {
@@ -39,6 +39,8 @@ function NewProductModal(props) {
   const [imageUpload, setImageUpload] = useState(null);
   const [imageUrls, setImageUrls] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [pasted, setPasted] = useState(false)
+  const [uploadMethod, setUploadMethod] = useState("")
   
   //---------------------FUNCTIONS---------------------
   useEffect(() => {
@@ -61,13 +63,13 @@ function NewProductModal(props) {
     {
       setDisallowAddtion(false)
     }
-    if(imageUrls.length == 0) {
-      setUploadedOneImage(false)
+    if(imageUrls.length > 0) {
+      setUploading(false)
+      setUploadedOneImage(true)
     }
     else
     {
-      setUploadedOneImage(true)
-      setUploading(false)
+      setUploadedOneImage(false)
     }
   })
   
@@ -80,6 +82,9 @@ function NewProductModal(props) {
     setNewPriceS(0)
     setNewMinQty(0)
     setNewMaxQty(0)
+    setUploading(false)
+    setUploadedOneImage(false)
+    setImageUrls([])
   }
 
   const checkIfEmpty = (value, number) => {
@@ -153,6 +158,17 @@ function NewProductModal(props) {
     }
   }, [userID])
 
+  const filterFileUpload = (file) => {
+    var valid_types= ['image/gif', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/bmp'];
+    if(valid_types.includes(file['type']))
+        {
+          setImageUpload(file)
+        }
+        else{
+          alert("Not an image file")
+        }
+}
+
   const createBarcode = () => {
     var prefix = userProfileID.substring(1,4)
     prefix = parseInt(prefix)
@@ -203,8 +219,6 @@ function NewProductModal(props) {
     }
     return newcategories;
   }
-
- 
 
   //Create product to database
   const addProduct = async () => {
@@ -260,7 +274,13 @@ function NewProductModal(props) {
     setNewProdCategory(suggestion.index)
   }
 
-
+  useEffect(()=>{
+    console.log(imageUpload)
+    console.log(uploading)
+    console.log(uploadedOneImage)
+    console.log(pasted)
+    console.log(uploadMethod)
+  })
   return (
     <Modal
       {...props}
@@ -286,19 +306,28 @@ function NewProductModal(props) {
                   <div className="row m-0 p-0">
                     <div className="col-10 p-0 m-0">
                       <input
+                        id="image-upload-selector"
                         className="form-control shadow-none"
+                        style={{borderTopRightRadius: "0", borderBottomRightRadius: "0"}}
                         type="file"
                         onChange={(event) => {
                           setImageUrls([]);
-                          setImageUpload(event.target.files[0]);
+                          setUploadMethod("select")
+                          setPasted(false)
+                          filterFileUpload(event.target.files[0]);
                         }}
                       />
                     </div>
                     <div className="col-2 p-0 m-0">
                       <Button
-                        variant="btn btn-success"
-                        className="shadow-none w-100"
+                        variant="btn btn-primary"
+                        className="form-control shadow-none w-100"
+                        style={{borderTopLeftRadius: "0", borderBottomLeftRadius: "0"}}
                         disabled={uploadedOneImage}
+                        onClick={() => {
+                          setUploading(true)
+                          uploadFile()
+                        }}
                       >
                         <FontAwesomeIcon icon={faEye}/>
                       </Button>
@@ -309,26 +338,76 @@ function NewProductModal(props) {
               <div className="row my-2 mb-3 ps-4 w-100 h-75">
                 <div 
                   id="image-upload-preview"
-                  className='col-12 w-100 h-100 d-flex align-items-center justify-content-center'
+                  className='w-100 h-100'
+                  onPaste={(event) => {
+                    setImageUrls([]);
+                    setUploading(false)
+                    setUploadedOneImage(false)
+                    setPasted(true)
+                    setUploadMethod("paste")
+                    filterFileUpload(event.clipboardData.files[0])
+                  }}
                 >
+                  <div id="image-upload-resetter-container">
+                    <div id="image-upload-resetter">
+                        {uploadedOneImage?
+                      <button className="me-2"
+                      onClick={()=>{
+                        setImageUpload([])
+                        setImageUrls([])
+                        setUploading(false)
+                        setPasted(false)
+                        setUploadedOneImage(false)
+                      }}>
+                        <FontAwesomeIcon icon={faClose} className="m-1"/>
+                      </button>
+                        :
+                        <></>
+                        }
+                    </div>
+                  </div>
                   {uploading?
                     <>
                       {imageUrls.length == 0?
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center">
+                        
+                          
                         <Spinner 
                           color1="#b0e4ff"
                           color2="#fff"
                           textColor="rgba(0,0,0, 0.5)"
                           className="w-25 h-25"
                         />
+                      </div>
                       :
                         <></>
                       }
                     </>
                   :
                   <>
-                    {imageUrls.map((url) => {
-                      return <img key={url} src={url} style={{height: '100%', width: '100%'}}/>;
-                    })}
+                    {imageUrls.length == 0?
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center p-4">
+                        <div className="text-center" style={{lineHeight: "150%", fontWeight: "600", color: "#8193a1", fontSize: "1.1em", }}>
+                          {pasted?
+                            <>
+                              <h1><FontAwesomeIcon icon={faFile} /></h1>
+                              <div className="pt-3" style={{fontSize: "0.75em", opacity: "0.7"}}>image.jpg</div>
+                            </>
+                            :
+                            <>
+                              <div>Select an image to upload or paste here from clipboard by pressing Ctrl + V</div>
+                              <div className="pt-3" style={{fontSize: "0.75em", opacity: "0.7"}}>Non-image files won't be uploaded</div>
+                            </>
+                          }
+                        </div>
+                      </div>
+                    :
+                    <div className="w-100 d-flex align-items-center justify-content-center p-2" style={{height: "95%"}}>
+                      {imageUrls.map((url) => {
+                        return <img key={url} src={url} style={{height: '100%', width: '100%', objectFit: "contain"}}/>;
+                      })}
+                    </div>
+                  }
                   </>
                   }
                 </div>
@@ -379,7 +458,10 @@ function NewProductModal(props) {
               </div>
               <div className="row my-2 mb-3">
                 <div id="product-category" className='col-6 ps-4 d-flex align-item-center flex-column'>
-                  <label>Category</label>
+                  <label>
+                    Category
+                    <span style={{color: '#b42525'}}> *</span>
+                  </label>
                   <input type="text"
                     id="product-category-input"
                     className="form-control shadow-none"

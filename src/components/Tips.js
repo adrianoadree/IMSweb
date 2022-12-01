@@ -148,10 +148,6 @@ function Tips(props) {
     })
   }
 
-useEffect(()=>{
-  console.log(tipsToDisplay)
-})
-
   var name = props.name;
   var fname = name.split(" ")[0];
 

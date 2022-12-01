@@ -33,12 +33,6 @@ const Navigation = (props) => {
     }
   }, [{ user }])
 
-  //read Functions
-
-  useEffect(() => {
-    console.log(preferencesQuickAccess)
-  })
-
   useEffect(() => {
     if (userID === undefined) {
       const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));

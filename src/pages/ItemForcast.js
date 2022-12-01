@@ -13,7 +13,7 @@ import { DocumentAttach, Calendar, Document, InformationCircle } from 'react-ion
 import { ChevronBack, ChevronForward, Exit, Enter } from 'react-ionicons'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import ToolTip from 'react-bootstrap/Tooltip';
-import { LineChart, Line, XAxis, YAxis, ReferenceDot, Legend, Tooltip, Label, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, ReferenceDot, Legend, Tooltip, Text, ReferenceLine, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Spinner } from 'loading-animations-react';
 import UserRouter from '../pages/UserRouter'
@@ -45,7 +45,10 @@ function Itemforecast() {
     const [transactionDates, setTransactionDates] = useState()
     const [sortedTransactionDates, setSortedTransactionDates] = useState()
     
-    const [sidebarHidden, setSidebarHidden] = useState(false) // display/hide sidebar
+    const [sidebarHidden, setSidebarHidden] = useState() // display/hide sidebar
+    const [chartWidth, setCharWidth] = useState()
+    const [safetyStockSelected, setSafetyStockSelected] = useState(false)
+    const [reorderPointSelected, setReorderPointSelected] = useState(false)
 
 
 
@@ -96,6 +99,10 @@ function Itemforecast() {
             contents.classList.remove("sidebar-hidden")
         }
     },)
+    
+    useEffect(() => {
+        setCharWidth(getChartContainerWidth())
+    }, [sidebarHidden])
 
     useEffect(() => {
         if (user) {
@@ -112,6 +119,8 @@ function Itemforecast() {
             const unsub = onSnapshot(q, (snapshot) =>
                 setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
             );
+
+            setSidebarHidden(false)
             return unsub;
 
         }
@@ -499,135 +508,298 @@ function Itemforecast() {
         console.log("forecastingBoolean: ", forecastingBoolean)
     }, [forecastingBoolean])
 
-
     useEffect(() => {
         console.log("salesRecordCollection: ", salesRecordCollection)
     }, [salesRecordCollection])
 
+    const getChartContainerWidth = () => {
+        //compute for DOM dimensions for proportions
+        var chart_container = document.getElementById("chart-container")
+        if (
+          typeof chart_container === 'object' &&
+          !Array.isArray(chart_container) &&
+          chart_container !== null
+        ) {
+        var chartContainerWidth = getComputedStyle(chart_container);// get warehouse-map dimensions
+        var chartWidth = chart_container.clientWidth // get warehouse-map width
+        chartWidth -= parseFloat(chartContainerWidth.paddingLeft) + parseFloat(chartContainerWidth.paddingRight); // subtract padding dimensions from width
+        return chartWidth
+        }
+    }
 
+    const getData = () => {
+        var temp_stocklevel_data = [
+            {
+                date: moment(date5).format('LL'),
+                "Stock Level": quantity5
+            },
+            {
+                date: moment(date4).format('LL'),
+                "Stock Level": quantity4
+            },
+            {
+                date: moment(date3).format('LL'),
+                "Stock Level": quantity3
+            },
+            {
+                date: moment(date2).format('LL'),
+                "Stock Level": quantity2
+            },
+            {
+                date: moment(date1).format('LL'),
+                "Stock Level": quantity1,
+                "Projected Stock Level": quantity1
+            }
+        ];
+        var temp_projection_data = [
+            {
+                date: moment(fillerDate1).format('LL'),
+                "Projected Stock Level": fillerQuantity1
+            },
+            {
+                date: moment(fillerDate2).format('LL'),
+                "Projected Stock Level": fillerQuantity2
+            }, {
+                date: moment(fillerDate3).format('LL'),
+                "Projected Stock Level": fillerQuantity3
+            }, {
+                date: moment(fillerDate4).format('LL'),
+                "Projected Stock Level": fillerQuantity4
+            },
+        ]
 
+        for(var i = 0; i < temp_stocklevel_data.length; i++)
+        {
+            if(temp_stocklevel_data[i]["Stock Level"] > stockcard[docId].analytics.reorderPoint)
+            {
+                temp_stocklevel_data.splice(i, 0, {date: moment(stockcard[docId].analytics.dateReorderPoint).format("LL"), "Reorder Point": stockcard[docId].analytics.reorderPoint, "Stock Level": stockcard[docId].analytics.reorderPoint})
+                break;
+            }
+        }
 
-    const data = [
-        {
-            date: moment(date5).format('LL'),
-            StockLevel: quantity5
-        },
-        {
-            date: moment(date4).format('LL'),
-            StockLevel: quantity4
-        },
-        {
-            date: moment(date3).format('LL'),
-            StockLevel: quantity3
-        },
-        {
-            date: moment(date2).format('LL'),
-            StockLevel: quantity2
-        },
-        {
-            date: moment(date1).format('LL'),
-            StockLevel: quantity1,
-            ProjectedStockLevel: quantity1
-        },
-        {
-            date: moment(fillerDate1).format('LL'),
-            ProjectedStockLevel: fillerQuantity1
-        },
-        {
-            date: moment(fillerDate2).format('LL'),
-            ProjectedStockLevel: fillerQuantity2
-        }, {
-            date: moment(fillerDate3).format('LL'),
-            ProjectedStockLevel: fillerQuantity3
-        }, {
-            date: moment(fillerDate4).format('LL'),
-            ProjectedStockLevel: fillerQuantity4
-        },
-    ];
-
+        return (temp_stocklevel_data.concat(temp_projection_data))
+    }
 
     function displayAccordion() {
 
         if (stockcard !== undefined) {
             return (
                 stockcard[docId].analytics.leadtimeMaximum !== 0 ?
-                    <>
                         <div>
-                            <div className='row mt-3'>
-
-                                <LineChart
-                                    width={600}
-                                    height={400}
-                                    data={data}
-                                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                                >
-                                    <XAxis dataKey="date">
-                                    </XAxis>
-                                    <YAxis label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }} />
-                                    <Tooltip />
-                                    <Legend />
-
-                                    <ReferenceLine y={stockcard[docId].min_qty}
-                                        label={{ value: 'Minimum Quantity', position: 'insideRight', textAnchor: 'middle' }}
-                                        stroke="#262626" strokeDasharray="3 3" />
-
-                                    <ReferenceLine y={stockcard[docId].max_qty}
-                                        label={{ value: 'Maximum Quantity', position: 'insideRight', textAnchor: 'middle' }}
-                                        stroke="#262626" strokeDasharray="3 3" />
-
-                                    <ReferenceLine y={stockcard[docId].analytics.reorderPoint}
-                                        label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
-                                        stroke="#009933" strokeDasharray="3 3" />
-                                    <ReferenceLine y={stockcard[docId].analytics.safetyStock}
-                                        label={{ value: 'SafetyStock', position: 'insideLeft', textAnchor: 'middle' }}
-                                        stroke="#ff9900" strokeDasharray="3 3" />
-                                    <Line type="monotone" dataKey="StockLevel" stroke="#ff0000"
-                                        dot={{ stroke: '#8884d8', strokeWidth: 1, r: 3, strokeDasharray: '' }}
-                                    />
-                                    <Line type="monotone" dataKey="ProjectedStockLevel" stroke="#0066ff"
-                                        dot={{ stroke: '#blue', strokeWidth: 1, r: 3, strokeDasharray: '' }}
-                                    />
-
-                                </LineChart>
+                        <div id="analytics-stats" className="d-flex mt-3 px-4 py-3 bg-white flex-row">
+                            {/*
+                            <hr />
+                            <h3 className='text-center'>CHART LEGEND</h3>
+                            <hr />
+                            <div className="col">
+                                <h4>Reference Lines</h4>
+                                <div className="row">
+                                    <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint: </strong></span>{stockcard[docId].analytics.reorderPoint} unit(s)</span>
+                                </div>
+                                <div className="row">
+                                    <span>| <span style={{ color: '#ff9900' }}> <strong>SafetyStock: </strong></span>{stockcard[docId].analytics.safetyStock} unit(s)</span>
+                                </div>
+                                <div className="row">
+                                    <span>| <span style={{ color: '#262626' }}> <strong>Minimum Quantity: </strong></span>{stockcard[docId].min_qty} unit(s)</span>
+                                </div>
+                                <div className="row">
+                                    <span>| <span style={{ color: '#262626' }}> <strong>Maximum Quantity: </strong></span>{stockcard[docId].max_qty} unit(s)</span>
+                                </div>
                             </div>
-                            <div className="row mt-3 px-4 py-2 bg-white">
-                                <hr />
-                                <h3 className='text-center'>CHART LEGEND</h3>
-                                <hr />
-                                <div className="col">
-                                    <h4>Reference Lines</h4>
-                                    <div className="row">
-                                        <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint: </strong></span>{stockcard[docId].analytics.reorderPoint} unit(s)</span>
-                                    </div>
-                                    <div className="row">
-                                        <span>| <span style={{ color: '#ff9900' }}> <strong>SafetyStock: </strong></span>{stockcard[docId].analytics.safetyStock} unit(s)</span>
-                                    </div>
-                                    <div className="row">
-                                        <span>| <span style={{ color: '#262626' }}> <strong>Minimum Quantity: </strong></span>{stockcard[docId].min_qty} unit(s)</span>
-                                    </div>
-                                    <div className="row">
-                                        <span>| <span style={{ color: '#262626' }}> <strong>Maximum Quantity: </strong></span>{stockcard[docId].max_qty} unit(s)</span>
-                                    </div>
+
+                            <div className="col">
+                                <h4>{stockcard[docId].id.substring(0, 9)} Outbound Stats</h4>
+                                <div className="row">
+                                    <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint Date: </strong></span>{moment(stockcard[docId].analytics.dateReorderPoint).format('LL')}</span>
                                 </div>
-
-                                <div className="col">
-                                    <h4>{stockcard[docId].id.substring(0, 9)} Outbound Stats</h4>
-                                    <div className="row">
-                                        <span>| <span style={{ color: '#009933' }}> <strong>ReorderPoint Date: </strong></span>{moment(stockcard[docId].analytics.dateReorderPoint).format('LL')}</span>
-                                    </div>
-                                    <div className="row">
-                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Highest Daily Sales: </strong></span>{stockcard[docId].analytics.highestDailySales} unit(s)</span>
-                                    </div>
-                                    <div className="row">
-                                        <span>| <span style={{ color: '#1f3d7a' }}> <strong>Average Daily Sales: </strong></span>{stockcard[docId].analytics.averageDailySales} unit(s)</span>
-                                    </div>
+                                <div className="row">
+                                    <span>| <span style={{ color: '#1f3d7a' }}> <strong>Highest Daily Sales: </strong></span>{stockcard[docId].analytics.highestDailySales} unit(s)</span>
                                 </div>
+                                <div className="row">
+                                    <span>| <span style={{ color: '#1f3d7a' }}> <strong>Average Daily Sales: </strong></span>{stockcard[docId].analytics.averageDailySales} unit(s)</span>
+                                </div>
+                            </div>*/}
+                            <div className="analytics-numbers">
+                                <small>
+                                    <span className="IMS-text-muted">
+                                        Highest Daily Sale
+                                    </span>
+                                </small>
+                                <div className="d-flex align-items-baseline justify-content-start">
+                                    <h2><strong>{stockcard[docId].analytics.highestDailySales}</strong></h2>
+                                    <span className="text-muted ms-1" style={{ fontSize: "0.75em" }}>unit(s)</span>
+                                </div>
+                            </div>
+                            <div className="analytics-numbers">
+                                <small>
+                                    <span className="IMS-text-muted">
+                                        Average Daily Sale
+                                    </span>
+                                </small>
+                                <div className="d-flex align-items-baseline justify-content-start">
+                                    <h2><strong>{stockcard[docId].analytics.averageDailySales}</strong></h2>
+                                    <span className="text-muted ms-1" style={{ fontSize: "0.75em" }}>unit(s)</span>
+                                </div>
+                            </div>
+                            <div 
+                                className="analytics-numbers clickable"
+                                onClick={()=>{
+                                    setSafetyStockSelected(true);
+                                    setTimeout(function () {
+                                        setSafetyStockSelected(false)
+                                      }, 2500)
+                                }}
+                            >
+                                <small>
+                                    <span className="IMS-text-muted" style={{ color: '#8a5300' }}>
+                                        Safety Stock
+                                    </span>
+                                    <a
+                                        className="ms-2"
+                                        data-title="The extra quantity of a product kept in storage to prevent stockouts."
+                                    >
+                                        <FontAwesomeIcon icon={faCircleInfo}/>
+                                    </a>
+                                </small>
+                                <div className="d-flex align-items-baseline justify-content-start">
+                                    <h2 style={{ color: '#ff9900' }}><strong>{stockcard[docId].analytics.safetyStock}</strong></h2>
+                                    <span className="text-muted ms-1" style={{ fontSize: "0.75em" }}>unit(s)</span>
+                                </div>
+                            </div>
+                            <div className="analytics-numbers clickable"
+                                onClick={()=>{
+                                    setReorderPointSelected(true);
+                                    setTimeout(function () {
+                                        setReorderPointSelected(false)
+                                      }, 2000)
+                                }}>
+                                <small>
+                                    <span className="IMS-text-muted" style={{ color: '#004517' }}>
+                                        Reorder Point
+                                    </span>
+                                    <a
+                                        className="ms-2"
+                                        data-title="The specific level at which the product's stock needs to be replenished."
+                                    >
+                                        <FontAwesomeIcon icon={faCircleInfo}/>
+                                    </a>
+                                </small>
+                                <div className="d-flex align-items-baseline justify-content-start">
+                                    <h2 style={{ color: '#009933' }}><strong>{stockcard[docId].analytics.reorderPoint}</strong></h2>
+                                    <span className="text-muted ms-1" style={{ fontSize: "0.75em" }}>unit(s)</span>
+                                </div>
+                            </div>
+                            <div className="analytics-numbers clickable"
+                                onClick={()=>{
+                                    setReorderPointSelected(true);
+                                    setTimeout(function () {
+                                        setReorderPointSelected(false)
+                                      }, 2000)
+                                }}>
+                                <small>
+                                    <span className="IMS-text-muted" style={{ color: '#4f6e00' }}>
+                                        Reorder Point Date
+                                    </span>
+                                    <a
+                                        className="ms-2"
+                                        data-title="The day where the the product's stocks needs to be replenished."
+                                    >
+                                        <FontAwesomeIcon icon={faCircleInfo}/>
+                                    </a>
+                                </small>
+                                <div className="d-flex align-items-baseline justify-content-start">
+                                    <h2 style={{color: "#9fde00"}}><strong>{moment(stockcard[docId].analytics.dateReorderPoint).format("MMM DD")}</strong></h2>
+                                    <span className="text-muted ms-1" style={{ fontSize: "0.75em" }}>{moment(stockcard[docId].analytics.dateReorderPoint).format("YYYY")}</span>
+                                </div>
+                            </div>
+                            <div className="analytics-numbers">
+                                <small>
+                                    <span className="IMS-text-muted">
+                                        Minimum Quantity
+                                    </span>
+                                </small>
+                                <div className="d-flex align-items-baseline justify-content-start">
+                                    <h2><strong>{stockcard[docId].min_qty}</strong></h2>
+                                    <span className="text-muted ms-1" style={{ fontSize: "0.75em" }}>unit(s)</span>
+                                </div>
+                            </div>
+                            <div className="analytics-numbers">
+                                <small>
+                                    <span className="IMS-text-muted">
+                                        Maximum Quantity
+                                    </span>
+                                </small>
+                                <div className="d-flex align-items-baseline justify-content-start">
+                                    <h2><strong>{stockcard[docId].max_qty} </strong></h2>
+                                    <span className="text-muted ms-1" style={{ fontSize: "0.75em" }}>unit(s)</span>
+                                </div>
+                            </div>
+                        </div>
+                            <div id="analytics-linechart" className='row mt-3'>
+                            <ResponsiveContainer width={(chartWidth === undefined?700:chartWidth)} height={500}>
+                                <LineChart
+                                    data={getData()}
+                                    margin={{ top: 30, right: 20, left: 10, bottom: 5 }}
+                                >
+                                    <XAxis dataKey="date" />
+                                    <Tooltip />
 
-
+                                    <ReferenceLine
+                                        y={stockcard[docId].min_qty}
+                                        label={{ value: 'Minimum Quantity', position: 'insideBottomRight', textAnchor: 'middle', letterSpacing: "0.15em", offset: "10"}}
+                                        stroke="#26262680" strokeDasharray="3 3" 
+                                    />
+                                    <ReferenceLine
+                                        y={stockcard[docId].max_qty}
+                                        label={{ value: 'Maximum Quantity', position: 'insideBottomRight', textAnchor: 'middle', letterSpacing: "0.15em", dy: "0", offset: "10" }}
+                                        stroke="#26262680"
+                                        strokeDasharray="3 3"
+                                    />
+                                    {/*<ReferenceLine y={stockcard[docId].analytics.reorderPoint}
+                                        label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
+                                        stroke="#009933"
+                                        strokeDasharray="3 3"
+                                        strokeWidth={3}
+                                    /> */}
+                                    <ReferenceLine
+                                        className={safetyStockSelected?"safety-stock-selected":""}
+                                        y={stockcard[docId].analytics.safetyStock}
+                                        label={{ value: 'Safety Stock', position: 'insideBottomRight', textAnchor: 'middle', letterSpacing: "0.15em", fill: "#ff9900", fontWeight: "700", offset: "10"}}
+                                        stroke="#ff9900b3"
+                                        strokeDasharray="3 3"
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="Stock Level"
+                                        stroke="#ff0000"
+                                        dot={{ stroke: '#ff0000', strokeWidth: 1, r: 3, strokeDasharray: '' }}
+                                    />
+                                    <Line
+                                        className={reorderPointSelected?"reorder-point-selected":""}
+                                        type="monotone"
+                                        dataKey="Reorder Point"
+                                        stroke="#009933"
+                                        dot={{ stroke: '#009933', strokeWidth: 3, r: 5, strokeDasharray: '', fill: "#91ff52" }}
+                                        legendType={"circle"}
+                                        isAnimationActive={false}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="Projected Stock Level"
+                                        stroke="#0066ff"
+                                        dot={{ stroke: '#0066ff', strokeWidth: 1, r: 3, strokeDasharray: '' }}
+                                    />
+                                    <YAxis 
+                                        label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }}
+                                    />
+                                    <Legend 
+                                        margin={{right: 30, left: 30, top: 20, bottom: 20}}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
                             </div>
 
                         </div >
-                    </>
 
                     :
                     <div className='mt-2 p-3'>
@@ -652,6 +824,7 @@ function Itemforecast() {
             />
         }
     }
+
     function displayChartError() {
         return (
             <div className='mt-2 p-3'>
@@ -680,7 +853,6 @@ function Itemforecast() {
 
 
     }
-
 
     return (
         <div>
@@ -912,10 +1084,15 @@ function Itemforecast() {
                                                     className="w-50 h-50"
                                                 />
                                                 :
+                                                <div id="chart-container" className="w-100">
+                                                    {
                                                 stockcard[docId].analytics.analyticsBoolean ?
                                                     displayAccordion()
                                                     :
                                                     displayChartError()
+
+                                                    }
+                                                </div>
                                             }
                                                 </div>
                                             </div>

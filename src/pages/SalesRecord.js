@@ -453,7 +453,7 @@ const toDate = (keyword_in_date) => {
                       Date
                     </div>
                   </div>
-                  <div id='scrollbar' style={{ height: '400px' }}>
+                  <div className='scrollbar' style={{ height: '400px' }}>
                     {isFetched ?
                       (
                         salesRecordCollection.length === 0 ?
@@ -638,7 +638,7 @@ const toDate = (keyword_in_date) => {
                               <th className="qc pth text-center">Quantity</th>
                               <th className='dc pth text-center'>Description</th>
                               <th className='pp pth text-center'>Selling Price</th>
-                              <th className='ext pth text-center'>Extension</th>
+                              <th className='ext pth text-center'>Amount</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -771,7 +771,7 @@ const toDate = (keyword_in_date) => {
                                 <th className="qc pth text-center">Quantity</th>
                                 <th className='dc pth text-center'>Description</th>
                                 <th className='pp pth text-center'>Selling Price</th>
-                                <th className='ext pth text-center'>Extension</th>
+                                <th className='ext pth text-center'>Amount</th>
                               </tr>
                             </thead>
                             <tbody>
