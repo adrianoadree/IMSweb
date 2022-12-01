@@ -107,6 +107,15 @@ function GenerateOrderForm(props) {
       
     }
 
+    const handleSupplierSelect = (supplier_id) => {
+      supplierCollection.map((supplier) => {
+        if(supplier.id == supplier_id)
+        {
+          setSupplierSelected(supplier)
+        }
+      })
+    }
+
   return (
     <Modal
       {...props}
@@ -123,41 +132,31 @@ function GenerateOrderForm(props) {
               <div className="module-header mb-4">
                 <h3 className="text-center">Generate Order</h3>
               </div>
-              <div className="w-100 h-auto row mx-0">
-                <div className="interrelated-options mb-3 p-2" style={{ overflowY: "scroll" }}>
+              <div className="row mx-0">
+                <div id="order-supplier-select" className="w-100 interrelated-options mb-3 p-2">
                   {supplierSelected === undefined ?
                     <></>
                     :
-                    <>
+                    <div className="w-100 d-flex align-items-center justify-content-center flex-row">
+                    <div className="me-3">Supplier</div>
+                    
+                    <select 
+                      className="form-control shadow-none"
+                      value={supplierSelected.id}
+                      onChange={(e)=>{handleSupplierSelect(e.target.value)}}
+                    >
                       {supplierCollection.map((supplier, index) => {
                         return (
-                          <>
-                            {index == 0 ?
-                              <a
-                                className={"start-option" + (supplierSelected.id == supplier.id ? " active" : "")}
-                                onClick={() => { setSupplierSelected(supplier) }}
-                              >
-                                {supplier.supplier_name}
-                              </a>
-                              :
-                              index == supplierCollection.length - 1 ?
-                                <a
-                                  className={"end-option" + (supplierSelected.id == supplier.id ? " active" : "")}
-                                  onClick={() => { setSupplierSelected(supplier) }}
-                                >
-                                  {supplier.supplier_name}
-                                </a>
-                                :
-                                <a
-                                  className={"center-option divider" + (supplierSelected.id == supplier.id ? " active" : "")}
-                                  onClick={() => { setSupplierSelected(supplier) }}
-                                >
-                                  {supplier.supplier_name}
-                                </a>
-                            }
-                          </>
+                          <option
+                            key={supplier.id}
+                            value={supplier.id}
+                          >
+                            {supplier.supplier_name}
+                          </option>
                         )
-                      })}</>
+                      })}
+                    </select>
+                    </div>
                   }
 
 

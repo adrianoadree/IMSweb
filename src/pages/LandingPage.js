@@ -35,7 +35,7 @@ function LandingPage() {
     const [showProductQuickViewModal, setShowProductQuickViewModal] = useState(false); // show/hide product quick view modal
     const [showGenerateOrderFormModal, setShowGenerateOrderFormModal] = useState(false);
     const [productToView, setProductToView] = useState() // set product to view
-    const [productToOrder, setProductToOrder] = useState({}) // set product to view
+    const [productToOrder, setProductToOrder] = useState({}) // set product to order
     const [sidebarHidden, setSidebarHidden] = useState(false) // display/hide sidebar
 
     var curr_date = new Date(); // get current date
