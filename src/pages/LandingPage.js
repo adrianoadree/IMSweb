@@ -17,6 +17,7 @@ import { Card, Nav, Table,  Tab, } from "react-bootstrap";
 import { Spinner } from 'loading-animations-react';
 
 import ProductQuickView from "../components/ProductQuickView";
+import GenerateOrderForm from "../components/GenerateOrderForm"
 
 
 function LandingPage() {
@@ -32,7 +33,9 @@ function LandingPage() {
     const [salesRecordCollection, setSalesRecordCollection] = useState();
 
     const [showProductQuickViewModal, setShowProductQuickViewModal] = useState(false); // show/hide product quick view modal
+    const [showGenerateOrderFormModal, setShowGenerateOrderFormModal] = useState(false);
     const [productToView, setProductToView] = useState() // set product to view
+    const [productToOrder, setProductToOrder] = useState({}) // set product to view
     const [sidebarHidden, setSidebarHidden] = useState(false) // display/hide sidebar
 
     var curr_date = new Date(); // get current date
@@ -204,6 +207,7 @@ function LandingPage() {
                             <div className="col-2 px-0 d-flex align-items-end justify-content-end">
                                 <button
                                     className="plain-button contact-supplier-button"
+                                    onClick={() => { setProductToOrder({id: props.id, description: props.description, qty: props.restockquantity, price: props.purchaseprice}); setShowGenerateOrderFormModal(true) }}
                                 >
                                     <FontAwesomeIcon icon={faUser} /><sub><FontAwesomeIcon icon={faPhone} /></sub>
                                 </button>
@@ -228,12 +232,13 @@ function LandingPage() {
                                             <ProductCard
                                                 key={prod.id}
                                                 daysrop={prod.analytics.daysROP}
-                                                id={prod.id.substring(0, 9)}
+                                                id={prod.id}
                                                 description={prod.description}
                                                 reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
                                                 img={prod.img}
                                                 quantity={prod.qty}
                                                 restockquantity={prod.analytics.reorderPoint}
+                                                purchaseprice={prod.p_price}
                                             />
                                         )
                                     })}
@@ -250,6 +255,7 @@ function LandingPage() {
                                                 img={prod.img}
                                                 quantity={prod.qty}
                                                 restockquantity={prod.analytics.reorderPoint}
+                                                purchaseprice={prod.p_price}
                                             />
                                         )
                                     })}
@@ -266,6 +272,7 @@ function LandingPage() {
                                                 img={prod.img}
                                                 quantity={prod.qty}
                                                 restockquantity={prod.analytics.reorderPoint}
+                                                purchaseprice={prod.p_price}
                                             />
                                         )
                                     })}
@@ -366,6 +373,7 @@ function LandingPage() {
         </Card>
         )
     }
+
     function SummaryReport() {
 /*
         const [productsSold, setProductsSold] = useState([])
@@ -1018,7 +1026,6 @@ function LandingPage() {
     
     }
 
-
     return (
         <div>
             <UserRouter
@@ -1031,6 +1038,12 @@ function LandingPage() {
                 show={showProductQuickViewModal}
                 onHide={() => setShowProductQuickViewModal(false)}
                 productid={productToView}
+            />
+            <GenerateOrderForm
+                show={showGenerateOrderFormModal}
+                onHide={() => setShowGenerateOrderFormModal(false)}
+                product={productToOrder}
+                businessname={userProfile.bname}
             />
             <div id="contents" className="row">
                 <div className="row py-4 px-5">

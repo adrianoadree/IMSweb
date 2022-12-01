@@ -3277,16 +3277,13 @@ input:not(:focus):valid~.floating-label {
 
 .interrelated-options .end-option {
 	border: 2px solid #4172c1;
+	border-left: none !important;
 	border-top-right-radius: 5px;
 	border-bottom-right-radius: 5px;
 }
 
 .interrelated-options .center-option {
 	border-left: none !important;
-	border-right: none !important;
-}
-
-.interrelated-options .divider {
 	border-right: 2px solid #4172c1 !important;
 }
 
@@ -4050,4 +4047,22 @@ input[type=search]::-webkit-search-cancel-button {
 	padding: 0.5em 1.5em;
 	border: 1px solid #0000002a;
 	box-shadow: 0 4px 5px 1px rgba(0, 0, 0, 0.152);
+}
+
+span.no-break {
+	white-space: nowrap;
+}
+
+#order-form {
+	border: 1px solid #0000002a;
+	border-radius: 15px;
+}
+
+#contact-supplier-actions a {
+	text-decoration: none;
+	color: #7eb3c2;
+}
+
+#contact-supplier-actions a:hover {
+	color: #6082d6 !important
 }
