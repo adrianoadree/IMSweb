@@ -167,7 +167,7 @@ function GenerateOrderForm(props) {
                   <div className="ps-2">
                     <h6 className="mb-3">Order:</h6>
                     <ol>
-                      <li>
+                      <li className="no-click">
                         <div className="w-100 d-flex align-items-center justify-content-between flex-row ps-0 mb-2">
                           <span className="px-1">
                             {props.product.description}
