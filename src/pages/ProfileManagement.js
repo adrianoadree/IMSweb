@@ -25,6 +25,10 @@ function ProfileManagement() {
   const [userID, setUserID] = useState("");
   const [userCollection, setUserCollection] = useState([]); 
 
+  const [userProfileId, setUserProfileId] = useState("")
+  const [email, setEmail] = useState(false)
+  const [status, setStatus] = useState("")
+  const [newness, setNewness] = useState(false)
   const [newName, setNewName] = useState("");
   const [newAddress, setNewAddress] = useState("");
   const [newPhone, setNewPhone] = useState("");
@@ -94,9 +98,9 @@ function ProfileManagement() {
   }
 
   useEffect(()=>{
-    console.log(fileUpload)
-    console.log(fileUrls)
-  })
+    console.log(Array.from(fileUpload).length)
+    console.log(fileUrls.length)
+  }, [fileUrls])
 
   const handleInputChangePhone = (value, required) => {
     if (!value) {
@@ -137,8 +141,9 @@ function ProfileManagement() {
   const uploadFile = () => {
     if (fileUpload == null) return;
     Array.from(fileUpload).map((file, index)=>{
-      uploadBytes(ref(st, `${userID}/documents/${file.name}`), file).then((snapshot) => {
+      uploadBytes(ref(st, `${userID}/documents/${fileUpload[index].name}`), file).then((snapshot) => {
         getDownloadURL(snapshot.ref).then((url) => {
+          console.log(url)
           setFileUrls((prev) => [...prev, url]);
         });
       });
@@ -154,8 +159,8 @@ function ProfileManagement() {
     setEditing(false)
   }
 
-  const getVerified = async (id) => {
-    await updateDoc(doc(db, 'user', id), {
+  const getVerified = () => {
+    updateDoc(doc(db, 'user', userProfileId), {
       name: checkIfEmpty(newName),
       phone: checkIfEmpty(newPhone),
       address: checkIfEmpty(newAddress),
@@ -166,13 +171,12 @@ function ProfileManagement() {
       bemail: checkIfEmpty(newBEmail),
       btype: checkIfEmpty(newBType),
       status: 'inVerification',
-      accounts: [],
       documents: fileUrls
     });
   }
 
-  const updateInfo = async (id) => {
-    await updateDoc(doc(db, 'user', id), {
+  const updateInfo = async () => {
+    await updateDoc(doc(db, 'user',userProfileId), {
       name: newName,
       phone: newPhone,
       address: newAddress,
@@ -181,6 +185,10 @@ function ProfileManagement() {
 
   useEffect(() => {
     userCollection.map((metadata) => {
+      setUserProfileId(metadata.id)
+      setNewness(metadata.isNew)
+      setStatus(metadata.status)
+      setEmail(metadata.email)
       setNewName(metadata.name)
       setNewAddress(metadata.address)
       setNewPhone(metadata.phone)
@@ -212,18 +220,18 @@ function ProfileManagement() {
       setIsComplete(true);
     }
     if(fileUrls.length > 0)
-    {
-      if(fileUrls.length != fileUpload.length) {
-      }
-      else
-      {
-        if(fileUrls.length == fileUpload.length)
         {
-          setUploadFinished(true)
+          if(fileUrls.length != fileUpload.length) {
+          }
+          else
+          {
+            if(fileUrls.length === fileUpload.length)
+            {
+              setUploadFinished(true)
+            }
+            setUploading(false)
+          }
         }
-        setUploading(false)
-      }
-    }
     if (handleInputChange(newName) != "hide-warning-message")
     {
       setIsUpdateComplete(false)
@@ -242,9 +250,9 @@ function ProfileManagement() {
       <Navigation 
         page='/profileManagement'
       />
-      {userCollection.map((metadata) => {
-        return(
-          <>
+      {userCollection === undefined || userCollection.length == 0?
+         <></>
+      : 
             <div>
               <div id="contents" className="row">
                 <div className="row  py-4 px-5">
@@ -258,7 +266,7 @@ function ProfileManagement() {
                         <Nav.Item>
                           <Nav.Link as={Link} to="/profilemanagement" active>Profile</Nav.Link>
                         </Nav.Item>
-                          {metadata.status == 'verified'?
+                          {status == 'verified'?
                             <Nav.Item>
                               <Nav.Link as={Link} to="/accountmanagement">Accounts</Nav.Link>
                             </Nav.Item>
@@ -282,7 +290,7 @@ function ProfileManagement() {
                             <h4>User Profile</h4>
                           </div>
                           <div className="row m-0 d-flex align-items center justify-content-end">
-                            {metadata.status == 'verified'?
+                            {status == 'verified'?
                               <div className="col-3 d-flex align-items center justify-content-end">
                               {editing?
                                 <>
@@ -344,7 +352,7 @@ function ProfileManagement() {
                               <input type="text"
                                 name="Email Address"
                                 className="form-control no-click form"
-                                value={metadata.email}
+                                value={email}
                                 onChange={(_event) => { } }
                               />
                               <span className="floating-label">Email Address</span>
@@ -358,11 +366,15 @@ function ProfileManagement() {
                                 onChange={(event) => {setNewPhone((event.target.value));}}
                                 />
                               <span className="floating-label">Phone Number</span>
+                              {status == "new"?
                               <div 
                                 className={"field-warning-message yellow-strip my-1 m-0 " + (handleInputChangePhone(newPhone))}
                               >
                                 {handleInputChangePhone(newPhone, false)}
                               </div>
+                              :
+                              <></>
+                              }
                             </div>
                             <div className="col-8">
                               <input type="text"
@@ -376,7 +388,7 @@ function ProfileManagement() {
                           </div>
 
                         </div>
-                        {metadata.status == 'new'?
+                        {status == 'new'?
                           
                           <div className="user-management-form-section">
                             <div className="row m-0">
@@ -396,7 +408,7 @@ function ProfileManagement() {
                                 <input type="text"
                                   name="Business Name"
                                   className="form-control"
-                                  value={metadata.bname}
+                                  value={newBName}
                                   required
                                   onChange={(event) => {setNewBName((event.target.value)); } }
                                 />
@@ -411,7 +423,7 @@ function ProfileManagement() {
                                 <input type="text"
                                   name="Business Address"
                                   className="form-control"
-                                  defaultValue={metadata.baddress}
+                                  defaultValue={newBAddress}
                                   required
                                   onChange={(event) => {setNewBAddress((event.target.value)); } } />
                                 <span className="floating-label">Business Address</span>
@@ -425,7 +437,7 @@ function ProfileManagement() {
                                 <input type="text"
                                   name="Nature of Business"
                                   className="form-control"
-                                  defaultValue={metadata.bnature}
+                                  defaultValue={newBNature}
                                   required
                                   onChange={(event) => {setNewBNature((event.target.value)); } } />
                                 <span className="floating-label">Nature of Business (e.g. reseller, boutique)</span>
@@ -438,7 +450,7 @@ function ProfileManagement() {
                               <div className="col-6">
                                 <select type="text"
                                   className="form-control"
-                                  value={metadata.btype}
+                                  value={newBType}
                                   required
                                   onChange={(event) => { setNewBType((event.target.value)); } }
                                 >
@@ -452,7 +464,7 @@ function ProfileManagement() {
                                 <input type="text"
                                   name="Phone Number"
                                   className="form-control"
-                                  defaultValue={metadata.bphone}
+                                  defaultValue={newBPhone}
                                   required
                                   onChange={(event) => {setNewBPhone((event.target.value)); } } />
                                 <span className="floating-label">Phone Number</span>
@@ -466,7 +478,7 @@ function ProfileManagement() {
                                 <input type="text"
                                   name="Email Address"
                                   className="form-control"
-                                  defaultValue={metadata.bemail}
+                                  defaultValue={newBEmail}
                                   required
                                   onChange={(event) => {setNewBEmail((event.target.value)); } } />
                                 <span className="floating-label">Email Address</span>
@@ -520,7 +532,7 @@ function ProfileManagement() {
                           :
                           <></>
                         }
-                        {metadata.status == 'verified'?
+                        {status == 'verified'?
                           <div className="user-management-form-section">
                             {editing?
                               <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
@@ -540,7 +552,7 @@ function ProfileManagement() {
                                   className="btn btn-success"
                                   style={{ width: "150px" }}
                                   disabled={!isUpdateComplete}
-                                  onClick={() => { updateInfo(metadata.id) } }
+                                  onClick={() => { updateInfo() } }
                                 >
                                   Save Changes
                                 </Button>
@@ -553,12 +565,12 @@ function ProfileManagement() {
                         <></>
                         }
                           <div id="submit-button">
-                            {metadata.status == 'new' ?
+                            {status == 'new' ?
                               <Button
                                 className="btn btn-success"
                                 style={{ width: "150px" }}
                                 disabled={!isComplete}
-                                onClick={() => { getVerified(metadata.id)} }>
+                                onClick={() => { getVerified()} }>
                                 Submit
                               </Button>
                             :
@@ -571,9 +583,7 @@ function ProfileManagement() {
                 </div>
               </div>
             </div>
-          </>
-        )
-      })}
+      }
     </div>
   );
 }

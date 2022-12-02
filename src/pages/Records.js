@@ -738,7 +738,7 @@ function Records() {
                               <th className="qc pth text-center">Quantity</th>
                               <th className='dc pth text-center'>Description</th>
                               <th className='pp pth text-center'>Purchase Price</th>
-                              <th className='ext pth text-center'>Extension</th>
+                              <th className='ext pth text-center'>Amount</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -906,7 +906,7 @@ function Records() {
                                 <th className="qc pth text-center">Quantity</th>
                                 <th className='dc pth text-center'>Description</th>
                                 <th className='pp pth text-center'>Purchase Price</th>
-                                <th className='ext pth text-center'>Extension</th>
+                                <th className='ext pth text-center'>Amount</th>
                               </tr>
                             </thead>
                             <tbody>

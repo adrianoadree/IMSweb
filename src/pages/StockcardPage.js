@@ -156,7 +156,15 @@ function StockcardPage({ isAuth }) {
       t_date.setHours(0, 0, 0, 0)
       var o_date = new Date(order_date)
       o_date.setHours(0, 0, 0, 0)
-      return (moment(t_date).diff(moment(o_date), "days"))
+      if(moment(t_date).diff(moment(o_date)) == 1)
+      {
+        return (moment(t_date).diff(moment(o_date), "days")) + " day"
+
+      }
+      else
+      {
+        return (moment(t_date).diff(moment(o_date), "days")) + " days"
+      }
     }
   }
   function DetermineStockLevel(curr, min, max, product_id) {
@@ -2158,7 +2166,7 @@ function StockcardPage({ isAuth }) {
                                 </div>
                               </div>
                               :
-                              <div className="data-img mb-2 d-flex align-items-center justify-content-center">
+                              <div className="data-img mb-2 d-flex align-items-center justify-content-center p-2">
                                 <img key={stockcard[docId].img}src={stockcard[docId].img} style={{height: '100%', width: 'auto'}}/>
                               </div>
                             }
@@ -2204,7 +2212,7 @@ function StockcardPage({ isAuth }) {
                                   />
                                 </a>
                                 <div className="col-11 data-label">
-                                  {stockcard[docId].description}
+                                  <strong>{stockcard[docId].description}</strong>
                                 </div>
                               </div>
                             </div>

@@ -462,8 +462,8 @@ function GenerateInventoryBalanceReport() {
                               <th>Item Code</th>
                               <th>Description</th>
                               <th>Qty</th>
-                              <th>Purchase Price</th>
                               <th>Cost</th>
+                              <th>Amount</th>
                             </tr>
                           </thead>
                           <tbody>
