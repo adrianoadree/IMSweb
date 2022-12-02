@@ -378,7 +378,7 @@ function PrintBarcodes() {
                                       <td>
                                         <img className="barcode" id={item.id.substring(0,9)} value={item.barcode} style={{display: 'none'}}/>
                                         <Barcode
-                                          format="EAN13"
+                                          format={"EAN13"}
                                           value={item.barcode}
                                           color="#000"
                                         />

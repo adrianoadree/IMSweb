@@ -28,10 +28,6 @@ function LandingPage() {
     const [userCollection, setUserCollection] = useState(); // stockcardCollection variable
     const [userProfile, setUserProfile] = useState({});
 
-    const [stockcardCollection, setStockcardCollection] = useState(); // stockcardCollection variable
-    const [purchaseRecordCollection, setPurchaseRecordCollection] = useState(); // sales_record collection
-    const [salesRecordCollection, setSalesRecordCollection] = useState();
-
     const [showProductQuickViewModal, setShowProductQuickViewModal] = useState(false); // show/hide product quick view modal
     const [showGenerateOrderFormModal, setShowGenerateOrderFormModal] = useState(false);
     const [productToView, setProductToView] = useState() // set product to view
@@ -103,47 +99,6 @@ function LandingPage() {
         }
     }, [userCollection])
 
-        //query documents from stockcard that contains docId
-    useEffect(() => {
-        if (userID !== undefined) {
-
-            const stockcardCollectionRef = collection(db, "stockcard")
-            const q = query(stockcardCollectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-    }, [userID])
-
-    //query documents from purchase_record that contains docId
-    useEffect(() => {
-        if (userID !== undefined) {
-            const collectionRef = collection(db, "purchase_record")
-            const q = query(collectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-
-    }, [userID])
-
-    //query documents from purchase_record that contains docId
-    useEffect(() => {
-        if (userID !== undefined) {
-            const collectionRef = collection(db, "sales_record")
-            const q = query(collectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-
-    }, [userID])
 
     function Notification() {
         
@@ -158,7 +113,6 @@ function LandingPage() {
     const notificationFilterOverdueButtonRef = useRef(null)
 
     
-
     //Read stock card collection from database
     useEffect(() => {
         if (userID !== undefined) {
@@ -279,9 +233,8 @@ function LandingPage() {
                                 </div>
                             </>
                             :
-                            <div className="full-column text-center">
-                                No Product near Restocking
-                            </div>
+                            
+                            <h6 style={{color: "#00000080"}}><strong>No product near restocking</strong></h6>
                         }
                     </div>
                 </div>
@@ -375,7 +328,11 @@ function LandingPage() {
     }
 
     function SummaryReport() {
-/*
+
+        const [stockcardCollection, setStockcardCollection] = useState(); // stockcardCollection variable
+        const [purchaseRecordCollection, setPurchaseRecordCollection] = useState(); // sales_record collection
+        const [salesRecordCollection, setSalesRecordCollection] = useState();
+
         const [productsSold, setProductsSold] = useState([])
         const [productsBought, setProductsBought] = useState([])
         const [totalSales, setTotalSales] = useState(0)
@@ -390,6 +347,49 @@ function LandingPage() {
         useEffect(() => {
             console.log(dateSelected)
         })
+
+        
+        //query documents from stockcard that contains docId
+    useEffect(() => {
+        if (userID !== undefined) {
+
+            const stockcardCollectionRef = collection(db, "stockcard")
+            const q = query(stockcardCollectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
+
+    //query documents from purchase_record that contains docId
+    useEffect(() => {
+        if (userID !== undefined) {
+            const collectionRef = collection(db, "purchase_record")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [userID])
+
+    //query documents from purchase_record that contains docId
+    useEffect(() => {
+        if (userID !== undefined) {
+            const collectionRef = collection(db, "sales_record")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+
+    }, [userID])
 
         // make default date selected today
         useEffect(() => {
@@ -941,12 +941,12 @@ function LandingPage() {
 
             )
         }
-        */
+        
 
         return (
             
             <Card className="sidebar-card">
-                {/*
+                
                 <Card.Header className="py-3 text-center left-curve right-curve">
                     {userProfile === undefined ?
                         <></>
@@ -1020,7 +1020,7 @@ function LandingPage() {
                         </Tab.Content>
                     </Tab.Container>
                 </Card.Body>
-                */}
+                
             </Card>
         )
     
