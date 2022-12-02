@@ -13,7 +13,7 @@ import { DocumentAttach, Calendar, Document, InformationCircle } from 'react-ion
 import { ChevronBack, ChevronForward, Exit, Enter } from 'react-ionicons'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import ToolTip from 'react-bootstrap/Tooltip';
-import { LineChart, Line, XAxis, YAxis, ReferenceDot, Legend, Tooltip, Label, ReferenceLine } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, ReferenceDot, Legend, Tooltip, Label, ReferenceLine, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Spinner } from 'loading-animations-react';
 import UserRouter from '../pages/UserRouter'
@@ -44,7 +44,7 @@ function Itemforecast() {
 
     const [transactionDates, setTransactionDates] = useState()
     const [sortedTransactionDates, setSortedTransactionDates] = useState()
-    
+
     const [sidebarHidden, setSidebarHidden] = useState(false) // display/hide sidebar
 
 
@@ -554,41 +554,40 @@ function Itemforecast() {
                     <>
                         <div>
                             <div className='row mt-3'>
+                                    <LineChart
+                                        width={600}
+                                        height={400}
+                                        data={data}
+                                        margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                                    >
+                                        <XAxis dataKey="date">
+                                        </XAxis>
+                                        <YAxis label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }} />
+                                        <Tooltip />
+                                        <Legend />
 
-                                <LineChart
-                                    width={600}
-                                    height={400}
-                                    data={data}
-                                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                                >
-                                    <XAxis dataKey="date">
-                                    </XAxis>
-                                    <YAxis label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }} />
-                                    <Tooltip />
-                                    <Legend />
+                                        <ReferenceLine y={stockcard[docId].min_qty}
+                                            label={{ value: 'Minimum Quantity', position: 'insideRight', textAnchor: 'middle' }}
+                                            stroke="#262626" strokeDasharray="3 3" />
 
-                                    <ReferenceLine y={stockcard[docId].min_qty}
-                                        label={{ value: 'Minimum Quantity', position: 'insideRight', textAnchor: 'middle' }}
-                                        stroke="#262626" strokeDasharray="3 3" />
+                                        <ReferenceLine y={stockcard[docId].max_qty}
+                                            label={{ value: 'Maximum Quantity', position: 'insideRight', textAnchor: 'middle' }}
+                                            stroke="#262626" strokeDasharray="3 3" />
 
-                                    <ReferenceLine y={stockcard[docId].max_qty}
-                                        label={{ value: 'Maximum Quantity', position: 'insideRight', textAnchor: 'middle' }}
-                                        stroke="#262626" strokeDasharray="3 3" />
+                                        <ReferenceLine y={stockcard[docId].analytics.reorderPoint}
+                                            label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
+                                            stroke="#009933" strokeDasharray="3 3" />
+                                        <ReferenceLine y={stockcard[docId].analytics.safetyStock}
+                                            label={{ value: 'SafetyStock', position: 'insideLeft', textAnchor: 'middle' }}
+                                            stroke="#ff9900" strokeDasharray="3 3" />
+                                        <Line type="monotone" dataKey="StockLevel" stroke="#ff0000"
+                                            dot={{ stroke: '#8884d8', strokeWidth: 1, r: 3, strokeDasharray: '' }}
+                                        />
+                                        <Line type="monotone" dataKey="ProjectedStockLevel" stroke="#0066ff"
+                                            dot={{ stroke: '#blue', strokeWidth: 1, r: 3, strokeDasharray: '' }}
+                                        />
 
-                                    <ReferenceLine y={stockcard[docId].analytics.reorderPoint}
-                                        label={{ value: 'ReorderPoint', position: 'insideLeft', textAnchor: 'middle' }}
-                                        stroke="#009933" strokeDasharray="3 3" />
-                                    <ReferenceLine y={stockcard[docId].analytics.safetyStock}
-                                        label={{ value: 'SafetyStock', position: 'insideLeft', textAnchor: 'middle' }}
-                                        stroke="#ff9900" strokeDasharray="3 3" />
-                                    <Line type="monotone" dataKey="StockLevel" stroke="#ff0000"
-                                        dot={{ stroke: '#8884d8', strokeWidth: 1, r: 3, strokeDasharray: '' }}
-                                    />
-                                    <Line type="monotone" dataKey="ProjectedStockLevel" stroke="#0066ff"
-                                        dot={{ stroke: '#blue', strokeWidth: 1, r: 3, strokeDasharray: '' }}
-                                    />
-
-                                </LineChart>
+                                    </LineChart>
                             </div>
                             <div className="row mt-3 px-4 py-2 bg-white">
                                 <hr />
@@ -665,12 +664,12 @@ function Itemforecast() {
                         />
                         <p className="text-center px-5">
                             <div className="mb-2">
-                            Forecasting chart is only available for products with <strong> five (5) or more </strong> sale transaction days.
+                                Forecasting chart is only available for products with <strong> five (5) or more </strong> sale transaction days.
                             </div>
-                            
+
                             <small>
                                 <span>To create a sales transaction, go to </span>
-                                <Link to="/salesrecord">Sales Record</Link> 
+                                <Link to="/salesrecord">Sales Record</Link>
                             </small>
                         </p>
                     </div>
@@ -687,7 +686,7 @@ function Itemforecast() {
             <UserRouter
                 route='/analytics'
             />
-            <Navigation 
+            <Navigation
                 page="/analytics"
             />
 
@@ -801,7 +800,7 @@ function Itemforecast() {
                                         height="15px"
                                         width="15px"
                                     />
-                                :
+                                    :
                                     <ChevronBack
                                         color={'#000000'}
                                         height="15px"
@@ -821,47 +820,47 @@ function Itemforecast() {
                                             <hr />
 
                                             <div className="row m-0 mt-2 mb-1 px-2 py-3 blue-strip dark left-full-curve right-full-curve">
-                                                    <div className="row m-0 p1 px-0 text-center">
-                                                        <div className="col-2">
-                                                            Item Code
-                                                        </div>
-                                                        <div className="col-8">
-                                                            Item Description
-                                                        </div>
-                                                        <div className="col-2">
-                                                            Stock
-                                                        </div>
+                                                <div className="row m-0 p1 px-0 text-center">
+                                                    <div className="col-2">
+                                                        Item Code
                                                     </div>
-                                                    <hr className="blue-strip-divider dark"></hr>
-                                                    <div className="row m-0 my-2 px-0">
-                                                        <div className="col-2 text-center">
-                                                            <h6><strong>-</strong></h6>
-                                                        </div>
-                                                        <div className="col-8 text-center">
-                                                            <h6><strong>-</strong></h6>
-                                                        </div>
-                                                        <div className="col-2 text-center">
-                                                            <h6><strong>-</strong></h6>
-                                                        </div>
+                                                    <div className="col-8">
+                                                        Item Description
                                                     </div>
-                                                </div>                
-                                                <div className='mt-2 p-3'>
-                                                    <div className="blue-strip left-full-curve right-full-curve p-3">
-                                                        <div className="d-flex align-items-center justify-content-center flex-column">
-                                                            <InformationCircle
-                                                                color={'#0d6efd'}
-                                                                height="40px"
-                                                                width="40px"
-                                                                className="mb-2"
-                                                            />
-                                                            <p className="text-center px-5">
-                                                                <div className="mb-2">
-                                                                <strong>Select a product to display its forecasting.</strong>
-                                                                </div>
-                                                            </p>
-                                                        </div>
+                                                    <div className="col-2">
+                                                        Stock
                                                     </div>
                                                 </div>
+                                                <hr className="blue-strip-divider dark"></hr>
+                                                <div className="row m-0 my-2 px-0">
+                                                    <div className="col-2 text-center">
+                                                        <h6><strong>-</strong></h6>
+                                                    </div>
+                                                    <div className="col-8 text-center">
+                                                        <h6><strong>-</strong></h6>
+                                                    </div>
+                                                    <div className="col-2 text-center">
+                                                        <h6><strong>-</strong></h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className='mt-2 p-3'>
+                                                <div className="blue-strip left-full-curve right-full-curve p-3">
+                                                    <div className="d-flex align-items-center justify-content-center flex-column">
+                                                        <InformationCircle
+                                                            color={'#0d6efd'}
+                                                            height="40px"
+                                                            width="40px"
+                                                            className="mb-2"
+                                                        />
+                                                        <p className="text-center px-5">
+                                                            <div className="mb-2">
+                                                                <strong>Select a product to display its forecasting.</strong>
+                                                            </div>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                     </div>
@@ -904,19 +903,19 @@ function Itemforecast() {
                                                 </div>
                                                 <div className="row m-0 p-0">
 
-                                                {stockcard === undefined ?
-                                                <Spinner
-                                                    color1="#b0e4ff"
-                                                    color2="#fff"
-                                                    textColor="rgba(0,0,0, 0.5)"
-                                                    className="w-50 h-50"
-                                                />
-                                                :
-                                                stockcard[docId].analytics.analyticsBoolean ?
-                                                    displayAccordion()
-                                                    :
-                                                    displayChartError()
-                                            }
+                                                    {stockcard === undefined ?
+                                                        <Spinner
+                                                            color1="#b0e4ff"
+                                                            color2="#fff"
+                                                            textColor="rgba(0,0,0, 0.5)"
+                                                            className="w-50 h-50"
+                                                        />
+                                                        :
+                                                        stockcard[docId].analytics.analyticsBoolean ?
+                                                            displayAccordion()
+                                                            :
+                                                            displayChartError()
+                                                    }
                                                 </div>
                                             </div>
 
