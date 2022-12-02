@@ -375,7 +375,7 @@ function LandingPage() {
     }
 
     function SummaryReport() {
-/*
+
         const [productsSold, setProductsSold] = useState([])
         const [productsBought, setProductsBought] = useState([])
         const [totalSales, setTotalSales] = useState(0)
@@ -941,12 +941,12 @@ function LandingPage() {
 
             )
         }
-        */
+        
 
         return (
             
             <Card className="sidebar-card">
-                {/*
+                
                 <Card.Header className="py-3 text-center left-curve right-curve">
                     {userProfile === undefined ?
                         <></>
@@ -1020,7 +1020,7 @@ function LandingPage() {
                         </Tab.Content>
                     </Tab.Container>
                 </Card.Body>
-                */}
+                
             </Card>
         )
     

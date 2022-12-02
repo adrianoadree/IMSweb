@@ -13,7 +13,6 @@ import { DocumentAttach, Calendar, Document, InformationCircle } from 'react-ion
 import { ChevronBack, ChevronForward, Exit, Enter } from 'react-ionicons'
 import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 import ToolTip from 'react-bootstrap/Tooltip';
-import { LineChart, Line, XAxis, YAxis, ReferenceDot, Legend, Tooltip, Label, ReferenceLine, ResponsiveContainer } from 'recharts';
 import { LineChart, Line, XAxis, YAxis, ReferenceDot, Legend, Tooltip, Text, ReferenceLine, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Spinner } from 'loading-animations-react';
