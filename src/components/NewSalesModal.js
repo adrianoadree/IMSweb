@@ -442,12 +442,6 @@ function NewSalesModal(props) {
     }, [transactionDates, itemId])
 
 
-    useEffect(() => {
-        console.log("transactionDates: ", transactionDates)
-        console.log("transactionDateslength: ", transactionDates.length)
-
-    }, [transactionDates, itemId])
-
 
 
 
