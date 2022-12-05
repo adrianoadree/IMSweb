@@ -838,12 +838,12 @@ function Itemforecast() {
                         />
                         <p className="text-center px-5">
                             <div className="mb-2">
-                            Forecasting chart is only available for products with <strong> five (5) or more </strong> sale transaction days.
+                                Forecasting chart is only available for products with <strong> five (5) or more </strong> sale transaction days.
                             </div>
-                            
+
                             <small>
                                 <span>To create a sales transaction, go to </span>
-                                <Link to="/salesrecord">Sales Record</Link> 
+                                <Link to="/salesrecord">Sales Record</Link>
                             </small>
                         </p>
                     </div>
@@ -859,7 +859,7 @@ function Itemforecast() {
             <UserRouter
                 route='/analytics'
             />
-            <Navigation 
+            <Navigation
                 page="/analytics"
             />
 
@@ -973,7 +973,7 @@ function Itemforecast() {
                                         height="15px"
                                         width="15px"
                                     />
-                                :
+                                    :
                                     <ChevronBack
                                         color={'#000000'}
                                         height="15px"
@@ -993,47 +993,47 @@ function Itemforecast() {
                                             <hr />
 
                                             <div className="row m-0 mt-2 mb-1 px-2 py-3 blue-strip dark left-full-curve right-full-curve">
-                                                    <div className="row m-0 p1 px-0 text-center">
-                                                        <div className="col-2">
-                                                            Item Code
-                                                        </div>
-                                                        <div className="col-8">
-                                                            Item Description
-                                                        </div>
-                                                        <div className="col-2">
-                                                            Stock
-                                                        </div>
+                                                <div className="row m-0 p1 px-0 text-center">
+                                                    <div className="col-2">
+                                                        Item Code
                                                     </div>
-                                                    <hr className="blue-strip-divider dark"></hr>
-                                                    <div className="row m-0 my-2 px-0">
-                                                        <div className="col-2 text-center">
-                                                            <h6><strong>-</strong></h6>
-                                                        </div>
-                                                        <div className="col-8 text-center">
-                                                            <h6><strong>-</strong></h6>
-                                                        </div>
-                                                        <div className="col-2 text-center">
-                                                            <h6><strong>-</strong></h6>
-                                                        </div>
+                                                    <div className="col-8">
+                                                        Item Description
                                                     </div>
-                                                </div>                
-                                                <div className='mt-2 p-3'>
-                                                    <div className="blue-strip left-full-curve right-full-curve p-3">
-                                                        <div className="d-flex align-items-center justify-content-center flex-column">
-                                                            <InformationCircle
-                                                                color={'#0d6efd'}
-                                                                height="40px"
-                                                                width="40px"
-                                                                className="mb-2"
-                                                            />
-                                                            <p className="text-center px-5">
-                                                                <div className="mb-2">
-                                                                <strong>Select a product to display its forecasting.</strong>
-                                                                </div>
-                                                            </p>
-                                                        </div>
+                                                    <div className="col-2">
+                                                        Stock
                                                     </div>
                                                 </div>
+                                                <hr className="blue-strip-divider dark"></hr>
+                                                <div className="row m-0 my-2 px-0">
+                                                    <div className="col-2 text-center">
+                                                        <h6><strong>-</strong></h6>
+                                                    </div>
+                                                    <div className="col-8 text-center">
+                                                        <h6><strong>-</strong></h6>
+                                                    </div>
+                                                    <div className="col-2 text-center">
+                                                        <h6><strong>-</strong></h6>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className='mt-2 p-3'>
+                                                <div className="blue-strip left-full-curve right-full-curve p-3">
+                                                    <div className="d-flex align-items-center justify-content-center flex-column">
+                                                        <InformationCircle
+                                                            color={'#0d6efd'}
+                                                            height="40px"
+                                                            width="40px"
+                                                            className="mb-2"
+                                                        />
+                                                        <p className="text-center px-5">
+                                                            <div className="mb-2">
+                                                                <strong>Select a product to display its forecasting.</strong>
+                                                            </div>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
 
                                     </div>

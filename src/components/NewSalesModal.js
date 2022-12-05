@@ -442,10 +442,6 @@ function NewSalesModal(props) {
     }, [transactionDates, itemId])
 
 
-    useEffect(() => {
-        console.log("transactionDates: ", transactionDates)
-    }, [transactionDates, itemId])
-
 
 
 
@@ -473,6 +469,8 @@ function NewSalesModal(props) {
         z = Number(totalSales / dateDifference)
         setAverageDailySales(Math.round(z))
     }, [totalSales, dateDifference])
+
+
 
     //compute array of Daily Sales
     useEffect(() => {
@@ -692,11 +690,15 @@ function NewSalesModal(props) {
     }, [minDate, maxDate, newDate])
 
     useEffect(() => {
+        console.log("min:", min)
+        console.log("max:", max)
+
         console.log("highestDailySales:", highestDailySales)
         console.log("reorderPoint:", reorderPoint)
         console.log("daysROP: ", daysROP)
         console.log("averageDailySales: ", averageDailySales)
         console.log("dateDifference: ", dateDifference)
+    
 
     }, [daysROP, reorderPoint, highestDailySales, averageDailySales, dateDifference])
 
