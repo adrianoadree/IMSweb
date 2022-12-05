@@ -382,8 +382,8 @@ function SupplierList() {
       
     //Delete collection from database
     const deleteSupplier = async () => {
-      setKey("main")
       setDocId(0)
+      setKey("main")
       deleteToast();
       props.onHide()
       const supplierDoc = doc(db, "supplier", supplier[docId].id)

@@ -223,17 +223,6 @@ function Records() {
       }
     })
 
-    const checkIfOS = (cur_qty, rec_qty) => {
-      if(cur_qty - rec_qty < 0)
-      {
-        return 0;
-      }
-      else
-      {
-        return cur_qty - rec_qty;
-      }
-    }
-
     const voidToast = () => {
       toast.error("Voiding " + purchaseRecordCollection[docId].id.substring(0, 7), {
         position: "top-right",
@@ -248,7 +237,7 @@ function Records() {
     }
 
     const voidRecord = async() => {
-      var productListItem
+      var productListItem = {}
       for(var i = 0; i < productList.length; i++)
       {
         var stockcardItem = {}
@@ -263,7 +252,7 @@ function Records() {
           }
         })
         updateDoc(doc(db, "stockcard", productListItem.itemId),{
-          qty: Number(checkIfOS(stockcardItem.qty, productListItem.itemQuantity)),
+          qty: Number(stockcardItem.qty - productListItem.itemQuantity) < 0?0:Number(stockcardItem.qty - productListItem.itemQuantity),
         })
       }
 

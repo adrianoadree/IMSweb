@@ -37,7 +37,7 @@ function NewPurchaseModal(props) {
     const [items, setItems] = useState([]); // array of objects containing product information
     const [itemId, setItemId] = useState("IT999999"); //product id
     const [itemName, setItemName] = useState(""); //product description
-    const [itemSupplier, setItemSupplier] = useState(""); //product description
+    const [itemSupplier, setItemSupplier] = useState("placeholder"); //product description
     const [itemSPrice, setItemSPrice] = useState(0); //product Selling Price
     const [itemPPrice, setItemPPrice] = useState(0); //product Purchase Price
     const [itemQuantity, setItemQuantity] = useState(1); //product quantity
@@ -193,7 +193,7 @@ function NewPurchaseModal(props) {
     const clearFields = () => {
         if(supplierCol === undefined || supplierCol.length == 0)
         {
-
+            setItemSupplier("placeholder")
         }
         else
         {
@@ -226,6 +226,10 @@ function NewPurchaseModal(props) {
     const handleSupplierSelect = (value) => {
         if (value == "add-supplier") {
             setSupplierModalShow(true)
+        }
+        else if(value == "placeholder")
+        {
+
         }
         else
         {
@@ -305,7 +309,7 @@ function NewPurchaseModal(props) {
                 {
                     stockcardItemAnalytics.leadtimeMinimum = computeDelay()
                 }
-                stockcardItemAnalytics.leadtimeAverage = Number((stockcardItemAnalytics.leadtimeMaximum + stockcardItemAnalytics.leadtimeMaximum)/2)
+                stockcardItemAnalytics.leadtimeAverage = Number((stockcardItemAnalytics.leadtimeMinimum + stockcardItemAnalytics.leadtimeMaximum)/2)
                 updateDoc(doc(db, "stockcard", productIds[i]),{
                     analytics: stockcardItemAnalytics,
                 })
@@ -485,6 +489,12 @@ function NewPurchaseModal(props) {
                                             value={itemSupplier}
                                             onChange={e => handleSupplierSelect(e.target.value)}
                                             >
+                                                <option
+                                                    value="placeholder"
+                                                    className style={{fontStyle: 'italic'}}
+                                                >
+                                                    —
+                                                </option>
                                                 {supplierCol.map((supplier) => {
                                                     return (
                                                         <option
@@ -557,7 +567,7 @@ function NewPurchaseModal(props) {
                                                 <div className='col-1 p-1'>
                                                     <Button
                                                         onClick={addItem}
-                                                        disabled={itemId === "IT999999" ? true : false}
+                                                        disabled={itemId === "IT999999" || itemQuantity < 0}
                                                     >
                                                         <FontAwesomeIcon icon={faPlus} />
                                                     </Button>
@@ -624,7 +634,7 @@ function NewPurchaseModal(props) {
                 <Button
                     className="btn btn-light float-start"
                     style={{ width: "6rem" }}
-                    disabled={items.length === 0 || (itemSupplier == "" || itemSupplier == " " || itemSupplier == 0) || handleDateChange() == "Order date must preceed transaction date"}
+                    disabled={items.length === 0 || (itemSupplier == "" || itemSupplier == " " || itemSupplier == 0 || itemSupplier == "placeholder" || itemSupplier == "add-supplier") || handleDateChange() == "Order date must preceed transaction date"}
                     onClick={() => { addRecord() }}>
                     Save
                 </Button>

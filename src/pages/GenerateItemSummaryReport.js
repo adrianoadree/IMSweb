@@ -34,14 +34,16 @@ function GenerateItemSummaryReport() {
 
   const [classification, setClassification] = useState("All")//classification filter
   const [category, setCategory] = useState("All")// category filter
-  const [filterDateEnd, setFilterDateEnd] = useState(today_filter); // end date filter
-  const [filterDateStart, setFilterDateStart] = useState("2001-01-01"); // start date filter
   const [itemList, setItemList] = useState()// product list that satisfied filters
 
   var curr_date = new Date(); // get current date
   curr_date.setDate(curr_date.getDate());
   var today = curr_date
   var today_filter = moment(curr_date).format('YYYY-MM-DD')
+
+  
+  const [filterDateEnd, setFilterDateEnd] = useState(today_filter); // end date filter
+  const [filterDateStart, setFilterDateStart] = useState("2001-01-01"); // start date filter
 
   // get user id
   useEffect(() => {
@@ -220,7 +222,7 @@ function GenerateItemSummaryReport() {
     var record_date
     if(salesRecordCollection === undefined || salesRecordCollection.length == 0)
     {
-      return 0
+      return {total: 0, low: 0, high: 0}
     }
     else
     {
