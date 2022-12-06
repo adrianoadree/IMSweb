@@ -24,6 +24,22 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites":[
+      {"source":"/home","destination":"/index.html"},
+      {"source":"/records","destination":"/index.html"},
+      {"source":"/salesrecords","destination":"/index.html"},
+      {"source":"/supplier","destination":"/index.html"},
+      {"source":"/stockcard","destination":"/index.html"},
+      {"source":"/warehouse","destination":"/index.html"},
+      {"source":"/itemforecasting","destination":"/index.html"},
+      {"source":"/printbarcodes","destination":"/index.html"},
+      {"source":"/printqrcodes","destination":"/index.html"},
+      {"source":"/generateisr","destination":"/index.html"},
+      {"source":"/generateibr","destination":"/index.html"},
+      {"source":"/generatewcr","destination":"/index.html"},
+      {"source":"/adjustinventory","destination":"/index.html"},
+      {"source":"/profilemanagement","destination":"/index.html"}
     ]
   },
   "storage": {
