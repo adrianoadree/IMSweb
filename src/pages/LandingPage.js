@@ -181,7 +181,7 @@ function LandingPage() {
         function NotificationContents() {
         return (
             <>
-                <div id="notifications-content" className="row p-0 pe-3 m-0 d-flex align-items-center justify-content-center scrollbar" style={{ height: '65vh' }}>
+                <div id="notifications-content" className="row p-0 pe-3 m-0 d-flex align-items-start justify-content-center scrollbar" style={{ height: '65vh' }}>
                     <div className="p-0">
                         {prodNearROP.length !== 0 ?
                             <>
@@ -313,7 +313,7 @@ function LandingPage() {
                 </h1>
             </Card.Header>
             <Card.Body className="px-1">
-                <div id="notifications-container" className="w-100 d-flex align-items-start justify-content-center" style={{ height: '65vh' }}>
+                <div id="notifications-container" className="w-100 h-100 d-flex align-items-start justify-content-center" style={{ height: '65vh' }}>
                     {prodNearROP === undefined ?
                         <Spinner
                             color1="#b0e4ff"

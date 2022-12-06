@@ -1944,7 +1944,7 @@ function NewMapModal(props) {
                                             {item.img == " " || item.img == ""?
                                               <div className="scroll-text-horizontally storage-item-no-image" style={{margin: '0.2em'}}>{item.description}</div>
                                             :
-                                            <img src={item.img} style={{height: '100%', width: 'auto'}}/>
+                                            <img src={item.img} style={{height: '100%', width: '100%', objectFit: 'contain'}}/>
                                             }
                                           </div>
                                         </button>

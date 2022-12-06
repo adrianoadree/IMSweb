@@ -2166,7 +2166,7 @@ function StockcardPage({ isAuth }) {
                               </div>
                               :
                               <div className="data-img mb-2 d-flex align-items-center justify-content-center p-2">
-                                <img key={stockcard[docId].img}src={stockcard[docId].img} style={{height: '100%', width: 'auto'}}/>
+                                <img key={stockcard[docId].img}src={stockcard[docId].img} style={{height: '100%', width: '100%', objectFit: "contain"}}/>
                               </div>
                             }
                             <a className="data-barcode" style={{height: "5em"}}>
