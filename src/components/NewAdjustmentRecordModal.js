@@ -230,7 +230,7 @@ function NewAdjustmentRecordModal(props) {
                 itemSPrice: Number(itemSPrice),
                 itemQuantity: Number(itemQuantity),
                 itemCurrentQuantity: Number(itemCurrentQuantity),
-                itemNewQuantity: Number(itemCurrentQuantity) - Number(itemQuantity),
+                itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity),
             }
         ]);
         setItemId("IT999999");
@@ -285,7 +285,7 @@ function NewAdjustmentRecordModal(props) {
         //update stockcard.qty function
         updateQuantity()
         updateSalesDocNum() //update variables.salesDocNum function
-
+        props.onHide()
     }
 
     //update stockcard.qty function

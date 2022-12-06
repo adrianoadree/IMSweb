@@ -49,8 +49,53 @@ function NewPurchaseModal(props) {
     const [newTransactionDate, setNewTransactionDate] = useState(today); // stockcardCollection variable
     const [newOrderDate, setNewOrderDate] = useState(today); // stockcardCollection variable
 
+    const [daysROP, setDaysROP] = useState([])
+    const [stockcardDoc, setStockcardDoc] = useState(); //
+
+
+
 
     //---------------------FUNCTIONS---------------------
+
+
+    //access stockcard document
+    useEffect(() => {
+        async function readStockcardDoc() {
+            const stockcardRef = doc(db, "stockcard", itemId)
+            const docSnap = await getDoc(stockcardRef)
+            if (docSnap.exists()) {
+                setStockcardDoc(docSnap.data());
+            }
+        }
+        readStockcardDoc()
+    }, [itemId])
+
+
+    useEffect(() => {
+        setDaysROP()
+        if (stockcardDoc !== undefined) {
+            let qty = stockcardDoc.qty + itemQuantity
+            let x = qty - stockcardDoc.analytics.reorderPoint
+            let y = stockcardDoc.analytics.averageDailySales
+            let a = (x / y)
+            let z = Math.round(a)
+            setDaysROP(z)
+        }
+    }, [itemQuantity, itemId, stockcardDoc])
+
+
+
+
+
+
+    useEffect(() => {
+        console.log("daysROP: ", daysROP)
+    },[daysROP])
+
+
+
+
+
 
     //set Product ids
     useEffect(() => {
@@ -59,7 +104,7 @@ function NewPurchaseModal(props) {
         })
     }, [items])
 
-    useEffect(()=>{
+    useEffect(() => {
         console.log(itemSupplier)
         console.log(computeDelay())
     })
@@ -67,37 +112,36 @@ function NewPurchaseModal(props) {
     //fetch user collection from database
     useEffect(() => {
         if (userID === undefined) {
-              const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
-        
-              const unsub = onSnapshot(q, (snapshot) =>
+            const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
                 setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-              );
-              return unsub;
-            }
-            else {
-              const q = query(userCollectionRef, where("user", "==", userID));
-        
-              const unsub = onSnapshot(q, (snapshot) =>
+            );
+            return unsub;
+        }
+        else {
+            const q = query(userCollectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
                 setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-              );
-              return unsub;
-              
-            }
-      }, [userID])
-    
+            );
+            return unsub;
+
+        }
+    }, [userID])
+
     //assign profile and purchase counter
-      useEffect(() => {
+    useEffect(() => {
         userCollection.map((metadata) => {
             setPurchaseCounter(metadata.purchaseId)
             setUserProfileID(metadata.id)
-            metadata.accounts.map((account)=>{
-                if(account.isAdmin)
-                {
+            metadata.accounts.map((account) => {
+                if (account.isAdmin) {
                     setTransactionIssuer(account)
                 }
             })
         });
-      }, [userCollection])
+    }, [userCollection])
 
 
     //Read stock card collection from database
@@ -126,26 +170,22 @@ function NewPurchaseModal(props) {
     }, [userID])
 
     const handleDateChange = () => {
-        if (newOrderDate === undefined || newOrderDate == "" || newOrderDate == " " || newOrderDate == 0) 
-        {
+        if (newOrderDate === undefined || newOrderDate == "" || newOrderDate == " " || newOrderDate == 0) {
             return "hide-warning-message"
         }
-        else 
-        {
+        else {
             var t_date = new Date(newTransactionDate)
             t_date.setHours(0, 0, 0, 0)
             var o_date = new Date(newOrderDate)
             o_date.setHours(0, 0, 0, 0)
-            if(t_date.valueOf() < o_date.valueOf())
-            {
+            if (t_date.valueOf() < o_date.valueOf()) {
                 return "Order date must preceed transaction date"
             }
-            else
-            {
+            else {
                 return "hide-warning-message"
             }
         }
-      }
+    }
 
     //Read supplier collection from database
     useEffect(() => {
@@ -173,30 +213,25 @@ function NewPurchaseModal(props) {
     }, [userID])
 
     useEffect(() => {
-        if(supplierCol === undefined || supplierCol.length == 0)
-        {
+        if (supplierCol === undefined || supplierCol.length == 0) {
 
         }
-        else
-        {
+        else {
             setItemSupplier(supplierCol[0].id)
         }
     }, [supplierCol])
 
-    useEffect(()=>{
-        if(props.onHide)
-        {
-          clearFields()
+    useEffect(() => {
+        if (props.onHide) {
+            clearFields()
         }
-      }, [props.onHide])
+    }, [props.onHide])
 
     const clearFields = () => {
-        if(supplierCol === undefined || supplierCol.length == 0)
-        {
+        if (supplierCol === undefined || supplierCol.length == 0) {
             setItemSupplier("placeholder")
         }
-        else
-        {
+        else {
             setItemSupplier(supplierCol[0].id)
         }
         setProductIds([])
@@ -210,7 +245,7 @@ function NewPurchaseModal(props) {
     useEffect(() => {
         if (itemName != undefined) {
             const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
-                if(doc.data() != undefined) {
+                if (doc.data() != undefined) {
                     setItemName(doc.data().description)
                     setItemCurrentQuantity(doc.data().qty)
                     setItemSPrice(doc.data().s_price)
@@ -227,16 +262,14 @@ function NewPurchaseModal(props) {
         if (value == "add-supplier") {
             setSupplierModalShow(true)
         }
-        else if(value == "placeholder")
-        {
+        else if (value == "placeholder") {
 
         }
-        else
-        {
+        else {
             setItemSupplier(value)
         }
     }
-    
+
     const addItem = event => {
         event.preventDefault();
         setItems([
@@ -248,7 +281,8 @@ function NewPurchaseModal(props) {
                 itemSPrice: Number(itemSPrice),
                 itemQuantity: Number(itemQuantity),
                 itemCurrentQuantity: Number(itemCurrentQuantity),
-                itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity)
+                itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity),
+                daysROP: Number(daysROP),
             }
         ]);
         setItemId("IT999999");
@@ -259,7 +293,7 @@ function NewPurchaseModal(props) {
         const list = [...items]
         list.splice(index, 1)
         setItems(list)
-        const ids = [... productIds]
+        const ids = [...productIds]
         ids.splice(index, 1)
         setProductIds(ids)
     }
@@ -272,10 +306,10 @@ function NewPurchaseModal(props) {
     //create format
     const createFormat = () => {
         var format = purchaseCounter + "";
-        while(format.length < 5) {format = "0" + format};
+        while (format.length < 5) { format = "0" + format };
         format = "PR" + format + '@' + userID;
         return format;
-     }
+    }
 
     const computeDelay = () => {
         var t_date = new Date(newTransactionDate)
@@ -283,41 +317,36 @@ function NewPurchaseModal(props) {
         var o_date = new Date(newOrderDate)
         o_date.setHours(0, 0, 0, 0)
         return (moment(t_date).diff(moment(o_date), "days"))
-      }
+    }
 
     //add document to database
     const addRecord = async () => {
-        if(newOrderDate !== undefined || newOrderDate != " " || newOrderDate != "" || newOrderDate != 0)
-        {
-            for(var i = 0; i < productIds.length; i++)
-            {
+        if (newOrderDate !== undefined || newOrderDate != " " || newOrderDate != "" || newOrderDate != 0) {
+            for (var i = 0; i < productIds.length; i++) {
                 var stockcardItemAnalytics = {}
                 await getDoc(doc(db, "stockcard", productIds[i])).then(docSnap => {
                     if (docSnap.exists()) {
                         stockcardItemAnalytics = docSnap.data().analytics
                     }
-                    else
-                    {
-                
+                    else {
+
                     }
                 })
-                if(stockcardItemAnalytics.leadtimeMaximum < computeDelay())
-                {
+                if (stockcardItemAnalytics.leadtimeMaximum < computeDelay()) {
                     stockcardItemAnalytics.leadtimeMaximum = computeDelay()
                 }
-                if(stockcardItemAnalytics.leadtimeMinimum > computeDelay())
-                {
+                if (stockcardItemAnalytics.leadtimeMinimum > computeDelay()) {
                     stockcardItemAnalytics.leadtimeMinimum = computeDelay()
                 }
-                stockcardItemAnalytics.leadtimeAverage = Number((stockcardItemAnalytics.leadtimeMinimum + stockcardItemAnalytics.leadtimeMaximum)/2)
-                updateDoc(doc(db, "stockcard", productIds[i]),{
+                stockcardItemAnalytics.leadtimeAverage = Number((stockcardItemAnalytics.leadtimeMinimum + stockcardItemAnalytics.leadtimeMaximum) / 2)
+                updateDoc(doc(db, "stockcard", productIds[i]), {
                     analytics: stockcardItemAnalytics,
                 })
             }
         }
         setDoc(doc(db, "purchase_record", createFormat()), {
             user: userID,
-            transaction_number: createFormat().substring(0,7),
+            transaction_number: createFormat().substring(0, 7),
             transaction_note: newNote,
             transaction_date: newTransactionDate,
             transaction_supplier: itemSupplier,
@@ -328,6 +357,7 @@ function NewPurchaseModal(props) {
             isVoided: false,
             issuer: transactionIssuer.name
         });
+
         updateQuantity()  //update stockcard.qty function
         updatePurchDocNum() //update variables.purchDocNum function
         successToast() //display success toast
@@ -343,9 +373,9 @@ function NewPurchaseModal(props) {
 
             // Set the "capital" field of the city 'DC'
             updateDoc(stockcardRef, {
-                qty: items.itemNewQuantity
+                qty: items.itemNewQuantity,
+                "analytics.daysROP": Number(items.daysROP),
             });
-
         })
     }
 
@@ -389,10 +419,10 @@ function NewPurchaseModal(props) {
 
     useEffect(() => {
         if (!hasRun.current && newTransactionDate !== today) {
-          hasRun.current = true
-          setNewOrderDate(newTransactionDate)
+            hasRun.current = true
+            setNewOrderDate(newTransactionDate)
         }
-      },[newTransactionDate])
+    }, [newTransactionDate])
 
     return (
 
@@ -428,7 +458,7 @@ function NewPurchaseModal(props) {
                                         readOnly
                                         className="form-control shadow-none no-click"
                                         placeholder=""
-                                        defaultValue={createFormat().substring(0,7)}
+                                        defaultValue={createFormat().substring(0, 7)}
                                     />
                                 </div>
                             </div>
@@ -440,21 +470,21 @@ function NewPurchaseModal(props) {
                                             className="ms-2"
                                             data-title="The date when the purchase order was placed"
                                         >
-                                        <FontAwesomeIcon icon={faCircleInfo
-                                        }/>
+                                            <FontAwesomeIcon icon={faCircleInfo
+                                            } />
                                         </a>
                                     </label>
                                     <input
-                                            type='date'
-                                            className="form-control shadow-none"
-                                            value={newOrderDate}
-                                            onChange={e => setNewOrderDate(e.target.value)}
-                                        />  
+                                        type='date'
+                                        className="form-control shadow-none"
+                                        value={newOrderDate}
+                                        onChange={e => setNewOrderDate(e.target.value)}
+                                    />
                                 </div>
                                 <div className='col-6 ps-4'>
                                     <label>
                                         Date Received
-                                        <span style={{color: '#b42525'}}> *</span>
+                                        <span style={{ color: '#b42525' }}> *</span>
                                     </label>
                                     <input
                                         type='date'
@@ -465,11 +495,11 @@ function NewPurchaseModal(props) {
                                     />
                                 </div>
                                 <div className="col-12 ps-4">
-                                    <div 
+                                    <div
                                         className={"field-warning-message red-strip my-1 m-0 " + (handleDateChange())}
                                     >
                                         {handleDateChange()}
-                                    </div>  
+                                    </div>
                                 </div>
                             </div>
                             <div className="row my-2 mb-3">
@@ -480,35 +510,35 @@ function NewPurchaseModal(props) {
                                     />
                                     <label>
                                         Supplier Name
-                                        <span style={{color: '#b42525'}}> *</span>
+                                        <span style={{ color: '#b42525' }}> *</span>
                                     </label>
                                     <div className="d-flex justify-content-center">
-                                        <select 
+                                        <select
                                             required
                                             className="form-select shadow-none"
                                             value={itemSupplier}
                                             onChange={e => handleSupplierSelect(e.target.value)}
+                                        >
+                                            <option
+                                                value="placeholder"
+                                                className style={{ fontStyle: 'italic' }}
                                             >
-                                                <option
-                                                    value="placeholder"
-                                                    className style={{fontStyle: 'italic'}}
-                                                >
-                                                    —
-                                                </option>
-                                                {supplierCol.map((supplier) => {
-                                                    return (
-                                                        <option
-                                                            key={supplier.id}
-                                                            value={supplier.id}
-                                                        >
-                                                            {supplier.supplier_name}
-                                                        </option>
-                                                    )
-                                                })}
-                                                
+                                                —
+                                            </option>
+                                            {supplierCol.map((supplier) => {
+                                                return (
+                                                    <option
+                                                        key={supplier.id}
+                                                        value={supplier.id}
+                                                    >
+                                                        {supplier.supplier_name}
+                                                    </option>
+                                                )
+                                            })}
+
                                             <option
                                                 value="add-supplier"
-                                                className style={{fontStyle: 'italic'}}
+                                                className style={{ fontStyle: 'italic' }}
                                             >
                                                 Not on the list? Add a supplier
                                             </option>
@@ -517,15 +547,15 @@ function NewPurchaseModal(props) {
                                 </div>
                             </div>
                             <div className="row my-2 mb-3">
-                                    <div className='col-12 ps-4'>
-                                        <label>Notes: (Optional)</label>
-                                        <textarea
-                                            className="form-control shadow-none"
-                                            as="textarea"
-                                            rows={4}
-                                            onChange={(event) => { setNewNote(event.target.value); }}
-                                        />
-                                    </div>
+                                <div className='col-12 ps-4'>
+                                    <label>Notes: (Optional)</label>
+                                    <textarea
+                                        className="form-control shadow-none"
+                                        as="textarea"
+                                        rows={4}
+                                        onChange={(event) => { setNewNote(event.target.value); }}
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className="col-8">
@@ -533,46 +563,46 @@ function NewPurchaseModal(props) {
                                 <div className="row m-0 p-0">
                                     <div className='col-12 text-center mb-2'>
                                         <h5><strong>Purchase List</strong></h5>
-                                            <div className="row p-0 m-0 py-1">
-                                                <div className='col-9 p-1'>
-                                                    <select
-                                                        className="form-select shadow-none"
-                                                        value={itemId}
-                                                        onChange={e => setItemId(e.target.value)}
-                                                    >
-                                                        <option
-                                                            value="IT999999">
-                                                            Select Item
-                                                        </option>
-                                                        {stockcard.map((stockcard) => {
-                                                            return (
-                                                                <option
-                                                                    key={stockcard.id}
-                                                                    value={stockcard.id}
-                                                                >{stockcard.description}</option>
-                                                            )
-                                                        })}
-                                                    </select>
-                                                </div>
-                                                <div className='col-2 p-1'>
-                                                    <input
-                                                        className="form-control shadow-none"
-                                                        placeholder='Quantity'
-                                                        type='number'
-                                                        min={1}
-                                                        value={itemQuantity}
-                                                        onChange={e => setItemQuantity(e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className='col-1 p-1'>
-                                                    <Button
-                                                        onClick={addItem}
-                                                        disabled={itemId === "IT999999" || itemQuantity < 0}
-                                                    >
-                                                        <FontAwesomeIcon icon={faPlus} />
-                                                    </Button>
-                                                </div>
+                                        <div className="row p-0 m-0 py-1">
+                                            <div className='col-9 p-1'>
+                                                <select
+                                                    className="form-select shadow-none"
+                                                    value={itemId}
+                                                    onChange={e => setItemId(e.target.value)}
+                                                >
+                                                    <option
+                                                        value="IT999999">
+                                                        Select Item
+                                                    </option>
+                                                    {stockcard.map((stockcard) => {
+                                                        return (
+                                                            <option
+                                                                key={stockcard.id}
+                                                                value={stockcard.id}
+                                                            >{stockcard.description}</option>
+                                                        )
+                                                    })}
+                                                </select>
                                             </div>
+                                            <div className='col-2 p-1'>
+                                                <input
+                                                    className="form-control shadow-none"
+                                                    placeholder='Quantity'
+                                                    type='number'
+                                                    min={1}
+                                                    value={itemQuantity}
+                                                    onChange={e => setItemQuantity(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className='col-1 p-1'>
+                                                <Button
+                                                    onClick={addItem}
+                                                    disabled={itemId === "IT999999" || itemQuantity < 0}
+                                                >
+                                                    <FontAwesomeIcon icon={faPlus} />
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="row p-0 m-0 py-1">
                                         <div className="col-12">
@@ -591,12 +621,12 @@ function NewPurchaseModal(props) {
                                                             className='text-center'
                                                             key={index}>
                                                             <td>
-                                                                {item.itemId === undefined?
-                                                                <></>
-                                                                :
-                                                                <>
-                                                                {item.itemId.substring(0,9)}
-                                                                </>
+                                                                {item.itemId === undefined ?
+                                                                    <></>
+                                                                    :
+                                                                    <>
+                                                                        {item.itemId.substring(0, 9)}
+                                                                    </>
                                                                 }
                                                             </td>
                                                             <td>{item.itemName}</td>

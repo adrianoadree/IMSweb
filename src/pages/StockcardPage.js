@@ -18,7 +18,6 @@ import InputGroup from "react-bootstrap/InputGroup";
 import FormControl from "react-bootstrap/FormControl";
 import { UserAuth } from '../context/AuthContext'
 import Barcode from 'react-jsbarcode'
-import "react-datepicker/dist/react-datepicker.css";
 import moment from 'moment';
 import UserRouter from '../pages/UserRouter'
 import { Spinner } from 'loading-animations-react';
@@ -690,7 +689,7 @@ function StockcardPage({ isAuth }) {
                           }
                         </td>
                         <td className="tq">
-                          {transac.id.startsWith("PR")?
+                          {transac.id.startsWith("PR") || transac.id.startsWith("AR")?
                             <>{transac.product_list[0].itemQuantity}</>
                           :
                             <>{transac.product_list[0].itemQuantity * -1}</>

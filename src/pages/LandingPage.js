@@ -60,6 +60,7 @@ function LandingPage() {
         }
     },)
 
+
     useEffect(() => {
         if (user) {
             setUserID(user.uid)
@@ -112,6 +113,10 @@ function LandingPage() {
     const notificationFilterUpcomingButtonRef = useRef(null)
     const notificationFilterOverdueButtonRef = useRef(null)
 
+    useEffect(() => {
+        console.log(productToOrder)
+        console.log(prodNearROP)
+    })
     
     //Read stock card collection from database
     useEffect(() => {
@@ -203,7 +208,7 @@ function LandingPage() {
                                             <ProductCard
                                                 key={prod.id}
                                                 daysrop={prod.analytics.daysROP}
-                                                id={prod.id.substring(0, 9)}
+                                                id={prod.id}
                                                 description={prod.description}
                                                 reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
                                                 img={prod.img}
@@ -220,7 +225,7 @@ function LandingPage() {
                                             <ProductCard
                                                 key={prod.id}
                                                 daysrop={prod.analytics.daysROP}
-                                                id={prod.id.substring(0, 9)}
+                                                id={prod.id}
                                                 description={prod.description}
                                                 reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
                                                 img={prod.img}

@@ -568,15 +568,17 @@ function Itemforecast() {
             },
         ]
 
-        for(var i = 0; i < temp_stocklevel_data.length; i++)
-        {
-            if(temp_stocklevel_data[i]["Stock Level"] > stockcard[docId].analytics.reorderPoint)
+        for(var i = 0; i < temp_projection_data.length; i++)
+        {   
+            console.log(temp_projection_data[i]["Projected Stock Level"])
+            if(temp_projection_data[i]["Projected Stock Level"] < stockcard[docId].analytics.reorderPoint)
             {
-                temp_stocklevel_data.splice(i, 0, {date: moment(stockcard[docId].analytics.dateReorderPoint).format("LL"), "Reorder Point": stockcard[docId].analytics.reorderPoint, "Stock Level": stockcard[docId].analytics.reorderPoint})
+                temp_projection_data.splice(i, 0, {date: moment(stockcard[docId].analytics.dateReorderPoint).format("LL"), "Reorder Point": stockcard[docId].analytics.reorderPoint, "Projected Stock Level": stockcard[docId].analytics.reorderPoint})
+                console.log("yes")
                 break;
             }
         }
-
+        console.log(temp_stocklevel_data.concat(temp_projection_data))
         return (temp_stocklevel_data.concat(temp_projection_data))
     }
 

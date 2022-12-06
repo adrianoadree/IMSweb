@@ -3,10 +3,8 @@ import Navigation from "../layout/Navigation";
 import Barcode from 'react-jsbarcode'
 import { Card, Table, OverlayTrigger, Alert, Tab, ToggleButtonGroup, ToggleButton, FormControl, Accordion, ListGroup, InputGroup } from "react-bootstrap";
 import React, { useState } from "react";
-import DatePicker from "react-datepicker";
 import moment from "moment";
 import ToolTip from 'react-bootstrap/Tooltip';
-import "react-datepicker/dist/react-datepicker.css";
 import { Button } from "react-bootstrap";
 import { Cube, Grid, Pricetag, Layers, Barcode as Barc, Cart, InformationCircle, Delive, Car } from 'react-ionicons'
 import { UserAuth } from '../context/AuthContext'

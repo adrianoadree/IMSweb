@@ -36,7 +36,9 @@ function GenerateOrderForm(props) {
         }
         else
         {
+          console.log(docId)
           getSupplierCollection()
+          console.log(productSupplierList)
         }
     }, [docId])
 
