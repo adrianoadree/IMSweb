@@ -85,7 +85,7 @@ function ProductQuickView(props) {
                           </div>
                         :
                           <div className="mb-2 d-flex align-items-center justify-content-center w-100 h-100">
-                            <img key={stockcardDoc.img}src={stockcardDoc.img} style={{height: '100%', width: 'auto', border: 'none'}}/>
+                            <img key={stockcardDoc.img}src={stockcardDoc.img} style={{height: '100%', width: '100%', border: 'none', objectFit: 'contain'}}/>
                           </div>
                         }
                       </div>
