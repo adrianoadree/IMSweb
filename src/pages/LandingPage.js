@@ -11,12 +11,12 @@ import Navigation from "../layout/Navigation";
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser, faPhone } from '@fortawesome/free-solid-svg-icons'
-import { faUser as faUserOutline, fa } from '@fortawesome/free-regular-svg-icons'
 import { ChevronBack, ChevronForward, Exit, Enter } from 'react-ionicons'
 import { Card, Nav, Table,  Tab, } from "react-bootstrap";
 import { Spinner } from 'loading-animations-react';
 
 import ProductQuickView from "../components/ProductQuickView";
+import RecordQuickView from "../components/RecordQuickView";
 import GenerateOrderForm from "../components/GenerateOrderForm"
 
 
@@ -28,10 +28,6 @@ function LandingPage() {
     const [userCollection, setUserCollection] = useState(); // stockcardCollection variable
     const [userProfile, setUserProfile] = useState({});
 
-    const [showProductQuickViewModal, setShowProductQuickViewModal] = useState(false); // show/hide product quick view modal
-    const [showGenerateOrderFormModal, setShowGenerateOrderFormModal] = useState(false);
-    const [productToView, setProductToView] = useState() // set product to view
-    const [productToOrder, setProductToOrder] = useState({}) // set product to order
     const [sidebarHidden, setSidebarHidden] = useState(false) // display/hide sidebar
 
     var curr_date = new Date(); // get current date
@@ -102,34 +98,37 @@ function LandingPage() {
 
 
     function Notification() {
-        
 
-    const [prodNearROP, setProdNearROP] = useState()
+        const [prodNearROP, setProdNearROP] = useState()
 
-    const notificationFilterTodayRef = useRef(null)
-    const notificationFilterUpcomingRef = useRef(null)
-    const notificationFilterOverdueRef = useRef(null)
-    const notificationFilterTodayButtonRef = useRef(null)
-    const notificationFilterUpcomingButtonRef = useRef(null)
-    const notificationFilterOverdueButtonRef = useRef(null)
+        const notificationFilterTodayRef = useRef(null)
+        const notificationFilterUpcomingRef = useRef(null)
+        const notificationFilterOverdueRef = useRef(null)
+        const notificationFilterTodayButtonRef = useRef(null)
+        const notificationFilterUpcomingButtonRef = useRef(null)
+        const notificationFilterOverdueButtonRef = useRef(null)
 
-    useEffect(() => {
-        console.log(productToOrder)
-        console.log(prodNearROP)
-    })
-    
-    //Read stock card collection from database
-    useEffect(() => {
-        if (userID !== undefined) {
-            const stockcardCollectionRef = collection(db, "stockcard")
-            const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.analyticsBoolean", "==", true), orderBy("analytics.daysROP", "asc"));
 
-            const unsub = onSnapshot(q, (snapshot) =>
-                setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-    }, [userID])
+        const [showGenerateOrderFormModal, setShowGenerateOrderFormModal] = useState(false); // show/hide generate order modal
+        const [productToOrder, setProductToOrder] = useState({}) // set product to order
+
+        useEffect(() => {
+            console.log(productToOrder)
+            console.log(prodNearROP)
+        })
+
+        //Read stock card collection from database
+        useEffect(() => {
+            if (userID !== undefined) {
+                const stockcardCollectionRef = collection(db, "stockcard")
+                const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.analyticsBoolean", "==", true), orderBy("analytics.daysROP", "asc"));
+
+                const unsub = onSnapshot(q, (snapshot) =>
+                    setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+                );
+                return unsub;
+            }
+        }, [userID])
 
         function ProductCard(props) {
             return (
@@ -138,14 +137,14 @@ function LandingPage() {
                         <div className="w-100 row mx-0 pb-2">
                             <div className="col px-0">
                                 {props.daysrop > 0 ?
-                                    <small className="ps-2 pe-0" style={{borderLeft: "7px solid #47ff8b"}}>
+                                    <small className="ps-2 pe-0" style={{ borderLeft: "7px solid #47ff8b" }}>
                                         <strong>{props.daysrop}</strong> day(s) before restocking
                                     </small>
                                     :
                                     props.daysrop === 0 ?
-                                        <small className="ps-2 pe-0" style={{borderLeft: "7px solid #ffe647"}}>Restock <strong>Today</strong></small>
+                                        <small className="ps-2 pe-0" style={{ borderLeft: "7px solid #ffe647" }}>Restock <strong>Today</strong></small>
                                         :
-                                        <small className="ps-2 pe-0" style={{borderLeft: "7px solid #ff4747"}}><strong>{Math.abs(props.daysrop)}</strong> day(s) past restocking</small>
+                                        <small className="ps-2 pe-0" style={{ borderLeft: "7px solid #ff4747" }}><strong>{Math.abs(props.daysrop)}</strong> day(s) past restocking</small>
                                 }
                             </div>
                             <div className="col px-0">
@@ -166,7 +165,7 @@ function LandingPage() {
                             <div className="col-2 px-0 d-flex align-items-end justify-content-end">
                                 <button
                                     className="plain-button contact-supplier-button"
-                                    onClick={() => { setProductToOrder({id: props.id, description: props.description, qty: props.restockquantity, price: props.purchaseprice}); setShowGenerateOrderFormModal(true) }}
+                                    onClick={() => { setProductToOrder({ id: props.id, description: props.description, qty: props.restockquantity, price: props.purchaseprice }); setShowGenerateOrderFormModal(true) }}
                                 >
                                     <FontAwesomeIcon icon={faUser} /><sub><FontAwesomeIcon icon={faPhone} /></sub>
                                 </button>
@@ -179,156 +178,163 @@ function LandingPage() {
         }
 
         function NotificationContents() {
+            return (
+                <>
+                    <div id="notifications-content" className="w-100 row p-0 pe-3 m-0 d-flex align-items-start justify-content-center scrollbar" style={{ height: '65vh' }}>
+                        <div className="p-0">
+                            {prodNearROP.length !== 0 ?
+                                <>
+                                    <div ref={notificationFilterOverdueRef}>
+                                        {prodNearROP.filter(product => product.analytics.daysROP < 0).map((prod) => {
+                                            return (
+                                                <ProductCard
+                                                    key={prod.id}
+                                                    daysrop={prod.analytics.daysROP}
+                                                    id={prod.id}
+                                                    description={prod.description}
+                                                    reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
+                                                    img={prod.img}
+                                                    quantity={prod.qty}
+                                                    restockquantity={prod.analytics.reorderPoint}
+                                                    purchaseprice={prod.p_price}
+                                                />
+                                            )
+                                        })}
+                                    </div>
+                                    <div ref={notificationFilterTodayRef}>
+                                        {prodNearROP.filter(product => product.analytics.daysROP == 0).map((prod) => {
+                                            return (
+                                                <ProductCard
+                                                    key={prod.id}
+                                                    daysrop={prod.analytics.daysROP}
+                                                    id={prod.id}
+                                                    description={prod.description}
+                                                    reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
+                                                    img={prod.img}
+                                                    quantity={prod.qty}
+                                                    restockquantity={prod.analytics.reorderPoint}
+                                                    purchaseprice={prod.p_price}
+                                                />
+                                            )
+                                        })}
+                                    </div>
+                                    <div ref={notificationFilterUpcomingRef}>
+                                        {prodNearROP.filter(product => product.analytics.daysROP > 0).map((prod) => {
+                                            return (
+                                                <ProductCard
+                                                    key={prod.id}
+                                                    daysrop={prod.analytics.daysROP}
+                                                    id={prod.id}
+                                                    description={prod.description}
+                                                    reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
+                                                    img={prod.img}
+                                                    quantity={prod.qty}
+                                                    restockquantity={prod.analytics.reorderPoint}
+                                                    purchaseprice={prod.p_price}
+                                                />
+                                            )
+                                        })}
+                                    </div>
+                                </>
+                                :
+
+                                <h6 className="text-center mt-5" style={{ color: "#00000080" }}><strong>No product near restocking</strong></h6>
+                            }
+                        </div>
+                    </div>
+                </>
+
+            )
+
+
+        }
         return (
             <>
-                <div id="notifications-content" className="row p-0 pe-3 m-0 d-flex align-items-start justify-content-center scrollbar" style={{ height: '65vh' }}>
-                    <div className="p-0">
-                        {prodNearROP.length !== 0 ?
-                            <>
-                                <div ref={notificationFilterOverdueRef}>
-                                    {prodNearROP.filter(product => product.analytics.daysROP < 0).map((prod) => {
-                                        return (
-                                            <ProductCard
-                                                key={prod.id}
-                                                daysrop={prod.analytics.daysROP}
-                                                id={prod.id}
-                                                description={prod.description}
-                                                reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
-                                                img={prod.img}
-                                                quantity={prod.qty}
-                                                restockquantity={prod.analytics.reorderPoint}
-                                                purchaseprice={prod.p_price}
-                                            />
-                                        )
-                                    })}
-                                </div>
-                                <div ref={notificationFilterTodayRef}>
-                                    {prodNearROP.filter(product => product.analytics.daysROP == 0).map((prod) => {
-                                        return (
-                                            <ProductCard
-                                                key={prod.id}
-                                                daysrop={prod.analytics.daysROP}
-                                                id={prod.id}
-                                                description={prod.description}
-                                                reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
-                                                img={prod.img}
-                                                quantity={prod.qty}
-                                                restockquantity={prod.analytics.reorderPoint}
-                                                purchaseprice={prod.p_price}
-                                            />
-                                        )
-                                    })}
-                                </div>
-                                <div ref={notificationFilterUpcomingRef}>
-                                    {prodNearROP.filter(product => product.analytics.daysROP > 0).map((prod) => {
-                                        return (
-                                            <ProductCard
-                                                key={prod.id}
-                                                daysrop={prod.analytics.daysROP}
-                                                id={prod.id}
-                                                description={prod.description}
-                                                reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
-                                                img={prod.img}
-                                                quantity={prod.qty}
-                                                restockquantity={prod.analytics.reorderPoint}
-                                                purchaseprice={prod.p_price}
-                                            />
-                                        )
-                                    })}
-                                </div>
-                            </>
-                            :
-                            
-                            <h6 style={{color: "#00000080"}}><strong>No product near restocking</strong></h6>
-                        }
-                    </div>
-                </div>
+                <GenerateOrderForm
+                    show={showGenerateOrderFormModal}
+                    onHide={() => setShowGenerateOrderFormModal(false)}
+                    product={productToOrder}
+                    businessname={userProfile.bname}
+                />
+                <Card className="sidebar-card">
+                    <Card.Header className="text-white py-3 text-center left-curve right-curve">
+                        <h5>
+                            <strong>
+                                Reorder Notifications
+                            </strong>
+                        </h5>
+                        <h1 id="notifications-filter" style={{ lineHeight: "0.5em" }}>
+                            <a
+                                id="upcoming"
+                                ref={notificationFilterUpcomingButtonRef}
+                                data-title="Upcoming"
+                                onClick={() => {
+                                    notificationFilterUpcomingButtonRef.current.className = "active";
+                                    notificationFilterTodayButtonRef.current.className = "";
+                                    notificationFilterOverdueButtonRef.current.className = "";
+                                    notificationFilterUpcomingRef.current?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "nearest",
+                                        inline: "start"
+                                    });
+                                }}
+                            >
+                                •
+                            </a>
+                            <a
+                                id="today"
+                                ref={notificationFilterTodayButtonRef}
+                                data-title="Today"
+                                onClick={() => {
+                                    notificationFilterUpcomingButtonRef.current.className = "";
+                                    notificationFilterTodayButtonRef.current.className = "active";
+                                    notificationFilterOverdueButtonRef.current.className = "";
+                                    notificationFilterTodayRef.current?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "nearest",
+                                        inline: "start"
+                                    });
+                                }}
+                            >
+                                •
+                            </a>
+                            <a
+                                id="overdue"
+                                ref={notificationFilterOverdueButtonRef}
+                                data-title="Overdue"
+                                onClick={() => {
+                                    notificationFilterUpcomingButtonRef.current.className = "";
+                                    notificationFilterTodayButtonRef.current.className = "";
+                                    notificationFilterOverdueButtonRef.current.className = "active";
+                                    notificationFilterOverdueRef.current?.scrollIntoView({
+                                        behavior: "smooth",
+                                        block: "nearest",
+                                        inline: "start"
+                                    });
+                                }}
+                            >
+                                •
+                            </a>
+                        </h1>
+                    </Card.Header>
+                    <Card.Body className="px-1">
+                        <div id="notifications-container" className="w-100 h-100 d-flex align-items-start justify-content-center" style={{ height: '65vh' }}>
+                            {prodNearROP === undefined ?
+                                <Spinner
+                                    color1="#b0e4ff"
+                                    color2="#fff"
+                                    textColor="rgba(0,0,0, 0.5)"
+                                    className="w-50 h-50 p-2"
+                                />
+                                :
+                                <>
+                                    <NotificationContents />
+                                </>
+                            }
+                        </div>
+                    </Card.Body>
+                </Card>
             </>
-
-        )
-    
-    
-        }
-        return(
-            
-            <Card className="sidebar-card">
-            <Card.Header className="text-white py-3 text-center left-curve right-curve">
-                <h5>
-                    <strong>
-                        Reorder Notifications
-                    </strong>
-                </h5>
-                <h1 id="notifications-filter" style={{ lineHeight: "0.5em" }}>
-                    <a
-                        id="upcoming"
-                        ref={notificationFilterUpcomingButtonRef}
-                        data-title="Upcoming"
-                        onClick={() => {
-                            notificationFilterUpcomingButtonRef.current.className = "active";
-                            notificationFilterTodayButtonRef.current.className = "";
-                            notificationFilterOverdueButtonRef.current.className = "";
-                            notificationFilterUpcomingRef.current?.scrollIntoView({
-                                behavior: "smooth",
-                                block: "nearest",
-                                inline: "start"
-                            });
-                        }}
-                    >
-                        •
-                    </a>
-                    <a
-                        id="today"
-                        ref={notificationFilterTodayButtonRef}
-                        data-title="Today"
-                        onClick={() => {
-                            notificationFilterUpcomingButtonRef.current.className = "";
-                            notificationFilterTodayButtonRef.current.className = "active";
-                            notificationFilterOverdueButtonRef.current.className = "";
-                            notificationFilterTodayRef.current?.scrollIntoView({
-                                behavior: "smooth",
-                                block: "nearest",
-                                inline: "start"
-                            });
-                        }}
-                    >
-                        •
-                    </a>
-                    <a
-                        id="overdue"
-                        ref={notificationFilterOverdueButtonRef}
-                        data-title="Overdue"
-                        onClick={() => {
-                            notificationFilterUpcomingButtonRef.current.className = "";
-                            notificationFilterTodayButtonRef.current.className = "";
-                            notificationFilterOverdueButtonRef.current.className = "active";
-                            notificationFilterOverdueRef.current?.scrollIntoView({
-                                behavior: "smooth",
-                                block: "nearest",
-                                inline: "start"
-                            });
-                        }}
-                    >
-                        •
-                    </a>
-                </h1>
-            </Card.Header>
-            <Card.Body className="px-1">
-                <div id="notifications-container" className="w-100 h-100 d-flex align-items-start justify-content-center" style={{ height: '65vh' }}>
-                    {prodNearROP === undefined ?
-                        <Spinner
-                            color1="#b0e4ff"
-                            color2="#fff"
-                            textColor="rgba(0,0,0, 0.5)"
-                            className="w-50 h-50 p-2"
-                        />
-                    :
-                    <>
-                        <NotificationContents />
-                    </>
-                    }
-                </div>
-            </Card.Body>
-        </Card>
         )
     }
 
@@ -348,6 +354,12 @@ function LandingPage() {
         const [purchaseQuantitySorting, setPurchaseQuantitySorting] = useState("unsorted")
         const [salesDescriptionSorting, setSalesDescriptionSorting] = useState("ascending")
         const [salesQuantitySorting, setSalesQuantitySorting] = useState("unsorted")
+
+        
+        const [showRecordQuickViewModal, setShowRecordQuickViewModal] = useState(false); // show/hide record quick view modal
+        const [recordToView, setRecordToView] = useState() // set record to view
+        const [showProductQuickViewModal, setShowProductQuickViewModal] = useState(false); // show/hide product quick view modal
+        const [productToView, setProductToView] = useState() // set product to view
 
         useEffect(() => {
             console.log(dateSelected)
@@ -537,7 +549,7 @@ function LandingPage() {
                     tempProductInfo.id = tempProductBoughtListId[tempProductBoughtListId.indexOf(product.id)]
                     tempProductInfo.description = product.description
                     tempProductInfo.img = product.img
-                    tempProductInfo.transaction = tempProductBoughtListTransac[tempProductBoughtListId.indexOf(product.id)]
+                    tempProductInfo.transaction = [... new Set(tempProductBoughtListTransac[tempProductBoughtListId.indexOf(product.id)])]
                     tempProductInfo.qty = Number(tempProductBoughtListQty[tempProductBoughtListId.indexOf(product.id)])
 
                     tempProductBoughtList.push(tempProductInfo)
@@ -581,15 +593,7 @@ function LandingPage() {
                         sale.product_list.map((product) => {
                             if (tempProductSoldListId.indexOf(product.itemId) >= 0) {
                                 tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] = tempProductSoldListQty[tempProductSoldListId.indexOf(product.itemId)] + product.itemQuantity
-                                for (var i = 0; i < tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].length; i++) {
-                                    if (tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)][i] == sale.id) {
-
-                                    }
-                                    else {
-
-                                        tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].push(sale.id)
-                                    }
-                                }
+                                tempProductSoldListTransac[tempProductSoldListId.indexOf(product.itemId)].push(sale.id)
                             }
                             else {
                                 tempProductSoldListId.push(product.itemId)
@@ -616,7 +620,7 @@ function LandingPage() {
                     tempProductInfo.id = tempProductSoldListId[tempProductSoldListId.indexOf(product.id)]
                     tempProductInfo.description = product.description
                     tempProductInfo.img = product.img
-                    tempProductInfo.transaction = tempProductSoldListTransac[tempProductSoldListId.indexOf(product.id)]
+                    tempProductInfo.transaction = [... new Set(tempProductSoldListTransac[tempProductSoldListId.indexOf(product.id)])]
                     tempProductInfo.qty = Number(tempProductSoldListQty[tempProductSoldListId.indexOf(product.id)])
 
                     tempProductSoldList.push(tempProductInfo)
@@ -688,6 +692,7 @@ function LandingPage() {
 
 
         function purchaseTable() {
+            
             return (
                 productsBought !== undefined ?
                     productsBought.length !== 0 ?
@@ -728,10 +733,11 @@ function LandingPage() {
                                 {productsBought.map((purchase, index) => (
                                     <tr
                                         key={index}
-                                        className="clickable"
-                                        onClick={() => { setProductToView(purchase.id); setShowProductQuickViewModal(true) }}
                                     >
-                                        <td className="start-column">
+                                        <td 
+                                            className="start-column clickable"
+                                            onClick={() => { setProductToView(purchase.id); setShowProductQuickViewModal(true) }}
+                                        >
                                             <div className="row m-0 p-0">
                                                 <div className="col-3 text-center">
                                                     {purchase.img === undefined || purchase.img == "" || purchase.img == " " ?
@@ -755,7 +761,12 @@ function LandingPage() {
                                                 <span
                                                     key={i}
                                                 >
-                                                    {transac_id.substring(0, 7)}
+                                                    <button 
+                                                        className="plain-button clickable"
+                                                        onClick={()=>{setShowRecordQuickViewModal(true); setRecordToView(transac_id)}}
+                                                    >
+                                                        {transac_id.substring(0, 7)}
+                                                    </button>
                                                     {i != purchase.transaction.length - 1 ? <span>, </span> : <></>}
                                                 </span>
                                             ))}
@@ -856,10 +867,11 @@ function LandingPage() {
                                 {productsSold.map((sale, index) => (
                                     <tr
                                         key={index}
-                                        className="clickable"
-                                        onClick={() => { setProductToView(sale.id); setShowProductQuickViewModal(true) }}
                                     >
-                                        <td className="start-column">
+                                        <td 
+                                            className="start-column clickable"
+                                            onClick={() => { setProductToView(sale.id); setShowProductQuickViewModal(true) }}
+                                        >
                                             <div className="row m-0 p-0">
                                                 <div className="col-3 text-center">
                                                     {sale.img === undefined || sale.img == "" || sale.img == " " ?
@@ -885,7 +897,12 @@ function LandingPage() {
                                                 <span
                                                     key={transac_id}
                                                 >
-                                                    {transac_id.substring(0, 7)}
+                                                    <button 
+                                                        className="plain-button clickable"
+                                                        onClick={()=>{setShowRecordQuickViewModal(true); setRecordToView(transac_id)}}
+                                                    >
+                                                        {transac_id.substring(0, 7)}
+                                                    </button>
                                                     {i != sale.transaction.length - 1 ? <span>, </span> : <></>}
                                                 </span>
                                             ))}
@@ -949,84 +966,95 @@ function LandingPage() {
         
 
         return (
-            
-            <Card className="sidebar-card">
-                
-                <Card.Header className="py-3 text-center left-curve right-curve">
-                    {userProfile === undefined ?
-                        <></>
-                        :
-                        <div className="py-2" style={{ color: '#4172c1' }}>
-                            <h2><strong>{userProfile.bname}</strong></h2>
+            <>
+                <ProductQuickView
+                    show={showProductQuickViewModal}
+                    onHide={() => setShowProductQuickViewModal(false)}
+                    productid={productToView}
+                />
+                <RecordQuickView
+                    show={showRecordQuickViewModal}
+                    onHide={() => setShowRecordQuickViewModal(false)}
+                    recordid={recordToView}
+                />
+                <Card className="sidebar-card">
+                    
+                    <Card.Header className="py-3 text-center left-curve right-curve">
+                        {userProfile === undefined ?
+                            <></>
+                            :
+                            <div className="py-2" style={{ color: '#4172c1' }}>
+                                <h2><strong>{userProfile.bname}</strong></h2>
+                            </div>
+                        }
+                        <div id="summary-report-options" className="interrelated-options">
+                            <a
+                                className={dateSelected == "today" ? "start-option active" : "start-option"}
+                                onClick={() => { setDateSelected("today") }}
+                            >
+                                Today
+                            </a>
+                            <a
+                                className={dateSelected == "yesterday" ? "center-option divider active" : "center-option divider"}
+                                onClick={() => { setDateSelected("yesterday") }}
+                            >
+                                Yesterday
+                            </a>
+                            <a
+                                className={dateSelected == "this week" ? "center-option active" : "center-option"}
+                                onClick={() => { setDateSelected("this week") }}
+                            >
+                                This Week
+                            </a>
+                            <a
+                                className={dateSelected == "this month" ? "end-option active" : "end-option"}
+                                onClick={() => { setDateSelected("this month") }}
+                            >
+                                This Month
+                            </a>
                         </div>
-                    }
-                    <div id="summary-report-options" className="interrelated-options">
-                        <a
-                            className={dateSelected == "today" ? "start-option active" : "start-option"}
-                            onClick={() => { setDateSelected("today") }}
-                        >
-                            Today
-                        </a>
-                        <a
-                            className={dateSelected == "yesterday" ? "center-option divider active" : "center-option divider"}
-                            onClick={() => { setDateSelected("yesterday") }}
-                        >
-                            Yesterday
-                        </a>
-                        <a
-                            className={dateSelected == "this week" ? "center-option active" : "center-option"}
-                            onClick={() => { setDateSelected("this week") }}
-                        >
-                            This Week
-                        </a>
-                        <a
-                            className={dateSelected == "this month" ? "end-option active" : "end-option"}
-                            onClick={() => { setDateSelected("this month") }}
-                        >
-                            This Month
-                        </a>
-                    </div>
-                    <h4 className="mb-2 py-2"><strong>Summary Report</strong></h4>
-                    <h5 className="yellow-strip subtitle left-full-curve right-full-curve p-2">{handleDateDisplay()}</h5>
-                </Card.Header>
-                <Card.Body className="folder-style mt-2">
-                    <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
-                        <Nav variant="pills" defaultActiveKey={0}>
-                            <Nav.Item>
-                                <Nav.Link eventKey={0}>
-                                    <Exit
-                                        color={'#0d6efd'}
-                                        height="25px"
-                                        width="25px"
-                                        className="me-2"
-                                    />
-                                    Sales
-                                </Nav.Link>
-                            </Nav.Item>
-                            <Nav.Item>
-                                <Nav.Link eventKey={1}>
-                                    <Enter
-                                        color={'#0d6efd'}
-                                        height="25px"
-                                        width="25px"
-                                        className="me-2"
-                                    />
-                                    Purchases
-                                </Nav.Link>
-                            </Nav.Item>
-                        </Nav>
-                        <Tab.Content>
-                            <Tab.Pane eventKey={0}>
-                                {salesTable()}
-                            </Tab.Pane>
-                            <Tab.Pane eventKey={1}>
-                                {purchaseTable()}
-                            </Tab.Pane>
-                        </Tab.Content>
-                    </Tab.Container>
-                </Card.Body>
-                
-            </Card>
+                        <h4 className="mb-2 py-2"><strong>Summary Report</strong></h4>
+                        <h5 className="yellow-strip subtitle left-full-curve right-full-curve p-2">{handleDateDisplay()}</h5>
+                    </Card.Header>
+                    <Card.Body className="folder-style mt-2">
+                        <Tab.Container id="list-group-tabs-example" defaultActiveKey={0}>
+                            <Nav variant="pills" defaultActiveKey={0}>
+                                <Nav.Item>
+                                    <Nav.Link eventKey={0}>
+                                        <Exit
+                                            color={'#0d6efd'}
+                                            height="25px"
+                                            width="25px"
+                                            className="me-2"
+                                        />
+                                        Sales
+                                    </Nav.Link>
+                                </Nav.Item>
+                                <Nav.Item>
+                                    <Nav.Link eventKey={1}>
+                                        <Enter
+                                            color={'#0d6efd'}
+                                            height="25px"
+                                            width="25px"
+                                            className="me-2"
+                                        />
+                                        Purchases
+                                    </Nav.Link>
+                                </Nav.Item>
+                            </Nav>
+                            <Tab.Content>
+                                <Tab.Pane eventKey={0}>
+                                    {salesTable()}
+                                </Tab.Pane>
+                                <Tab.Pane eventKey={1}>
+                                    {purchaseTable()}
+                                </Tab.Pane>
+                            </Tab.Content>
+                        </Tab.Container>
+                    </Card.Body>
+                    
+                </Card>
+            </>
         )
     
     }
@@ -1038,17 +1066,6 @@ function LandingPage() {
             />
             <Navigation
                 page='/home'
-            />
-            <ProductQuickView
-                show={showProductQuickViewModal}
-                onHide={() => setShowProductQuickViewModal(false)}
-                productid={productToView}
-            />
-            <GenerateOrderForm
-                show={showGenerateOrderFormModal}
-                onHide={() => setShowGenerateOrderFormModal(false)}
-                product={productToOrder}
-                businessname={userProfile.bname}
             />
             <div id="contents" className="row">
                 <div className="row py-4 px-5">

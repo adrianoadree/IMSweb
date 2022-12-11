@@ -805,13 +805,27 @@ function Itemforecast() {
 
                     :
                     <div className='mt-2 p-3'>
-                        <Alert variant="danger">
-                            <Alert.Heading className='text-center'>Setup Product Leadtime</Alert.Heading>
-                            <p className="text-center">
-                                Forecasting only works when the product <strong>leadtime</strong> has been set. to set product leadtime go to  <Alert.Link as={Link} to="/stockcard">Stockcard Page</Alert.Link>.
-                            </p>
-                        </Alert>
+                <div className="red-strip left-full-curve right-full-curve p-3">
+                    <div className="d-flex align-items-center justify-content-center flex-column">
+                        <InformationCircle
+                            color={'#cd4a4a'}
+                            height="40px"
+                            width="40px"
+                            className="mb-2"
+                        />
+                        <p className="text-center px-5">
+                            <div className="mb-2">
+                            Forecasting only works when the product's <strong>leadtime</strong> has been set.
+                            </div>
+
+                            <small>
+                                <span>To set product leadtime go to </span>
+                                <Link to="/stockcard">Stockcard Page</Link>
+                            </small>
+                        </p>
                     </div>
+                </div>
+            </div>
 
 
 

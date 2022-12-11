@@ -308,6 +308,17 @@ li:hover {
 .scrollbar {
 	overflow-y: scroll;
 	height: 100%;
+	scrollbar-width: thin;
+}
+
+.scrollbar::-webkit-scrollbar {
+	width: 6px;
+	background-color: #F5F5F5;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+	background-color: #6387a9;
+	border-radius: 5px;
 }
 
 .align-card {
@@ -360,6 +371,18 @@ li:hover {
 	color: #fff;
 }
 
+#fc-search.green input {
+	background-color: #eeffed;
+	color: #414141 !important;
+	padding: 0.5em 1em;
+	font-size: .9em;
+	transition: background-color 0.1s linear;
+}
+
+#fc-search.green .input-group-text {
+	background-color: #09ff00;
+}
+
 #fc-search input::placeholder {
 	color: #414141 !important;
 }
@@ -380,6 +403,10 @@ li:hover {
 
 #fc-search input:focus::placeholder {
 	color: #ffffff !important;
+}
+
+.sidebar-header {
+	margin-right: 6px;
 }
 
 .sidebar-header .col-4,
@@ -432,6 +459,11 @@ li:hover {
 .sidebar-card .card-body .list-group-flush .list-group-item {
 	padding: 0;
 	margin: 0;
+}
+
+.sidebar-card .card-body .list-group-flush .list-group-item.active {
+	background: none;
+	border: 0;
 }
 
 .sidebar-card .card-body .list-group-flush .list-group-item.out-of-stock .sidebar-contents .col-3 {
@@ -843,6 +875,14 @@ li:hover {
 	background-color: #ffffff00;
 }
 
+.plain-button.clickable {
+	border-radius: 10px;
+}
+
+.plain-button.clickable:hover {
+	background-color: #b7d8e0;
+}
+
 .bc-button:hover {
 	background: green;
 	text-transform: uppercase;
@@ -988,6 +1028,10 @@ li:hover {
 	border-bottom-left-radius: 10px;
 	text-align: left !important;
 	width: 65%;
+}
+
+.records-table.white td.start-column.clickable:hover {
+	background: linear-gradient(90deg,  #ffffff 50%, #b7d8e0 100%);
 }
 
 .records-table.white td.center-column {
@@ -3527,6 +3571,7 @@ h3#record-id span {
 .receipt-contents .breakdown {
 	height: 80%;
 	border: 1px solid #000;
+	overflow-y: scroll;
 }
 
 .receipt-contents .breakdown thead {

@@ -26,6 +26,7 @@
       "**/node_modules/**"
     ],
     "rewrites":[
+      {"source":"/login","destination":"/index.html"},
       {"source":"/home","destination":"/index.html"},
       {"source":"/records","destination":"/index.html"},
       {"source":"/salesrecords","destination":"/index.html"},
@@ -39,7 +40,9 @@
       {"source":"/generateibr","destination":"/index.html"},
       {"source":"/generatewcr","destination":"/index.html"},
       {"source":"/adjustinventory","destination":"/index.html"},
-      {"source":"/profilemanagement","destination":"/index.html"}
+      {"source":"/profilemanagement","destination":"/index.html"},
+      {"source":"/accountmanagement","destination":"/index.html"},
+      {"source":"/mod","destination":"/index.html"}
     ]
   },
   "storage": {

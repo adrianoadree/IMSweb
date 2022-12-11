@@ -1058,7 +1058,7 @@ function NewMapModal(props) {
                                         {content[k].products === undefined || content[k].products.length == 0 ?
                                           <></>
                                         :
-                                        <div className="d-flex align-items-center justify-content-center" style={{height: '6em', width: 'fit-content'}}> 
+                                        <div className="d-flex align-items-center justify-content-start" style={{height: '6em', width: 'fit-content'}}> 
                                           <div
                                             className="storage-actions"
                                             style={{height: '100%', width:'auto'}}
@@ -1470,8 +1470,15 @@ function NewMapModal(props) {
     const placeProducts = async () => {
       var tempCell = warehouse[whId].cells;
       tempCell[rowIndex][colIndex].products = productsInStorage
-      tempCell[rowIndex][colIndex].alias = cellId
       tempCell[rowIndex][colIndex].remarks = cellRemarks
+      if(tempCell[rowIndex][colIndex].alias== warehouse[whId].cells[rowIndex][colIndex].alias)
+      {
+        tempCell[rowIndex][colIndex].alias = ""
+      }
+      else
+      {
+        tempCell[rowIndex][colIndex].alias = cellRemarks
+      }
       const getWarehouse = doc(db, 'warehouse', warehouse[whId].id);
       
       await updateDoc(getWarehouse,{
@@ -1526,7 +1533,7 @@ function NewMapModal(props) {
                       <div className="products-container">
                         <div className="products-container-header">
                           <div className="row">
-                            <InputGroup>
+                            <InputGroup id="fc-search" className="green">
                               <InputGroup.Text>
                                 <FontAwesomeIcon icon={faSearch} />
                               </InputGroup.Text>
@@ -1542,7 +1549,7 @@ function NewMapModal(props) {
                           </div>
                         </div>
                         <div className="products-container-body">
-                          <div className="h-100 row" style={{overflowY:"scroll"}}>
+                          <div className="h-100 row">
                             {stockcard === undefined?<></>:<>
                             {stockcard.length == 0?
                             <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
@@ -1569,15 +1576,15 @@ function NewMapModal(props) {
                                   :
                                     <>
                                       {productsInStorage.indexOf(stockcard.id) == -1?
-                                        <div className="col-6 p-1">
+                                        <div className="col-6 p-1" style={{maxHeight: "100%", minHeight: "min-content"}}>
                                           <button
-                                            className={"product-inselection" + (stockcard.qty == 0?" product-not-used":"")}
+                                            className={"product-inselection h-100" + (stockcard.qty == 0?" product-not-used":"")}
                                             id={stockcard.id}
                                             key={stockcard.id}
                                             onClick={() => { handleProductSelect(stockcard.id)}}
                                             style={{border: '0', background: 'none'}}
                                           >
-                                            <Card>
+                                            <Card className="h-100">
                                               <Card.Body>
                                                 <strong>{stockcard.description}</strong>
                                                 <div className="row specification" style={{margin: '0 auto'}}>
@@ -1600,12 +1607,12 @@ function NewMapModal(props) {
                                 </>
                               ))
                               ) : (
-                              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
+                              <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
                                 <h5>
                                   <strong className="d-flex align-items-center justify-content-center flex-column">
                                     No product matched:
                                     <br />
-                                    <span style={{ color: '#0d6efd' }}>{outStorageSearchValue}</span>
+                                    <span style={{ color: '#09ff00' }}>{outStorageSearchValue}</span>
                                   </strong>
                                 </h5>
                               </div>
@@ -1633,6 +1640,7 @@ function NewMapModal(props) {
                       Products in this Storage
                     </div>
                     <div className="products-container">
+                      <div className="products-container-header">
                       <div className="row">
                         <InputGroup id="fc-search">
                             <InputGroup.Text>
@@ -1648,7 +1656,9 @@ function NewMapModal(props) {
                           </InputGroup>
                         <p className="product-adding-stage-tip">Click a product to <span style={{color: '#e36262c3'}}>remove</span> from the storage</p>
                       </div>
-                      <div className="h-100 row " style={{overflowY:"scroll"}}>
+                        </div>
+                      <div className="products-container-body">
+                        <div className="h-100 row">
                         {stockcard === undefined?<></>:<>
                         {stockcard.length == 0?
                         
@@ -1676,15 +1686,15 @@ function NewMapModal(props) {
                               :
                                 <>
                                   {productsInStorage.indexOf(stockcard.id) >= 0?
-                                    <div className="col-6 p-0">
+                                    <div className="col-6 p-1" style={{maxHeight: "100%", minHeight: "min-content"}}>
                                       <button
-                                        className={"product-inselection" + (stockcard.qty == 0?" product-not-used":"")}
+                                        className={"product-inselection h-100" + (stockcard.qty == 0?" product-not-used":"")}
                                         id={stockcard.id}
                                         key={stockcard.id}
                                         onClick={() => { handleProductSelect(stockcard.id)}}
                                         style={{border: '0', background: 'none'}}
                                       >
-                                        <Card>
+                                        <Card className="h-100">
                                           <Card.Body>
                                             <strong>{stockcard.description}</strong>
                                             <div className="row specification" style={{margin: '0 auto'}}>
@@ -1707,7 +1717,7 @@ function NewMapModal(props) {
                             </>
                           ))
                           ) : (
-                          <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column" style={{ marginTop: '25%' }}>
+                          <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column">
                             <h5>
                               <strong className="d-flex align-items-center justify-content-center flex-column">
                                 No product matched:
@@ -1721,6 +1731,7 @@ function NewMapModal(props) {
                             
                             </>
                           }
+                      </div>
                       </div>
                     </div>
                   </div>

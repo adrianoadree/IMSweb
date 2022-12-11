@@ -1216,7 +1216,7 @@ function StockcardPage({ isAuth }) {
                         <td>{stockcard[docId].category}</td>
                       </tr>
                       <tr>
-                        <td>Classification</td>
+                        <td>Barcode</td>
                         <td>{stockcard[docId].barcode}</td>
                       </tr>
                       <tr>

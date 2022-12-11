@@ -285,7 +285,7 @@ function SupplierList() {
   
           <div className="px-3 py-2">
             <div className="module-header mb-4">
-              <h3 className="text-center">Add New Supplier</h3>
+              <h3 className="text-center">Editing {supplier[docId].supplier_name}</h3>
             </div>
             <div className="row my-2 mb-3">
               <div className='col-3 ps-4'>
@@ -295,7 +295,7 @@ function SupplierList() {
                   readOnly
                   className="form-control shadow-none no-click"
                   placeholder=""
-                  value={supplier[docId].id}
+                  value={supplier[docId].id.substring(0,5)}
                 />
               </div>
               <div className='col-9 ps-4'>
