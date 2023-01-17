@@ -4,7 +4,7 @@ import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db, st } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faTriangleExclamation, faSearch, faTruck, faFilter, faCog, faSave } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrashCan, faTriangleExclamation, faSearch, faTruck, faFilter, faCog, faSave, faClose } from '@fortawesome/free-solid-svg-icons'
 import { Cube, Grid, Pricetag, Layers, Barcode as Barc, Cart, InformationCircle, CaretUp, Enter, Exit, CaretDown, GitBranch } from 'react-ionicons'
 import NewProductModal from '../components/NewProductModal';
 
@@ -36,8 +36,6 @@ function StockcardPage({ isAuth }) {
   const [editShow, setEditShow] = useState(false); //show/hide edit modal
   const [modalShow, setModalShow] = useState(false); //show/hide new product modal
   const [modalShowDL, setModalShowDL] = useState(false); //show/hide new product modal
-  const [recordQuickViewModalShow, setRecordQuickViewModalShow] = useState(false);
-  const [recordToView, setRecordToView] = useState()
   const [stockcard, setStockcard] = useState(); // stockcardCollection variable
   const [allPurchases, setAllPurchases] = useState([]);
   const [docId, setDocId] = useState(); //document Id
@@ -491,7 +489,18 @@ function StockcardPage({ isAuth }) {
   }, [productPurchases, productSales, productAdjustments])
 
   function DisplayLedger(props) {
+    
+    const [recordQuickViewModalShow, setRecordQuickViewModalShow] = useState(false);
+    const [recordToView, setRecordToView] = useState()
+
     return (
+      <>
+        
+      <RecordQuickView
+        show={recordQuickViewModalShow}
+        onHide={() => setRecordQuickViewModalShow(false)}
+        recordid={recordToView}
+      />   
       <div id="ledger">
         <div className="row m-0 px-0 d-flex justify-content-end">
           <div className="col-3 float-end">
@@ -623,7 +632,7 @@ function StockcardPage({ isAuth }) {
                       <div className="col-12 m-0 p-0">
                         <a
                           className="solo-option warning"
-                          onClick={() => { setFilterTransactionType("all"); setFilterTransactionStatus("all"); setFilterDateStart("2000-01-01"); setFilterDateEnd(today) }}
+                          onClick={() => { setFilterTransactionType("all"); setFilterTransactionStatus("all"); setFilterDateStart("2001-01-01"); setFilterDateEnd(today) }}
                         >
                           Reset
                         </a>
@@ -718,7 +727,8 @@ function StockcardPage({ isAuth }) {
             </tbody>
           </Table>
         </div>
-      </div>
+      </div>  
+      </>
     );
   }
 
@@ -1259,8 +1269,155 @@ function StockcardPage({ isAuth }) {
   }
 
   function DisplayPurchases(props) {
+    const [newMinLeadtime, setNewMinLeadtime] = useState(0);
+    const [newMaxLeadtime, setNewMaxLeadtime] = useState(0);
+    const [newAverageLeadtime, setNewAverageLeadtime] = useState(0);
+
+    const [currStockLvl, setCurrStockLvl] = useState(0)
+    const [safetyStock, setSafetyStock] = useState(0); // safetyStock
+    const [reorderPoint, setReorderPoint] = useState(); // ReorderPoint
+    const [highestDailySales, setHighestDailySales] = useState(0); //highest daily sales
+    const [averageDailySales, setAverageDailySales] = useState(0); //average daily sales 
+    const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
+    const [dateReorderPoint, setDateReorderPoint] = useState()
+  
+  
+  
+    useEffect(() => {
+      if (docId !== undefined) {
+        setCurrStockLvl(stockcard[docId].qty)
+        setNewMinLeadtime(stockcard[docId].analytics.leadtimeMinimum)
+        setAverageDailySales(stockcard[docId].analytics.averageDailySales)
+        setHighestDailySales(stockcard[docId].analytics.highestDailySales)
+        setSafetyStock(stockcard[docId].analytics.safetyStock)
+        setReorderPoint(stockcard[docId].analytics.reorderPoint)
+        setDaysROP(stockcard[docId].analytics.daysROP)
+      }
+    }, [docId])
+  
+  
+    useEffect(() => {
+      if (docId !== undefined) {
+        console.log("stockcard[docId]: ", stockcard[docId])
+      }
+    }, [docId])
+  
+  
+    useEffect(() => {
+      if (docId === undefined) {
+  
+      }
+      else {
+        setNewMaxLeadtime(stockcard[docId].analytics.leadtimeMaximum)
+        setNewMinLeadtime(stockcard[docId].analytics.leadtimeMinimum)
+      }
+    }, [docId])
+  
+  
+    //conputeAverageLeadtime
+    useEffect(() => {
+      computeAverageLeadtime()
+    }, [newMaxLeadtime, newMinLeadtime])
+  
+    function computeAverageLeadtime() {
+      let x = 0
+      let y = 0
+      x = Number(newMaxLeadtime) + Number(newMinLeadtime)
+      y = Number(x / 2)
+      setNewAverageLeadtime(y)
+    }
+  
+  
+    //compute SafetyStock
+    useEffect(() => {
+  
+      let x = 0
+      let y = 0
+      let z = 0
+      x = Number(highestDailySales) * Number(newMaxLeadtime)
+      y = Number(averageDailySales) * Number(newAverageLeadtime)
+      z = Number(x - y)
+  
+      setSafetyStock(Math.round(z))
+    }, [highestDailySales, averageDailySales, newMaxLeadtime, newAverageLeadtime, docId])
+  
+  
+    //compute reoderpoint
+    //formula to calculate ROP = (average daily sales * leadtime in days) + safetystock
+    useEffect(() => {
+      setReorderPoint()
+      let x = 0
+      let y = 0
+      let z = 0
+  
+      x = Number(averageDailySales * newAverageLeadtime)
+      y = x + safetyStock
+      z = Math.round(y)
+      setReorderPoint(z)
+    }, [safetyStock, averageDailySales, newAverageLeadtime])
+  
+  
+    //compute days before ROP
+    //formula to calculate Number of Days Before reaching ROP = ( Current Quantity of Product - Reorder Point ) / average daily usage
+    useEffect(() => {
+      setDaysROP()
+      let x = currStockLvl - reorderPoint
+      let y = averageDailySales
+      let a = (x / y)
+      let z = Math.round(a)
+      setDaysROP(z)
+    }, [averageDailySales, reorderPoint, currStockLvl, docId])
+  
+  
+  
+    // Date of reorder point = date today + number of days before reorder point
+    function computeDaysToReorderPoint() {
+  
+      setDateReorderPoint()
+      if (daysROP !== undefined) {
+        let tempDate = new Date()
+        let x
+        let y
+        y = Math.round(daysROP)
+        x = tempDate.setDate(tempDate.getDate() + y)
+        let z = new Date(x)
+        z = moment(z).format('YYYY-MM-DD')
+        setDateReorderPoint(z)
+      }
+    }
+  
+    useEffect(() => {
+      computeDaysToReorderPoint()
+    }, [daysROP, docId])
+  
+  
+    const updateLeadtime = () => {
+      updateDoc(doc(db, "stockcard", stockcard[docId].id), {
+        "analytics.leadtimeMaximum": Number(newMaxLeadtime),
+        "analytics.leadtimeMinimum": Number(newMinLeadtime),
+        "analytics.leadtimeAverage": Number(newAverageLeadtime),
+        "analytics.safetyStock": Number(safetyStock),
+        "analytics.reorderPoint": Number(reorderPoint),
+        "analytics.daysROP": Number(daysROP),
+        "analytics.dateReorderPoint": dateReorderPoint,
+      });
+      setCollectionUpdateMethod("update")
+      updateLeadtimeToast()
+    }
+    const updateLeadtimeToast = () => {
+      toast.info('Leadtime Value Updated from the Database', {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+    
     return (
-      <div id="lead-time">
+      <div id="lead-time" className="px-0">
         <div className="row m-0 px-0 py-2 d-flex align-items-center justify-content-between">
           <div className="col-9 p-0">
             {purchaseRecordCollection === undefined?
@@ -1278,7 +1435,44 @@ function StockcardPage({ isAuth }) {
             }
           </div>
           <div className="col-3 p-0 float-end">
+            {showingLeadtimeOptions ?
+            <>
             <button
+                className={showingLeadtimeOptions ? "filter active float-end" : "filter float-end"}
+                disabled={newMaxLeadtime < newMinLeadtime || newMaxLeadtime < 0 || newMinLeadtime < 0}
+                data-title={showingLeadtimeOptions ? (newMaxLeadtime < newMinLeadtime?"Max is lower than min":(newMaxLeadtime < 0 || newMinLeadtime < 0?"Leadtime can't be negative":"Save")) : "Set your own leadtime"}
+                onClick={() => {
+                  if (showingLeadtimeOptions) {
+                    setShowingLeadtimeOptions(false)
+                    updateLeadtime(stockcard[docId].id)
+                  }
+                  else {
+                    setShowingLeadtimeOptions(true)
+                  }
+                }
+                }
+              >
+                  <FontAwesomeIcon icon={faSave} />
+              </button>
+              <button
+                className="filter-cancel float-end me-2"
+                data-title="Cancel Changes"
+                onClick={() => {
+                  if (showingLeadtimeOptions) {
+                    setShowingLeadtimeOptions(false)
+                  }
+                  else {
+                    setShowingLeadtimeOptions(true)
+                  }
+                }
+                }
+              >
+                  <FontAwesomeIcon icon={faClose} />
+              </button>
+            </>
+                
+                :
+                <button
               className={showingLeadtimeOptions ? "filter active float-end" : "filter float-end"}
               disabled={newMaxLeadtime < newMinLeadtime}
               data-title={showingLeadtimeOptions ? (newMaxLeadtime < newMinLeadtime?"Max is lower than min":"Save") : "Set your own leadtime"}
@@ -1293,16 +1487,14 @@ function StockcardPage({ isAuth }) {
               }
               }
             >
-              {showingLeadtimeOptions ?
-                <FontAwesomeIcon icon={faSave} />
-                :
                 <FontAwesomeIcon icon={faCog} />
-              }
             </button>
+              }
+            
           </div>
         </div>
         <div className="row m-0 px-0 d-flex justify-content-end">
-          <div className="col-8">
+          <div className="col-8 px-0">
             <Table className="scrollable-table records-table light">
               <thead>
                 <tr>
@@ -1352,7 +1544,6 @@ function StockcardPage({ isAuth }) {
                     type="number"
                     className="data-label"
                     style={{ backgroundColor: '#fff' }}
-                    autoFocus
                     value={newMinLeadtime}
                     onChange={(event) => { setNewMinLeadtime(event.target.value); }}
                   />
@@ -1364,7 +1555,6 @@ function StockcardPage({ isAuth }) {
                     type="number"
                     className="data-label"
                     style={{ backgroundColor: '#fff' }}
-                    autoFocus
                     value={newMaxLeadtime}
                     onChange={(event) => { setNewMaxLeadtime(event.target.value); }}
                   />
@@ -1414,158 +1604,14 @@ function StockcardPage({ isAuth }) {
 
   const [leadtimeModalShow, setLeadtimeModalShow] = useState(false);
 
-  const [newMinLeadtime, setNewMinLeadtime] = useState(0);
-  const [newMaxLeadtime, setNewMaxLeadtime] = useState(0);
-  const [newAverageLeadtime, setNewAverageLeadtime] = useState(0);
-
-  const [currStockLvl, setCurrStockLvl] = useState(0)
-  const [safetyStock, setSafetyStock] = useState(0); // safetyStock
-  const [reorderPoint, setReorderPoint] = useState(); // ReorderPoint
-  const [highestDailySales, setHighestDailySales] = useState(0); //highest daily sales
-  const [averageDailySales, setAverageDailySales] = useState(0); //average daily sales 
-  const [daysROP, setDaysROP] = useState(); // days before ReorderPoint
-  const [dateReorderPoint, setDateReorderPoint] = useState()
 
 
 
-  useEffect(() => {
-    if (docId !== undefined) {
-      setCurrStockLvl(stockcard[docId].qty)
-      setNewMaxLeadtime(stockcard[docId].analytics.leadtimeMaximum)
-      setNewMinLeadtime(stockcard[docId].analytics.leadtimeMinimum)
-      setAverageDailySales(stockcard[docId].analytics.averageDailySales)
-      setHighestDailySales(stockcard[docId].analytics.highestDailySales)
-      setSafetyStock(stockcard[docId].analytics.safetyStock)
-      setReorderPoint(stockcard[docId].analytics.reorderPoint)
-      setDaysROP(stockcard[docId].analytics.daysROP)
-    }
-  }, [docId])
-
-
-  useEffect(() => {
-    if (docId !== undefined) {
-      console.log("stockcard[docId]: ", stockcard[docId])
-    }
-  }, [docId])
-
-
-  useEffect(() => {
-    if (docId === undefined) {
-
-    }
-    else {
-      setNewMaxLeadtime(stockcard[docId].analytics.leadtimeMaximum)
-      setNewMinLeadtime(stockcard[docId].analytics.leadtimeMinimum)
-    }
-  }, [docId])
-
-
-  //conputeAverageLeadtime
-  useEffect(() => {
-    computeAverageLeadtime()
-  }, [newMaxLeadtime, newMinLeadtime])
-
-  function computeAverageLeadtime() {
-    let x = 0
-    let y = 0
-    x = Number(newMaxLeadtime) + Number(newMinLeadtime)
-    y = Number(x / 2)
-    setNewAverageLeadtime(y)
-  }
-
-
-  //compute SafetyStock
-  useEffect(() => {
-
-    let x = 0
-    let y = 0
-    let z = 0
-    x = Number(highestDailySales) * Number(newMaxLeadtime)
-    y = Number(averageDailySales) * Number(newAverageLeadtime)
-    z = Number(x - y)
-
-    setSafetyStock(Math.round(z))
-  }, [highestDailySales, averageDailySales, newMaxLeadtime, newAverageLeadtime, docId])
-
-
-  //compute reoderpoint
-  //formula to calculate ROP = (average daily sales * leadtime in days) + safetystock
-  useEffect(() => {
-    setReorderPoint()
-    let x = 0
-    let y = 0
-    let z = 0
-
-    x = Number(averageDailySales * newAverageLeadtime)
-    y = x + safetyStock
-    z = Math.round(y)
-    setReorderPoint(z)
-  }, [safetyStock, averageDailySales, newAverageLeadtime])
-
-
-  //compute days before ROP
-  //formula to calculate Number of Days Before reaching ROP = ( Current Quantity of Product - Reorder Point ) / average daily usage
-  useEffect(() => {
-    setDaysROP()
-    let x = currStockLvl - reorderPoint
-    let y = averageDailySales
-    let a = (x / y)
-    let z = Math.round(a)
-    setDaysROP(z)
-  }, [averageDailySales, reorderPoint, currStockLvl, docId])
-
-
-
-  // Date of reorder point = date today + number of days before reorder point
-  function computeDaysToReorderPoint() {
-
-    setDateReorderPoint()
-    if (daysROP !== undefined) {
-      let tempDate = new Date()
-      let x
-      let y
-      y = Math.round(daysROP)
-      x = tempDate.setDate(tempDate.getDate() + y)
-      let z = new Date(x)
-      z = moment(z).format('YYYY-MM-DD')
-      setDateReorderPoint(z)
-    }
-  }
-
-  useEffect(() => {
-    computeDaysToReorderPoint()
-  }, [daysROP, docId])
-
-
-  const updateLeadtime = () => {
-    updateDoc(doc(db, "stockcard", stockcard[docId].id), {
-      "analytics.leadtimeMaximum": Number(newMaxLeadtime),
-      "analytics.leadtimeMinimum": Number(newMinLeadtime),
-      "analytics.leadtimeAverage": Number(newAverageLeadtime),
-      "analytics.safetyStock": Number(safetyStock),
-      "analytics.reorderPoint": Number(reorderPoint),
-      "analytics.daysROP": Number(daysROP),
-      "analytics.dateReorderPoint": dateReorderPoint,
-    });
-    setCollectionUpdateMethod("update")
-    updateLeadtimeToast()
-  }
-  const updateLeadtimeToast = () => {
-    toast.info('Leadtime Value Updated from the Database', {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-    });
-  }
 
 
 
   //---start of editLeadtimeModal
- 
+ /*
   function EditLeadtimeModal(props) {
   
   
@@ -1589,20 +1635,7 @@ function StockcardPage({ isAuth }) {
   
     //update Toast
   
-  
-    function updateLeadtime() {
-      updateDoc(doc(db, "stockcard", docId), {
-        "analytics.leadtimeMaximum": Number(newMaxLeadtime),
-        "analytics.leadtimeMinimum": Number(newMinLeadtime),
-        "analytics.leadtimeAverage": Number(newAverageLeadtime),
-        "analytics.safetyStock": Number(safetyStock),
-        "analytics.reorderPoint": Number(reorderPoint),
-        "analytics.daysROP": Number(daysROP)
-      });
-      setCollectionUpdateMethod("update")
-      updateLeadtimeToast()
-      handleEditLeadtimeClose()
-    }
+
   
   
     return (
@@ -1665,7 +1698,7 @@ function StockcardPage({ isAuth }) {
       </Modal>
     );
   }
- 
+ */
   //---end of editLeadtimeModal
   //-----------------------------------------------------------------------------------------------
 
@@ -1717,11 +1750,7 @@ function StockcardPage({ isAuth }) {
         route='/stockcard'
       />
       <Navigation
-        page="/stockcard" />
-      <RecordQuickView
-        show={recordQuickViewModalShow}
-        onHide={() => setRecordQuickViewModalShow(false)}
-        recordid={recordToView}
+        page="/stockcard"
       />
 
       <Tab.Container
@@ -1752,7 +1781,7 @@ function StockcardPage({ isAuth }) {
                   <div className="row pt-0 pb-3 px-3 d-flex align-items-center justify-content-center flex-row">
                     <div className="col-3 px-1 d-flex align-items-center justify-content-start">
                       <div className="d-inline-block me-1 circle-small" style={{ backgroundColor: '#f6f3bb', width: '1em', height: '1em' }}></div>
-                      <div>Low Stock</div>
+                      <div className="single-line-text">Low Stock</div>
                     </div>
                     <div className="col-5 px-1 d-flex align-items-center justify-content-center">
                       <div className="d-inline-block me-1 circle-small" style={{ backgroundColor: '#e19f9f', width: '1em', height: '1em' }}></div>

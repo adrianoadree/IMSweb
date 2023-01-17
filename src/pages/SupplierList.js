@@ -486,72 +486,99 @@ function SupplierList() {
     }
 
 
-  function DisplayTransactions(props) {
+  function Transactions(props) {
     return(
-      <Table hover>
+      <div id="supplier-transactions">
+        <Table hover={transactions.length > 0} className="scrollable-table">
         <thead>
           <tr>
-            <th>Transaction ID</th>
-            <th>Date</th>
-            <th>Products</th>
-            <th>Notes</th>
+            <th style={{width: "20%"}}>Transaction ID</th>
+            <th style={{width: "15%"}}>Date</th>
+            <th style={{width: "45%"}}>Products</th>
+            <th style={{width: "20%"}}>Notes</th>
           </tr>
         </thead>
         <tbody>
-          {transactions.map((transaction)=>{
-            return(
-              <tr
-                className="clickable"
-                onClick={()=>{setRecordToView(transaction.id); setRecordQuickViewModalShow(true)}}
-              >
-                <td>{transaction.id.substring(0,7)}</td>
-                <td>{transaction.transaction_date}</td>
-                <td>
-                  {transaction.product_list.map((product, index) => {
-                    return(
-                      <>
-                        <span>{getProductInfo(product.itemId).description} [{product.itemQuantity} units]
-                        {index != transaction.product_list.length - 1?<>,</>:<></>}
-                        </span>
-                        <br/>
-                      </>
-                    )
-                  })}
+          {transactions.length > 0?
+            <>
+              {transactions.map((transaction)=>{
+                return(
+                  <tr
+                    className="clickable"
+                    onClick={()=>{setRecordToView(transaction.id); setRecordQuickViewModalShow(true)}}
+                  >
+                    <td style={{width: "15%"}}>{transaction.id.substring(0,7)}</td>
+                    <td style={{width: "15%"}}>{transaction.transaction_date}</td>
+                    <td style={{width: "40%"}}>
+                      {transaction.product_list.map((product, index) => {
+                        return(
+                          <>
+                            <span>{getProductInfo(product.itemId).description} [{product.itemQuantity} units]
+                            {index != transaction.product_list.length - 1?<>,</>:<></>}
+                            </span>
+                            <br/>
+                          </>
+                        )
+                      })}
+                    </td>
+                    <td style={{width: "30%"}}>{transaction.transaction_note}</td>
+                  </tr>
+                )
+              })}
+            </>
+          :
+            <>
+              <tr>
+                <td 
+                  colSpan={4}
+                  className="full-column text-center pt-5"
+                > 
+                  No transactions yet
                 </td>
-                <td>{transaction.transaction_note}</td>
               </tr>
-            )
-          })}
+            </>
+          }
         </tbody>
         <tfoot>
 
         </tfoot>
-      </Table>
+        </Table>
+      </div>
+      
     )
   }
 
-  function DisplayCatalogue(props) {
+  function Catalogue(props) {
     return(
       <div id="catalogue">
-        <div className="row">
-          {catalogue.map((product)=>{
-            return(
-              <div className="col-3 p-3 d-flex align-items-center justify-content-center">
-                <Card 
-                  className="warehouse-template"
-                  onClick={()=>{setProductToView(product); setProductQuickViewModalShow(true)}}
-                >
-                    <div className="w-100 h-100 d-flex align-items-center justify-content-center p-1">
-                      {getProductInfo(product).img === undefined || getProductInfo(product).img == "" || getProductInfo(product).img == " "?
-                        <h6 className="p-2">{getProductInfo(product).description}</h6>
-                      :
-                        <img src={getProductInfo(product).img} style={{height: "100%", width: "100%", objectFit: "contain"}}/>
-                      }
-                    </div>
-                </Card>
-              </div>
-            )
-          })}
+        <div className="row h-100">
+          {catalogue.length > 0?
+            <>
+            {catalogue.map((product)=>{
+              return(
+                <div className="col-3 p-3 d-flex align-items-center justify-content-center">
+                  <Card 
+                    className="warehouse-template"
+                    onClick={()=>{setProductToView(product); setProductQuickViewModalShow(true)}}
+                  >
+                      <div className="w-100 h-100 d-flex align-items-center justify-content-center p-1">
+                        {getProductInfo(product).img === undefined || getProductInfo(product).img == "" || getProductInfo(product).img == " "?
+                          <h6 className="p-2">{getProductInfo(product).description}</h6>
+                        :
+                          <img src={getProductInfo(product).img} style={{height: "100%", width: "100%", objectFit: "contain"}}/>
+                        }
+                      </div>
+                  </Card>
+                </div>
+              )
+            })}
+            </>
+          :
+            <div className="col-12 h-100 pt-5 px-3 d-flex align-items-start justify-content-center">
+                <strong style={{color: "#8193a1"}}>Catalogue is empty</strong>
+            </div>
+          }
+          
         </div>
       </div>
     )
@@ -659,7 +686,7 @@ function SupplierList() {
                       Contact Number
                     </div>
                   </div>
-                  <div id='scrollbar' style={{ height: '400px' }}>
+                  <div className='scrollbar' style={{ height: '400px' }}>
                     {isFetched ?
                       (
                         supplier.length === 0 ?
@@ -982,7 +1009,11 @@ function SupplierList() {
                               />
                               </a>
                               <div className="col-11 data-label">
-                                {supplier[docId].supplier_address}
+                                {supplier[docId].supplier_address === undefined || supplier[docId].supplier_address == "" || supplier[docId].supplier_address == " "?
+                                  <div style={{fontStyle: 'italic', opacity: '0.8'}}>None</div>
+                                :
+                                  <>{supplier[docId].supplier_address}</>
+                                }
                               </div>
                             </div>
                           </div>
@@ -1078,14 +1109,14 @@ function SupplierList() {
                             <Tab.Pane eventKey={1}>
                               <div className="row data-specs-add m-0">
                                 <div className='row m-0 p-0'>
-                                  <DisplayCatalogue/>
+                                  <Catalogue/>
                                 </div>
                               </div>
                             </Tab.Pane>
                             <Tab.Pane eventKey={0}>
                               <div className="row data-specs-add m-0">
                                 <div className="row m-0 p-0">
-                                  <DisplayTransactions/>
+                                  <Transactions/>
                                 </div>
                               </div>
                             </Tab.Pane>

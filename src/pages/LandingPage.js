@@ -29,6 +29,7 @@ function LandingPage() {
     const [userProfile, setUserProfile] = useState({});
 
     const [sidebarHidden, setSidebarHidden] = useState(false) // display/hide sidebar
+    const contentsRef = useRef(null)
 
     var curr_date = new Date(); // get current date
     curr_date.setDate(curr_date.getDate());
@@ -46,17 +47,15 @@ function LandingPage() {
     var lastday_month = new Date(curr_date.getFullYear(), curr_date.getMonth() + 1, 0); // get month's last day date
 
 
-    useEffect(() => {
-        var contents = document.getElementById("contents")
-        if (sidebarHidden) {
-            contents.classList.add("sidebar-hidden")
+    const handleSidebarHiding = () => {
+        if (contentsRef.current.classList.contains("sidebar-hidden")) {
+            contentsRef.current.classList.remove("sidebar-hidden")
         }
         else {
-            contents.classList.remove("sidebar-hidden")
+            contentsRef.current.classList.add("sidebar-hidden")
         }
-    },)
-
-
+    }
+    
     useEffect(() => {
         if (user) {
             setUserID(user.uid)
@@ -129,7 +128,18 @@ function LandingPage() {
                 return unsub;
             }
         }, [userID])
-
+        const determineRestockingStatus = (date_rop) => {
+            var rop_date = new Date(date_rop)
+            rop_date.setHours(0, 0, 0, 0)
+            if(moment(rop_date).diff(moment(today)) == 1)
+            {
+                return Number(moment(rop_date).diff(moment(today), "days"))
+            }
+            else
+            {
+                return Number(moment(rop_date).diff(moment(today), "days"))
+            }
+        }
         function ProductCard(props) {
             return (
                 <div className="mb-4 notification-item">
@@ -185,11 +195,11 @@ function LandingPage() {
                             {prodNearROP.length !== 0 ?
                                 <>
                                     <div ref={notificationFilterOverdueRef}>
-                                        {prodNearROP.filter(product => product.analytics.daysROP < 0).map((prod) => {
+                                        {prodNearROP.filter(product => determineRestockingStatus(product.analytics.dateReorderPoint) < 0).map((prod) => {
                                             return (
                                                 <ProductCard
                                                     key={prod.id}
-                                                    daysrop={prod.analytics.daysROP}
+                                                    daysrop={determineRestockingStatus(prod.analytics.dateReorderPoint)}
                                                     id={prod.id}
                                                     description={prod.description}
                                                     reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
@@ -202,11 +212,11 @@ function LandingPage() {
                                         })}
                                     </div>
                                     <div ref={notificationFilterTodayRef}>
-                                        {prodNearROP.filter(product => product.analytics.daysROP == 0).map((prod) => {
+                                        {prodNearROP.filter(product => determineRestockingStatus(product.analytics.dateReorderPoint) == 0).map((prod) => {
                                             return (
                                                 <ProductCard
                                                     key={prod.id}
-                                                    daysrop={prod.analytics.daysROP}
+                                                    daysrop={determineRestockingStatus(prod.analytics.dateReorderPoint)}
                                                     id={prod.id}
                                                     description={prod.description}
                                                     reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
@@ -219,11 +229,11 @@ function LandingPage() {
                                         })}
                                     </div>
                                     <div ref={notificationFilterUpcomingRef}>
-                                        {prodNearROP.filter(product => product.analytics.daysROP > 0).map((prod) => {
+                                        {prodNearROP.filter(product => determineRestockingStatus(product.analytics.dateReorderPoint) > 0).map((prod) => {
                                             return (
                                                 <ProductCard
                                                     key={prod.id}
-                                                    daysrop={prod.analytics.daysROP}
+                                                    daysrop={determineRestockingStatus(prod.analytics.dateReorderPoint)}
                                                     id={prod.id}
                                                     description={prod.description}
                                                     reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
@@ -349,7 +359,7 @@ function LandingPage() {
         const [totalSales, setTotalSales] = useState(0)
         const [totalPurchases, setTotalPurchases] = useState(0)
 
-        const [dateSelected, setDateSelected] = useState("today") // selected date variable
+        const [dateSelected, setDateSelected] = useState() // selected date variable
         const [purchaseDescriptionSorting, setPurchaseDescriptionSorting] = useState("ascending")
         const [purchaseQuantitySorting, setPurchaseQuantitySorting] = useState("unsorted")
         const [salesDescriptionSorting, setSalesDescriptionSorting] = useState("ascending")
@@ -692,7 +702,6 @@ function LandingPage() {
 
 
         function purchaseTable() {
-            
             return (
                 productsBought !== undefined ?
                     productsBought.length !== 0 ?
@@ -875,8 +884,8 @@ function LandingPage() {
                                             <div className="row m-0 p-0">
                                                 <div className="col-3 text-center">
                                                     {sale.img === undefined || sale.img == "" || sale.img == " " ?
-                                                        <span>
-                                                            <div className="data-img d-flex align-items-center justify-content-center" style={{ width: '90px', height: 'auto', backgroundColor: '#f3f5f9' }}>
+                                                        <span className="text-center">
+                                                            <div className="data-img d-flex align-items-center justify-content-center me-0" style={{ width: '90px', height: 'auto', backgroundColor: '#f3f5f9' }}>
                                                                 <img src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Fproduct-image-placeholder.png?alt=media&token=c29c223b-c9a1-4b47-af4f-c57a76b3e6c2" style={{ width: '80%' }} />
                                                             </div>
                                                         </span>
@@ -1067,14 +1076,14 @@ function LandingPage() {
             <Navigation
                 page='/home'
             />
-            <div id="contents" className="row">
+            <div id="contents" className="row" ref={contentsRef}>
                 <div className="row py-4 px-5">
                     <div className="sidebar glass">
                         <Notification/>
                     </div>
                     <div className="sidebar-visibility-toggler">
                         <button
-                            onClick={() => { sidebarHidden ? setSidebarHidden(false) : setSidebarHidden(true) }}
+                            onClick={() => { handleSidebarHiding() }}
                         >
                             {sidebarHidden ?
                                 <ChevronForward

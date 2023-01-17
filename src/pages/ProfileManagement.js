@@ -150,15 +150,6 @@ function ProfileManagement() {
     })
   };
 
-  const cancelProfileChanges = () => {
-    userCollection.map((metadata) => {
-      setNewName(metadata.name)
-      setNewAddress(metadata.address)
-      setNewPhone(metadata.phone)
-    });
-    setEditing(false)
-  }
-
   const getVerified = () => {
     updateDoc(doc(db, 'user', userProfileId), {
       name: checkIfEmpty(newName),
@@ -176,7 +167,7 @@ function ProfileManagement() {
   }
 
   const updateInfo = async () => {
-    await updateDoc(doc(db, 'user',userProfileId), {
+    await updateDoc(doc(db, 'user', userProfileId), {
       name: newName,
       phone: newPhone,
       address: newAddress,
@@ -259,7 +250,7 @@ function ProfileManagement() {
                   <div className='sidebar'>
                     <Card className="sidebar-card">
                       <Card.Header className="bg-primary text-white py-3 text-center left-curve right-curve">
-                        <h4><strong>User Management</strong></h4>
+                        <h4><strong>Account Management</strong></h4>
                       </Card.Header>
                       <Card.Body>
                         <Nav className="user-management-tab mb-3 flex-column" defaultActiveKey="/profilemanagement">
@@ -268,7 +259,7 @@ function ProfileManagement() {
                         </Nav.Item>
                           {status == 'verified'?
                             <Nav.Item>
-                              <Nav.Link as={Link} to="/accountmanagement">Accounts</Nav.Link>
+                              <Nav.Link as={Link} to="/accountmanagement">Users</Nav.Link>
                             </Nav.Item>
                             :
                             <></>
@@ -287,41 +278,46 @@ function ProfileManagement() {
                       <div className="row m-0 user-management-form">
                         <div className="user-management-form-section">
                           <div className="row m-0">
-                            <h4>User Profile</h4>
-                          </div>
-                          <div className="row m-0 d-flex align-items center justify-content-end">
-                            {status == 'verified'?
-                              <div className="col-3 d-flex align-items center justify-content-end">
-                              {editing?
+                              {status == 'verified'?
                                 <>
-                                <Button
-                                  className="delete me-1"
-                                  data-title="Cancel"
-                                  onClick={()=>{cancelProfileChanges()}}
-                                >
-                                  <FontAwesomeIcon icon={faClose} />
+                                <h4 className={editing?"editing":""}>Owner Profile</h4>
+                                <div className="user-options">
+                                {editing?
+                                  <>
+                                  <Button
+                                    className="delete me-1"
+                                    data-title="Cancel"
+                                    onClick={()=>{setEditing(false)}}
+                                  >
+                                    <FontAwesomeIcon icon={faClose} />
+                                  </Button>
+                                  <Button
+                                    className="edit me-1"
+                                    data-title="Save Changes"
+                                    onClick={()=>{updateInfo();editing?setEditing(false):setEditing(true)}}
+                                  >
+                                    <FontAwesomeIcon icon={faSave} />
+                                  </Button>
+                                  </>
+                                :
+                                  <Button
+                                    className="edit me-1"
+                                    data-title="Edit Profile"
+                                    onClick={()=>{editing?setEditing(false):setEditing(true)}}
+                                  >
+                                    <FontAwesomeIcon icon={faEdit} />
                                 </Button>
-                                <Button
-                                  className="edit me-1"
-                                  data-title="Save Changes"
-                                  onClick={()=>{editing?setEditing(false):setEditing(true)}}
-                                >
-                                  <FontAwesomeIcon icon={faSave} />
-                                </Button>
+                                }
+                                </div>
                                 </>
                               :
-                                <Button
-                                  className="edit me-1"
-                                  data-title="Edit Profile"
-                                  onClick={()=>{editing?setEditing(false):setEditing(true)}}
-                                >
-                                  <FontAwesomeIcon icon={faEdit} />
-                              </Button>
+                                <>
+                                <h4>Owner Profile</h4>
+                                </>
                               }
-                              </div>
-                            :
-                              <></>
-                            }
+                          </div>
+                          <div className="row m-0 d-flex align-items center justify-content-end">
+                            
                           </div>
                           <div className="row m-0 user-management-form-section-contents">
                             <div className="col-6">
@@ -548,14 +544,6 @@ function ProfileManagement() {
                                     })}
                                   </span>
                                 </p>
-                                <Button
-                                  className="btn btn-success"
-                                  style={{ width: "150px" }}
-                                  disabled={!isUpdateComplete}
-                                  onClick={() => { updateInfo() } }
-                                >
-                                  Save Changes
-                                </Button>
                               </div>
                             :
                                 <></>

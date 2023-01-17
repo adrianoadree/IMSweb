@@ -195,7 +195,8 @@ li:hover {
 }
 
 #contents {
-	width: 95%;
+	width: 100%;
+	padding: 0 2.5%;
 	margin: auto;
 	height: 100%;
 }
@@ -658,6 +659,24 @@ li:hover {
 	cursor: auto;
 }
 
+.filter-cancel {
+	background-color: #fa6e6e;
+	color: #ffffff !important;
+	transition: background-color 0.1s ease, color 0.1s ease;
+	border-radius: 5px !important;
+	border: none;
+	pointer-events: auto !important;
+	cursor: auto;
+	padding-left: 0.4em;
+	padding-right: 0.4em;
+}
+
+.filter-cancel:hover {
+	color: #fa6e6e !important;
+	background-color: #ffffff;
+	box-shadow: 0 0 3px 2px #af91856f;
+}
+
 .filter.active[disabled] {
 	border-color: #c6d4ea !important;
 	background-color: #ffffff !important;
@@ -1005,7 +1024,7 @@ li:hover {
 }
 
 .records-table.white {
-	border-collapse: separate;
+	border-collapse: separate !important;
 	border-spacing: 0 0.5em;
 }
 
@@ -1145,6 +1164,26 @@ hr {
 .darkblue-icon {
 	color: #8193a1;
 }
+
+.darkblue-icon.sub {
+	font-size: 0.4em;
+}
+
+.darkblue-icon-sub-container {
+	color: #ffffff;
+	font-size: 0.4em;
+	stroke: #ffffff;
+	stroke-width: 200;
+	bottom: 50;
+}
+
+.qa-btn-icon:hover .darkblue-icon-sub-container {
+	fill: #ffffff !important;
+}
+
+.fa-layers svg.svg-inline--fa {
+	top: auto !important;
+  }
 
 h1,
 h2,
@@ -1292,10 +1331,19 @@ a.header-tooltip[data-title]:before {
 }
 
 #warehouse-list .list-group-horizontal {
-	overflow: scroll;
-
+	overflow-x: scroll;
+	scrollbar-width: thin;
 }
 
+#warehouse-list .list-group-horizontal::-webkit-scrollbar {
+	height: 6px;
+	background-color: #F5F5F5;
+}
+
+#warehouse-list .list-group-horizontal::-webkit-scrollbar-thumb {
+	background-color: #6387a9;
+	border-radius: 5px;
+}
 #warehouse-list .list-group-item {
 	min-width: 200px !important;
 	max-width: 200px !important;
@@ -1304,6 +1352,7 @@ a.header-tooltip[data-title]:before {
 #warehouse-list .list-group-item-action {
 	width: 200px;
 	margin: 5px;
+	margin-bottom: 20px;
 	border: 0;
 	background-color: #ffffff;
 }
@@ -1331,11 +1380,11 @@ a.header-tooltip[data-title]:before {
 	border-radius: 5px !important;
 	border-top-left-radius: 0 !important;
 	background-color: #fbfbfb;
-	height: 100%;
 	top: -1px;
 	position: relative;
 	padding-top: 10px;
 	box-shadow: 0px 5px 5px #0000001b;
+	height: 70%;
 }
 
 #warehouse-list .list-group-item-action.active .warehouse-item-name {
@@ -1372,7 +1421,6 @@ a.header-tooltip[data-title]:before {
 
 #warehouse-list {
 	padding: 5px 15px 0 15px;
-	margin-bottom: 20px;
 	width: 100%;
 	height: 100%;
 }
@@ -1401,6 +1449,7 @@ a.header-tooltip[data-title]:before {
 	width: auto;
 	box-sizing: border-box;
 	padding: 0;
+	height: min-content;
 }
 
 .warehouse-notes {
@@ -1465,6 +1514,20 @@ a.header-tooltip[data-title]:before {
 	box-sizing: border-box;
 	width: 90%;
 	font-weight: 600;
+}
+
+.user-options {
+	text-align: right;
+	display: inline-block;
+	width: 10%
+}
+
+.user-management-form h4.editing {
+	width: 80% !important;
+}
+
+.user-management-form h4.editing+.user-options {
+	width: 20% !important;
 }
 
 .user-management-form label {
@@ -1752,7 +1815,7 @@ input:not(:focus):valid~.floating-label {
 .qa-btn-icon sub {
 	font-size: 0.5em;
 	padding: 0.25em;
-	margin-left: -1em;
+	margin-left: -1.25em;
 	background-color: rgb(255, 255, 255);
 	width: auto;
 	height: auto;
@@ -1762,7 +1825,7 @@ input:not(:focus):valid~.floating-label {
 }
 
 .qa-btn:hover * {
-	color: #0d6efd !important;
+	color: #0d6efd;
 }
 
 #quick-access-toggler:hover {
@@ -3410,13 +3473,6 @@ table.scrollable-table {
 	border: 0 !important;
 }
 
-table.scrollable-table tbody {
-	display: block;
-	min-height: fit-content;
-	height: 400px !important;
-	overflow-y: scroll !important;
-}
-
 table.scrollable-table thead,
 table.scrollable-table tbody,
 table.scrollable-table tfoot {
@@ -3426,6 +3482,28 @@ table.scrollable-table tfoot {
 	vertical-align: middle;
 	border: 0 !important;
 	border-spacing: 1px 0;
+}
+
+table.scrollable-table thead {
+	padding-right: 6px !important;
+}
+
+table.scrollable-table tbody {
+	display: block;
+	min-height: fit-content;
+	height: 400px !important;
+	overflow-y: scroll !important;
+	scrollbar-width: thin;
+}
+
+table.scrollable-table tbody::-webkit-scrollbar {
+	width: 6px;
+	background-color: #F5F5F5;
+}
+
+table.scrollable-table tbody::-webkit-scrollbar-thumb {
+	background-color: #6387a9;
+	border-radius: 5px;
 }
 
 table.scrollable-table tr {
@@ -3571,7 +3649,18 @@ h3#record-id span {
 .receipt-contents .breakdown {
 	height: 80%;
 	border: 1px solid #000;
-	overflow-y: scroll;
+	overflow-y: auto;
+	scrollbar-width: thin;
+}
+
+.receipt-contents::-webkit-scrollbar {
+	width: 6px;
+	background-color: #F5F5F5;
+}
+
+.receipt-contents::-webkit-scrollbar-thumb {
+	background-color: #6387a9;
+	border-radius: 5px;
 }
 
 .receipt-contents .breakdown thead {
@@ -3619,9 +3708,15 @@ table.scrollable-table.receipt-table th.qty {
 	width: 10%;
 }
 
-#record-receipt table.scrollable-table.receipt-table tr.empty-product-list * {
+#record-receipt table.receipt-table tr.empty-product-list * {
 	color: #fff !important;
 	pointer-events: none;
+	-webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none;
 }
 
 .field-underline {
@@ -3782,6 +3877,22 @@ h3 .form-control {
 #catalogue {
 	height: 520px;
 	overflow-y: scroll;
+	scrollbar-width: thin;
+}
+
+#catalogue::-webkit-scrollbar {
+	width: 6px;
+	background-color: #F5F5F5;
+}
+
+#catalogue::-webkit-scrollbar-thumb {
+	background-color: #6387a9;
+	border-radius: 5px;
+}
+
+#supplier-transactions {
+	height: 520px;
+	overflow: hidden;
 }
 
 .IMS-toast-container {
@@ -3970,6 +4081,17 @@ input[type=search]::-webkit-search-cancel-button {
 
 #analytics-stats {
 	overflow-x: scroll;
+	scrollbar-width: thin;
+}
+
+#analytics-stats::-webkit-scrollbar {
+	height: 6px;
+	background-color: #F5F5F5;
+}
+
+#analytics-stats::-webkit-scrollbar-thumb {
+	background-color: #6387a9;
+	border-radius: 5px;
 }
 
 .analytics-numbers {
@@ -4110,4 +4232,10 @@ span.no-break {
 
 #contact-supplier-actions a:hover {
 	color: #6082d6 !important
+}
+
+.single-line-text {
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
 }

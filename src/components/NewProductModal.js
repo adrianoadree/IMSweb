@@ -392,6 +392,7 @@ function NewProductModal(props) {
                             <>
                               <h1><FontAwesomeIcon icon={faFile} /></h1>
                               <div className="pt-3" style={{fontSize: "0.75em", opacity: "0.7"}}>image.jpg</div>
+                              <div className="pt-3" style={{fontSize: "0.9em"}}>Press the eye button to preview</div>
                             </>
                             :
                             <>

@@ -87,7 +87,7 @@ const LoginPage = () => {
                         </Carousel>
                     </div>
                     <div className="col-4 d-flex align-items-center justify-content-center p-5">
-                        <div id="contents" className="d-flex align-items-center justify-content-center">
+                        <div id="contents" className="px-0 d-flex align-items-center justify-content-center">
                             <div id="add-border">
                                 <div className="w-100 h-100">
                                     <div id="brand-image-container">

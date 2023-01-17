@@ -612,11 +612,12 @@ function Records() {
                 <Tab.Pane eventKey="main">
                   <div className="placeholder-content">
                     <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
-                      <Nav.Item>
-                        <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
+                      
+                    <Nav.Item>
+                        <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
                       </Nav.Item>
                       <Nav.Item>
-                        <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
+                        <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
                       </Nav.Item>
                     </Nav>
                     <div className="row m-0">
@@ -759,10 +760,10 @@ function Records() {
                     <div className={purchaseRecordCollection[docId].isVoided?"voided-record":""}>
                       <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
                         <Nav.Item>
-                          <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
+                          <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
                         </Nav.Item>
                         <Nav.Item>
-                          <Nav.Link as={Link} to="/salesrecord" >Sales History</Nav.Link>
+                          <Nav.Link as={Link} to="/records" active>Purchase History</Nav.Link>
                         </Nav.Item>
                       </Nav>
                       <div className="row m-0">

@@ -285,7 +285,7 @@ function RecordQuickView(props) {
                   </div>
                 </div>
                 <div className="breakdown">
-                  <Table className="scrollable-table receipt-table mb-0 h-100">
+                  <Table className="receipt-table mb-0 h-100">
                     <thead>
                       <tr>
                         <th className="qty">

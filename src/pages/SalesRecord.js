@@ -537,13 +537,13 @@ const toDate = (keyword_in_date) => {
                 <Tab.Pane eventKey="main">
                   <div className="placeholder-content">
                     <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/salesrecord">
+                      
+                    <Nav.Item>
+                        <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
+                      </Nav.Item>
                       <Nav.Item>
                         <Nav.Link as={Link} to="/records">Purchase History</Nav.Link>
                       </Nav.Item>
-                      <Nav.Item>
-                        <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
-                      </Nav.Item>
-
                     </Nav>
                     <div className="row m-0">
                       <div className="row py-1 m-0">
@@ -656,10 +656,10 @@ const toDate = (keyword_in_date) => {
                     <div className={salesRecordCollection[docId].isVoided?"voided-record":""}>
                       <Nav className="records-tab mb-3" fill variant="pills" defaultActiveKey="/records">
                         <Nav.Item>
-                          <Nav.Link as={Link} to="/records">Purchase History</Nav.Link>
+                          <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
                         </Nav.Item>
                         <Nav.Item>
-                          <Nav.Link as={Link} to="/salesrecord" active>Sales History</Nav.Link>
+                          <Nav.Link as={Link} to="/records">Purchase History</Nav.Link>
                         </Nav.Item>
                       </Nav>
                       <div className="row m-0">

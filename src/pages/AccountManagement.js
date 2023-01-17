@@ -9,8 +9,9 @@ import { faPlus, faTrashCan, faBan, faEdit } from '@fortawesome/free-solid-svg-i
 import { Tab, Button, Card, Modal, Nav, Table } from 'react-bootstrap';
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast, Zoom } from "react-toastify";
-
+import { Spinner } from 'loading-animations-react';
 import { UserAuth } from '../context/AuthContext';
+
 import Navigation from '../layout/Navigation';
 import  UserRouter  from '../pages/UserRouter'
 
@@ -27,7 +28,7 @@ function AccountManagement() {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false); // display/hide edit modal
   
   const [profileID, setProfileID] = useState([]); //user profile id
-  const [account, setAccount] = useState([{name: "", designation: "", password:""}]);// accounts container
+  const [account, setAccount] = useState();// accounts container
   const [selectedAccount, setSelectedAccount] = useState(0);
   const [salesRecordCollection, setSalesRecordCollection] = useState([]);
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([])
@@ -141,7 +142,15 @@ function AccountManagement() {
 
   // edit account modal
   function EditAccountModal(param) {
-    var acc = account; // get accounts list and place in temp array
+    var acc = [] // get accounts list and place in temp array
+    if(account === undefined)
+    {
+      acc = [{name: "", designation: "", isActive: false,}]
+    }
+    else
+    {
+      acc = account;
+    }
     var index = selectedAccount; // index of account to edit
     const [name, setName] = useState(acc[index].name);
     const [designation, setDesignation] = useState(acc[index].designation);
@@ -358,7 +367,15 @@ function AccountManagement() {
 
   // delete acccount modal
   function DeleteAccountModal(props) {
-    var acc = account;//get accounts list and place in temp array
+    var acc = [];//get accounts list and place in temp array
+    if(account === undefined)
+    {
+      acc = [{name: "", designation: "", isActive: false,}]
+    }
+    else
+    {
+      acc = account;
+    }
     var index = selectedAccount;//index of account to edit
     //delete row 
 
@@ -459,7 +476,15 @@ function AccountManagement() {
 
   // delete acccount modal
   function DeactivateAccountModal(props) {
-    var acc = account;//get accounts list and place in temp array
+    var acc = [];//get accounts list and place in temp array
+    if(account === undefined)
+    {
+      acc = [{name: "", designation: "", isActive: false,}]
+    }
+    else
+    {
+      acc = account;
+    }
     var index = selectedAccount;//index of account to edit
     //delete row 
 
@@ -636,7 +661,7 @@ function AccountManagement() {
                 <Card.Body>
                   <Nav className="user-management-tab mb-3 flex-column" defaultActiveKey="/accountmanagement">
                     <Nav.Link as={Link} to="/profilemanagement">Profile</Nav.Link>
-                    <Nav.Link as={Link} to="/accountmanagement" active>Accounts</Nav.Link>
+                    <Nav.Link as={Link} to="/accountmanagement" active>Users</Nav.Link>
                   </Nav>
                 </Card.Body>
               </Card>
@@ -645,7 +670,7 @@ function AccountManagement() {
             <div className='data-contents'>
               <div className="module-contents row py-1 m-0 align-items-start flex-column" style={{ height: "800px" }}>
                 <div className='row m-0'>
-                  <h1 className='text-center pb-2 module-title'>Manage Accounts</h1>
+                  <h1 className='text-center pb-2 module-title'>Manage Users</h1>
                   <hr></hr>
                   <div className="accounts-toast">
                     <div className="IMS-toast-container">
@@ -666,7 +691,7 @@ function AccountManagement() {
                 <div className="row m-0">
                   <div className="row py-1 m-0 mb-2 d-flex align-items-center">
                     <div className="col">
-                      <h5>List of User Accounts</h5>
+                      <h5>List of Users</h5>
                     </div>
                     <div className="col">
                       <div className="float-end">
@@ -686,42 +711,48 @@ function AccountManagement() {
                         <th className='nm pth text-center'>Name</th>
                         <th className='ds pth text-center'>Designation</th>
                         <th className='ps pth text-center'>Password</th>
-                        <th className='mn pth text-center'>Manage Account</th>
+                        <th className='mn pth text-center'>Manage User</th>
                       </tr>
                     </thead>
 
                     <tbody>
-                      {account.map((acc, i) => {
-                        return (
-                          <>
-                            <tr
-                              key={i}
-                              style={acc.isActive ? {} : { color: "#939899" }}
-                            >
-                              <td className="nm pt-entry text-center">
-                                {acc.isAdmin ?
-                                  <strong>{acc.name}</strong>
-                                  :
-                                  <>{acc.name}</>
-                                }
-                              </td>
-                              <td className="ds pt-entry text-center">
-                                {acc.designation}
-                              </td>
-                              <td className="ps pt-entry text-center">
-                                {acc.password}
-                              </td>
-                              <td className="mn pt-entry text-center" >
-                                {acc.isAdmin ?
-                                  <Button
-                                    className="edit me-1"
-                                    data-title="Edit Account"
-                                    onClick={() => { setSelectedAccount(i); setShowEditModal(true) }}
-                                  >
-                                    <FontAwesomeIcon icon={faEdit} />
-                                  </Button>
-                                  :
-                                  <>
+                      {account === undefined?
+                      <tr>
+                        <td colSpan={4} className="text-center">
+                        <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                        <Spinner
+                          color1="#b0e4ff"
+                          color2="#fff"
+                          textColor="rgba(0,0,0, 0.5)"
+                          className="w-25 h-25"
+                        />
+                      </div>
+                        </td>
+                      </tr>
+                      :
+                        <>
+                        {account.map((acc, i) => {
+                          return (
+                            <>
+                              <tr
+                                key={i}
+                                style={acc.isActive ? {} : { color: "#939899" }}
+                              >
+                                <td className="nm pt-entry text-center">
+                                  {acc.isAdmin ?
+                                    <strong>{acc.name}</strong>
+                                    :
+                                    <>{acc.name}</>
+                                  }
+                                </td>
+                                <td className="ds pt-entry text-center">
+                                  {acc.designation}
+                                </td>
+                                <td className="ps pt-entry text-center">
+                                  {acc.password}
+                                </td>
+                                <td className="mn pt-entry text-center" >
+                                  {acc.isAdmin ?
                                     <Button
                                       className="edit me-1"
                                       data-title="Edit Account"
@@ -729,28 +760,39 @@ function AccountManagement() {
                                     >
                                       <FontAwesomeIcon icon={faEdit} />
                                     </Button>
-                                    <Button
-                                      className="deactivate me-1"
-                                      data-title="Activate/Deactivate Account"
-                                      onClick={() => { setSelectedAccount(i); setShowDeactivateModal(true) }}
-                                    >
-                                      <FontAwesomeIcon icon={faBan} />
-                                    </Button>
-                                    <Button
-                                      className="delete"
-
-                                      data-title="Delete Account"
-                                      onClick={() => { setSelectedAccount(i); setShowDeleteModal(true) }}
-                                    >
-                                      <FontAwesomeIcon icon={faTrashCan} />
-                                    </Button>
-                                  </>
-                                }
-                              </td>
-                            </tr>
-                          </>
-                        )
-                      })
+                                    :
+                                    <>
+                                      <Button
+                                        className="edit me-1"
+                                        data-title="Edit Account"
+                                        onClick={() => { setSelectedAccount(i); setShowEditModal(true) }}
+                                      >
+                                        <FontAwesomeIcon icon={faEdit} />
+                                      </Button>
+                                      <Button
+                                        className="deactivate me-1"
+                                        data-title="Activate/Deactivate Account"
+                                        onClick={() => { setSelectedAccount(i); setShowDeactivateModal(true) }}
+                                      >
+                                        <FontAwesomeIcon icon={faBan} />
+                                      </Button>
+                                      <Button
+                                        className="delete"
+  
+                                        data-title="Delete Account"
+                                        onClick={() => { setSelectedAccount(i); setShowDeleteModal(true) }}
+                                      >
+                                        <FontAwesomeIcon icon={faTrashCan} />
+                                      </Button>
+                                    </>
+                                  }
+                                </td>
+                              </tr>
+                            </>
+                          )
+                        })}
+                        </>
+                      
                       }
                     </tbody>
 

@@ -68,25 +68,7 @@ function Warehouse(props) {
     {
       for(var i = 0; i < allGridlines.length; i++) {allGridlines[i].classList.add('border-0');} // hide editing gridlines
     }
-
-    var allQR = document.querySelectorAll(".qr-code"); // select all qr codes
-    if (qrVisible) {
-      for(var i = 0; i < allQR.length; i++) {allQR[i].classList.remove('d-none');} // show qr codes
-    }
-    else
-    {
-      for(var i = 0; i < allQR.length; i++) {allQR[i].classList.add('d-none');} // hide qr codes
-    }
-
-    var allID = document.querySelectorAll(".cell-id"); // select all space ids
-    if (cellIdVisible) {
-      for(var i = 0; i < allID.length; i++) {allID[i].classList.remove('d-none');} // show space ids
-    }
-    else
-    {
-      for(var i = 0; i < allID.length; i++) {allID[i].classList.add('d-none');} // hide space ids
-    }
-  },[editingMap, qrVisible, cellIdVisible] )
+  },[editingMap])
 
   useEffect(() => { 
     async function getTemplatesDoc() {
@@ -878,6 +860,26 @@ function NewMapModal(props) {
   }
 
   function DisplayMap(){
+    useEffect(() => {
+  
+      var allQR = document.querySelectorAll(".qr-code"); // select all qr codes
+      if (qrVisible) {
+        for(var i = 0; i < allQR.length; i++) {allQR[i].classList.remove('d-none');} // show qr codes
+      }
+      else
+      {
+        for(var i = 0; i < allQR.length; i++) {allQR[i].classList.add('d-none');} // hide qr codes
+      }
+  
+      var allID = document.querySelectorAll(".cell-id"); // select all space ids
+      if (cellIdVisible) {
+        for(var i = 0; i < allID.length; i++) {allID[i].classList.remove('d-none');} // show space ids
+      }
+      else
+      {
+        for(var i = 0; i < allID.length; i++) {allID[i].classList.add('d-none');} // hide space ids
+      }
+    },[qrVisible, cellIdVisible] )
     return (
       <>
         {warehouse[whId].cells.map((content,index) => {
@@ -2197,7 +2199,7 @@ function NewMapModal(props) {
             </button>
             </InputGroup>
         </div>
-        <div className="col-2 d-flex align-items-center justify-content-end ps-0 pe-2">
+        <div className="single-line-text col-2 d-flex align-items-center justify-content-end ps-0 pe-2">
           <span className="me-2" style={{lineHeight: '0'}}><strong>Warehouse Map Togggles:</strong></span>
         </div>
         <div className="col-5 ps-1 pe-5">
@@ -2528,7 +2530,7 @@ return (
                                   eventKey={warehouse.id}
                                   onClick={() => { handleDocChange(warehouse.id) }}
                                 >
-                                  <div className='row'>
+                                  <div className='row h-100'>
                                     <div className='warehouse-item-header'>
                                       <div className="code">
                                         {warehouse.id.substring(0,4)}

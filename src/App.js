@@ -28,6 +28,7 @@ import GenerateItemSummaryReport from './pages/GenerateItemSummaryReport';
 import GenerateWarehouseCompositionReport from './pages/GenerateWarehouseCompositionReport';
 import GenerateInventoryBalanceReport from './pages/GenerateInventoryBalanceReport';
 import InventoryAdjustment from './pages/InventoryAdjustment';
+import MobileWarning from './pages/MobileWarning';
 
 
 
@@ -67,6 +68,7 @@ function App() {
           <Route path='/generateibr' element={<Protected><GenerateInventoryBalanceReport /></Protected>} />
           <Route path='/adjustinventory' element={<Protected><InventoryAdjustment /></Protected>} />
           <Route path='/analytics' element={<Analytics />} />
+          <Route path='/mobile' element={<MobileWarning />} />
         </Routes>
       </AuthContextProvider>
     </div>

@@ -13,16 +13,36 @@ function UserRouter(props) {
     const [userID, setUserID] = useState("");
     const [userCollection, setUserCollection] = useState([]);
     const [first, setFirst] = useState({});
+    const [width, setWidth] = useState(window.innerWidth);
   
   
     //---------------------FUNCTIONS---------------------
   
+    function handleWindowSizeChange() {
+      setWidth(window.innerWidth);
+    }
+    useEffect(() => {
+        window.addEventListener('resize', handleWindowSizeChange);
+        return () => {
+            window.removeEventListener('resize', handleWindowSizeChange);
+        }
+    }, []);
+    
+    const isMobile = width <= 768;
+
     useEffect(() => {
       if (user) {
         setUserID(user.uid)
       }
     }, [{ user }])
   
+
+    useEffect(() => {
+      console.log(width)
+      console.log(isMobile)
+    },)
+
+
     //read Functions
 
     useEffect(() => {
@@ -56,50 +76,58 @@ function UserRouter(props) {
     }, [userCollection])
 
     useEffect(() => {
-      if ( first === undefined ) {
-  
+      if(isMobile)
+      {
+        navigate('/mobile')
       }
       else
       {
-        if (first.isNew) {
-          if ( first.status == 'inVerification' ) {
-            if ( props.route == '/verify' ) {
-              //do nothing to prevent looping
+        if ( first === undefined ) {
+    
+        }
+        else
+        {
+          if (first.isNew) {
+            if ( first.status == 'inVerification' ) {
+              if ( props.route == '/verify' ) {
+                //do nothing to prevent looping
+              }
+              else
+              {
+                navigate('/verify');
+              }
+            }
+            else if ( first.status == 'verified' )
+            {
+              if ( props.route == '/warehouse' ) {
+                //do nothing to prevent looping
+              }
+              else
+              {
+                navigate('/warehouse');
+              }
+            }
+            else if( first.status == 'new' ){
+              if ( props.route == '/profileManagement' ) {
+                //do nothing to prevent looping
+              }
+              else
+              {
+                navigate('/profileManagement');
+              }
             }
             else
             {
-              navigate('/verify');
+              
             }
           }
-          else if ( first.status == 'verified' )
-          {
-            if ( props.route == '/warehouse' ) {
-              //do nothing to prevent looping
-            }
-            else
-            {
-              navigate('/warehouse');
-            }
-          }
-          else if( first.status == 'new' ){
-            if ( props.route == '/profileManagement' ) {
-              //do nothing to prevent looping
-            }
-            else
-            {
-              navigate('/profileManagement');
-            }
-          }
-          else
-          {
-            
+          else if ( props.route == undefined ) {
+            navigate('/home');
           }
         }
-        else if ( props.route == undefined ) {
-          navigate('/home');
-        }
+
       }
-    }, [first])
+    }, [first, isMobile])
   
     return (
         <div></div>
