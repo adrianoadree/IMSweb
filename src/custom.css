@@ -1695,7 +1695,7 @@ input:not(:focus):valid~.floating-label {
 #login-page #contents {
 	font-size: 18pt;
 	background: linear-gradient(30deg, rgba(242, 247, 255, 1) -300%, rgba(255, 255, 255, 1) 100%);
-	background: radial-gradient(#ffffff 50%, #e7edf2 50%);
+	background: radial-gradient(#ffffff 50%, #f0f3f5 50%);
 	border-radius: 7px;
 	border: 1px solid #8400ff25;
 	box-shadow: 0 4px 5px 0px #1e05ff36;
@@ -1740,34 +1740,34 @@ input:not(:focus):valid~.floating-label {
 		background: radial-gradient(#ffffff 100%, #ffffff 50%);
 	}
 	10% {
-		background: radial-gradient(#e7edf2 15%, #ffffff 10%);
+		background: radial-gradient(#f0f3f5 15%, #ffffff 10%);
 	}
 	20% {
-		background: radial-gradient(#e7edf2 30%, #ffffff 10%);
+		background: radial-gradient(#f0f3f5 30%, #ffffff 10%);
 	}
 	30% {
-		background: radial-gradient(#e7edf2 45%, #ffffff 50%);
+		background: radial-gradient(#f0f3f5 45%, #ffffff 50%);
 	}
 	40% {
-		background: radial-gradient(#e7edf2 60%, #ffffff 50%);
+		background: radial-gradient(#f0f3f5 60%, #ffffff 50%);
 	}
 	50% {
-		background: radial-gradient(#e7edf2 75%, #ffffff 50%);
+		background: radial-gradient(#f0f3f5 75%, #ffffff 50%);
 	}
 	60% {
-		background: radial-gradient(#e7edf2 90%, #ffffff 50%);
+		background: radial-gradient(#f0f3f5 90%, #ffffff 50%);
 	}
 	70% {
-		background: radial-gradient(#e7edf2 105%, #ffffff 50%);
+		background: radial-gradient(#f0f3f5 105%, #ffffff 50%);
 	}
 	80% {
-		background: radial-gradient(#e7edf2 120%, #ffffff 50%);
+		background: radial-gradient(#f0f3f5 120%, #ffffff 50%);
 	}
 	90% {
-		background: radial-gradient(#e7edf2 135%, #ffffff 50%);
+		background: radial-gradient(#f0f3f5 135%, #ffffff 50%);
 	}
 	100% {
-		background: radial-gradient(#e7edf2 150%, #ffffff 50%);
+		background: radial-gradient(#f0f3f5 150%, #ffffff 50%);
 	}
 }
 
@@ -1826,6 +1826,7 @@ input:not(:focus):valid~.floating-label {
 
 #sign-in-button:hover {
 	animation: 0.5s bubbleFill;
+	background: radial-gradient(#f0f3f5 150%, #ffffff 50%);
 }
 
 #quick-access {
