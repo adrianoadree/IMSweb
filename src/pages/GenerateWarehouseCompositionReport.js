@@ -33,7 +33,7 @@ function GenerateWarehouseCompositionReport() {
   const [stockcardCollection, setStockcardCollection] = useState(); // stockcard Collection 
   
   const COLORS = ['#B0EEC1', '#B5E3FF', '#FEFFBF', '#FFDEBC'];
-  const COLORS2 = ['#FFCFB7', '#FFF5D8', '#439DB2', '#4193AD'];
+  const COLORS2 = ['#FFCFB7', '#FFF5D8', '#439DB2', '#4193AD','#B0EEC1', '#B5E3FF', '#FEFFBF', '#FFDEBC'];
   var curr_date = new Date(); // get current date
   curr_date.setDate(curr_date.getDate());
   var today = curr_date

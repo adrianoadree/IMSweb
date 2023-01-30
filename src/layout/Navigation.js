@@ -1,7 +1,7 @@
 import { Nav, Navbar, Container, NavDropdown, Placeholder } from 'react-bootstrap';
 import { LinkContainer } from 'react-router-bootstrap';
 import { auth, db } from '../firebase-config';
-import { collection, doc, updateDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, doc, updateDoc, onSnapshot, query, where, orderBy } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
 import { useState, useEffect } from 'react';
 import { HelpCircleOutline, HelpCircle, Star, StarOutline  } from 'react-ionicons'
@@ -24,7 +24,21 @@ const Navigation = (props) => {
   const [status, setStatus] = useState("verified");
   const [tipsVisibilityTogglerIcon, setTipsVisibilityTogglerIcon] = useState(true)
   const [quickAccessVisibilityTogglerIcon, setQuickAccessVisibilityTogglerIcon] = useState(true)
+
+  const [prodNearROP, setProdNearROP] = useState([])
   
+  //Read stock card collection from database
+  useEffect(() => {
+    if (userID !== undefined) {
+        const stockcardCollectionRef = collection(db, "stockcard")
+        const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.analyticsBoolean", "==", true), orderBy("analytics.daysROP", "asc"));
+
+        const unsub = onSnapshot(q, (snapshot) =>
+            setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+        return unsub;
+    }
+  }, [userID])
   
 
   useEffect(() => {
@@ -96,7 +110,10 @@ const Navigation = (props) => {
           <LinkContainer to="/home">
             <Navbar.Brand>
               <img id="brand-img" src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52">
-            </img>
+              </img>
+              <div id="badge" className={prodNearROP.length > 0?"":"d-none"}>
+                .
+              </div>
             </Navbar.Brand>
           </LinkContainer>
           <Navbar.Collapse id="responsive-navbar-nav">

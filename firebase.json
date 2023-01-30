@@ -42,7 +42,8 @@
       {"source":"/adjustinventory","destination":"/index.html"},
       {"source":"/profilemanagement","destination":"/index.html"},
       {"source":"/accountmanagement","destination":"/index.html"},
-      {"source":"/mod","destination":"/index.html"}
+      {"source":"/mod","destination":"/index.html"},
+      {"source":"/mobile","destination":"/index.html"}
     ]
   },
   "storage": {

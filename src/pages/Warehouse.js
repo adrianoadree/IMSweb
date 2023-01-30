@@ -60,15 +60,7 @@ function Warehouse(props) {
 
   //element state updater
   useEffect(() => {
-    var allGridlines = document.querySelectorAll(".box-col"); // select all box-col for editing
-    if (editingMap) {
-      for(var i = 0; i < allGridlines.length; i++) {allGridlines[i].classList.remove('border-0');} // show editing gridlines
-    }
-    else
-    {
-      for(var i = 0; i < allGridlines.length; i++) {allGridlines[i].classList.add('border-0');} // hide editing gridlines
-    }
-  },[editingMap])
+  },[])
 
   useEffect(() => { 
     async function getTemplatesDoc() {
@@ -861,7 +853,15 @@ function NewMapModal(props) {
 
   function DisplayMap(){
     useEffect(() => {
-  
+      var allGridlines = document.querySelectorAll(".box-col"); // select all box-col for editing
+      if (editingMap) {
+        for(var i = 0; i < allGridlines.length; i++) {allGridlines[i].classList.remove('border-0');} // show editing gridlines
+      }
+      else
+      {
+        for(var i = 0; i < allGridlines.length; i++) {allGridlines[i].classList.add('border-0');} // hide editing gridlines
+      }
+
       var allQR = document.querySelectorAll(".qr-code"); // select all qr codes
       if (qrVisible) {
         for(var i = 0; i < allQR.length; i++) {allQR[i].classList.remove('d-none');} // show qr codes
@@ -879,7 +879,7 @@ function NewMapModal(props) {
       {
         for(var i = 0; i < allID.length; i++) {allID[i].classList.add('d-none');} // hide space ids
       }
-    },[qrVisible, cellIdVisible] )
+    },[qrVisible, cellIdVisible, editingMap] )
     return (
       <>
         {warehouse[whId].cells.map((content,index) => {
@@ -1503,7 +1503,7 @@ function NewMapModal(props) {
         >
           <div className="px-3 py-2 w-100">
             <div className="module-header mb-4">
-              <h3 className="text-center">Editing {cellId}</h3>
+              <h3 className="text-center">Editing {warehouse[whId].cells[rowIndex][colIndex].id}</h3>
             </div>
             <div className="row my-2 mb-3">
               <div className="col-4 ps-4">

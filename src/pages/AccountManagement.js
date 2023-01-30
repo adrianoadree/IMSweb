@@ -141,7 +141,7 @@ function AccountManagement() {
   }*/
 
   // edit account modal
-  function EditAccountModal(param) {
+  function EditUserModal(param) {
     var acc = [] // get accounts list and place in temp array
     if(account === undefined)
     {
@@ -256,7 +256,7 @@ function AccountManagement() {
   }
 
   // add accout modal
-  function AddAccountModal(param) {
+  function AddUserModal(param) {
     var acc = param.list;//get accounts list and place in temp array
     var object = {
       name: '',
@@ -366,7 +366,7 @@ function AccountManagement() {
   }
 
   // delete acccount modal
-  function DeleteAccountModal(props) {
+  function DeleteUserModal(props) {
     var acc = [];//get accounts list and place in temp array
     if(account === undefined)
     {
@@ -392,7 +392,7 @@ function AccountManagement() {
       });
     }
 
-    const deleteAccount = () => {
+    const deleteUser = () => {
       var splideAcc = acc.splice(selectedAccount, 1);//pop account from array through index
 
       const saveDelete = async () => {
@@ -465,7 +465,7 @@ function AccountManagement() {
           <Button
             className="btn btn-danger float-start"
             style={{ width: "9rem" }}
-            onClick={() => { deleteAccount() }}
+            onClick={() => { deleteUser() }}
           >
             Delete Account
           </Button>
@@ -475,7 +475,7 @@ function AccountManagement() {
   }
 
   // delete acccount modal
-  function DeactivateAccountModal(props) {
+  function DeactivateUserModal(props) {
     var acc = [];//get accounts list and place in temp array
     if(account === undefined)
     {
@@ -513,7 +513,7 @@ function AccountManagement() {
       })
     }
 
-    const deactivateAccount = () => {
+    const deactivateUser = () => {
       
       const saveDeactivate = async () => {
         //activeness toggling
@@ -607,7 +607,7 @@ function AccountManagement() {
           <Button
             className={"btn " + (acc[selectedAccount].isActive?"btn-warning":"btn-light") +" float-start"}
             style={{ width: "11rem", color: (acc[selectedAccount].isActive?"#ffffff":"#000000") }}
-            onClick={() => { deactivateAccount() }}
+            onClick={() => { deactivateUser() }}
           >
             {acc[selectedAccount].isActive?
             <>Deactivate </>
@@ -632,21 +632,21 @@ function AccountManagement() {
       />
 
 
-      <AddAccountModal
+      <AddUserModal
         show={showAddModal}
         onHide={() => setShowAddModal(false)}
         list={account}
       />
 
-      <EditAccountModal
+      <EditUserModal
         show={showEditModal}
         onHide={() => setShowEditModal(false)}
       />
-      <DeleteAccountModal
+      <DeleteUserModal
         show={showDeleteModal}
         onHide={() => setShowDeleteModal(false)}
       />
-      <DeactivateAccountModal
+      <DeactivateUserModal
         show={showDeactivateModal}
         onHide={() => setShowDeactivateModal(false)}
       />
@@ -656,7 +656,7 @@ function AccountManagement() {
             <div className='sidebar'>
               <Card className="sidebar-card">
                 <Card.Header className="bg-primary text-white py-3 text-center left-curve right-curve">
-                  <h4><strong>User Management</strong></h4>
+                  <h4><strong>Account Management</strong></h4>
                 </Card.Header>
                 <Card.Body>
                   <Nav className="user-management-tab mb-3 flex-column" defaultActiveKey="/accountmanagement">
@@ -697,7 +697,7 @@ function AccountManagement() {
                       <div className="float-end">
                         <Button
                           className="add me-1"
-                          data-title="Add an Account"
+                          data-title="Add a User"
                           onClick={() => setShowAddModal(true)}
                         >
                           <FontAwesomeIcon icon={faPlus} />
@@ -755,7 +755,7 @@ function AccountManagement() {
                                   {acc.isAdmin ?
                                     <Button
                                       className="edit me-1"
-                                      data-title="Edit Account"
+                                      data-title="Edit User"
                                       onClick={() => { setSelectedAccount(i); setShowEditModal(true) }}
                                     >
                                       <FontAwesomeIcon icon={faEdit} />
@@ -764,14 +764,14 @@ function AccountManagement() {
                                     <>
                                       <Button
                                         className="edit me-1"
-                                        data-title="Edit Account"
+                                        data-title="Edit User"
                                         onClick={() => { setSelectedAccount(i); setShowEditModal(true) }}
                                       >
                                         <FontAwesomeIcon icon={faEdit} />
                                       </Button>
                                       <Button
                                         className="deactivate me-1"
-                                        data-title="Activate/Deactivate Account"
+                                        data-title="Activate/Deactivate User"
                                         onClick={() => { setSelectedAccount(i); setShowDeactivateModal(true) }}
                                       >
                                         <FontAwesomeIcon icon={faBan} />
@@ -779,7 +779,7 @@ function AccountManagement() {
                                       <Button
                                         className="delete"
   
-                                        data-title="Delete Account"
+                                        data-title="Delete User"
                                         onClick={() => { setSelectedAccount(i); setShowDeleteModal(true) }}
                                       >
                                         <FontAwesomeIcon icon={faTrashCan} />

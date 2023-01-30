@@ -7,7 +7,7 @@ const MobileWarning = () => {
         <div>
             <UserRouter
             />
-            <div id="login-page" className="p-5 w-100 h-100">
+            <div id="login-page" className="p-2 w-100 h-100">
                 <div className="px-2 pt-2 w-100 h-100 d-flex align-items-center justify-content-center">
                     <div id="contents" className="px-0 w-100 h-100 d-flex align-items-center justify-content-center">
                         <div id="add-border" className="d-flex align-items-center justify-content-center">           
