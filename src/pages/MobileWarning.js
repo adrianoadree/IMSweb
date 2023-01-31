@@ -5,19 +5,19 @@ const MobileWarning = () => {
 
     return (
         <div>
-            <UserRouter
-            />
-            <div id="login-page" className="p-2 w-100 h-100">
-                <div className="px-2 pt-2 w-100 h-100 d-flex align-items-center justify-content-center">
-                    <div id="contents" className="px-0 w-100 h-100 d-flex align-items-center justify-content-center">
-                        <div id="add-border" className="d-flex align-items-center justify-content-center">           
-                            <div className="module-container d-flex align-items-center justify-content-center flex-column">
-                            <img className="brand-img mb-5" style={{width:"50%"}} src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52"/>
-                                <div>IMS Web works better in a PC.</div>
-                                <div>Please use IMS Mobile instead.</div>
-                            </div>
-                        </div>
+            <UserRouter />
+            <div id="mobile-warning">
+                <div className="p-5 w-100 h-100 d-flex align-items-center justify-content-center flex-column">
+                    <div className="px-5 py-2 d-flex align-items-center justify-content-center flex-column">
+                        <img id="brand-img-mobile" src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52"/>
                     </div>
+                    <hr />
+                    <div className="text-center" style={{backgroundColor: "#09151f", borderRadius: "10px", padding: "2em 1.5em", color: "#ffffff"}}>
+
+                        <h2 className="mb-2"><strong>IMS Web works better on a PC</strong></h2>
+                        <h6 style={{color: "#b2c6d6"}}>Please use IMS Mobile instead</h6>
+                    </div>
+                    <hr />
                 </div>
             </div>
         </div>

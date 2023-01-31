@@ -35,14 +35,7 @@ function UserRouter(props) {
         setUserID(user.uid)
       }
     }, [{ user }])
-  
-
-    useEffect(() => {
-      console.log(width)
-      console.log(isMobile)
-    },)
-
-
+    
     //read Functions
 
     useEffect(() => {
