@@ -86,10 +86,10 @@ const MobileWarning = () => {
                             />
                         </div>
                     </div>
-                    <h3 className="mt-5 mb-5"><strong>IMS is also available on <span style={{ color: "#3DDC84" }}>Android</span></strong></h3>
+                    <h5 className="mt-5 mb-5"><strong>IMS is also available on <span style={{ color: "#3DDC84" }}>Android</span></strong></h5>
                     <button className="edit d-flex align-items-center justify-content-center" style={{ padding: "0.5em 1em" }}>
-                        <h3 className="pe-3" style={{ borderRight: "1px solid #b2c6d6" }}><FontAwesomeIcon icon={faDownload} /></h3>
-                        <h4 className="ps-3">Download Now</h4>
+                        <h5 className="pe-3" style={{ borderRight: "1px solid #b2c6d6" }}><FontAwesomeIcon icon={faDownload} /></h5>
+                        <h6 className="ps-3">Download Now</h6>
                     </button>
                 </div>
             </div>
