@@ -4433,8 +4433,12 @@ h0 {
 }
 
 #mobile-warning {
-	width: 100vw;
-	height: 100vh;
+	width: 200vw;
+}
+
+.mobile-warning-section {
+	width: 50%;
+	height: min-content;
 }
 
 #brand-img-mobile {
@@ -4524,4 +4528,9 @@ h0 {
 	color: #000000;
 	padding-top: 0.5em;
 	padding-bottom: 0.5em;
+}
+
+#learn-more {
+	text-decoration: none;
+	font-size: .90em;
 }
