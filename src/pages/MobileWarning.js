@@ -53,6 +53,7 @@ const MobileWarning = () => {
                             <div className="m-0 p-0">
                                 <Carousel
                                     id="IMS-carousel"
+                                    variant="dark"
                                 >
                                     {carousel_content.map((item)=>{
                                         return(
@@ -63,9 +64,9 @@ const MobileWarning = () => {
                                                 >
                                                 </img>
                                                 <Carousel.Caption>
-                                                    <h5>
+                                                    <h4>
                                                         {item.caption}
-                                                    </h5>
+                                                    </h4>
                                                 </Carousel.Caption>
                                             </Carousel.Item>
                                         )
@@ -86,7 +87,6 @@ const MobileWarning = () => {
                             />
                         </div>
                     </div>
-                    <h5 className="mt-5 mb-5"><strong>IMS is also available on <span style={{ color: "#3DDC84" }}>Android</span></strong></h5>
                     <button className="edit d-flex align-items-center justify-content-center" style={{ padding: "0.5em 1em" }}>
                         <h5 className="pe-3" style={{ borderRight: "1px solid #b2c6d6" }}><FontAwesomeIcon icon={faDownload} /></h5>
                         <h6 className="ps-3">Download Now</h6>

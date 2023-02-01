@@ -4528,9 +4528,26 @@ h0 {
 	color: #000000;
 	padding-top: 0.5em;
 	padding-bottom: 0.5em;
+	bottom: calc(2.25em + 15px)
 }
 
 #learn-more {
 	text-decoration: none;
 	font-size: .90em;
+}
+
+#IMS-carousel .carousel-indicators button {
+	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+
+}
+
+
+#IMS-carousel .carousel-control-next {
+	transform: translateX(150%);
+}
+
+#IMS-carousel .carousel-control-prev {
+	transform: translateX(-150%);
 }
