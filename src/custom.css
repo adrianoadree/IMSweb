@@ -4536,11 +4536,14 @@ h0 {
 	font-size: .90em;
 }
 
+#IMS-carousel .carousel-indicators {
+	display: none;
+}
+
 #IMS-carousel .carousel-indicators button {
 	width: 15px;
 	height: 15px;
 	border-radius: 50%;
-
 }
 
 

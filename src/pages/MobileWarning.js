@@ -36,7 +36,7 @@ const MobileWarning = () => {
                 </div>
             <div id="mobile-showcase" className="mobile-warning-section" style={{ background: "#ffffff" }}>
                 <div className="p-5 w-100 h-100 d-flex align-items-center justify-content-center flex-column">
-                    <div id="IMS-carousel-container" className="mb-2">
+                    <div id="IMS-carousel-container" className="mb-4">
                         <div className="w-100 h-auto m-0 p-0">
                             <img
                                 src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2Flogin_page%2Fslide_border_top.png?alt=media&token=e477553b-05d3-435b-9cc6-1fc643183f97"
@@ -64,9 +64,9 @@ const MobileWarning = () => {
                                                 >
                                                 </img>
                                                 <Carousel.Caption>
-                                                    <h4>
+                                                    <h6>
                                                         {item.caption}
-                                                    </h4>
+                                                    </h6>
                                                 </Carousel.Caption>
                                             </Carousel.Item>
                                         )
