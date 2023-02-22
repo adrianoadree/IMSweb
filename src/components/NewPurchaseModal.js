@@ -51,6 +51,7 @@ function NewPurchaseModal(props) {
 
     const [daysROP, setDaysROP] = useState([])
     const [stockcardDoc, setStockcardDoc] = useState(); //
+    const [dateReorderPoint, setDateReorderPoint] = useState()
 
 
 
@@ -73,19 +74,31 @@ function NewPurchaseModal(props) {
 
     useEffect(() => {
         setDaysROP()
-        if (stockcardDoc !== undefined) {
-            let qty = stockcardDoc.qty + itemQuantity
-            let x = qty - stockcardDoc.analytics.reorderPoint
-            let y = stockcardDoc.analytics.averageDailySales
-            let a = (x / y)
-            let z = Math.round(a)
-            setDaysROP(z)
+        if (stockcardDoc !== undefined) {   
+            setDaysROP ((Number(stockcardDoc.qty) + Number(itemQuantity) - Number(stockcardDoc.analytics.reorderPoint))/stockcardDoc.analytics.averageDailySales)
+
         }
     }, [itemQuantity, itemId, stockcardDoc])
 
 
+    function computeDaysToReorderPoint() {
+        setDateReorderPoint()
+        if (daysROP !== undefined) {
+            let tempDate = new Date()
+            let x
+            let y
+            y = Math.round(daysROP)
+            x = tempDate.setDate(tempDate.getDate() + y)
+            let z = new Date(x)
+            z = moment(z).format('YYYY-MM-DD')
+            setDateReorderPoint(z)
+        }
+    }
 
 
+    useEffect(() => {
+        computeDaysToReorderPoint()
+    }, [daysROP, stockcardDoc])
 
 
     useEffect(() => {
@@ -275,6 +288,7 @@ function NewPurchaseModal(props) {
         setItems([
             ...items,
             {
+
                 itemId: itemId,
                 itemName: itemName,
                 itemPPrice: Number(itemPPrice),
@@ -283,6 +297,7 @@ function NewPurchaseModal(props) {
                 itemCurrentQuantity: Number(itemCurrentQuantity),
                 itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity),
                 daysROP: Number(daysROP),
+                dateReorderPoint: dateReorderPoint
             }
         ]);
         setItemId("IT999999");
@@ -316,7 +331,7 @@ function NewPurchaseModal(props) {
         t_date.setHours(0, 0, 0, 0)
         var o_date = new Date(newOrderDate)
         o_date.setHours(0, 0, 0, 0)
-        return (moment(t_date).diff(moment(o_date), "days"))
+        return (moment(t_date).diff(moment(o_date), "days")) + 1
     }
 
     //add document to database
@@ -375,6 +390,8 @@ function NewPurchaseModal(props) {
             updateDoc(stockcardRef, {
                 qty: items.itemNewQuantity,
                 "analytics.daysROP": Number(items.daysROP),
+                "analytics.dateReorderPoint": items.dateReorderPoint,
+
             });
         })
     }

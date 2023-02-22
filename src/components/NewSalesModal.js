@@ -577,8 +577,8 @@ function NewSalesModal(props) {
         let y = 0
         let z = 0
 
-        x = Number(averageDailySales * averageLeadtime)
-        y = x + safetyStock
+        x = (Number(averageDailySales) * Number(averageLeadtime))
+        y = Number(x) + Number(safetyStock)
         z = Math.round(y)
         setReorderPoint(z)
     }, [safetyStock, averageDailySales, averageLeadtime])
@@ -588,11 +588,8 @@ function NewSalesModal(props) {
     useEffect(() => {
         setDaysROP()
         if (stockcardDoc !== undefined) {
-            let x = stockcardDoc.qty - reorderPoint
-            let y = averageDailySales
-            let a = (x / y)
-            let z = Math.round(a)
-            setDaysROP(z)
+            setDaysROP ((Number(stockcardDoc.qty) - Number(reorderPoint))/averageDailySales)
+            
         }
     }, [averageDailySales, reorderPoint, stockcardDoc])
 
@@ -604,7 +601,7 @@ function NewSalesModal(props) {
             let x
             let y
             y = Math.round(daysROP)
-            x = tempDate.setDate(tempDate.getDate() + y)
+            x = tempDate.setDate(tempDate.getDate() + Number(y))
             let z = new Date(x)
             z = moment(z).format('YYYY-MM-DD')
             setDateReorderPoint(z)

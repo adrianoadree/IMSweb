@@ -12,7 +12,7 @@ import Navigation from "../layout/Navigation";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUser, faPhone } from '@fortawesome/free-solid-svg-icons'
 import { ChevronBack, ChevronForward, Exit, Enter } from 'react-ionicons'
-import { Card, Nav, Table,  Tab, } from "react-bootstrap";
+import { Card, Nav, Table, Tab, } from "react-bootstrap";
 import { Spinner } from 'loading-animations-react';
 
 import ProductQuickView from "../components/ProductQuickView";
@@ -21,7 +21,7 @@ import GenerateOrderForm from "../components/GenerateOrderForm"
 
 
 function LandingPage() {
-    
+
     const { user } = UserAuth();
     const [userID, setUserID] = useState("");
     const userCollectionRef = collection(db, "user");
@@ -55,7 +55,7 @@ function LandingPage() {
             contentsRef.current.classList.add("sidebar-hidden")
         }
     }
-    
+
     useEffect(() => {
         if (user) {
             setUserID(user.uid)
@@ -116,6 +116,10 @@ function LandingPage() {
             console.log(prodNearROP)
         })
 
+
+
+  
+
         //Read stock card collection from database
         useEffect(() => {
             if (userID !== undefined) {
@@ -128,35 +132,42 @@ function LandingPage() {
                 return unsub;
             }
         }, [userID])
+
         const determineRestockingStatus = (date_rop) => {
             var rop_date = new Date(date_rop)
             rop_date.setHours(0, 0, 0, 0)
-            if(moment(rop_date).diff(moment(today)) == 1)
-            {
+            if (moment(rop_date).diff(moment(today)) == 1) {
                 return Number(moment(rop_date).diff(moment(today), "days"))
             }
-            else
-            {
+            else {
                 return Number(moment(rop_date).diff(moment(today), "days"))
             }
         }
         function ProductCard(props) {
             return (
-                <div className="mb-4 notification-item">
+                < div className="mb-4 notification-item" >
                     <div className="d-flex align-items-center justify-content-center flex-column p-2">
                         <div className="w-100 row mx-0 pb-2">
+
                             <div className="col px-0">
-                                {props.daysrop > 0 ?
-                                    <small className="ps-2 pe-0" style={{ borderLeft: "7px solid #47ff8b" }}>
-                                        <strong>{props.daysrop}</strong> day(s) before restocking
-                                    </small>
-                                    :
-                                    props.daysrop === 0 ?
-                                        <small className="ps-2 pe-0" style={{ borderLeft: "7px solid #ffe647" }}>Restock <strong>Today</strong></small>
+                                {
+                                    props.daysrop > 0 && props.daysrop < 7 ?
+                                        <small className="ps-2 pe-0" style={{ borderLeft: "7px solid #47ff8b" }}>
+                                            <strong>{props.daysrop}</strong> day(s) before restocking
+                                        </small>
                                         :
-                                        <small className="ps-2 pe-0" style={{ borderLeft: "7px solid #ff4747" }}><strong>{Math.abs(props.daysrop)}</strong> day(s) past restocking</small>
+                                        props.daysrop < 0 ?
+                                            <small className="ps-2 pe-0" style={{ borderLeft: "7px solid #ff4747" }}><strong>{Math.abs(props.daysrop)}</strong> day(s) past restocking</small>
+                                            :
+                                            props.daysrop === 0 ?
+
+                                            <small className="ps-2 pe-0" style={{ borderLeft: "7px solid #ffe647" }}>Restock <strong>Today</strong></small>
+                                    :
+                                    <></>
                                 }
                             </div>
+
+
                             <div className="col px-0">
                                 <small className="px-0 text-muted float-end">Restock by {moment(props.reorderdate).format('MMM DD, YYYY')}</small>
                             </div>
@@ -182,10 +193,16 @@ function LandingPage() {
                             </div>
                         </div>
                     </div>
-                </div>
-
+                </div >
             )
+
         }
+
+
+
+        useEffect(() => {
+            console.log(prodNearROP)
+        }, [prodNearROP])
 
         function NotificationContents() {
             return (
@@ -195,7 +212,7 @@ function LandingPage() {
                             {prodNearROP.length !== 0 ?
                                 <>
                                     <div ref={notificationFilterOverdueRef}>
-                                        {prodNearROP.filter(product => determineRestockingStatus(product.analytics.dateReorderPoint) < 0).map((prod) => {
+                                        {prodNearROP.filter(product => determineRestockingStatus(product.analytics.dateReorderPoint) < 0 ).map((prod) => {
                                             return (
                                                 <ProductCard
                                                     key={prod.id}
@@ -205,7 +222,7 @@ function LandingPage() {
                                                     reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
                                                     img={prod.img}
                                                     quantity={prod.qty}
-                                                    restockquantity={prod.analytics.reorderPoint}
+                                                    restockquantity={prod.analytics.reorderPoint - prod.analytics.safetyStock}
                                                     purchaseprice={prod.p_price}
                                                 />
                                             )
@@ -222,14 +239,14 @@ function LandingPage() {
                                                     reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
                                                     img={prod.img}
                                                     quantity={prod.qty}
-                                                    restockquantity={prod.analytics.reorderPoint}
+                                                    restockquantity={prod.analytics.reorderPoint - prod.analytics.safetyStock}
                                                     purchaseprice={prod.p_price}
                                                 />
                                             )
                                         })}
                                     </div>
                                     <div ref={notificationFilterUpcomingRef}>
-                                        {prodNearROP.filter(product => determineRestockingStatus(product.analytics.dateReorderPoint) > 0).map((prod) => {
+                                        {prodNearROP.filter(product => determineRestockingStatus(product.analytics.dateReorderPoint) > 0 && determineRestockingStatus(product.analytics.dateReorderPoint) < 7).map((prod) => {
                                             return (
                                                 <ProductCard
                                                     key={prod.id}
@@ -239,7 +256,7 @@ function LandingPage() {
                                                     reorderdate={moment(prod.analytics.dateReorderPoint).format('LL')}
                                                     img={prod.img}
                                                     quantity={prod.qty}
-                                                    restockquantity={prod.analytics.reorderPoint}
+                                                    restockquantity={prod.analytics.reorderPoint - prod.analytics.safetyStock}
                                                     purchaseprice={prod.p_price}
                                                 />
                                             )
@@ -258,6 +275,7 @@ function LandingPage() {
 
 
         }
+
         return (
             <>
                 <GenerateOrderForm
@@ -365,7 +383,7 @@ function LandingPage() {
         const [salesDescriptionSorting, setSalesDescriptionSorting] = useState("ascending")
         const [salesQuantitySorting, setSalesQuantitySorting] = useState("unsorted")
 
-        
+
         const [showRecordQuickViewModal, setShowRecordQuickViewModal] = useState(false); // show/hide record quick view modal
         const [recordToView, setRecordToView] = useState() // set record to view
         const [showProductQuickViewModal, setShowProductQuickViewModal] = useState(false); // show/hide product quick view modal
@@ -375,48 +393,48 @@ function LandingPage() {
             console.log(dateSelected)
         })
 
-        
+
         //query documents from stockcard that contains docId
-    useEffect(() => {
-        if (userID !== undefined) {
+        useEffect(() => {
+            if (userID !== undefined) {
 
-            const stockcardCollectionRef = collection(db, "stockcard")
-            const q = query(stockcardCollectionRef, where("user", "==", userID));
+                const stockcardCollectionRef = collection(db, "stockcard")
+                const q = query(stockcardCollectionRef, where("user", "==", userID));
 
-            const unsub = onSnapshot(q, (snapshot) =>
-                setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-    }, [userID])
+                const unsub = onSnapshot(q, (snapshot) =>
+                    setStockcardCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+                );
+                return unsub;
+            }
+        }, [userID])
 
-    //query documents from purchase_record that contains docId
-    useEffect(() => {
-        if (userID !== undefined) {
-            const collectionRef = collection(db, "purchase_record")
-            const q = query(collectionRef, where("user", "==", userID));
+        //query documents from purchase_record that contains docId
+        useEffect(() => {
+            if (userID !== undefined) {
+                const collectionRef = collection(db, "purchase_record")
+                const q = query(collectionRef, where("user", "==", userID));
 
-            const unsub = onSnapshot(q, (snapshot) =>
-                setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
+                const unsub = onSnapshot(q, (snapshot) =>
+                    setPurchaseRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+                );
+                return unsub;
+            }
 
-    }, [userID])
+        }, [userID])
 
-    //query documents from purchase_record that contains docId
-    useEffect(() => {
-        if (userID !== undefined) {
-            const collectionRef = collection(db, "sales_record")
-            const q = query(collectionRef, where("user", "==", userID));
+        //query documents from purchase_record that contains docId
+        useEffect(() => {
+            if (userID !== undefined) {
+                const collectionRef = collection(db, "sales_record")
+                const q = query(collectionRef, where("user", "==", userID));
 
-            const unsub = onSnapshot(q, (snapshot) =>
-                setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
+                const unsub = onSnapshot(q, (snapshot) =>
+                    setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+                );
+                return unsub;
+            }
 
-    }, [userID])
+        }, [userID])
 
         // make default date selected today
         useEffect(() => {
@@ -743,7 +761,7 @@ function LandingPage() {
                                     <tr
                                         key={index}
                                     >
-                                        <td 
+                                        <td
                                             className="start-column clickable"
                                             onClick={() => { setProductToView(purchase.id); setShowProductQuickViewModal(true) }}
                                         >
@@ -770,9 +788,9 @@ function LandingPage() {
                                                 <span
                                                     key={i}
                                                 >
-                                                    <button 
+                                                    <button
                                                         className="plain-button clickable"
-                                                        onClick={()=>{setShowRecordQuickViewModal(true); setRecordToView(transac_id)}}
+                                                        onClick={() => { setShowRecordQuickViewModal(true); setRecordToView(transac_id) }}
                                                     >
                                                         {transac_id.substring(0, 7)}
                                                     </button>
@@ -877,7 +895,7 @@ function LandingPage() {
                                     <tr
                                         key={index}
                                     >
-                                        <td 
+                                        <td
                                             className="start-column clickable"
                                             onClick={() => { setProductToView(sale.id); setShowProductQuickViewModal(true) }}
                                         >
@@ -906,9 +924,9 @@ function LandingPage() {
                                                 <span
                                                     key={transac_id}
                                                 >
-                                                    <button 
+                                                    <button
                                                         className="plain-button clickable"
-                                                        onClick={()=>{setShowRecordQuickViewModal(true); setRecordToView(transac_id)}}
+                                                        onClick={() => { setShowRecordQuickViewModal(true); setRecordToView(transac_id) }}
                                                     >
                                                         {transac_id.substring(0, 7)}
                                                     </button>
@@ -972,7 +990,7 @@ function LandingPage() {
 
             )
         }
-        
+
 
         return (
             <>
@@ -987,7 +1005,7 @@ function LandingPage() {
                     recordid={recordToView}
                 />
                 <Card className="sidebar-card">
-                    
+
                     <Card.Header className="py-3 text-center left-curve right-curve">
                         {userProfile === undefined ?
                             <></>
@@ -1061,11 +1079,11 @@ function LandingPage() {
                             </Tab.Content>
                         </Tab.Container>
                     </Card.Body>
-                    
+
                 </Card>
             </>
         )
-    
+
     }
 
     return (
@@ -1079,7 +1097,7 @@ function LandingPage() {
             <div id="contents" className="row" ref={contentsRef}>
                 <div className="row py-4 px-5">
                     <div className="sidebar glass">
-                        <Notification/>
+                        <Notification />
                     </div>
                     <div className="sidebar-visibility-toggler">
                         <button
@@ -1091,7 +1109,7 @@ function LandingPage() {
                                     height="15px"
                                     width="15px"
                                 />
-                            :
+                                :
                                 <ChevronBack
                                     color={'#000000'}
                                     height="15px"

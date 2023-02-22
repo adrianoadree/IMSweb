@@ -435,10 +435,11 @@ function Itemforecast() {
             setFillerDate3()
             setFillerDate4()
         } else {
-            let tempDate1 = new Date(date1)
-            let tempDate2 = new Date(date1)
-            let tempDate3 = new Date(date1)
-            let tempDate4 = new Date(date1)
+            const today = new Date()
+            let tempDate1 = new Date(today)
+            let tempDate2 = new Date(today)
+            let tempDate3 = new Date(today)
+            let tempDate4 = new Date(today)
 
             let tempf1 = new Date()
             let tempf2 = new Date()
