@@ -16,7 +16,7 @@ const VerificationMessage = () => {
             <Navigation
                 page='/verify'
             />
-            <div id="login-page" className="pt-5 h-100">
+            <div id="verification-page" className="pt-5 h-100">
                 <div className="px-5 pt-5 h-75 d-flex align-items-center justify-content-center">
                     <div id="contents" className="px-0 w-auto h-100 d-flex align-items-center justify-content-center">
                         <div id="add-border" className="d-flex align-items-center justify-content-center">           

@@ -409,7 +409,7 @@ function InventoryAdjustment() {
                         <div className="float-end">
                           <Button
                             className="add me-1"
-                            data-title="Add New Adjustment Record"
+                            data-title="Add Adjustment Record"
                             onClick={() => setModalShow(true)}>
                             <FontAwesomeIcon icon={faPlus} />
                           </Button>
@@ -495,7 +495,7 @@ function InventoryAdjustment() {
                         <div className="float-end">
                           <Button
                             className="add me-1"
-                            data-title="Add New Adjustment Record"
+                            data-title="Add Adjustment Record"
                             onClick={() => setModalShow(true)}>
                             <FontAwesomeIcon icon={faPlus} />
                           </Button>
@@ -525,7 +525,7 @@ function InventoryAdjustment() {
                           <div className="col-6">
                             <div className="row m-0 p-0">
                               <a 
-                                className="col-2 data-icon d-flex align-items-center justify-content-center"
+                                className="col-2 data-icon no-click d-flex align-items-center justify-content-center"
                                 data-title="Checker"
                               >
                               <CheckmarkDone

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Link } from 'react-router-dom';
 
 import { db } from "../firebase-config";
-import { collection, onSnapshot, query, doc, getDoc, where, orderBy, updateDoc, setDoc } from "firebase/firestore";
+import { collection, onSnapshot, query, doc, getDoc, where, orderBy, updateDoc } from "firebase/firestore";
 
 import { UserAuth } from '../context/AuthContext'
 import UserRouter from '../pages/UserRouter'
@@ -581,12 +581,10 @@ function Records() {
                     </>
                       :
                       <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                        <Spinner
-                          color1="#b0e4ff"
-                          color2="#fff"
-                          textColor="rgba(0,0,0, 0.5)"
-                          className="w-50 h-50"
-                        />
+                        <div className="px-5 py-2 d-flex align-items-center justify-content-center flex-column">
+                            <img id="brand-img-mobile" className="small" src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52"/>
+                            Loading . . .
+                        </div>
                       </div>
                     }
                   </div>

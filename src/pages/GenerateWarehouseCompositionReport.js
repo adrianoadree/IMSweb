@@ -373,6 +373,8 @@ function GenerateWarehouseCompositionReport() {
                         </div>
                         <div className="col-1">
                           <Button
+                            className="edit"
+                            data-title="Download PDF version"
                             onClick={()=>{generatePDF()}}
                           >
                             <FontAwesomeIcon icon={faFileDownload}/>

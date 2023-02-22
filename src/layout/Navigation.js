@@ -1,52 +1,42 @@
-import { Nav, Navbar, Container, NavDropdown, Placeholder } from 'react-bootstrap';
-import { LinkContainer } from 'react-router-bootstrap';
+import { useState, useEffect } from 'react';
+
 import { auth, db } from '../firebase-config';
 import { collection, doc, updateDoc, onSnapshot, query, where, orderBy } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
-import { useState, useEffect } from 'react';
-import { HelpCircleOutline, HelpCircle, Star, StarOutline  } from 'react-ionicons'
+
+import { UserAuth } from '../context/AuthContext'
 import Tips from '../components/Tips';
 import QuickAccess from '../components/QuickAccess';
-import { UserAuth } from '../context/AuthContext'
 
+import { Nav, Navbar, Container, NavDropdown } from 'react-bootstrap';
+import { LinkContainer } from 'react-router-bootstrap';
+import { HelpCircleOutline, HelpCircle, Star, StarOutline  } from 'react-ionicons'
 
 const Navigation = (props) => {
   const { user } = UserAuth();//user credentials
 
-  const [preferencesTips, setPreferencesTips] = useState()
-  const [preferencesQuickAccess, setPreferencesQuickAccess] = useState()
-  const [userCollection, setUserCollection] = useState([]);
-  const userCollectionRef = collection(db, "user");
-  const [userID, setUserID] = useState("");
-  const [userProfileID, setUserProfileID] = useState("");
-  const [userName, setUserName] = useState("");
-  const [isNew, setIsNew] = useState(false);
-  const [status, setStatus] = useState("verified");
-  const [tipsVisibilityTogglerIcon, setTipsVisibilityTogglerIcon] = useState(true)
-  const [quickAccessVisibilityTogglerIcon, setQuickAccessVisibilityTogglerIcon] = useState(true)
+  const userCollectionRef = collection(db, "user"); //users collection reference
+  const [userCollection, setUserCollection] = useState([]); //users collection 
+  const [userID, setUserID] = useState(""); //current user id variable
+  const [userProfileID, setUserProfileID] = useState(""); //current user id variable
+  const [userName, setUserName] = useState(""); //user name variable
+  const [isNew, setIsNew] = useState(false); //user newness variable
+  const [status, setStatus] = useState("verified"); //user verification status variable
+  const [preferencesTips, setPreferencesTips] = useState() //user tips preference variable
+  const [preferencesQuickAccess, setPreferencesQuickAccess] = useState() //user quick access preference variable
+  const [prodNearROP, setProdNearROP] = useState([]) //notifications items variable
 
-  const [prodNearROP, setProdNearROP] = useState([])
+  const [tipsVisibilityTogglerIcon, setTipsVisibilityTogglerIcon] = useState(true) //guidelines visibility listener
+  const [quickAccessVisibilityTogglerIcon, setQuickAccessVisibilityTogglerIcon] = useState(true) //quick access visibility listener
   
-  //Read stock card collection from database
-  useEffect(() => {
-    if (userID !== undefined) {
-        const stockcardCollectionRef = collection(db, "stockcard")
-        const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.analyticsBoolean", "==", true), orderBy("analytics.daysROP", "asc"));
-
-        const unsub = onSnapshot(q, (snapshot) =>
-            setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-    }
-  }, [userID])
-  
-
+  //fetch user id
   useEffect(() => {
     if (user) {
       setUserID(user.uid)
     }
   }, [{ user }])
 
+  //fetch user collection
   useEffect(() => {
     if (userID === undefined) {
       const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
@@ -69,6 +59,7 @@ const Navigation = (props) => {
     }
   }, [userID])
   
+  //fetch current user profile
   useEffect(() => {
     userCollection.map((metadata) => {
       setPreferencesTips(metadata.preferences.showTips);
@@ -79,11 +70,26 @@ const Navigation = (props) => {
       setStatus(metadata.status)
     });
   }, [userCollection])
+  
+  //fetch if there's notification
+  useEffect(() => {
+    if (userID !== undefined) {
+        const stockcardCollectionRef = collection(db, "stockcard")
+        const q = query(stockcardCollectionRef, where("user", "==", userID), where("analytics.analyticsBoolean", "==", true), orderBy("analytics.daysROP", "asc"));
 
+        const unsub = onSnapshot(q, (snapshot) =>
+            setProdNearROP(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+        );
+        return unsub;
+    }
+  }, [userID])
+
+  //logout module
   const logout = async () => {
     await signOut(auth)
   }
 
+  //tips preferences change handler
   const handlePreferencesTipsChange = () => {
     var pref_tips = !preferencesTips
     var pref_qa = preferencesQuickAccess
@@ -93,6 +99,7 @@ const Navigation = (props) => {
     });
   }
 
+  //quick access preferences change handler
   const handlePreferencesQuickAccessChange = () => {
     var pref_tips = preferencesTips
     var pref_qa = !preferencesQuickAccess
@@ -102,24 +109,26 @@ const Navigation = (props) => {
     });
   }
 
-
   return (
     <div>
-      <Navbar collapseOnSelect expand="lg" className="custom-nav">
+      <Navbar collapseOnSelect expand="lg" id="IMS-nav">
         <Container>
           <LinkContainer to="/home">
             <Navbar.Brand>
-              <img id="brand-img" src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52">
+              <img 
+                id="brand-img"
+                src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52"
+                >
               </img>
-              <div id="badge" className={prodNearROP.length > 0?"":"d-none"}>
+              <div id="badge" className={prodNearROP.length > 0 ? "" : "d-none"}>
                 .
               </div>
             </Navbar.Brand>
           </LinkContainer>
           <Navbar.Collapse id="responsive-navbar-nav">
-            {isNew === true && status != "verified"?
+            {isNew === true && status != "verified" ?
               <></>
-            :
+              :
               <Nav className="me-auto">
                 <NavDropdown title="Records" id="collasible-nav-dropdown">
                   <LinkContainer to="/salesrecord">
@@ -152,85 +161,78 @@ const Navigation = (props) => {
                     <NavDropdown.Item>Adjust Inventory</NavDropdown.Item>
                   </LinkContainer>
                 </NavDropdown>
-                {/*
-                <LinkContainer to="/community">
-                  <Nav.Link>Community</Nav.Link>
-                </LinkContainer>
-                <LinkContainer to="/testpage">
-                  <Nav.Link>Test</Nav.Link>
-  </LinkContainer>*/}
+
               </Nav>
             }
             <Nav>
-              {userCollection === undefined?
+              {userCollection === undefined ?
                 <></>
-              :
-              <>
-              
-              <div id="IMS-tips-outer-container" className="d-flex justify-content-center align-items-center">
-                  <div id="IMS-tips-inner-visibility-toggler" className="me-1">
-                    <button
-                      className="d-flex align-items-center"
-                      data-title={preferencesTips?"Hide Guidelines":"Show Guidelines"}
-                      onMouseEnter={()=> setTipsVisibilityTogglerIcon(false)}
-                      onMouseLeave={()=> setTipsVisibilityTogglerIcon(true)}
-                      onClick={()=>{handlePreferencesTipsChange()}}
-                    >
-                      {preferencesTips?
-                        <>
-                          {tipsVisibilityTogglerIcon?
-                            <HelpCircle
-                              color={'#0d6efd'}
-                              height="20px"
-                              width="20px"
-                            />
+                :
+                <>
+                  <div id="IMS-tips-outer-container" className="d-flex justify-content-center align-items-center">
+                    <div id="IMS-tips-inner-visibility-toggler" className="me-1">
+                      <button
+                        className="d-flex align-items-center"
+                        data-title={preferencesTips ? "Hide Guidelines" : "Show Guidelines"}
+                        onMouseEnter={() => setTipsVisibilityTogglerIcon(false)}
+                        onMouseLeave={() => setTipsVisibilityTogglerIcon(true)}
+                        onClick={() => { handlePreferencesTipsChange() }}
+                      >
+                        {preferencesTips ?
+                          <>
+                            {tipsVisibilityTogglerIcon ?
+                              <HelpCircle
+                                color={'#0d6efd'}
+                                height="20px"
+                                width="20px"
+                              />
+                              :
+                              <HelpCircleOutline
+                                color={'#0d6efd'}
+                                height="20px"
+                                width="20px"
+                              />
+                            }
+                          </>
                           :
-                            <HelpCircleOutline
-                              color={'#0d6efd'}
-                              height="20px"
-                              width="20px"
-                            />
-                          }
-                        </>
-                      :
-                        <>
-                          {tipsVisibilityTogglerIcon?
-                            <HelpCircleOutline
-                              color={'#000'} 
-                              height="20px"
-                              width="20px"
-                            />
-                          :
-                            <HelpCircle
-                              color={'#000'} 
-                              height="20px"
-                              width="20px"
-                            />
-                          }
-                        </>
-                      }
-                    </button>
-                 </div>
-                </div>
-              {!isNew?
+                          <>
+                            {tipsVisibilityTogglerIcon ?
+                              <HelpCircleOutline
+                                color={'#000'}
+                                height="20px"
+                                width="20px"
+                              />
+                              :
+                              <HelpCircle
+                                color={'#000'}
+                                height="20px"
+                                width="20px"
+                              />
+                            }
+                          </>
+                        }
+                      </button>
+                    </div>
+                  </div>
+                  {!isNew ?
                     <div id="IMS-tips-outer-container" className="d-flex justify-content-center align-items-center">
                       <div id="IMS-tips-inner-visibility-toggler" className="me-1">
                         <button
                           className="d-flex align-items-center"
-                          data-title={preferencesQuickAccess?"Hide Quick Access":"Show Quick Access"}
-                          onMouseEnter={()=> setQuickAccessVisibilityTogglerIcon(false)}
-                          onMouseLeave={()=> setQuickAccessVisibilityTogglerIcon(true)}
-                          onClick={()=>{handlePreferencesQuickAccessChange()}}
+                          data-title={preferencesQuickAccess ? "Hide Quick Access" : "Show Quick Access"}
+                          onMouseEnter={() => setQuickAccessVisibilityTogglerIcon(false)}
+                          onMouseLeave={() => setQuickAccessVisibilityTogglerIcon(true)}
+                          onClick={() => { handlePreferencesQuickAccessChange() }}
                         >
-                          {preferencesQuickAccess?
+                          {preferencesQuickAccess ?
                             <>
-                              {quickAccessVisibilityTogglerIcon?
+                              {quickAccessVisibilityTogglerIcon ?
                                 <Star
                                   color={'#0d6efd'}
                                   height="20px"
                                   width="20px"
                                 />
-                              :
+                                :
                                 <StarOutline
                                   color={'#0d6efd'}
                                   height="20px"
@@ -238,15 +240,15 @@ const Navigation = (props) => {
                                 />
                               }
                             </>
-                          :
+                            :
                             <>
-                              {quickAccessVisibilityTogglerIcon?
+                              {quickAccessVisibilityTogglerIcon ?
                                 <StarOutline
                                   color={'#000'}
                                   height="20px"
                                   width="20px"
                                 />
-                              :
+                                :
                                 <Star
                                   color={'#000'}
                                   height="20px"
@@ -256,12 +258,12 @@ const Navigation = (props) => {
                             </>
                           }
                         </button>
+                      </div>
                     </div>
-                    </div>
-                  :
-                  <></>
+                    :
+                    <></>
                   }
-              </>
+                </>
               }
               <NavDropdown
                 id="nav-dropdown-dark-example"
@@ -277,33 +279,28 @@ const Navigation = (props) => {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-
-      {preferencesTips?
+      {preferencesTips ?
         <Tips
           name={userName}
           page={props.page}
           isNew={isNew}
         />
-      :
+        :
         <></>
       }
-      {!isNew?
+      {!isNew ?
         <>
-        {preferencesQuickAccess?
-        <QuickAccess />
-        :
-          <></>
-        }
+          {preferencesQuickAccess ?
+            <QuickAccess />
+            :
+            <></>
+          }
         </>
-      :
+        :
         <></>
       }
     </div>
   );
-
-
 }
-/*
 
-*/
 export default Navigation;

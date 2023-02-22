@@ -31,7 +31,6 @@ import InventoryAdjustment from './pages/InventoryAdjustment';
 import MobileWarning from './pages/MobileWarning';
 
 
-
 import { useState } from 'react';
 import Protected from './layout/Protected';
 
@@ -41,7 +40,6 @@ function App() {
 
 
     <div className="App">
- 
       <AuthContextProvider>
         <Routes>
           <Route path='/' element={<Protected><UserRouter /></Protected>} />

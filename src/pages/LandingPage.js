@@ -209,7 +209,7 @@ function LandingPage() {
                 <>
                     <div id="notifications-content" className="w-100 row p-0 pe-3 m-0 d-flex align-items-start justify-content-center scrollbar" style={{ height: '65vh' }}>
                         <div className="p-0">
-                            {prodNearROP.length !== 0 ?
+                            {prodNearROP.filter(product => determineRestockingStatus(product.analytics.dateReorderPoint) < 7 ).length !== 0 ?
                                 <>
                                     <div ref={notificationFilterOverdueRef}>
                                         {prodNearROP.filter(product => determineRestockingStatus(product.analytics.dateReorderPoint) < 0 ).map((prod) => {

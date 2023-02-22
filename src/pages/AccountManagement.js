@@ -1,50 +1,50 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
 import { db } from '../firebase-config';
 import { collection, doc, onSnapshot, query, updateDoc, where, orderBy } from 'firebase/firestore';
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faBan, faEdit } from '@fortawesome/free-solid-svg-icons'
-import { Tab, Button, Card, Modal, Nav, Table } from 'react-bootstrap';
-import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer, toast, Zoom } from "react-toastify";
-import { Spinner } from 'loading-animations-react';
 import { UserAuth } from '../context/AuthContext';
-
 import Navigation from '../layout/Navigation';
 import  UserRouter  from '../pages/UserRouter'
 
+import { Tab, Button, Card, Modal, Nav, Table } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faTrashCan, faBan, faEdit, faToggleOff, faToggleOn, faMinusCircle, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast, Zoom } from "react-toastify";
+import { Spinner } from 'loading-animations-react';
+
+
 function AccountManagement() {
 
-  //---------------------VARIABLES---------------------
   const { user } = UserAuth();//user credentials
-  const [userID, setUserID] = useState("");
-  const [userCollection, setUserCollection] = useState([]);
+  const [userID, setUserID] = useState("");//user id variable
+  const [userCollection, setUserCollection] = useState([]);//users collection variable
 
-  const [showEditModal, setShowEditModal] = useState(false); // display/hide edit modal
-  const [showAddModal, setShowAddModal] = useState(false);// display/hide add modal
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // display/hide edit modal
-  const [showDeactivateModal, setShowDeactivateModal] = useState(false); // display/hide edit modal
+  const [showEditModal, setShowEditModal] = useState(false); //display/hide edit modal
+  const [showAddModal, setShowAddModal] = useState(false);//display/hide add modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false); //display/hide edit modal
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false); //display/hide edit modal
   
   const [profileID, setProfileID] = useState([]); //user profile id
   const [account, setAccount] = useState();// accounts container
   const [selectedAccount, setSelectedAccount] = useState(0);
+
   const [salesRecordCollection, setSalesRecordCollection] = useState([]);
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([])
 
-  //---------------------FUNCTIONS---------------------
-  
+  //fetch user id
   useEffect(() => {
     if (user) {
       setUserID(user.uid)
     }
   }, [{ user }])
 
-  // fetch user collection
+  // fetch users collection
   useEffect(() => {
     if (userID === undefined) {
-
       const userCollectionRef = collection(db, "user")
       const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
     
@@ -71,9 +71,11 @@ function AccountManagement() {
       setAccount(metadata.accounts)
       setProfileID(metadata.id)
     });
-  }, [userCollection])  
+  }, [userCollection])
 
-  // fetch records
+  
+  
+  // fetch purchase records collection
   useEffect(() => {
     //read purchase_record collection
     if (userID === undefined) {
@@ -96,10 +98,9 @@ function AccountManagement() {
     }
   }, [userID])
 
+  // fetch sales records collection
   useEffect(() => {
-    //read sales_record collection
     if (userID === undefined) {
-
       const collectionRef = collection(db, "sales_record")
       const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
 
@@ -109,7 +110,6 @@ function AccountManagement() {
       return unsub;
     }
     else {
-
       const collectionRef = collection(db, "sales_record")
       const q = query(collectionRef, where("user", "==", userID), orderBy("transaction_number", "desc"));
 
@@ -117,28 +117,8 @@ function AccountManagement() {
         setSalesRecordCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
       return unsub;
-
     }
-
   }, [userID])
-
-  /*const checkIfInteracted = (name) => {
-    if((purchaseRecordCollection === undefined || purchaseRecordCollection.length == 0)|| (salesRecordCollection === undefined || salesRecordCollection.length == 0))
-    {
-
-    }
-    else
-    {
-      setPurchaseRecordCollection([... purchaseRecordCollection, salesRecordCollection])
-      purchaseRecordCollection.map((record) => {
-        if(record.issuer == name)
-        {
-          return true
-        }
-      })
-      return false
-    }
-  }*/
 
   // edit account modal
   function EditUserModal(param) {
@@ -158,7 +138,7 @@ function AccountManagement() {
     const [isComplete, setIsComplete] = useState(2);
 
     const editSuccessToast = () => {
-      toast.info('Updating account of ' + name, {
+      toast.info('Updating ' + name, {
         position: "top-right",
         autoClose: 1500,
         hideProgressBar: false,
@@ -171,7 +151,6 @@ function AccountManagement() {
     
     const saveEdit = async () => {
       //change the values of the array
-      acc[index].name = name;
       acc[index].designation = designation;
       acc[index].password = password;
 
@@ -195,18 +174,6 @@ function AccountManagement() {
           <div className="px-3 py-2">
             <div className="module-header mb-4">
                 <h3 className="text-center">Editing <span style={{color: '#000'}}>{acc[index].name}</span></h3>
-            </div>
-            <div className="row my-2 mb-3">
-            <div className='col-12 ps-4'>
-              <label>Employee Name</label>
-              <input type="text"
-                className="form-control shadow-none"
-                placeholder="Annie Batumbakal"
-                autoFocus
-                value={name}
-                onChange={(e)=>{setName(e.target.value)}}
-              />
-            </div>
             </div>
             <div className="row my-2 mb-3">
               <div className='col-12 ps-4'>
@@ -269,7 +236,7 @@ function AccountManagement() {
     const [password, setPassword] = useState("");
     
     const addSuccessToast = (name) => {
-      toast.success('Account for ' + name + ' created', {
+      toast.success('User for ' + name + ' created', {
         position: "top-right",
         autoClose: 1500,
         hideProgressBar: false,
@@ -307,7 +274,7 @@ function AccountManagement() {
         <Modal.Body >
           <div className="px-3 py-2">
             <div className="module-header mb-4">
-              <h3 className="text-center">Add an Account</h3>
+              <h3 className="text-center">Add a User</h3>
             </div>
             <div className="row my-2 mb-3">
               <div className='col-12 ps-4'>
@@ -363,6 +330,18 @@ function AccountManagement() {
         </Modal.Footer>
       </Modal>
     );
+  }
+
+  function checkUserActivity(name) {
+    var all_records = salesRecordCollection.concat(purchaseRecordCollection)
+
+    for(var i = 0; i < all_records.length; i++)
+    {
+        if(all_records[i].issuer == name)
+        {
+          return true;
+        }
+    }
   }
 
   // delete acccount modal
@@ -467,7 +446,7 @@ function AccountManagement() {
             style={{ width: "9rem" }}
             onClick={() => { deleteUser() }}
           >
-            Delete Account
+            Delete User
           </Button>
         </Modal.Footer>
       </Modal>
@@ -486,7 +465,6 @@ function AccountManagement() {
       acc = account;
     }
     var index = selectedAccount;//index of account to edit
-    //delete row 
 
     const deactivateToast = () => {
       acc[selectedAccount].isActive?
@@ -614,7 +592,7 @@ function AccountManagement() {
             :
             <>Activate </>
             }
-            Account
+            User
           </Button>
         </Modal.Footer>
       </Modal>
@@ -770,16 +748,20 @@ function AccountManagement() {
                                         <FontAwesomeIcon icon={faEdit} />
                                       </Button>
                                       <Button
-                                        className="deactivate me-1"
-                                        data-title="Activate/Deactivate User"
+                                        className={(acc.isActive?"deactivate":"activate") + " me-1"}
+                                        data-title={(acc.isActive?"Deactivate":"Activate") + " User"}
                                         onClick={() => { setSelectedAccount(i); setShowDeactivateModal(true) }}
                                       >
-                                        <FontAwesomeIcon icon={faBan} />
+                                        {acc.isActive?
+                                          <FontAwesomeIcon icon={faMinusCircle} />
+                                        :
+                                          <FontAwesomeIcon icon={faCheckCircle} />
+                                        }
                                       </Button>
                                       <Button
-                                        className="delete"
-  
-                                        data-title="Delete User"
+                                        className={checkUserActivity(acc.name)? "delete disabled-conditionally":"delete"}
+                                        disabled={checkUserActivity(acc.name)}
+                                        data-title={checkUserActivity(acc.name)?"User issued transactions":"Delete User"}
                                         onClick={() => { setSelectedAccount(i); setShowDeleteModal(true) }}
                                       >
                                         <FontAwesomeIcon icon={faTrashCan} />

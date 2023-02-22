@@ -478,8 +478,8 @@ function GenerateItemSummaryReport() {
                         
                           <Button
                             className="edit"
-                            onClick={()=>{generatePDF()}}
                             data-title="Download PDF version"
+                            onClick={()=>{generatePDF()}}
                             disabled={itemList === undefined || itemList.length == 0}
                           >
                             <FontAwesomeIcon icon={faFileDownload}/>
