@@ -5,7 +5,7 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
 import { UserAuth } from '../context/AuthContext'
 import UserRouter from '../pages/UserRouter'
-import Navigation from '../layout/Navigation';
+import Tips from '../components/Tips';
 
 
 import moment from "moment";
@@ -257,7 +257,7 @@ function PrintQRCodes() {
       <UserRouter
         route=''
       />
-      <Navigation 
+      <Tips 
         page="/printqr"
       />
       <Tab.Container

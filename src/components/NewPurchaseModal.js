@@ -1,132 +1,66 @@
 import { useEffect, useState, useRef } from "react";
 import { db } from "../firebase-config";
 import { setDoc, collection, onSnapshot, query, doc, updateDoc, where, getDoc } from "firebase/firestore";
-import { Modal, Button, Form, Table } from "react-bootstrap";
+
 import moment from "moment";
-import { Warning } from 'react-ionicons'
-import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer, toast, Zoom } from "react-toastify";
+
 import { UserAuth } from '../context/AuthContext'
 
+import { Modal, Button, Form, Table } from "react-bootstrap";
 import { faPlus, faMinus, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast, Zoom } from "react-toastify";
+
 import NewSupplierModal from '../components/NewSupplierModal'
 
-
 function NewPurchaseModal(props) {
-
-
-    //---------------------VARIABLES---------------------
-
-
-    const { user } = UserAuth();//user credentials
-    const [userID, setUserID] = useState("");
-    const [newNote, setNewNote] = useState(""); // note form input
-    const [productIds, setProductIds] = useState([]); // array of prod id
-
+    const { user } = UserAuth(); // user credentials
+    const [userID, setUserID] = useState(""); //user id
     const [userCollection, setUserCollection] = useState([]);// userCollection variable
     const [userProfileID, setUserProfileID] = useState(""); // user profile id
     const userCollectionRef = collection(db, "user")// user collection
     const [purchaseCounter, setPurchaseCounter] = useState(0); // purchase counter
-    const [transactionIssuer, setTransactionIssuer] = useState("") // default purchaser in web
 
-    const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
-    const [supplierCol, setSupplierCol] = useState([]); // stockcardCollection variable
-    const [supplierModalShow, setSupplierModalShow] = useState(false); //add new sales record modal
+    const [stockcard, setStockcard] = useState([]); // stockcard collection
+    const [supplierCol, setSupplierCol] = useState([]); // supplier collection
 
+    const [stockcardDoc, setStockcardDoc] = useState(); // data of currently selected product
     const [items, setItems] = useState([]); // array of objects containing product information
-    const [itemId, setItemId] = useState("IT999999"); //product id
-    const [itemName, setItemName] = useState(""); //product description
-    const [itemSupplier, setItemSupplier] = useState("placeholder"); //product description
-    const [itemSPrice, setItemSPrice] = useState(0); //product Selling Price
-    const [itemPPrice, setItemPPrice] = useState(0); //product Purchase Price
-    const [itemQuantity, setItemQuantity] = useState(1); //product quantity
-    const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
-    const hasRun = useRef(false)
-    var curr = new Date()
+    const [itemId, setItemId] = useState("IT999999"); // product id
+    const [itemName, setItemName] = useState(""); // product description
+    const [itemSupplier, setItemSupplier] = useState("placeholder"); // product supplier
+    const [itemSPrice, setItemSPrice] = useState(0); // product selling price
+    const [itemPPrice, setItemPPrice] = useState(0); // product purchase price
+    const [itemQuantity, setItemQuantity] = useState(1); // product added quantity
+    const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product current quantity
+    const [daysROP, setDaysROP] = useState([]) // product new reorder point
+    const [dateReorderPoint, setDateReorderPoint] = useState() // product new reorder date
+
+    var curr = new Date() // get current date
     curr.setDate(curr.getDate());
-    var today = moment(curr).format('YYYY-MM-DD')
-    const [newTransactionDate, setNewTransactionDate] = useState(today); // stockcardCollection variable
-    const [newOrderDate, setNewOrderDate] = useState(today); // stockcardCollection variable
+    var today = moment(curr).format('YYYY-MM-DD') // change date format
+    const [productIds, setProductIds] = useState([]); // product ids
+    const [newTransactionDate, setNewTransactionDate] = useState(today); // record order received date
+    const [newOrderDate, setNewOrderDate] = useState(today); // record order date
+    const [transactionIssuer, setTransactionIssuer] = useState("") // default purchaser in web
+    const [newNote, setNewNote] = useState(""); // record notes
 
-    const [daysROP, setDaysROP] = useState([])
-    const [stockcardDoc, setStockcardDoc] = useState(); //
-    const [dateReorderPoint, setDateReorderPoint] = useState()
+    const hasRun = useRef(false) // checker if reoder date has changed
+    const [supplierModalShow, setSupplierModalShow] = useState(false); // new supplier modal
 
-
-
-
-    //---------------------FUNCTIONS---------------------
-
-
-    //access stockcard document
+    //=============================== START OF STATE LISTENERS ===============================
+    // set user id
     useEffect(() => {
-        async function readStockcardDoc() {
-            const stockcardRef = doc(db, "stockcard", itemId)
-            const docSnap = await getDoc(stockcardRef)
-            if (docSnap.exists()) {
-                setStockcardDoc(docSnap.data());
-            }
+        if (user) {
+            setUserID(user.uid)
         }
-        readStockcardDoc()
-    }, [itemId])
-
-
-    useEffect(() => {
-        setDaysROP()
-        if (stockcardDoc !== undefined) {   
-            setDaysROP ((Number(stockcardDoc.qty) + Number(itemQuantity) - Number(stockcardDoc.analytics.reorderPoint))/stockcardDoc.analytics.averageDailySales)
-
-        }
-    }, [itemQuantity, itemId, stockcardDoc])
-
-
-    function computeDaysToReorderPoint() {
-        setDateReorderPoint()
-        if (daysROP !== undefined) {
-            let tempDate = new Date()
-            let x
-            let y
-            y = Math.round(daysROP)
-            x = tempDate.setDate(tempDate.getDate() + y)
-            let z = new Date(x)
-            z = moment(z).format('YYYY-MM-DD')
-            setDateReorderPoint(z)
-        }
-    }
-
-
-    useEffect(() => {
-        computeDaysToReorderPoint()
-    }, [daysROP, stockcardDoc])
-
-
-    useEffect(() => {
-        console.log("daysROP: ", daysROP)
-    },[daysROP])
-
-
-
-
-
-
-    //set Product ids
-    useEffect(() => {
-        items.map((item) => {
-            setProductIds([...productIds, item.itemId])
-        })
-    }, [items])
-
-    useEffect(() => {
-        console.log(itemSupplier)
-        console.log(computeDelay())
-    })
+    }, [{ user }])
 
     //fetch user collection from database
     useEffect(() => {
         if (userID === undefined) {
             const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
-
             const unsub = onSnapshot(q, (snapshot) =>
                 setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
             );
@@ -134,7 +68,6 @@ function NewPurchaseModal(props) {
         }
         else {
             const q = query(userCollectionRef, where("user", "==", userID));
-
             const unsub = onSnapshot(q, (snapshot) =>
                 setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
             );
@@ -143,7 +76,7 @@ function NewPurchaseModal(props) {
         }
     }, [userID])
 
-    //assign profile and purchase counter
+    // assign profile and purchase counter
     useEffect(() => {
         userCollection.map((metadata) => {
             setPurchaseCounter(metadata.purchaseId)
@@ -155,12 +88,10 @@ function NewPurchaseModal(props) {
             })
         });
     }, [userCollection])
-
-
-    //Read stock card collection from database
+    
+    // fetch user products
     useEffect(() => {
         if (userID === undefined) {
-
             const collectionRef = collection(db, "stockcard")
             const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
 
@@ -170,7 +101,6 @@ function NewPurchaseModal(props) {
             return unsub;
         }
         else {
-
             const collectionRef = collection(db, "stockcard")
             const q = query(collectionRef, where("user", "==", userID));
 
@@ -179,9 +109,141 @@ function NewPurchaseModal(props) {
             );
             return unsub;
         }
-
     }, [userID])
 
+    // fetch user suppliers
+    useEffect(() => {
+        if (userID === undefined) {
+            const collectionRef = collection(db, "supplier")
+            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setSupplierCol(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+            const collectionRef = collection(db, "supplier")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setSupplierCol(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
+
+    // fetch product data to compute analytics
+    useEffect(() => {
+        async function readStockcardDoc() {
+            const stockcardRef = doc(db, "stockcard", itemId)
+            const docSnap = await getDoc(stockcardRef)
+            if (docSnap.exists()) {
+                setStockcardDoc(docSnap.data());
+            }
+        }
+        readStockcardDoc()
+    }, [itemId])
+
+    // set data on product change from dropdown
+    useEffect(() => {
+        if (itemName != undefined) {
+            const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
+                if (doc.data() != undefined) {
+                    setItemName(doc.data().description)
+                    setItemCurrentQuantity(doc.data().qty)
+                    setItemSPrice(doc.data().s_price)
+                    setItemPPrice(doc.data().p_price)
+                }
+            }, (error) => {
+            });
+        }
+    }, [itemId])
+
+    // set product ids
+    useEffect(() => {
+        items.map((item) => {
+            setProductIds([...productIds, item.itemId])
+        })
+    }, [items])
+
+    // set first supplier as default
+    useEffect(() => {
+        if (supplierCol === undefined || supplierCol.length == 0) {
+
+        }
+        else {
+            setItemSupplier(supplierCol[0].id)
+        }
+    }, [supplierCol])
+
+    useEffect(() => {
+        console.log(daysROP)
+    }, [stockcardDoc])
+
+    // set order date to receiving date on first change
+    useEffect(() => {
+        if (!hasRun.current && newTransactionDate !== today) {
+            hasRun.current = true
+            setNewOrderDate(newTransactionDate)
+        }
+    }, [newTransactionDate])
+
+    // compute for days before reaching reorder point    
+    useEffect(() => {
+        setDaysROP()
+        if (stockcardDoc !== undefined) {
+            setDaysROP((Number(stockcardDoc.qty) + Number(itemQuantity) - Number(stockcardDoc.analytics.reorderPoint)) / stockcardDoc.analytics.averageDailySales)
+        }
+    }, [itemQuantity, itemId, stockcardDoc])
+
+    // compute reorder date
+    useEffect(() => {
+        computeDaysToReorderPoint()
+    }, [daysROP, stockcardDoc])
+
+    // clear fields on modal close
+    useEffect(() => {
+        if (props.onHide) {
+            clearFields()
+        }
+    }, [props.onHide])
+
+    //================================ END OF STATE LISTENERS ================================
+
+    //=================================== START OF HANDLERS ==================================
+    // add items to list
+    const addItem = event => {
+        event.preventDefault();
+        setItems([
+            ...items,
+            {
+                itemId: itemId,
+                itemName: itemName,
+                itemPPrice: Number(itemPPrice),
+                itemSPrice: Number(itemSPrice),
+                itemQuantity: Number(itemQuantity),
+                itemCurrentQuantity: Number(itemCurrentQuantity),
+                itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity),
+                daysROP: Number(daysROP),
+                dateReorderPoint: dateReorderPoint
+            }
+        ]);
+        setItemId("IT999999");
+        setItemQuantity(1);
+    };
+
+    // removes items from list
+    const handleItemRemove = (index) => {
+        const list = [...items]
+        list.splice(index, 1)
+        setItems(list)
+        const ids = [...productIds]
+        ids.splice(index, 1)
+        setProductIds(ids)
+    }
+
+    // check difference between order date and received date
     const handleDateChange = () => {
         if (newOrderDate === undefined || newOrderDate == "" || newOrderDate == " " || newOrderDate == 0) {
             return "hide-warning-message"
@@ -200,46 +262,44 @@ function NewPurchaseModal(props) {
         }
     }
 
-    //Read supplier collection from database
-    useEffect(() => {
-        if (userID === undefined) {
-
-            const collectionRef = collection(db, "supplier")
-            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setSupplierCol(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
+    // determine if creating new supplier
+    const handleSupplierSelect = (value) => {
+        if (value == "add-supplier") {
+            setSupplierModalShow(true)
         }
-        else {
-
-            const collectionRef = collection(db, "supplier")
-            const q = query(collectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setSupplierCol(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-
-    }, [userID])
-
-    useEffect(() => {
-        if (supplierCol === undefined || supplierCol.length == 0) {
+        else if (value == "placeholder") {
 
         }
         else {
-            setItemSupplier(supplierCol[0].id)
+            setItemSupplier(value)
         }
-    }, [supplierCol])
+    }
 
-    useEffect(() => {
-        if (props.onHide) {
-            clearFields()
+    // compute lead time
+    const computeDelay = () => {
+        var t_date = new Date(newTransactionDate)
+        t_date.setHours(0, 0, 0, 0)
+        var o_date = new Date(newOrderDate)
+        o_date.setHours(0, 0, 0, 0)
+        return (moment(t_date).diff(moment(o_date), "days")) + 1
+    }
+
+    // compute reorder date
+    function computeDaysToReorderPoint() {
+        setDateReorderPoint()
+        if (daysROP !== undefined) {
+            let tempDate = new Date()
+            let x
+            let y
+            y = Math.round(daysROP)
+            x = tempDate.setDate(tempDate.getDate() + y)
+            let z = new Date(x)
+            z = moment(z).format('YYYY-MM-DD')
+            setDateReorderPoint(z)
         }
-    }, [props.onHide])
+    }
 
+    // clear fields
     const clearFields = () => {
         if (supplierCol === undefined || supplierCol.length == 0) {
             setItemSupplier("placeholder")
@@ -254,111 +314,33 @@ function NewPurchaseModal(props) {
         setNewOrderDate(today)
     }
 
-    //Read and set data from stockcard document
-    useEffect(() => {
-        if (itemName != undefined) {
-            const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
-                if (doc.data() != undefined) {
-                    setItemName(doc.data().description)
-                    setItemCurrentQuantity(doc.data().qty)
-                    setItemSPrice(doc.data().s_price)
-                    setItemPPrice(doc.data().p_price)
-                }
-            });
-        }
-    }, [itemId])
-
-
-
-    //----------------------Start of Dynamic form functions----------------------
-    const handleSupplierSelect = (value) => {
-        if (value == "add-supplier") {
-            setSupplierModalShow(true)
-        }
-        else if (value == "placeholder") {
-
-        }
-        else {
-            setItemSupplier(value)
-        }
+    // purchase record addition prompt
+    const successToast = () => {
+        toast.success("Generating " + createFormat().substring(0, 7), {
+            position: "top-right",
+            autoClose: 1500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            transition: Zoom
+        });
     }
 
-    const addItem = event => {
-        event.preventDefault();
-        setItems([
-            ...items,
-            {
-
-                itemId: itemId,
-                itemName: itemName,
-                itemPPrice: Number(itemPPrice),
-                itemSPrice: Number(itemSPrice),
-                itemQuantity: Number(itemQuantity),
-                itemCurrentQuantity: Number(itemCurrentQuantity),
-                itemNewQuantity: Number(itemCurrentQuantity) + Number(itemQuantity),
-                daysROP: Number(daysROP),
-                dateReorderPoint: dateReorderPoint
-            }
-        ]);
-        setItemId("IT999999");
-        setItemQuantity(1);
-    };
-
-    const handleItemRemove = (index) => {
-        const list = [...items]
-        list.splice(index, 1)
-        setItems(list)
-        const ids = [...productIds]
-        ids.splice(index, 1)
-        setProductIds(ids)
-    }
-
-    //----------------------End of Dynamic form functions----------------------
-
-
-    //----------------------Start of addRecord functions----------------------
-
-    //create format
+    //create purchase record id
     const createFormat = () => {
         var format = purchaseCounter + "";
         while (format.length < 5) { format = "0" + format };
         format = "PR" + format + '@' + userID;
         return format;
     }
+    //=================================== END OF HANDLERS  ===================================
 
-    const computeDelay = () => {
-        var t_date = new Date(newTransactionDate)
-        t_date.setHours(0, 0, 0, 0)
-        var o_date = new Date(newOrderDate)
-        o_date.setHours(0, 0, 0, 0)
-        return (moment(t_date).diff(moment(o_date), "days")) + 1
-    }
-
-    //add document to database
+    //============================== START OF DATABASE WRITERS ===============================
+    // save purchase record
     const addRecord = async () => {
-        if (newOrderDate !== undefined || newOrderDate != " " || newOrderDate != "" || newOrderDate != 0) {
-            for (var i = 0; i < productIds.length; i++) {
-                var stockcardItemAnalytics = {}
-                await getDoc(doc(db, "stockcard", productIds[i])).then(docSnap => {
-                    if (docSnap.exists()) {
-                        stockcardItemAnalytics = docSnap.data().analytics
-                    }
-                    else {
-
-                    }
-                })
-                if (stockcardItemAnalytics.leadtimeMaximum < computeDelay()) {
-                    stockcardItemAnalytics.leadtimeMaximum = computeDelay()
-                }
-                if (stockcardItemAnalytics.leadtimeMinimum > computeDelay()) {
-                    stockcardItemAnalytics.leadtimeMinimum = computeDelay()
-                }
-                stockcardItemAnalytics.leadtimeAverage = Number((stockcardItemAnalytics.leadtimeMinimum + stockcardItemAnalytics.leadtimeMaximum) / 2)
-                updateDoc(doc(db, "stockcard", productIds[i]), {
-                    analytics: stockcardItemAnalytics,
-                })
-            }
-        }
+        // create purchase record
         setDoc(doc(db, "purchase_record", createFormat()), {
             user: userID,
             transaction_number: createFormat().substring(0, 7),
@@ -373,30 +355,51 @@ function NewPurchaseModal(props) {
             issuer: transactionIssuer.name
         });
 
-        updateQuantity()  //update stockcard.qty function
+        updateProductData()  //update stockcard.qty function
         updatePurchDocNum() //update variables.purchDocNum function
         successToast() //display success toast
-
         props.onHide()
     }
 
-    //update stockcard.qty function
-    function updateQuantity() {
+    // update product data
+    function updateProductData() {
+        const determineLeadTime = async(id) => {
+            if (newOrderDate !== undefined || newOrderDate != " " || newOrderDate != "" || newOrderDate != 0) {
+                var stockcardItemAnalytics = {}
+                    await getDoc(doc(db, "stockcard", id)).then(docSnap => {
+                        if (docSnap.exists()) {
+                            stockcardItemAnalytics = docSnap.data().analytics
+                        }
+                        else {
+    
+                        }
+                    })
+                    if (stockcardItemAnalytics.leadtimeMaximum < computeDelay()) {
+                        stockcardItemAnalytics.leadtimeMaximum = computeDelay()
+                    }
+                    if (stockcardItemAnalytics.leadtimeMinimum > computeDelay()) {
+                        stockcardItemAnalytics.leadtimeMinimum = computeDelay()
+                    }
+                    stockcardItemAnalytics.leadtimeAverage = Number((stockcardItemAnalytics.leadtimeMinimum + stockcardItemAnalytics.leadtimeMaximum) / 2)
+            }
+            return {min: stockcardItemAnalytics.leadtimeMinimum, max:stockcardItemAnalytics.leadtimeMaximum, avg: stockcardItemAnalytics.leadtimeAverage}
+        }
         items.map((items) => {
-
             const stockcardRef = doc(db, "stockcard", items.itemId);
-
-            // Set the "capital" field of the city 'DC'
-            updateDoc(stockcardRef, {
-                qty: items.itemNewQuantity,
-                "analytics.daysROP": Number(items.daysROP),
-                "analytics.dateReorderPoint": items.dateReorderPoint,
-
-            });
+            determineLeadTime(items.itemId).then(leadtimeValues => {
+                updateDoc(stockcardRef, {
+                    qty: items.itemNewQuantity,
+                    "analytics.daysROP": Number(items.daysROP),
+                    "analytics.dateReorderPoint": items.dateReorderPoint,
+                    "analytics.leadtimeMaximum": Number(leadtimeValues.max),
+                    "analytics.leadtimeMinimum": Number(leadtimeValues.min),
+                    "analytics.leadtimeAverage": Number(leadtimeValues.avg),
+                });
+            })
         })
     }
 
-    //update variables.purchDocNum function
+    // update purchase record id counter from dataabase
     function updatePurchDocNum() {
         const userDocRef = doc(db, "user", userProfileID)
         const newData = { purchaseId: Number(purchaseCounter) + 1 }
@@ -404,45 +407,8 @@ function NewPurchaseModal(props) {
         updateDoc(userDocRef, newData)
     }
 
-    //success toastify
-    const successToast = () => {
-        toast.success("Generating " + createFormat().substring(0, 7), {
-            position: "top-right",
-            autoClose: 1500,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            transition: Zoom
-        });
-    }
-
-    //----------------------End of addRecord functions----------------------
-
-
-    useEffect(() => {
-        if (user) {
-            setUserID(user.uid)
-        }
-    }, [{ user }])
-
-
-    //current date
-    useEffect(() => {
-
-    }, [])
-
-
-    useEffect(() => {
-        if (!hasRun.current && newTransactionDate !== today) {
-            hasRun.current = true
-            setNewOrderDate(newTransactionDate)
-        }
-    }, [newTransactionDate])
-
+    //=============================== END OF DATABASE WRITERS ================================
     return (
-
         <Modal
             {...props}
             size="xl"
@@ -640,7 +606,7 @@ function NewPurchaseModal(props) {
                                                             <td>
                                                                 {item.itemId === undefined ?
                                                                     <></>
-                                                                    :
+                                                                :
                                                                     <>
                                                                         {item.itemId.substring(0, 9)}
                                                                     </>

@@ -1,80 +1,47 @@
-import { addDoc, setDoc, doc, onSnapshot, updateDoc, query, where } from 'firebase/firestore';
-import { padStart } from "lodash";
-import { Modal, Button } from 'react-bootstrap';
 import React from "react";
-import { collection } from 'firebase/firestore';
-import { db, get, then } from '../firebase-config';
 import { useState, useEffect } from 'react';
-import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import { collection } from 'firebase/firestore';
+import { db } from '../firebase-config';
+import { setDoc, doc, onSnapshot, updateDoc, query, where } from 'firebase/firestore';
+
 import { UserAuth } from '../context/AuthContext'
+
+import { Modal, Button } from 'react-bootstrap';
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
 function NewWarehouseModal(props) {
+  const { user } = UserAuth(); // user credentials
+  const [userID, setUserID] = useState(""); // user id
+  const userCollectionRef = collection(db, "user") // user collection reference
+  const [userCollection, setUserCollection] = useState([]); // user collection
+  const [userProfileID, setUserProfileID] = useState(""); // user profile id
+  const [warehouseCounter, setWarehouseCounter] = useState(0); // warehouse id counter
 
-  const { user } = UserAuth();//user credentials
-  const [userID, setUserID] = useState("");
-  const [userCollection, setUserCollection] = useState([]); 
-  const [userProfileID, setUserProfileID] = useState("");
-  const userCollectionRef = collection(db, "user")
-  const [warehouseCounter, setWarehouseCounter] = useState(0);
-
-  const [newWHName, setNewWHName] = useState("");
-  const [newWHNotes, setNewWHNotes] = useState("");
-  const [newAddress, setNewAddress] = useState("");
+  const [newWHName, setNewWHName] = useState(""); // warehouse name
+  const [newWHNotes, setNewWHNotes] = useState(""); // warehouse notes
+  const [newAddress, setNewAddress] = useState(""); // warehouse address
 
   const [disallowAddition, setDisallowAddition] = useState(true)
-
-  useEffect((()=> {
-    if(warehouseCounter > 1) {
-      updateDoc(doc(db, "user", userProfileID),
-      {
-        isNew : false
-      });
-    }
-  }))
-
-  useEffect(() => {
-    if(newWHName === undefined || newWHName == " " || newWHName == "")
-    {
-      setDisallowAddition(true)
-    }
-    else
-    {
-      setDisallowAddition(false)
-    }
-  })
-
+  
+  //=============================== START OF STATE LISTENERS ===============================
+  // set user id
   useEffect(() => {
     if (user) {
       setUserID(user.uid)
-    }  
+    }
   }, [{ user }])
 
-  const clearFields = () => {
-    setNewWHName("")
-    setNewWHNotes("")
-    setNewAddress("")
-  }
-
-  useEffect(()=>{
-    if(props.onHide)
-    {
-      clearFields()
-    }
-  }, [props.onHide])
-
+  // fetch user collection
   useEffect(() => {
     if (userID === undefined) {
       const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
-    
       const unsub = onSnapshot(q, (snapshot) =>
         setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
       return unsub;
     }
-    else
-    {
+    else {
       const q = query(userCollectionRef, where("user", "==", userID));
       const unsub = onSnapshot(q, (snapshot) =>
         setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
@@ -83,21 +50,60 @@ function NewWarehouseModal(props) {
     }
   }, [userID])
 
+  // assign user profile and warehouse id counter
   useEffect(() => {
     userCollection.map((metadata) => {
-        setWarehouseCounter(metadata.warehouseId)
-        setUserProfileID(metadata.id)
+      setWarehouseCounter(metadata.warehouseId)
+      setUserProfileID(metadata.id)
     });
   }, [userCollection])
- 
 
+  // check if user is new
+  useEffect((() => {
+    if (warehouseCounter > 1) {
+      updateDoc(doc(db, "user", userProfileID),
+        {
+          isNew: false
+        });
+    }
+  }))
+
+  // disable add button if format is incomplete
+  useEffect(() => {
+    if (newWHName === undefined || newWHName == " " || newWHName == "") {
+      setDisallowAddition(true)
+    }
+    else {
+      setDisallowAddition(false)
+    }
+  })
+
+  // clear fields on modal close
+  useEffect(() => {
+    if (props.onHide) {
+      clearFields()
+    }
+  }, [props.onHide])
+
+  //================================ END OF STATE LISTENERS ================================
+
+  //=================================== START OF HANDLERS ==================================
+  // reset fields
+  const clearFields = () => {
+    setNewWHName("")
+    setNewWHNotes("")
+    setNewAddress("")
+  }
+
+  // create warehouse id
   const createFormat = () => {
     var format = warehouseCounter + "";
-    while(format.length < 2) {format = "0" + format};
+    while (format.length < 2) { format = "0" + format };
     format = "WH" + format + '@' + userID;
     return format;
- }
-  
+  }
+
+  // warehouse addition prompt
   const successToast = () => {
     toast.success(' Warehouse Creation Successful ', {
       position: "top-right",
@@ -109,10 +115,11 @@ function NewWarehouseModal(props) {
       progress: undefined,
     });
   }
-
+  //=================================== END OF HANDLERS  ===================================
+  //============================== START OF DATABASE WRITERS ===============================
+  // add warehouse
   const addWarehouse = async () => {
     const userProfileRef = doc(db, "user", userProfileID)
-    console.log(userProfileRef)
     await setDoc(doc(db, "warehouse", createFormat()),
       {
         wh_name: newWHName
@@ -124,15 +131,16 @@ function NewWarehouseModal(props) {
         , cells: []
         , user: user.uid
       });
-      
+
     await updateDoc(userProfileRef,
       {
-	      warehouseId : Number(warehouseCounter) + 1
+        warehouseId: Number(warehouseCounter) + 1
       });
 
     successToast();
     props.onHide()
   }
+  //=============================== END OF DATABASE WRITERS ================================
 
   return (
     <Modal id="warehouse-modal"
@@ -143,17 +151,17 @@ function NewWarehouseModal(props) {
       className="IMS-modal"
     >
 
-    <ToastContainer
-      position="top-right"
-      autoClose={3500}
-      hideProgressBar={false}
-      newestOnTop={false}
-      closeOnClick
-      rtl={false}
-      pauseOnFocusLoss
-      draggable
-      pauseOnHover
-    />
+      <ToastContainer
+        position="top-right"
+        autoClose={3500}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
 
       <Modal.Body >
         <div className="px-3 py-2">
@@ -167,13 +175,13 @@ function NewWarehouseModal(props) {
                 readOnly
                 className="form-control shadow-none shadow-none no-click"
                 placeholder=""
-                defaultValue={createFormat().substring(0,4)}
+                defaultValue={createFormat().substring(0, 4)}
               />
             </div>
             <div className='col-7 ps-4'>
               <label>
                 Warehouse Name
-                <span style={{color: '#b42525'}}> *</span>
+                <span style={{ color: '#b42525' }}> *</span>
               </label>
               <input type="text"
                 className="form-control shadow-none"
@@ -208,7 +216,7 @@ function NewWarehouseModal(props) {
             </div>
           </div>
         </div>
-      </Modal.Body>   
+      </Modal.Body>
       <Modal.Footer
         className="d-flex justify-content-center"
       >
@@ -226,7 +234,7 @@ function NewWarehouseModal(props) {
           onClick={() => { addWarehouse() }}
         >
           Save
-      </Button>
+        </Button>
       </Modal.Footer>
     </Modal>
   );

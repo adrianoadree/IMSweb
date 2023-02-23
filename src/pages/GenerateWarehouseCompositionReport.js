@@ -3,41 +3,37 @@ import { Link } from 'react-router-dom';
 import { db } from '../firebase-config';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
-import { UserAuth } from '../context/AuthContext';
-import UserRouter from '../pages/UserRouter';
-import Navigation from '../layout/Navigation';
-
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'
 import html2canvas from 'html2canvas';
 import moment from "moment";
 
+import { UserAuth } from '../context/AuthContext';
+import UserRouter from '../pages/UserRouter';
+import Tips from '../components/Tips';
 
 import { Tab, Table, Card, Button, Nav} from 'react-bootstrap';
-
-import FormControl from "react-bootstrap/FormControl";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons';
-import { Spinner } from 'loading-animations-react';
 import { PieChart } from 'react-minimal-pie-chart';
 
 function GenerateWarehouseCompositionReport() {
-
-  //---------------------VARIABLES---------------------
-  const { user } = UserAuth();//user credentials
-  const [userID, setUserID] = useState("");
-  const [userCollection, setUserCollection] = useState([]);// user collection variable
+  const { user } = UserAuth(); // user credentials
+  const [userID, setUserID] = useState(""); // user id
   const userCollectionRef = collection(db, "user")// user collection reference
+  const [userCollection, setUserCollection] = useState([]);// user collection variable
   const [userProfile, setUserProfile] = useState({categories: []})// categories made by user
 
   const [stockcardCollection, setStockcardCollection] = useState(); // stockcard Collection 
   
-  const COLORS = ['#B0EEC1', '#B5E3FF', '#FEFFBF', '#FFDEBC'];
-  const COLORS2 = ['#FFCFB7', '#FFF5D8', '#439DB2', '#4193AD','#B0EEC1', '#B5E3FF', '#FEFFBF', '#FFDEBC'];
   var curr_date = new Date(); // get current date
   curr_date.setDate(curr_date.getDate());
   var today = curr_date
 
+  const COLORS = ['#B0EEC1', '#B5E3FF', '#FEFFBF', '#FFDEBC']; // color set 1
+  const COLORS2 = ['#FFCFB7', '#FFF5D8', '#439DB2', '#4193AD','#B0EEC1', '#B5E3FF', '#FEFFBF', '#FFDEBC']; // color set 2
+  
+  //=============================== START OF STATE LISTENERS ===============================
   // get user id
   useEffect(() => {
     if (user) {
@@ -85,7 +81,9 @@ function GenerateWarehouseCompositionReport() {
       return unsub;
     }
   }, [userID])
+  //================================ END OF STATE LISTENERS ================================
 
+  //=================================== START OF HANDLERS ==================================
   // get data list by classification
   const getClassificationData = () => {
     var data = 
@@ -138,6 +136,7 @@ function GenerateWarehouseCompositionReport() {
       }
       category_data.push(temp_obj)
     }
+
     return category_data
   }
 
@@ -321,12 +320,14 @@ function GenerateWarehouseCompositionReport() {
     doc.save(filename)
     // make doc downloadable
   }
+  //=================================== END OF HANDLERS ==================================
+
   return (
     <div>
       <UserRouter
         route=''
       />
-      <Navigation 
+      <Tips 
         route="/reports"
       />
       <Tab.Container

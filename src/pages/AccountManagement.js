@@ -1,41 +1,39 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
 import { db } from '../firebase-config';
 import { collection, doc, onSnapshot, query, updateDoc, where, orderBy } from 'firebase/firestore';
 
 import { UserAuth } from '../context/AuthContext';
-import Navigation from '../layout/Navigation';
-import  UserRouter  from '../pages/UserRouter'
+import Tips from '../components/Tips';
+import UserRouter from '../pages/UserRouter'
 
 import { Tab, Button, Card, Modal, Nav, Table } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faTrashCan, faBan, faEdit, faToggleOff, faToggleOn, faMinusCircle, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faTrashCan, faEdit, faMinusCircle, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast, Zoom } from "react-toastify";
 import { Spinner } from 'loading-animations-react';
 
 
 function AccountManagement() {
-
-  const { user } = UserAuth();//user credentials
-  const [userID, setUserID] = useState("");//user id variable
-  const [userCollection, setUserCollection] = useState([]);//users collection variable
-
-  const [showEditModal, setShowEditModal] = useState(false); //display/hide edit modal
-  const [showAddModal, setShowAddModal] = useState(false);//display/hide add modal
-  const [showDeleteModal, setShowDeleteModal] = useState(false); //display/hide edit modal
-  const [showDeactivateModal, setShowDeactivateModal] = useState(false); //display/hide edit modal
-  
-  const [profileID, setProfileID] = useState([]); //user profile id
-  const [account, setAccount] = useState();// accounts container
-  const [selectedAccount, setSelectedAccount] = useState(0);
+  const { user } = UserAuth(); // user credentials
+  const [userID, setUserID] = useState(""); // user id
+  const [userCollection, setUserCollection] = useState([]); // users collection
+  const [profileID, setProfileID] = useState([]); // user profile id
+  const [account, setAccount] = useState(); // user accounts
+  const [selectedAccount, setSelectedAccount] = useState(0); // selected user account
 
   const [salesRecordCollection, setSalesRecordCollection] = useState([]);
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([])
 
-  //fetch user id
+  const [showEditModal, setShowEditModal] = useState(false); // display/hide edit modal
+  const [showAddModal, setShowAddModal] = useState(false); // display/hide add modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false); // display/hide edit modal
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false); // display/hide edit modal
+
+  //=============================== START OF STATE LISTENERS ===============================
+  // set user id
   useEffect(() => {
     if (user) {
       setUserID(user.uid)
@@ -47,25 +45,24 @@ function AccountManagement() {
     if (userID === undefined) {
       const userCollectionRef = collection(db, "user")
       const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
-    
+
       const unsub = onSnapshot(q, (snapshot) =>
         setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
       return unsub;
     }
-    else
-    {
+    else {
       const userCollectionRef = collection(db, "user")
       const q = query(userCollectionRef, where("user", "==", userID));
-    
+
       const unsub = onSnapshot(q, (snapshot) =>
         setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
-      return unsub; 
+      return unsub;
     }
   }, [userID])
 
-  // get user's profile
+  // assign user's profile
   useEffect(() => {
     userCollection.map((metadata) => {
       setAccount(metadata.accounts)
@@ -73,11 +70,8 @@ function AccountManagement() {
     });
   }, [userCollection])
 
-  
-  
   // fetch purchase records collection
   useEffect(() => {
-    //read purchase_record collection
     if (userID === undefined) {
       const purchaseRecordCollectionRef = collection(db, "purchase_record")
       const q = query(purchaseRecordCollectionRef, where("user", "==", "DONOTDELETE"));
@@ -119,24 +113,24 @@ function AccountManagement() {
       return unsub;
     }
   }, [userID])
+  //=============================== END OF STATE LISTENERS ===============================
 
-  // edit account modal
+  // edit user modal
   function EditUserModal(param) {
-    var acc = [] // get accounts list and place in temp array
-    if(account === undefined)
-    {
-      acc = [{name: "", designation: "", isActive: false,}]
+    var acc = [] // get users list and place in temp array
+    if (account === undefined) {
+      acc = [{ name: "", designation: "", isActive: false, }]
     }
-    else
-    {
+    else {
       acc = account;
     }
-    var index = selectedAccount; // index of account to edit
-    const [name, setName] = useState(acc[index].name);
-    const [designation, setDesignation] = useState(acc[index].designation);
-    const [password, setPassword] = useState(acc[index].password);
-    const [isComplete, setIsComplete] = useState(2);
+    var index = selectedAccount; // index of user to edit
+    const [name, setName] = useState(acc[index].name); // user name variable
+    const [designation, setDesignation] = useState(acc[index].designation); // user designation variable
+    const [password, setPassword] = useState(acc[index].password); // user password variable
+    const [isComplete, setIsComplete] = useState(2); // user input completion checker
 
+    // user editing prompt
     const editSuccessToast = () => {
       toast.info('Updating ' + name, {
         position: "top-right",
@@ -148,23 +142,23 @@ function AccountManagement() {
         progress: undefined,
       });
     }
-    
+
+    // apply changes
     const saveEdit = async () => {
-      //change the values of the array
+      // change the values of the array
       acc[index].designation = designation;
       acc[index].password = password;
 
       await updateDoc(doc(db, 'user', profileID), {
-        accounts: acc,//replace firestore accounts array with temp array
+        accounts: acc,// replace firestore accounts array with temp array
       });
-
       editSuccessToast()
       param.onHide()
     }
 
     return (
       <Modal
-      {... param}
+        {...param}
         size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
@@ -173,7 +167,7 @@ function AccountManagement() {
         <Modal.Body >
           <div className="px-3 py-2">
             <div className="module-header mb-4">
-                <h3 className="text-center">Editing <span style={{color: '#000'}}>{acc[index].name}</span></h3>
+              <h3 className="text-center">Editing <span style={{ color: '#000' }}>{acc[index].name}</span></h3>
             </div>
             <div className="row my-2 mb-3">
               <div className='col-12 ps-4'>
@@ -182,7 +176,7 @@ function AccountManagement() {
                   className="form-control shadow-none"
                   placeholder="Warehouse Supervisor"
                   value={designation}
-                  onChange={(e)=>setDesignation(e.target.value)}
+                  onChange={(e) => setDesignation(e.target.value)}
                 />
               </div>
             </div>
@@ -193,12 +187,12 @@ function AccountManagement() {
                   className="form-control shadow-none"
                   placeholder="junathan121257"
                   value={password}
-                  onChange={(e)=>setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
-        </div>
-        </Modal.Body> 
+          </div>
+        </Modal.Body>
         <Modal.Footer
           className="d-flex justify-content-center"
         >
@@ -212,29 +206,30 @@ function AccountManagement() {
           <Button
             className="btn btn-light float-start"
             style={{ width: "6rem" }}
-            disabled={isComplete<2? true: false}
-            onClick={()=>saveEdit()}
+            disabled={isComplete < 2 ? true : false}
+            onClick={() => saveEdit()}
           >
-              Save
+            Save
           </Button>
         </Modal.Footer>
       </Modal>
     );
   }
 
-  // add accout modal
+  // add user modal
   function AddUserModal(param) {
-    var acc = param.list;//get accounts list and place in temp array
-    var object = {
+    var acc = param.list;//get user list and place in temp array
+    var object = {// create a temp account object
       name: '',
       designation: '',
       password: '',
       isActive: true,
-    }//create a temp account object
-    const [name, setName] = useState("");
-    const [designation, setDesignation] = useState("");
-    const [password, setPassword] = useState("");
-    
+    }
+    const [name, setName] = useState(""); // user name variable
+    const [designation, setDesignation] = useState(""); // user designation variable
+    const [password, setPassword] = useState(""); // user password variable
+
+    // user addition prompt
     const addSuccessToast = (name) => {
       toast.success('User for ' + name + ' created', {
         position: "top-right",
@@ -247,30 +242,29 @@ function AccountManagement() {
       });
     }
 
+    // add user
     const saveAdd = async () => {
-      //change the values of the object
+      // change the values of the object
       object.name = name;
       object.designation = designation;
       object.password = password;
       acc.push(object)
 
       await updateDoc(doc(db, 'user', profileID), {
-        accounts: acc,//replace firestore accounts array with temp array
+        accounts: acc,// replace firestore accounts array with temp array
       });
-
       addSuccessToast(name)
       param.onHide()
     }
 
     return (
       <Modal
-      {... param}
+        {...param}
         size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
         className="IMS-modal"
       >
-
         <Modal.Body >
           <div className="px-3 py-2">
             <div className="module-header mb-4">
@@ -283,7 +277,7 @@ function AccountManagement() {
                   className="form-control shadow-none"
                   placeholder="Annie Batumbakal"
                   autoFocus
-                  onChange={(e)=>setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
             </div>
@@ -293,7 +287,7 @@ function AccountManagement() {
                 <input type="text"
                   className="form-control shadow-none"
                   placeholder="Warehouse Supervisor"
-                  onChange={(e)=>setDesignation(e.target.value)}
+                  onChange={(e) => setDesignation(e.target.value)}
                 />
               </div>
             </div>
@@ -304,12 +298,12 @@ function AccountManagement() {
                   type="text"
                   className="form-control shadow-none"
                   placeholder="junathan121257"
-                  onChange={(e)=>setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
           </div>
-        </Modal.Body> 
+        </Modal.Body>
         <Modal.Footer
           className="d-flex justify-content-center"
         >
@@ -323,41 +317,37 @@ function AccountManagement() {
           <Button
             className="btn btn-light float-start"
             style={{ width: "6rem" }}
-            onClick={()=>saveAdd()}
+            onClick={() => saveAdd()}
           >
-              Save
+            Save
           </Button>
         </Modal.Footer>
       </Modal>
     );
   }
 
+  // check if user has issued transactions
   function checkUserActivity(name) {
-    var all_records = salesRecordCollection.concat(purchaseRecordCollection)
-
-    for(var i = 0; i < all_records.length; i++)
-    {
-        if(all_records[i].issuer == name)
-        {
-          return true;
-        }
+    var all_records = salesRecordCollection.concat(purchaseRecordCollection) // records container
+    for (var i = 0; i < all_records.length; i++) {
+      if (all_records[i].issuer == name) {
+        return true;
+      }
     }
   }
 
-  // delete acccount modal
+  // delete user modal
   function DeleteUserModal(props) {
-    var acc = [];//get accounts list and place in temp array
-    if(account === undefined)
-    {
-      acc = [{name: "", designation: "", isActive: false,}]
+    var acc = []; // get users list and place in temp array
+    if (account === undefined) {
+      acc = [{ name: "", designation: "", isActive: false, }]
     }
-    else
-    {
+    else {
       acc = account;
     }
-    var index = selectedAccount;//index of account to edit
-    //delete row 
+    var index = selectedAccount; // index of account to edit
 
+    // user deletion prompt
     const deleteToast = () => {
       toast.error("Removing " + acc[index].name, {
         position: "top-right",
@@ -371,8 +361,9 @@ function AccountManagement() {
       });
     }
 
+    // delete user
     const deleteUser = () => {
-      var splideAcc = acc.splice(selectedAccount, 1);//pop account from array through index
+      var spliceAcc = acc.splice(selectedAccount, 1);//pop account from array through index
 
       const saveDelete = async () => {
         await updateDoc(doc(db, 'user', profileID), {
@@ -453,62 +444,58 @@ function AccountManagement() {
     )
   }
 
-  // delete acccount modal
+  // deactivate user modal
   function DeactivateUserModal(props) {
-    var acc = [];//get accounts list and place in temp array
-    if(account === undefined)
-    {
-      acc = [{name: "", designation: "", isActive: false,}]
+    var acc = []; //get users list and place in temp array
+    if (account === undefined) {
+      acc = [{ name: "", designation: "", isActive: false, }]
     }
-    else
-    {
+    else {
       acc = account;
     }
-    var index = selectedAccount;//index of account to edit
+    var index = selectedAccount; // index of account to edit
 
     const deactivateToast = () => {
-      acc[selectedAccount].isActive?
-      toast.info("Activating "  + acc[index].name, {
-        position: "top-right",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        transition: Zoom,
-      })
-      :
-      toast.error("Deactivating "  + acc[index].name, {
-        position: "top-right",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        transition: Zoom,
-      })
+      acc[selectedAccount].isActive ?
+        toast.info("Activating " + acc[index].name, {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          transition: Zoom,
+        })
+        :
+        toast.error("Deactivating " + acc[index].name, {
+          position: "top-right",
+          autoClose: 1500,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          transition: Zoom,
+        })
     }
 
+    // deactivate/activate user
     const deactivateUser = () => {
-      
       const saveDeactivate = async () => {
         //activeness toggling
-        if ( acc[index].isActive )
-        {
+        if (acc[index].isActive) {
           acc[index].isActive = false
         }
-        else
-        {
+        else {
           acc[index].isActive = true
         }
-        
+
         await updateDoc(doc(db, 'user', profileID), {
           accounts: acc,
         });
-  
-    }
+
+      }
       saveDeactivate()
       setSelectedAccount(0)
       deactivateToast()
@@ -521,13 +508,13 @@ function AccountManagement() {
         size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
-        className={"IMS-modal " + (acc[selectedAccount].isActive?"warning":"")}
+        className={"IMS-modal " + (acc[selectedAccount].isActive ? "warning" : "")}
       >
         <Modal.Body >
           <div className="px-3 py-2">
             <div className="module-header mb-4">
               <h3 className="text-center">
-                {acc[selectedAccount].isActive?
+                {acc[selectedAccount].isActive ?
                   <>Deactivating {acc[selectedAccount].name}</>
                 :
                   <>Activating {acc[selectedAccount].name}</>
@@ -538,13 +525,13 @@ function AccountManagement() {
               <div className="col-12 px-3 text-center">
                 <strong>
                   Are you sure you want to
-                  {acc[selectedAccount].isActive?
-                  <> deactivate</>
+                  {acc[selectedAccount].isActive ?
+                    <> deactivate</>
                   :
-                  <> activate</>
+                    <> activate</>
                   }
                   <br />
-                  <span style={acc[selectedAccount].isActive?{ color: "#eda726" }:{ color: "#0d6efd" }}>
+                  <span style={acc[selectedAccount].isActive ? { color: "#eda726" } : { color: "#0d6efd" }}>
                     {acc[selectedAccount].name}?
                   </span>
                 </strong>
@@ -576,21 +563,21 @@ function AccountManagement() {
           className="d-flex justify-content-center"
         >
           <Button
-            className={"btn " + (acc[selectedAccount].isActive?"btn-light":"btn-warning") +" float-start"}
+            className={"btn " + (acc[selectedAccount].isActive ? "btn-light" : "btn-warning") + " float-start"}
             style={{ width: "6rem" }}
             onClick={() => props.onHide()}
           >
             Cancel
           </Button>
           <Button
-            className={"btn " + (acc[selectedAccount].isActive?"btn-warning":"btn-light") +" float-start"}
-            style={{ width: "11rem", color: (acc[selectedAccount].isActive?"#ffffff":"#000000") }}
+            className={"btn " + (acc[selectedAccount].isActive ? "btn-warning" : "btn-light") + " float-start"}
+            style={{ width: "11rem", color: (acc[selectedAccount].isActive ? "#ffffff" : "#000000") }}
             onClick={() => { deactivateUser() }}
           >
-            {acc[selectedAccount].isActive?
-            <>Deactivate </>
-            :
-            <>Activate </>
+            {acc[selectedAccount].isActive ?
+              <>Deactivate </>
+              :
+              <>Activate </>
             }
             User
           </Button>
@@ -604,18 +591,14 @@ function AccountManagement() {
       <UserRouter
         route='/accountmanagement'
       />
-
-      <Navigation
+      <Tips
         page='/profileManagement'
       />
-
-
       <AddUserModal
         show={showAddModal}
         onHide={() => setShowAddModal(false)}
         list={account}
       />
-
       <EditUserModal
         show={showEditModal}
         onHide={() => setShowEditModal(false)}
@@ -663,7 +646,6 @@ function AccountManagement() {
                         </div>
                       </div>
                     </div>
-
                   </div>
                 </div>
                 <div className="row m-0">
@@ -692,54 +674,44 @@ function AccountManagement() {
                         <th className='mn pth text-center'>Manage User</th>
                       </tr>
                     </thead>
-
                     <tbody>
-                      {account === undefined?
-                      <tr>
-                        <td colSpan={4} className="text-center">
-                        <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
-                        <Spinner
-                          color1="#b0e4ff"
-                          color2="#fff"
-                          textColor="rgba(0,0,0, 0.5)"
-                          className="w-25 h-25"
-                        />
-                      </div>
-                        </td>
-                      </tr>
+                      {account === undefined ?
+                        <tr>
+                          <td colSpan={4} className="text-center">
+                            <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
+                              <Spinner
+                                color1="#b0e4ff"
+                                color2="#fff"
+                                textColor="rgba(0,0,0, 0.5)"
+                                className="w-25 h-25"
+                              />
+                            </div>
+                          </td>
+                        </tr>
                       :
                         <>
-                        {account.map((acc, i) => {
-                          return (
-                            <>
-                              <tr
-                                key={i}
-                                style={acc.isActive ? {} : { color: "#939899" }}
-                              >
-                                <td className="nm pt-entry text-center">
-                                  {acc.isAdmin ?
-                                    <strong>{acc.name}</strong>
+                          {account.map((acc, i) => {
+                            return (
+                              <>
+                                <tr
+                                  key={i}
+                                  style={acc.isActive ? {} : { color: "#939899" }}
+                                >
+                                  <td className="nm pt-entry text-center">
+                                    {acc.isAdmin ?
+                                      <strong>{acc.name}</strong>
                                     :
-                                    <>{acc.name}</>
-                                  }
-                                </td>
-                                <td className="ds pt-entry text-center">
-                                  {acc.designation}
-                                </td>
-                                <td className="ps pt-entry text-center">
-                                  {acc.password}
-                                </td>
-                                <td className="mn pt-entry text-center" >
-                                  {acc.isAdmin ?
-                                    <Button
-                                      className="edit me-1"
-                                      data-title="Edit User"
-                                      onClick={() => { setSelectedAccount(i); setShowEditModal(true) }}
-                                    >
-                                      <FontAwesomeIcon icon={faEdit} />
-                                    </Button>
-                                    :
-                                    <>
+                                      <>{acc.name}</>
+                                    }
+                                  </td>
+                                  <td className="ds pt-entry text-center">
+                                    {acc.designation}
+                                  </td>
+                                  <td className="ps pt-entry text-center">
+                                    {acc.password}
+                                  </td>
+                                  <td className="mn pt-entry text-center" >
+                                    {acc.isAdmin ?
                                       <Button
                                         className="edit me-1"
                                         data-title="Edit User"
@@ -747,37 +719,44 @@ function AccountManagement() {
                                       >
                                         <FontAwesomeIcon icon={faEdit} />
                                       </Button>
-                                      <Button
-                                        className={(acc.isActive?"deactivate":"activate") + " me-1"}
-                                        data-title={(acc.isActive?"Deactivate":"Activate") + " User"}
-                                        onClick={() => { setSelectedAccount(i); setShowDeactivateModal(true) }}
-                                      >
-                                        {acc.isActive?
-                                          <FontAwesomeIcon icon={faMinusCircle} />
-                                        :
-                                          <FontAwesomeIcon icon={faCheckCircle} />
-                                        }
-                                      </Button>
-                                      <Button
-                                        className={checkUserActivity(acc.name)? "delete disabled-conditionally":"delete"}
-                                        disabled={checkUserActivity(acc.name)}
-                                        data-title={checkUserActivity(acc.name)?"User issued transactions":"Delete User"}
-                                        onClick={() => { setSelectedAccount(i); setShowDeleteModal(true) }}
-                                      >
-                                        <FontAwesomeIcon icon={faTrashCan} />
-                                      </Button>
-                                    </>
-                                  }
-                                </td>
-                              </tr>
-                            </>
-                          )
-                        })}
+                                    :
+                                      <>
+                                        <Button
+                                          className="edit me-1"
+                                          data-title="Edit User"
+                                          onClick={() => { setSelectedAccount(i); setShowEditModal(true) }}
+                                        >
+                                          <FontAwesomeIcon icon={faEdit} />
+                                        </Button>
+                                        <Button
+                                          className={(acc.isActive ? "deactivate" : "activate") + " me-1"}
+                                          data-title={(acc.isActive ? "Deactivate" : "Activate") + " User"}
+                                          onClick={() => { setSelectedAccount(i); setShowDeactivateModal(true) }}
+                                        >
+                                          {acc.isActive ?
+                                            <FontAwesomeIcon icon={faMinusCircle} />
+                                          :
+                                            <FontAwesomeIcon icon={faCheckCircle} />
+                                          }
+                                        </Button>
+                                        <Button
+                                          className={checkUserActivity(acc.name) ? "delete disabled-conditionally" : "delete"}
+                                          disabled={checkUserActivity(acc.name)}
+                                          data-title={checkUserActivity(acc.name) ? "User issued transactions" : "Delete User"}
+                                          onClick={() => { setSelectedAccount(i); setShowDeleteModal(true) }}
+                                        >
+                                          <FontAwesomeIcon icon={faTrashCan} />
+                                        </Button>
+                                      </>
+                                    }
+                                  </td>
+                                </tr>
+                              </>
+                            )
+                          })}
                         </>
-                      
                       }
                     </tbody>
-
                   </Table>
                 </div>
               </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Nav, Tab, Button, Card, ListGroup, Modal, Form, Alert, Table, Tooltip, OverlayTrigger } from 'react-bootstrap';
-import Navigation from '../layout/Navigation';
+import Tips from '../components/Tips';
 import { useState, useEffect } from 'react';
 import { db, st } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -1749,7 +1749,7 @@ function StockcardPage({ isAuth }) {
       <UserRouter
         route='/stockcard'
       />
-      <Navigation
+      <Tips
         page="/stockcard"
       />
 

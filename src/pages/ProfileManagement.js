@@ -11,7 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEdit, faSave, faClose } from '@fortawesome/free-solid-svg-icons'
 
 import { UserAuth } from '../context/AuthContext';
-import Navigation from '../layout/Navigation';
+import Tips from '../components/Tips';
 import  UserRouter  from '../pages/UserRouter'
 import { Spinner } from 'loading-animations-react';
 
@@ -238,7 +238,7 @@ function ProfileManagement() {
       <UserRouter
         route='/profileManagement'
       />
-      <Navigation 
+      <Tips 
         page='/profileManagement'
       />
       {userCollection === undefined || userCollection.length == 0?

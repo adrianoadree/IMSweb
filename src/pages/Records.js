@@ -7,7 +7,7 @@ import { collection, onSnapshot, query, doc, getDoc, where, orderBy, updateDoc }
 
 import { UserAuth } from '../context/AuthContext'
 import UserRouter from '../pages/UserRouter'
-import Navigation from "../layout/Navigation";
+import Tips from "../components/Tips";
 
 import moment from "moment";
 
@@ -472,7 +472,7 @@ function Records() {
       <UserRouter
         route='/records'
       />
-      <Navigation
+      <Tips
         page='/purchase'
       />
       <ProductQuickView
@@ -582,8 +582,12 @@ function Records() {
                       :
                       <div className="w-100 h-100 d-flex align-items-center justify-content-center flex-column p-5">
                         <div className="px-5 py-2 d-flex align-items-center justify-content-center flex-column">
-                            <img id="brand-img-mobile" className="small" src="https://firebasestorage.googleapis.com/v0/b/inventoryapp-330808.appspot.com/o/system%2FLogo.png?alt=media&token=4a122e42-8aac-4f96-8221-453a40294d52"/>
-                            Loading . . .
+                          <Spinner
+                            color1="#b0e4ff"
+                            color2="#fff"
+                            textColor="rgba(0,0,0, 0.5)"
+                            className="w-50 h-50"
+                          />
                         </div>
                       </div>
                     }

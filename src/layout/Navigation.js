@@ -5,7 +5,6 @@ import { collection, doc, updateDoc, onSnapshot, query, where, orderBy } from 'f
 import { signOut } from 'firebase/auth';
 
 import { UserAuth } from '../context/AuthContext'
-import Tips from '../components/Tips';
 import QuickAccess from '../components/QuickAccess';
 
 import { Nav, Navbar, Container, NavDropdown } from 'react-bootstrap';
@@ -13,30 +12,30 @@ import { LinkContainer } from 'react-router-bootstrap';
 import { HelpCircleOutline, HelpCircle, Star, StarOutline  } from 'react-ionicons'
 
 const Navigation = (props) => {
-  const { user } = UserAuth();//user credentials
-
-  const userCollectionRef = collection(db, "user"); //users collection reference
-  const [userCollection, setUserCollection] = useState([]); //users collection 
-  const [userID, setUserID] = useState(""); //current user id variable
-  const [userProfileID, setUserProfileID] = useState(""); //current user id variable
-  const [userName, setUserName] = useState(""); //user name variable
-  const [isNew, setIsNew] = useState(false); //user newness variable
-  const [status, setStatus] = useState("verified"); //user verification status variable
-  const [preferencesTips, setPreferencesTips] = useState() //user tips preference variable
-  const [preferencesQuickAccess, setPreferencesQuickAccess] = useState() //user quick access preference variable
-  const [prodNearROP, setProdNearROP] = useState([]) //notifications items variable
+  const { user } = UserAuth(); // user credentials
+  const userCollectionRef = collection(db, "user"); // users collection reference
+  const [userCollection, setUserCollection] = useState([]); // users collection 
+  const [userID, setUserID] = useState(""); // current user id
+  const [userProfileID, setUserProfileID] = useState(""); // current user profile
+  const [isNew, setIsNew] = useState(false); // user newness
+  const [status, setStatus] = useState("verified"); // user verification status
+  const [preferencesTips, setPreferencesTips] = useState() // user tips preference
+  const [preferencesQuickAccess, setPreferencesQuickAccess] = useState() // user quick access preference
+  
+  const [prodNearROP, setProdNearROP] = useState([]) //notifications items
 
   const [tipsVisibilityTogglerIcon, setTipsVisibilityTogglerIcon] = useState(true) //guidelines visibility listener
   const [quickAccessVisibilityTogglerIcon, setQuickAccessVisibilityTogglerIcon] = useState(true) //quick access visibility listener
   
-  //fetch user id
+  //=============================== START OF STATE LISTENERS ===============================
+  // set user id
   useEffect(() => {
     if (user) {
       setUserID(user.uid)
     }
   }, [{ user }])
 
-  //fetch user collection
+  // fetch user collection
   useEffect(() => {
     if (userID === undefined) {
       const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
@@ -59,19 +58,18 @@ const Navigation = (props) => {
     }
   }, [userID])
   
-  //fetch current user profile
+  // assign user profile
   useEffect(() => {
     userCollection.map((metadata) => {
       setPreferencesTips(metadata.preferences.showTips);
       setPreferencesQuickAccess(metadata.preferences.showQuickAccess);
       setUserProfileID(metadata.id);
-      setUserName(metadata.name);
       setIsNew(metadata.isNew)
       setStatus(metadata.status)
     });
   }, [userCollection])
   
-  //fetch if there's notification
+  // fetch products needed to be ordered
   useEffect(() => {
     if (userID !== undefined) {
         const stockcardCollectionRef = collection(db, "stockcard")
@@ -83,13 +81,10 @@ const Navigation = (props) => {
         return unsub;
     }
   }, [userID])
-
-  //logout module
-  const logout = async () => {
-    await signOut(auth)
-  }
-
-  //tips preferences change handler
+  //================================ END OF STATE LISTENERS ================================
+  
+//=================================== START OF HANDLERS ==================================
+  // change user tips preference
   const handlePreferencesTipsChange = () => {
     var pref_tips = !preferencesTips
     var pref_qa = preferencesQuickAccess
@@ -99,7 +94,7 @@ const Navigation = (props) => {
     });
   }
 
-  //quick access preferences change handler
+  // change quick access user preference
   const handlePreferencesQuickAccessChange = () => {
     var pref_tips = preferencesTips
     var pref_qa = !preferencesQuickAccess
@@ -108,6 +103,12 @@ const Navigation = (props) => {
       preferences: {showTips: pref_tips, showQuickAccess: pref_qa}
     });
   }
+
+  // logout module
+  const logout = async () => {
+    await signOut(auth)
+  }
+  //=================================== END OF HANDLERS  ===================================
 
   return (
     <div>
@@ -279,15 +280,6 @@ const Navigation = (props) => {
           </Navbar.Collapse>
         </Container>
       </Navbar>
-      {preferencesTips ?
-        <Tips
-          name={userName}
-          page={props.page}
-          isNew={isNew}
-        />
-        :
-        <></>
-      }
       {!isNew ?
         <>
           {preferencesQuickAccess ?

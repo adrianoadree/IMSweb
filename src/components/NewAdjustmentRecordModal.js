@@ -1,79 +1,146 @@
 import React from "react";
-import { Button, Form, Modal, Tab, Table } from "react-bootstrap";
 import { useState, useEffect } from "react";
 import { db, st } from "../firebase-config";
-import { collection, updateDoc, onSnapshot, query, doc, setDoc, getDoc, where } from "firebase/firestore";
+import { collection, updateDoc, onSnapshot, query, doc, setDoc, where } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+
 import moment from "moment";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+
 import { UserAuth } from '../context/AuthContext'
 
+import { Button, Modal, Tab, Table } from "react-bootstrap";
 import { faPlus, faMinus, faUpload, faCheck, faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { Spinner } from 'loading-animations-react';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 
 function NewAdjustmentRecordModal(props) {
-
-
-
-
-
-    //---------------------VARIABLES---------------------
-
-
-    const { user } = UserAuth();//user credentials
-    const [userID, setUserID] = useState("");
-    const [productIds, setProductIds] = useState([]); // array of prod id
-    const [prodList, setProdList] = useState([])
-
-    const [key, setKey] = useState('main');//Tab controller
-    const [userCollection, setUserCollection] = useState([]);// userCollection variable
+    const { user } = UserAuth(); // user credentials
+    const [userID, setUserID] = useState(""); // user id
+    const userCollectionRef = collection(db, "user")// user collection reference
+    const [userCollection, setUserCollection] = useState([]);// user collection
     const [userProfileID, setUserProfileID] = useState(""); // user profile id
-    const userCollectionRef = collection(db, "user")// user collection
-    const [adjustmentCounter, setAdjustmentCounter] = useState(0); // sales counter
-    const [transactionIssuer, setTransactionIssuer] = useState("") // default purchaser in web
 
-    const [newNote, setNewNote] = useState(""); // note form input
-    const [stockcard, setStockcard] = useState([]); // stockcardCollection variable
+    const [key, setKey] = useState('main'); // tab controller
+
+    const [stockcard, setStockcard] = useState([]); // stockcard collection
     const [items, setItems] = useState([]); // array of objects containing product information
     const [itemId, setItemId] = useState("IT999999"); //product id
-    const [itemName, setItemName] = useState(""); //product description
-    const [itemSPrice, setItemSPrice] = useState(0); //product Selling Price
-    const [itemPPrice, setItemPPrice] = useState(0); //product Purchase Price
-    const [itemQuantity, setItemQuantity] = useState(1); //product quantity
-    const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); //product available stock
-    const [newChecker, setNewChecker] = useState(""); // stockcardCollection variable
-    const [stockcardDoc, setStockcardDoc] = useState({}); // stockcardCollection variable
-    var curr = new Date()
+    const [itemName, setItemName] = useState(""); // product description
+    const [itemSPrice, setItemSPrice] = useState(0); // product selling price
+    const [itemPPrice, setItemPPrice] = useState(0); // product purchase price
+    const [itemQuantity, setItemQuantity] = useState(1); // product adjusted quantity
+    const [itemCurrentQuantity, setItemCurrentQuantity] = useState(1); // product current quantity
+
+    const [productIds, setProductIds] = useState([]); // added product ids
+    const [prodList, setProdList] = useState([]) // added products with info
+
+    const [adjustmentCounter, setAdjustmentCounter] = useState(0); // sales counter
+    const [transactionIssuer, setTransactionIssuer] = useState("") // default purchaser in web
+    const [newNote, setNewNote] = useState(""); // record note
+    const [newChecker, setNewChecker] = useState(""); // record checker
+    var curr = new Date() // get curent date
     curr.setDate(curr.getDate());
-    var today = moment(curr).format('YYYY-MM-DD')
-    const [newDate, setNewDate] = useState(today); // stockcardCollection variable
-    const [buttonBool, setButtonBool] = useState(true); //button disabler
-    const [fileUpload, setFileUpload] = useState([]);
-    const [fileUrls, setFileUrls] = useState([]);
-    const [uploading, setUploading] = useState(false);
-    const [uploadFinished, setUploadFinished] = useState(false);
-    const [imageIndex, setImageIndex] = useState()
-    const [reachedEnd, setReachedEnd] = useState(false)
-    const [reachedStart, setReachedStart] = useState(false)
+    var today = moment(curr).format('YYYY-MM-DD') // change date format
+    const [newDate, setNewDate] = useState(today); // record date
 
-    //---------------------FUNCTIONS---------------------
+    const [buttonBool, setButtonBool] = useState(true); // button disabler if form is complete
 
+    const [fileUpload, setFileUpload] = useState([]); // uploaded files
+    const [fileUrls, setFileUrls] = useState([]); // url of uploaded files
+    const [uploading, setUploading] = useState(false); // uploading status
+    const [uploadFinished, setUploadFinished] = useState(false); // upload completion status
 
+    const [imageIndex, setImageIndex] = useState() // index reference in image viewing
+    const [reachedEnd, setReachedEnd] = useState(false) // checker if urls reach the end in image viewing
+    const [reachedStart, setReachedStart] = useState(false) // checker if urls reach the start in image viewing
 
+    //=============================== START OF STATE LISTENERS ===============================
+    // set user id
+    useEffect(() => {
+        if (user) {
+            setUserID(user.uid)
+        }
+    }, [{ user }])
 
+    // fetch user collection from database
+    useEffect(() => {
+        if (userID === undefined) {
+            const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+            const unsub = onSnapshot(q, (snapshot) =>
+                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+            const q = query(userCollectionRef, where("user", "==", userID));
+            const unsub = onSnapshot(q, (snapshot) =>
+                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
 
-    //set Product ids
+    // assign profile and adjustment counter
+    useEffect(() => {
+        userCollection.map((metadata) => {
+            setAdjustmentCounter(metadata.adjustmentId)
+            setUserProfileID(metadata.id)
+            metadata.accounts.map((account) => {
+                if (account.isAdmin) {
+                    setTransactionIssuer(account)
+                }
+            })
+        });
+    }, [userCollection])
+
+    // fetch user products
+    useEffect(() => {
+        if (userID === undefined) {
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+        else {
+            const collectionRef = collection(db, "stockcard")
+            const q = query(collectionRef, where("user", "==", userID));
+
+            const unsub = onSnapshot(q, (snapshot) =>
+                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+            );
+            return unsub;
+        }
+    }, [userID])
+    
+    // set data on product change from dropdown
+    useEffect(() => {
+        if (itemName != undefined) {
+            const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
+                if (doc.data() != undefined) {
+                    setItemName(doc.data().description)
+                    setItemCurrentQuantity(doc.data().qty)
+                    setItemSPrice(doc.data().s_price)
+                    setItemPPrice(doc.data().p_price)
+                }
+            }, (error) => {
+            });
+        }
+    }, [itemId])
+
+    // set product ids
     useEffect(() => {
         items.map((item) => {
             setProductIds([...productIds, item.itemId])
         })
     }, [items])
 
-
-    //set Product ids
+    // set product lists
     useEffect(() => {
         setProdList()
         let arrObj = []
@@ -94,131 +161,54 @@ function NewAdjustmentRecordModal(props) {
         setProdList(arrObj)
     }, [items])
 
-
-    //fetch user collection from database
+    // start image display if fileUrls is filled
     useEffect(() => {
-        if (userID === undefined) {
-            const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
+        if (fileUrls === undefined || fileUrls.length == 0) {
 
-            const unsub = onSnapshot(q, (snapshot) =>
-                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
         }
         else {
-            const q = query(userCollectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
+            setKey(fileUrls[0])
         }
-    }, [userID])
+    }, [fileUrls])
 
-    //assign profile and purchase counter
+    // set image upload status
     useEffect(() => {
-        userCollection.map((metadata) => {
-            setAdjustmentCounter(metadata.adjustmentId)
-            setUserProfileID(metadata.id)
-            metadata.accounts.map((account)=>{
-                if(account.isAdmin)
-                {
-                    setTransactionIssuer(account)
+        if (fileUrls.length > 0) {
+            if (fileUrls.length != fileUpload.length) {
+            }
+            else {
+                if (fileUrls.length == fileUpload.length) {
+                    setUploadFinished(true)
                 }
-            })
-        });
-    }, [userCollection])
-
-    useEffect(() => {
-        if(fileUrls.length > 0)
-        {
-          if(fileUrls.length != fileUpload.length) {
-          }
-          else
-          {
-            if(fileUrls.length == fileUpload.length)
-            {
-              setUploadFinished(true)
+                setUploading(false)
             }
-            setUploading(false)
-          }
         }
-      })
-
-    const filterFileUpload = (files) => {
-        var valid_types= ['image/gif', 'image/jpeg', 'image/png', 'image/jpg'];
-        var temp_file_list = []
-        Array.from(files).map((file, index) => {
-            if(valid_types.includes(file['type']))
-            {
-                temp_file_list.push(file)
-            }
-        })
-        setFileUpload(temp_file_list)
-    }
-
-    useEffect(() => {
-        console.log(fileUpload)
     })
 
-    //Read stock card collection from database
-    useEffect(() => {
-        if (userID === undefined) {
-
-            const collectionRef = collection(db, "stockcard")
-            const q = query(collectionRef, where("user", "==", "DONOTDELETE"));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-        else {
-
-            const collectionRef = collection(db, "stockcard")
-            const q = query(collectionRef, where("user", "==", userID));
-
-            const unsub = onSnapshot(q, (snapshot) =>
-                setStockcard(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-            );
-            return unsub;
-        }
-    }, [userID])
-
-
-    //Read and set data from stockcard document
-    useEffect(() => {
-        if (itemName != undefined) {
-
-            const unsub = onSnapshot(doc(db, "stockcard", itemId), (doc) => {
-                if (doc.data() != undefined) {
-                    setItemName(doc.data().description)
-                    setItemCurrentQuantity(doc.data().qty)
-                    setItemSPrice(doc.data().s_price)
-                    setItemPPrice(doc.data().p_price)
-                }
-            }, (error) => {
-            });
-        }
-    }, [itemId])
-
+    // clear fields on modal close
     useEffect(() => {
         if (props.onHide) {
             clearFields()
         }
     }, [props.onHide])
 
-    const clearFields = () => {
-        setNewDate(today)
-        setProductIds([])
-        setItems([]);
-        setNewNote("");
-        setFileUpload([])
-        setFileUrls([])
-        setNewChecker([])
-    }
+    // disable adjutment button if form is not complete
+    useEffect(() => {
+        if (
+            itemId != "IT999999" && itemQuantity >= (itemCurrentQuantity * -1)
+        ) {
+            setButtonBool(false)
+        }
+        else {
+            setButtonBool(true)
+        }
+    }, [itemQuantity, itemId])
 
-    //----------------------Start of Dynamic form functions----------------------
+    //================================ END OF STATE LISTENERS ================================
+
+    //=================================== START OF HANDLERS ==================================
+
+    // add items into the list
     const addItem = event => {
         event.preventDefault();
         setItems([
@@ -237,6 +227,7 @@ function NewAdjustmentRecordModal(props) {
         setItemQuantity(1);
     };
 
+    // remove items from the list
     const handleItemRemove = (index) => {
         const list = [...items]
         list.splice(index, 1)
@@ -245,32 +236,104 @@ function NewAdjustmentRecordModal(props) {
         ids.splice(index, 1)
         setProductIds(ids)
     }
+    
+    // filter uploaded files to images only
+    const filterFileUpload = (files) => {
+        var valid_types = ['image/gif', 'image/jpeg', 'image/png', 'image/jpg'];
+        var temp_file_list = []
+        Array.from(files).map((file, index) => {
+            if (valid_types.includes(file['type'])) {
+                temp_file_list.push(file)
+            }
+        })
+        setFileUpload(temp_file_list)
+    }
 
-    //ButtonDisabler
-    useEffect(() => {
-        if(
-            itemId != "IT999999" && itemQuantity >= (itemCurrentQuantity * -1)
-        ) {
-            setButtonBool(false)
+    // upload files to storage and get urls
+    const uploadFile = () => {
+        if (fileUpload == null) return;
+        Array.from(fileUpload).map((file, index) => {
+            uploadBytes(ref(st, `${userID}/adjustment_record/${createFormat().substring(0, 7)}-${index}`), file).then((snapshot) => {
+                getDownloadURL(snapshot.ref).then((url) => {
+                    setFileUrls((prev) => [...prev, { name: file["name"], url: url }]);
+                });
+            });
+        })
+        setImageIndex(0)
+        setReachedStart(true)
+        if (fileUrls.length == 1) {
+            setReachedEnd(true)
         }
         else {
-            setButtonBool(true)
+            setReachedEnd(false)
         }
-    }, [itemQuantity, itemId])
+    };
 
-    //----------------------End of Dynamic form functions----------------------
+    // change images in image preview 
+    const changeImage = (action) => {
+        var temp_image_index = imageIndex
 
+        if (action == "next") {
+            temp_image_index = temp_image_index + 1
+        }
+        else {
+            temp_image_index = temp_image_index - 1
+        }
+        if (temp_image_index <= 0) {
+            setImageIndex(0)
+            setReachedStart(true)
+        }
+        else if (temp_image_index >= fileUrls.length - 1) {
+            setImageIndex(fileUrls.length - 1)
+            setReachedEnd(true)
+        }
+        else {
+            setImageIndex(temp_image_index)
+            setReachedStart(false)
+            setReachedEnd(false)
+        }
+    }
 
-    //----------------------Start of addRecord functions----------------------
+    // reset field values
+    const clearFields = () => {
+        setNewDate(today)
+        setProductIds([])
+        setItems([]);
+        setNewNote("");
+        setFileUpload([])
+        setFileUrls([])
+        setNewChecker([])
+    }
 
+    // create ajustment record id
     const createFormat = () => {
         var format = adjustmentCounter + "";
         while (format.length < 5) { format = "0" + format };
         format = "AR" + format + '@' + userID;
         return format;
     }
+    //=================================== END OF HANDLERS  ===================================
 
-    //add document to database
+    //============================== START OF DATABASE WRITERS ===============================
+
+    // update product quantity from databse
+    function updateQuantity() {
+        items.map((items) => {
+            const stockcardRef = doc(db, "stockcard", items.itemId);
+            updateDoc(stockcardRef, {
+                qty: items.itemNewQuantity,
+            });
+        })
+    }
+
+    // update adjustment record id counter from database
+    function updateAdjDocNum() {
+        const userDocRef = doc(db, "user", userProfileID)
+        const newData = { adjustmentId: Number(adjustmentCounter) + 1 }
+        updateDoc(userDocRef, newData)
+    }
+
+    // add document to database
     const addRecord = async () => {
         setDoc(doc(db, "adjustment_record", createFormat()), {
             user: userID,
@@ -282,117 +345,11 @@ function NewAdjustmentRecordModal(props) {
             encoder: transactionIssuer.name,
             proofs: fileUrls
         });
-        //update stockcard.qty function
         updateQuantity()
-        updateSalesDocNum() //update variables.salesDocNum function
+        updateAdjDocNum() 
         props.onHide()
     }
-
-    //update stockcard.qty function
-    function updateQuantity() {
-        items.map((items) => {
-            const stockcardRef = doc(db, "stockcard", items.itemId);
-            updateDoc(stockcardRef, {
-                qty: items.itemNewQuantity,
-            });
-
-        })
-    }
-
-
-    //update variables.salesDocNum function
-    function updateSalesDocNum() {
-        const userDocRef = doc(db, "user", userProfileID)
-        const newData = { adjustmentId: Number(adjustmentCounter) + 1 }
-
-        updateDoc(userDocRef, newData)
-    }
-
-    const uploadFile = () => {
-        if (fileUpload == null) return;
-        Array.from(fileUpload).map((file, index)=>{
-          uploadBytes(ref(st, `${userID}/adjustment_record/${createFormat().substring(0,7)}-${index}`), file).then((snapshot) => {
-            getDownloadURL(snapshot.ref).then((url) => {
-              setFileUrls((prev) => [...prev, {name: file["name"], url: url}]);
-            });
-          });
-        })
-
-        setImageIndex(0)
-        setReachedStart(true)
-        if(fileUrls.length == 1)
-        {
-            setReachedEnd(true)
-        }
-        else
-        {
-            setReachedEnd(false)
-        }
-
-    };
-
-    const changeImage = (action) => {
-        var temp_image_index = imageIndex
-
-        if(action == "next")
-        {
-            temp_image_index = temp_image_index + 1
-        }
-        else
-        {
-            temp_image_index = temp_image_index - 1
-        }
-        if(temp_image_index <= 0)
-        {
-            setImageIndex(0)
-            setReachedStart(true)
-        }
-        else if(temp_image_index >= fileUrls.length - 1)
-        {
-            setImageIndex(fileUrls.length - 1)
-            setReachedEnd(true)
-        }
-        else
-        {
-            setImageIndex(temp_image_index)
-            setReachedStart(false)
-            setReachedEnd(false)
-        }
-    }
-
-    useEffect(() => {
-        if(fileUrls === undefined || fileUrls.length == 0)
-        {
-
-        }
-        else
-        {
-            setKey(fileUrls[0])
-        }
-    }, [fileUrls])
-    //----------------------End of addRecord functions----------------------
-
-
-    useEffect(() => {
-        if (user) {
-            setUserID(user.uid)
-        }
-    }, [{ user }])
-
-
-
-    //access stockcard document
-    useEffect(() => {
-        async function readStockcardDoc() {
-            const stockcardRef = doc(db, "stockcard", itemId)
-            const docSnap = await getDoc(stockcardRef)
-            if (docSnap.exists()) {
-                setStockcardDoc(docSnap.data());
-            }
-        }
-        readStockcardDoc()
-    }, [itemId])
-
+//=============================== END OF DATABASE WRITERS ================================
 
     return (
         <Modal
@@ -413,7 +370,6 @@ function NewAdjustmentRecordModal(props) {
                 draggable
                 pauseOnHover
             />
-
             <Modal.Body >
                 <div className="px-3 py-2">
                     <div className="module-header mb-4">
@@ -424,7 +380,7 @@ function NewAdjustmentRecordModal(props) {
                             <div className="row my-2 mb-3">
                                 <div className='col-12 ps-4'>
                                     <label>Transaction Number</label>
-                                    <input 
+                                    <input
                                         type="text"
                                         readOnly
                                         className="form-control shadow-none no-click"
@@ -437,7 +393,7 @@ function NewAdjustmentRecordModal(props) {
                                 <div className='col-12 ps-4'>
                                     <label>
                                         Date
-                                        <span style={{color: '#b42525'}}> *</span>
+                                        <span style={{ color: '#b42525' }}> *</span>
                                     </label>
                                     <input
                                         type='date'
@@ -452,9 +408,9 @@ function NewAdjustmentRecordModal(props) {
                                 <div className='col-12 ps-4'>
                                     <label>
                                         Checker
-                                        <span style={{color: '#b42525'}}> *</span>
+                                        <span style={{ color: '#b42525' }}> *</span>
                                     </label>
-                                    <input 
+                                    <input
                                         type="text"
                                         required
                                         className="form-control shadow-none"
@@ -477,8 +433,7 @@ function NewAdjustmentRecordModal(props) {
                             </div>
                         </div>
                         <div className="col-6">
-
-                        <div className="row h-100 mx-0 my-2 mb-3 p-3 item-adding-container align-items-start">
+                            <div className="row h-100 mx-0 my-2 mb-3 p-3 item-adding-container align-items-start">
                                 <div className="row m-0 p-0">
                                     <div className='col-12 text-center mb-2'>
                                         <h5><strong>Adjustment List</strong></h5>
@@ -509,7 +464,7 @@ function NewAdjustmentRecordModal(props) {
                                                     placeholder='Quantity'
                                                     type='number'
                                                     value={itemQuantity}
-                                                    min={itemCurrentQuantity*-1}
+                                                    min={itemCurrentQuantity * -1}
                                                     onChange={e => setItemQuantity(e.target.value)}
                                                 />
                                             </div>
@@ -542,7 +497,7 @@ function NewAdjustmentRecordModal(props) {
                                                             <td>
                                                                 {item.itemId === undefined ?
                                                                     <></>
-                                                                    :
+                                                                :
                                                                     <>
                                                                         {item.itemId.substring(0, 9)}
                                                                     </>
@@ -580,38 +535,38 @@ function NewAdjustmentRecordModal(props) {
                                         className="form-control"
                                         multiple
                                         onChange={(event) => {
-                                          filterFileUpload(event.target.files);
-                                          setFileUrls([])
-                                          setUploading(false);
-                                          setUploadFinished(false);
+                                            filterFileUpload(event.target.files);
+                                            setFileUrls([])
+                                            setUploading(false);
+                                            setUploadFinished(false);
                                         }}
-                                      />
+                                    />
                                 </div>
                                 <div className="col-2 m-0 p-1">
-                                      <Button
+                                    <Button
                                         type="button"
                                         className="form-control"
                                         data-title="Upload"
                                         disabled={fileUpload.length == 0 || uploading || uploadFinished}
-                                        onClick={()=>{setUploadFinished(false);setUploading(true);uploadFile()}}
-                                      >
-                                        {uploading?
-                                          <Spinner 
-                                            color1="#fff"
-                                            color2="#fff"
-                                            textColor="rgba(0,0,0,0)"
-                                            className="w-100 h-100 my-1"
-                                          />
-                                        :
-                                        <>
-                                          {uploadFinished?
-                                              <FontAwesomeIcon icon={faCheck}/>
-                                          :
-                                            <FontAwesomeIcon icon={faUpload}/>
-                                          }
-                                        </>
+                                        onClick={() => { setUploadFinished(false); setUploading(true); uploadFile() }}
+                                    >
+                                        {uploading ?
+                                            <Spinner
+                                                color1="#fff"
+                                                color2="#fff"
+                                                textColor="rgba(0,0,0,0)"
+                                                className="w-100 h-100 my-1"
+                                            />
+                                            :
+                                            <>
+                                                {uploadFinished ?
+                                                    <FontAwesomeIcon icon={faCheck} />
+                                                :
+                                                    <FontAwesomeIcon icon={faUpload} />
+                                                }
+                                            </>
                                         }
-                                        </Button>
+                                    </Button>
                                 </div>
                             </div>
                             <div className="row h-75 px-3 py-1">
@@ -625,13 +580,13 @@ function NewAdjustmentRecordModal(props) {
                                                 <Tab.Pane eventKey='main'>
                                                     <div className="row h-100 align-items-center justify-content-center flex-row">
                                                         <div className="col-1">
-                                                            <FontAwesomeIcon icon={faCaretLeft}/>
+                                                            <FontAwesomeIcon icon={faCaretLeft} />
                                                         </div>
                                                         <div className="col-10 h-100 ">
-                                                            
+
                                                         </div>
                                                         <div className="col-1">
-                                                            <FontAwesomeIcon icon={faCaretRight}/>
+                                                            <FontAwesomeIcon icon={faCaretRight} />
                                                         </div>
                                                     </div>
                                                     <div className="row h-100 align-items-center justify-content-center flex-row">
@@ -640,42 +595,41 @@ function NewAdjustmentRecordModal(props) {
                                                         </div>
                                                     </div>
                                                 </Tab.Pane>
-                                                {fileUrls === undefined || fileUrls.length == 0 || imageIndex === undefined?
+                                                {fileUrls === undefined || fileUrls.length == 0 || imageIndex === undefined ?
                                                     <></>
                                                 :
-                                                <Tab.Pane 
-                                                    eventKey={fileUrls[imageIndex]}
-                                                    style={{display: "inline-block", height: "100%"}}
-                                                >
-                                                    <div className="row py-3 h-100 align-items-center justify-content-center flex-row">
-                                                        <div className="col-1">
-                                                            <button
-                                                                className={"plain-button " + (reachedStart?"no-click disabled":"")}
-                                                                onClick={()=>{changeImage("prev")}}
-                                                                style={reachedStart?{color: "#808080"}:{}}
-                                                            >
-                                                                <FontAwesomeIcon icon={faCaretLeft}/>
-                                                            </button>
+                                                    <Tab.Pane
+                                                        eventKey={fileUrls[imageIndex]}
+                                                        style={{ display: "inline-block", height: "100%" }}
+                                                    >
+                                                        <div className="row py-3 h-100 align-items-center justify-content-center flex-row">
+                                                            <div className="col-1">
+                                                                <button
+                                                                    className={"plain-button " + (reachedStart ? "no-click disabled" : "")}
+                                                                    onClick={() => { changeImage("prev") }}
+                                                                    style={reachedStart ? { color: "#808080" } : {}}
+                                                                >
+                                                                    <FontAwesomeIcon icon={faCaretLeft} />
+                                                                </button>
+                                                            </div>
+                                                            <div className="col-10 h-100 ">
+                                                                <h6 className="text-center">{fileUrls[imageIndex].name}</h6>
+                                                            </div>
+                                                            <div className="col-1">
+                                                                <button
+                                                                    className={"plain-button " + (reachedEnd ? "no-click disabled" : "")}
+                                                                    onClick={() => { changeImage("next") }}
+                                                                >
+                                                                    <FontAwesomeIcon icon={faCaretRight} />
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        <div className="col-10 h-100 ">
-                                                            <h6 className="text-center">{fileUrls[imageIndex].name}</h6>
+                                                        <div className="row py-3 h-100 align-items-center justify-content-center flex-row">
+                                                            <div className="col-12 h-100 d-flex align-items-center justify-content-center">
+                                                                <img src={fileUrls[imageIndex].url} style={{ height: 'auto', width: '100%', objectFit: "contain" }} />;
+                                                            </div>
                                                         </div>
-                                                        <div className="col-1">
-                                                            <button
-                                                                className={"plain-button " + (reachedEnd?"no-click disabled":"")}
-                                                                onClick={()=>{changeImage("next")}}
-                                                            >
-                                                                <FontAwesomeIcon icon={faCaretRight}/>
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="row py-3 h-100 align-items-center justify-content-center flex-row">
-                                                        <div className="col-12 h-100 d-flex align-items-center justify-content-center">
-                                                            <img src={fileUrls[imageIndex].url} style={{height: 'auto', width: '100%', objectFit: "contain"}}/>;
-                                                        </div>
-                                                    </div>
-                                                </Tab.Pane>
-
+                                                    </Tab.Pane>
                                                 }
                                             </Tab.Content>
                                         </div>

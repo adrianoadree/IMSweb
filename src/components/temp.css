@@ -1,0 +1,39 @@
+
+
+#verification-page {
+	width: 100vw !important;
+	height: 100vh !important;
+}
+
+#verification-page #contents {
+	background: linear-gradient(30deg, rgba(242, 247, 255, 1) -300%, rgba(255, 255, 255, 1) 100%);
+	border-radius: 20px;
+	border: 1px solid #8400ff25;
+	border-top: 20px solid #0d6efd !important;
+	box-shadow: 0 4px 5px 1px #1e05ff36;
+
+	font-size: 18pt;
+	text-align: center;
+}
+
+#verification-page h1 {
+	font-size: 2.5em;
+	font-weight: 600;
+}
+
+#verification-page small {
+	font-size: 0.6em;
+	color: #8f8f8f;
+	letter-spacing: 0.1em;
+}
+
+#verification-page #add-border {
+	width: 100%;
+	height: 100%;
+	padding: 25px !important;
+	
+	border-top: 10px solid #c2daff !important;
+	border-bottom: 10px solid #86b6ff !important;
+	border-bottom-left-radius: 20px;
+	border-bottom-right-radius: 20px;
+}

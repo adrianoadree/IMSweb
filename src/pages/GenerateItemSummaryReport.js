@@ -3,25 +3,21 @@ import { Link } from 'react-router-dom';
 import { db } from '../firebase-config';
 import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
-import { UserAuth } from '../context/AuthContext';
-import UserRouter from '../pages/UserRouter';
-import Navigation from '../layout/Navigation';
-
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'
 import html2canvas from 'html2canvas';
 import moment from "moment";
 
+import { UserAuth } from '../context/AuthContext';
+import UserRouter from '../pages/UserRouter';
+import Tips from '../components/Tips';
 
 import { Tab, Table, Card, Button, Nav} from 'react-bootstrap';
-import FormControl from "react-bootstrap/FormControl";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFileDownload } from '@fortawesome/free-solid-svg-icons';
 import { Spinner } from 'loading-animations-react';
 
 function GenerateItemSummaryReport() {
-
-  //---------------------VARIABLES---------------------
   const { user } = UserAuth();//user credentials
   const [userID, setUserID] = useState("");
   const [userCollection, setUserCollection] = useState([]);// user collection variable
@@ -32,19 +28,17 @@ function GenerateItemSummaryReport() {
   const [purchaseRecordCollection, setPurchaseRecordCollection] = useState([])
   const [salesRecordCollection, setSalesRecordCollection] = useState([])
 
-  const [classification, setClassification] = useState("All")//classification filter
-  const [category, setCategory] = useState("All")// category filter
-  const [itemList, setItemList] = useState()// product list that satisfied filters
-
   var curr_date = new Date(); // get current date
   curr_date.setDate(curr_date.getDate());
   var today = curr_date
   var today_filter = moment(curr_date).format('YYYY-MM-DD')
-
-  
+  const [classification, setClassification] = useState("All") // classification filter
+  const [category, setCategory] = useState("All") // category filter
   const [filterDateEnd, setFilterDateEnd] = useState(today_filter); // end date filter
   const [filterDateStart, setFilterDateStart] = useState("2001-01-01"); // start date filter
+  const [itemList, setItemList] = useState() // product list that satisfied filters
 
+  //=============================== START OF STATE LISTENERS ===============================
   // get user id
   useEffect(() => {
     if (user) {
@@ -69,7 +63,6 @@ function GenerateItemSummaryReport() {
         setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
       );
       return unsub;
-
     }
   }, [userID])
   
@@ -93,6 +86,7 @@ function GenerateItemSummaryReport() {
     }
   }, [userID])
 
+  // fetch purchase collection
   useEffect(() => {
     if (userID !== undefined) {
       const collectionRef = collection(db, "purchase_record")
@@ -105,6 +99,7 @@ function GenerateItemSummaryReport() {
     }
   }, [userID])
 
+  // fetch sales collection
   useEffect(() => {
     if (userID !== undefined) {
       const collectionRef = collection(db, "sales_record")
@@ -118,7 +113,7 @@ function GenerateItemSummaryReport() {
 
   }, [userID])
 
-  // initializr product list
+  // initialize product list
   useEffect(() => {
     if(stockcardCollection === undefined)
     {
@@ -130,8 +125,7 @@ function GenerateItemSummaryReport() {
     }
   }, [stockcardCollection])
 
-  // filter change listeners
-
+  // listen to filter changes
   useEffect(() => {
     if(stockcardCollection === undefined)
     {
@@ -142,7 +136,9 @@ function GenerateItemSummaryReport() {
       handleFilterChange()
     }
   }, [classification, category])
+  //================================ END OF STATE LISTENERS ================================
 
+  //=================================== START OF HANDLERS ==================================
   // update item list according to filter
   const handleFilterChange = () => {
     var temp_item_list = []
@@ -337,12 +333,14 @@ function GenerateItemSummaryReport() {
     // make doc downloadable
     doc.save(filename)
   }
+  //=================================== END OF HANDLERS ==================================
+
   return (
     <div>
       <UserRouter
         route=''
       />
-      <Navigation 
+      <Tips 
         page="/reports"
       />
       <Tab.Container

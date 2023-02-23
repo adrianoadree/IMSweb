@@ -1,129 +1,121 @@
 import React, { useEffect, useState } from 'react';
-import { GoogleButton } from 'react-google-button';
-import { UserAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom'
-import { Button } from 'react-bootstrap';
 import { db } from "../firebase-config";
-import { collection, onSnapshot, query, doc, getDoc, deleteDoc, where, orderBy } from "firebase/firestore";
-import { property } from 'lodash';
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+
+import { UserAuth } from '../context/AuthContext';
 
 function UserRouter(props) {
-    const navigate = useNavigate();
-    const { user } = UserAuth();//user credentials
-    const [userID, setUserID] = useState("");
-    const [userCollection, setUserCollection] = useState([]);
-    const [first, setFirst] = useState({});
-    const [width, setWidth] = useState(window.innerWidth);
-  
-  
-    //---------------------FUNCTIONS---------------------
-  
-    function handleWindowSizeChange() {
-      setWidth(window.innerWidth);
+  const navigate = useNavigate(); // navigation module
+
+  const { user } = UserAuth(); // user credentials
+  const [userCollection, setUserCollection] = useState([]); // user collection
+  const [userID, setUserID] = useState(""); // user id
+  const [first, setFirst] = useState({}); // user profile
+
+  const [width, setWidth] = useState(window.innerWidth); // window width
+  const isMobile = width <= 768; // criteria for mobile screen size
+
+  // set user id
+  useEffect(() => {
+    if (user) {
+      setUserID(user.uid)
     }
-    useEffect(() => {
-        window.addEventListener('resize', handleWindowSizeChange);
-        return () => {
-            window.removeEventListener('resize', handleWindowSizeChange);
-        }
-    }, []);
-    
-    const isMobile = width <= 768;
+  }, [{ user }])
 
-    useEffect(() => {
-      if (user) {
-        setUserID(user.uid)
-      }
-    }, [{ user }])
-    
-    //read Functions
+  // fetch user collection
+  useEffect(() => {
+    if (userID === undefined) {
+      const userCollectionRef = collection(db, "user")
+      const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
 
-    useEffect(() => {
-      if (userID === undefined) {
-        const userCollectionRef = collection(db, "user")
-        const q = query(userCollectionRef, where("user", "==", "DONOTDELETE"));
-      
-        const unsub = onSnapshot(q, (snapshot) =>
-          setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+    else {
+      const userCollectionRef = collection(db, "user")
+      const q = query(userCollectionRef, where("user", "==", userID));
+
+      const unsub = onSnapshot(q, (snapshot) =>
+        setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
+      );
+      return unsub;
+    }
+  }, [userID])
+
+  // assign user profile
+  useEffect(() => {
+    if (userCollection == null) {
+
+    }
+    else {
+      setFirst(userCollection[0]);
+    }
+  }, [userCollection])
+
+  // listen to window width change
+  useEffect(() => {
+    window.addEventListener('resize', handleWindowSizeChange);
+    return () => {
+      window.removeEventListener('resize', handleWindowSizeChange);
+    }
+  }, []);
+
+  // navigate to pages
+  useEffect(() => {
+    if (isMobile) {
+      navigate('/mobile')
+    }
+    else {
+      if (first === undefined) {
+
       }
       else {
-        const userCollectionRef = collection(db, "user")
-        const q = query(userCollectionRef, where("user", "==", userID));
-    
-        const unsub = onSnapshot(q, (snapshot) =>
-          setUserCollection(snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-        );
-        return unsub;
-      }
-    }, [userID])
-  
-    useEffect(() => {
-      if (userCollection == null) {
-            
-      }
-      else {
-        setFirst(userCollection[0]);
-      }
-    }, [userCollection])
-
-    useEffect(() => {
-      if(isMobile)
-      {
-        navigate('/mobile')
-      }
-      else
-      {
-        if ( first === undefined ) {
-    
-        }
-        else
-        {
-          if (first.isNew) {
-            if ( first.status == 'inVerification' ) {
-              if ( props.route == '/verify' ) {
-                //do nothing to prevent looping
-              }
-              else
-              {
-                navigate('/verify');
-              }
+        if (first.isNew) {
+          if (first.status == 'inVerification') {
+            if (props.route == '/verify') {
+              //do nothing to prevent looping
             }
-            else if ( first.status == 'verified' )
-            {
-              if ( props.route == '/warehouse' ) {
-                //do nothing to prevent looping
-              }
-              else
-              {
-                navigate('/warehouse');
-              }
-            }
-            else if( first.status == 'new' ){
-              if ( props.route == '/profileManagement' ) {
-                //do nothing to prevent looping
-              }
-              else
-              {
-                navigate('/profileManagement');
-              }
-            }
-            else
-            {
-              
+            else {
+              navigate('/verify');
             }
           }
-          else if ( props.route == undefined ) {
-            navigate('/home');
+          else if (first.status == 'verified') {
+            if (props.route == '/warehouse') {
+              //do nothing to prevent looping
+            }
+            else {
+              navigate('/warehouse');
+            }
+          }
+          else if (first.status == 'new') {
+            if (props.route == '/profileManagement') {
+              //do nothing to prevent looping
+            }
+            else {
+              navigate('/profileManagement');
+            }
+          }
+          else {
+
           }
         }
-
+        else if (props.route == undefined) {
+          navigate('/home');
+        }
       }
-    }, [first, isMobile])
-  
-    return (
-        <div></div>
-    );
     }
+  }, [first, isMobile])
+
+  // change window width on resize
+  function handleWindowSizeChange() {
+    setWidth(window.innerWidth);
+  }
+
+  return (
+    <div></div>
+  );
+}
 export default UserRouter; 

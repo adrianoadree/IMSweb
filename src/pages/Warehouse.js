@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tab, Button, ListGroup, Modal, Card, Table,FormControl,InputGroup} from 'react-bootstrap';
-import Navigation from '../layout/Navigation';
+import Tips from '../components/Tips';
 import { Link } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { db } from '../firebase-config';
@@ -2464,7 +2464,7 @@ return (
     <UserRouter
       route='/warehouse'
     />
-    <Navigation 
+    <Tips 
       page='/warehouse'
     />
     <ToastContainer

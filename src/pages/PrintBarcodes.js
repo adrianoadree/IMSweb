@@ -5,7 +5,7 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore';
 
 import { UserAuth } from '../context/AuthContext';
 import UserRouter from '../pages/UserRouter';
-import Navigation from '../layout/Navigation';
+import Tips from '../components/Tips';
 
 import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable'
@@ -245,7 +245,7 @@ function PrintBarcodes() {
       <UserRouter
         route=''
       />
-      <Navigation 
+      <Tips 
         page="/printbar"
       />
       <Tab.Container

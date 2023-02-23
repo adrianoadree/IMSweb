@@ -1,6 +1,6 @@
 import RPersoneact from 'react';
 import { Tab, Button, Card, ListGroup, Modal, Form, Alert, Nav, Table } from 'react-bootstrap';
-import Navigation from '../layout/Navigation';
+import Tips from '../components/Tips';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -624,7 +624,7 @@ function SupplierList() {
       <UserRouter
         route='/supplier'
       />
-      <Navigation 
+      <Tips 
         page="/supplier"
       />
 

@@ -6,7 +6,7 @@ import moment from "moment";
 
 import { UserAuth } from '../context/AuthContext';
 import UserRouter from '../pages/UserRouter'
-import Navigation from "../layout/Navigation";
+import Tips from "../components/Tips";
 
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -1091,7 +1091,7 @@ function LandingPage() {
             <UserRouter
                 route='/home'
             />
-            <Navigation
+            <Tips
                 page='/home'
             />
             <div id="contents" className="row" ref={contentsRef}>

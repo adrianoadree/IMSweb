@@ -1,33 +1,22 @@
 import React from 'react';
-import { Table, Form, Button, ListGroup, Card, Tab, FormControl, Accordion, Alert, InputGroup } from 'react-bootstrap';
-import Navigation from '../layout/Navigation';
 import { useState, useEffect } from 'react';
 import { db } from '../firebase-config';
-import { collection, onSnapshot, query, where, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
-import moment from 'moment';
-import "react-toastify/dist/ReactToastify.css";
-import { UserAuth } from '../context/AuthContext'
-import { faCircleInfo, faSearch, faTriangleExclamation, faPlus } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { DocumentAttach, Calendar, Document, InformationCircle } from 'react-ionicons'
-import { ChevronBack, ChevronForward, Exit, Enter } from 'react-ionicons'
-import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
-import ToolTip from 'react-bootstrap/Tooltip';
-import { LineChart, Line, XAxis, YAxis, ReferenceDot, Legend, Tooltip, Text, ReferenceLine, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
-import { Spinner } from 'loading-animations-react';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+
+import moment from 'moment';
+
+import { UserAuth } from '../context/AuthContext'
 import UserRouter from '../pages/UserRouter'
-
-
-
-
-
+import Tips from '../components/Tips';
+import { Button, ListGroup, Card, Tab, FormControl, InputGroup } from 'react-bootstrap';
+import { faCircleInfo, faSearch, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { ChevronBack, ChevronForward, InformationCircle } from 'react-ionicons'
+import { LineChart, Line, XAxis, YAxis, Legend, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts';
+import { Spinner } from 'loading-animations-react';
 
 function Itemforecast() {
-
-
-
-    //---------------------VARIABLES---------------------
     const [userID, setUserID] = useState("");
     const { user } = UserAuth();//user credentials
     const [docId, setDocId] = useState(); //document Id
@@ -40,23 +29,14 @@ function Itemforecast() {
     const [salesRecordCollection, setSalesRecordCollection] = useState(); // sales_record collection
 
     const [forecastingBoolean, setForecastingBoolean] = useState()
-    const [errorBoolean, setErrorBoolean] = useState(false)
 
     const [transactionDates, setTransactionDates] = useState()
     const [sortedTransactionDates, setSortedTransactionDates] = useState()
-    
+
     const [sidebarHidden, setSidebarHidden] = useState() // display/hide sidebar
     const [chartWidth, setCharWidth] = useState()
     const [safetyStockSelected, setSafetyStockSelected] = useState(false)
     const [reorderPointSelected, setReorderPointSelected] = useState(false)
-
-
-
-    const [i1, setI1] = useState()
-    const [i2, setI2] = useState()
-    const [i3, setI3] = useState()
-    const [i4, setI4] = useState()
-    const [i5, setI5] = useState()
 
     const [date1, setDate1] = useState()
     const [date2, setDate2] = useState()
@@ -99,7 +79,7 @@ function Itemforecast() {
             contents.classList.remove("sidebar-hidden")
         }
     },)
-    
+
     useEffect(() => {
         setCharWidth(getChartContainerWidth())
     }, [sidebarHidden])
@@ -517,14 +497,14 @@ function Itemforecast() {
         //compute for DOM dimensions for proportions
         var chart_container = document.getElementById("chart-container")
         if (
-          typeof chart_container === 'object' &&
-          !Array.isArray(chart_container) &&
-          chart_container !== null
+            typeof chart_container === 'object' &&
+            !Array.isArray(chart_container) &&
+            chart_container !== null
         ) {
-        var chartContainerWidth = getComputedStyle(chart_container);// get warehouse-map dimensions
-        var chartWidth = chart_container.clientWidth // get warehouse-map width
-        chartWidth -= parseFloat(chartContainerWidth.paddingLeft) + parseFloat(chartContainerWidth.paddingRight); // subtract padding dimensions from width
-        return chartWidth
+            var chartContainerWidth = getComputedStyle(chart_container);// get warehouse-map dimensions
+            var chartWidth = chart_container.clientWidth // get warehouse-map width
+            chartWidth -= parseFloat(chartContainerWidth.paddingLeft) + parseFloat(chartContainerWidth.paddingRight); // subtract padding dimensions from width
+            return chartWidth
         }
     }
 
@@ -569,12 +549,10 @@ function Itemforecast() {
             },
         ]
 
-        for(var i = 0; i < temp_projection_data.length; i++)
-        {   
+        for (var i = 0; i < temp_projection_data.length; i++) {
             console.log(temp_projection_data[i]["Projected Stock Level"])
-            if(temp_projection_data[i]["Projected Stock Level"] < stockcard[docId].analytics.reorderPoint)
-            {
-                temp_projection_data.splice(i, 0, {date: moment(stockcard[docId].analytics.dateReorderPoint).format("LL"), "Reorder Point": stockcard[docId].analytics.reorderPoint, "Projected Stock Level": stockcard[docId].analytics.reorderPoint})
+            if (temp_projection_data[i]["Projected Stock Level"] < stockcard[docId].analytics.reorderPoint) {
+                temp_projection_data.splice(i, 0, { date: moment(stockcard[docId].analytics.dateReorderPoint).format("LL"), "Reorder Point": stockcard[docId].analytics.reorderPoint, "Projected Stock Level": stockcard[docId].analytics.reorderPoint })
                 console.log("yes")
                 break;
             }
@@ -588,7 +566,7 @@ function Itemforecast() {
         if (stockcard !== undefined) {
             return (
                 stockcard[docId].analytics.leadtimeMaximum !== 0 ?
-                        <div>
+                    <div>
                         <div id="analytics-stats" className="d-flex mt-3 px-4 py-3 bg-white flex-row">
                             {/*
                             <hr />
@@ -644,13 +622,13 @@ function Itemforecast() {
                                     <span className="text-muted ms-1" style={{ fontSize: "0.75em" }}>unit(s)</span>
                                 </div>
                             </div>
-                            <div 
+                            <div
                                 className="analytics-numbers clickable"
-                                onClick={()=>{
+                                onClick={() => {
                                     setSafetyStockSelected(true);
                                     setTimeout(function () {
                                         setSafetyStockSelected(false)
-                                      }, 2500)
+                                    }, 2500)
                                 }}
                             >
                                 <small>
@@ -661,7 +639,7 @@ function Itemforecast() {
                                         className="ms-2"
                                         data-title="The extra quantity of a product kept in storage to prevent stockouts."
                                     >
-                                        <FontAwesomeIcon icon={faCircleInfo}/>
+                                        <FontAwesomeIcon icon={faCircleInfo} />
                                     </a>
                                 </small>
                                 <div className="d-flex align-items-baseline justify-content-start">
@@ -670,11 +648,11 @@ function Itemforecast() {
                                 </div>
                             </div>
                             <div className="analytics-numbers clickable"
-                                onClick={()=>{
+                                onClick={() => {
                                     setReorderPointSelected(true);
                                     setTimeout(function () {
                                         setReorderPointSelected(false)
-                                      }, 2000)
+                                    }, 2000)
                                 }}>
                                 <small>
                                     <span className="IMS-text-muted" style={{ color: '#004517' }}>
@@ -684,7 +662,7 @@ function Itemforecast() {
                                         className="ms-2"
                                         data-title="The specific level at which the product's stock needs to be replenished."
                                     >
-                                        <FontAwesomeIcon icon={faCircleInfo}/>
+                                        <FontAwesomeIcon icon={faCircleInfo} />
                                     </a>
                                 </small>
                                 <div className="d-flex align-items-baseline justify-content-start">
@@ -693,11 +671,11 @@ function Itemforecast() {
                                 </div>
                             </div>
                             <div className="analytics-numbers clickable"
-                                onClick={()=>{
+                                onClick={() => {
                                     setReorderPointSelected(true);
                                     setTimeout(function () {
                                         setReorderPointSelected(false)
-                                      }, 2000)
+                                    }, 2000)
                                 }}>
                                 <small>
                                     <span className="IMS-text-muted" style={{ color: '#4f6e00' }}>
@@ -707,11 +685,11 @@ function Itemforecast() {
                                         className="ms-2"
                                         data-title="The day where the the product's stocks needs to be replenished."
                                     >
-                                        <FontAwesomeIcon icon={faCircleInfo}/>
+                                        <FontAwesomeIcon icon={faCircleInfo} />
                                     </a>
                                 </small>
                                 <div className="d-flex align-items-baseline justify-content-start">
-                                    <h2 style={{color: "#9fde00"}}><strong>{moment(stockcard[docId].analytics.dateReorderPoint).format("MMM DD")}</strong></h2>
+                                    <h2 style={{ color: "#9fde00" }}><strong>{moment(stockcard[docId].analytics.dateReorderPoint).format("MMM DD")}</strong></h2>
                                     <span className="text-muted ms-1" style={{ fontSize: "0.75em" }}>{moment(stockcard[docId].analytics.dateReorderPoint).format("YYYY")}</span>
                                 </div>
                             </div>
@@ -738,8 +716,8 @@ function Itemforecast() {
                                 </div>
                             </div>
                         </div>
-                            <div id="analytics-linechart" className='row mt-3'>
-                            <ResponsiveContainer width={(chartWidth === undefined?700:chartWidth)} height={500}>
+                        <div id="analytics-linechart" className='row mt-3'>
+                            <ResponsiveContainer width={(chartWidth === undefined ? 700 : chartWidth)} height={500}>
                                 <LineChart
                                     data={getData()}
                                     margin={{ top: 30, right: 20, left: 10, bottom: 5 }}
@@ -749,8 +727,8 @@ function Itemforecast() {
 
                                     <ReferenceLine
                                         y={stockcard[docId].min_qty}
-                                        label={{ value: 'Minimum Quantity', position: 'insideBottomRight', textAnchor: 'middle', letterSpacing: "0.15em", offset: "10"}}
-                                        stroke="#26262680" strokeDasharray="3 3" 
+                                        label={{ value: 'Minimum Quantity', position: 'insideBottomRight', textAnchor: 'middle', letterSpacing: "0.15em", offset: "10" }}
+                                        stroke="#26262680" strokeDasharray="3 3"
                                     />
                                     <ReferenceLine
                                         y={stockcard[docId].max_qty}
@@ -765,9 +743,9 @@ function Itemforecast() {
                                         strokeWidth={3}
                                     /> */}
                                     <ReferenceLine
-                                        className={safetyStockSelected?"safety-stock-selected":""}
+                                        className={safetyStockSelected ? "safety-stock-selected" : ""}
                                         y={stockcard[docId].analytics.safetyStock}
-                                        label={{ value: 'Safety Stock', position: 'insideBottomRight', textAnchor: 'middle', letterSpacing: "0.15em", fill: "#ff9900", fontWeight: "700", offset: "10"}}
+                                        label={{ value: 'Safety Stock', position: 'insideBottomRight', textAnchor: 'middle', letterSpacing: "0.15em", fill: "#ff9900", fontWeight: "700", offset: "10" }}
                                         stroke="#ff9900b3"
                                         strokeDasharray="3 3"
                                     />
@@ -778,7 +756,7 @@ function Itemforecast() {
                                         dot={{ stroke: '#ff0000', strokeWidth: 1, r: 3, strokeDasharray: '' }}
                                     />
                                     <Line
-                                        className={reorderPointSelected?"reorder-point-selected":""}
+                                        className={reorderPointSelected ? "reorder-point-selected" : ""}
                                         type="monotone"
                                         dataKey="Reorder Point"
                                         stroke="#009933"
@@ -792,41 +770,41 @@ function Itemforecast() {
                                         stroke="#0066ff"
                                         dot={{ stroke: '#0066ff', strokeWidth: 1, r: 3, strokeDasharray: '' }}
                                     />
-                                    <YAxis 
+                                    <YAxis
                                         label={{ value: 'Stock Level', angle: -90, position: 'insideLeft', textAnchor: 'middle' }}
                                     />
-                                    <Legend 
-                                        margin={{right: 30, left: 30, top: 20, bottom: 20}}
+                                    <Legend
+                                        margin={{ right: 30, left: 30, top: 20, bottom: 20 }}
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
-                            </div>
+                        </div>
 
-                        </div >
+                    </div >
 
                     :
                     <div className='mt-2 p-3'>
-                <div className="red-strip left-full-curve right-full-curve p-3">
-                    <div className="d-flex align-items-center justify-content-center flex-column">
-                        <InformationCircle
-                            color={'#cd4a4a'}
-                            height="40px"
-                            width="40px"
-                            className="mb-2"
-                        />
-                        <p className="text-center px-5">
-                            <div className="mb-2">
-                            Forecasting only works when the product's <strong>leadtime</strong> has been set.
-                            </div>
+                        <div className="red-strip left-full-curve right-full-curve p-3">
+                            <div className="d-flex align-items-center justify-content-center flex-column">
+                                <InformationCircle
+                                    color={'#cd4a4a'}
+                                    height="40px"
+                                    width="40px"
+                                    className="mb-2"
+                                />
+                                <p className="text-center px-5">
+                                    <div className="mb-2">
+                                        Forecasting only works when the product's <strong>leadtime</strong> has been set.
+                                    </div>
 
-                            <small>
-                                <span>To set product leadtime go to </span>
-                                <Link to="/stockcard">Stockcard Page</Link>
-                            </small>
-                        </p>
+                                    <small>
+                                        <span>To set product leadtime go to </span>
+                                        <Link to="/stockcard">Stockcard Page</Link>
+                                    </small>
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
 
 
@@ -876,7 +854,7 @@ function Itemforecast() {
             <UserRouter
                 route='/analytics'
             />
-            <Navigation
+            <Tips
                 page="/analytics"
             />
 
@@ -1093,24 +1071,24 @@ function Itemforecast() {
                                                 </div>
                                                 <div className="row m-0 p-0">
 
-                                                {stockcard === undefined ?
-                                                <Spinner
-                                                    color1="#b0e4ff"
-                                                    color2="#fff"
-                                                    textColor="rgba(0,0,0, 0.5)"
-                                                    className="w-50 h-50"
-                                                />
-                                                :
-                                                <div id="chart-container" className="w-100">
-                                                    {
-                                                stockcard[docId].analytics.analyticsBoolean ?
-                                                    displayAccordion()
-                                                    :
-                                                    displayChartError()
+                                                    {stockcard === undefined ?
+                                                        <Spinner
+                                                            color1="#b0e4ff"
+                                                            color2="#fff"
+                                                            textColor="rgba(0,0,0, 0.5)"
+                                                            className="w-50 h-50"
+                                                        />
+                                                        :
+                                                        <div id="chart-container" className="w-100">
+                                                            {
+                                                                stockcard[docId].analytics.analyticsBoolean ?
+                                                                    displayAccordion()
+                                                                    :
+                                                                    displayChartError()
 
+                                                            }
+                                                        </div>
                                                     }
-                                                </div>
-                                            }
                                                 </div>
                                             </div>
 
@@ -1125,8 +1103,6 @@ function Itemforecast() {
             </Tab.Container >
         </div >
     );
-
-
 }
 
 export default Itemforecast;

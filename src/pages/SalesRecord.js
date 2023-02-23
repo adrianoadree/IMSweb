@@ -1,4 +1,4 @@
-import Navigation from "../layout/Navigation";
+import Tips from "../components/Tips";
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from "react";
 import { db } from "../firebase-config";
@@ -412,7 +412,7 @@ const toDate = (keyword_in_date) => {
       <UserRouter
         route='/salesrecord'
       />
-      <Navigation
+      <Tips
         page='/sales'
       />
       <ProductQuickView

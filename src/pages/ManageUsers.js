@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer, toast } from "react-toastify";
 
 import { UserAuth } from '../context/AuthContext';
-import Navigation from '../layout/Navigation';
+import Tips from '../components/Tips';
 import ModRouter from '../pages/ModRouter';
 
 function ManageUsers() {
@@ -85,7 +85,7 @@ function ManageUsers() {
       <ModRouter
         route="/manageusers"
       />
-      <Navigation />
+      <Tips />
       <ToastContainer
         newestOnTop={false}
         rtl={false}

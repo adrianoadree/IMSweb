@@ -1,25 +1,23 @@
 import React from 'react';
-import { UserAuth } from '../context/AuthContext';
 
-import Navigation from '../layout/Navigation';
-import  UserRouter  from '../pages/UserRouter'
+import { UserAuth } from '../context/AuthContext';
+import UserRouter from '../pages/UserRouter'
+import Tips from '../components/Tips';
 
 const VerificationMessage = () => {
-
-    const { user} = UserAuth(); // user data
-
+    const { user } = UserAuth(); // user credentials
     return (
         <div>
             <UserRouter
                 route='/verify'
             />
-            <Navigation
+            <Tips
                 page='/verify'
             />
             <div id="verification-page" className="pt-5 h-100">
                 <div className="px-5 pt-5 h-75 d-flex align-items-center justify-content-center">
                     <div id="contents" className="px-0 w-auto h-100 d-flex align-items-center justify-content-center">
-                        <div id="add-border" className="d-flex align-items-center justify-content-center">           
+                        <div id="add-border" className="d-flex align-items-center justify-content-center">
                             <div className="module-container d-flex align-items-center justify-content-center flex-column">
                                 <h2 className="py-4">
                                     <strong>
@@ -40,5 +38,6 @@ const VerificationMessage = () => {
             </div>
         </div>
     );
-    }
+}
+
 export default VerificationMessage; 
